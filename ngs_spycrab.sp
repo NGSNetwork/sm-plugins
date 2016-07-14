@@ -1,23 +1,23 @@
 #include <sdktools>
 #include <sourcemod>
-#define VERSION "1.0"
+#define PLUGIN_VERSION "1.0"
 
 //-------------------------------------------------------------------------------------------------
 public Plugin myinfo = {
-	name = "spy crab event",
+	name = "[NGS] Spy Crab Event Creator",
 	author = "caty",
 	description = "Use this command to start a spycrab event.",
-	version = VERSION,
-	url = "matespastdates.servegame.com"
+	version = PLUGIN_VERSION,
+	url = "https://matespastdates.servegame.com"
 };
 
 public void OnPluginStart()
 {
 	RegConsoleCmd("sm_spycrab_red", cmd_spycrab_blu, "starts and ends a spycrab");
-	RegConsoleCmd("sm_spycrab_blu", cmd_spycrab_red, "starts and end a spycrab" )
+	RegConsoleCmd("sm_spycrab_blu", cmd_spycrab_red, "starts and ends a spycrab" )
 }
 
-public Action cmd_spycrab_red(client, args)
+public Action cmd_spycrab_red(int client, int args)
 {
 	if(client == 0 || !IsClientInGame(client) || GetClientTeam(client) <= 1 || !IsPlayerAlive(client))
 	{
@@ -40,7 +40,7 @@ public Action cmd_spycrab_red(client, args)
 	}
 }
 
-public Action cmd_spycrab_blu(client, args)
+public Action cmd_spycrab_blu(int client, int args)
 {
 	if(client == 0 || !IsClientInGame(client) || GetClientTeam(client) <= 1 || !IsPlayerAlive(client))
 	{

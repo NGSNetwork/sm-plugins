@@ -1,3 +1,6 @@
+#pragma newdecls required
+#pragma semicolon 1
+
 #include <sdktools>
 #include <sourcemod>
 #define PLUGIN_VERSION "1.0"
@@ -9,12 +12,12 @@ public Plugin myinfo = {
 	description = "Use this command to start a spycrab event.",
 	version = PLUGIN_VERSION,
 	url = "https://matespastdates.servegame.com"
-};
+}
 
 public void OnPluginStart()
 {
 	RegConsoleCmd("sm_spycrab_red", cmd_spycrab_blu, "starts and ends a spycrab");
-	RegConsoleCmd("sm_spycrab_blu", cmd_spycrab_red, "starts and ends a spycrab" )
+	RegConsoleCmd("sm_spycrab_blu", cmd_spycrab_red, "starts and ends a spycrab");
 }
 
 public Action cmd_spycrab_red(int client, int args)
@@ -38,6 +41,7 @@ public Action cmd_spycrab_red(int client, int args)
 	
 	return Plugin_Handled;
 	}
+	return Plugin_Handled;
 }
 
 public Action cmd_spycrab_blu(int client, int args)
@@ -49,14 +53,14 @@ public Action cmd_spycrab_blu(int client, int args)
 	}
 	if(GetClientTeam(client) <= 0)
 	{
-	
-	float spyorigin[3];
-	spyorigin[0] = 3099.921143;
-	spyorigin[1] = 1179.364258;
-	spyorigin[2] = 651.031311;
-	
-	TeleportEntity(client, spyorigin, NULL_VECTOR, NULL_VECTOR);
-	
-	return Plugin_Handled;
+		float spyorigin[3];
+		spyorigin[0] = 3099.921143;
+		spyorigin[1] = 1179.364258;
+		spyorigin[2] = 651.031311;
+		
+		TeleportEntity(client, spyorigin, NULL_VECTOR, NULL_VECTOR);
+		
+		return Plugin_Handled;
 	}
+	return Plugin_Handled;
 }

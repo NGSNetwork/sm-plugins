@@ -24,6 +24,6 @@
 *.lib
 
 # Executables
-*.exe
 *.out
 *.app
+compile.dat

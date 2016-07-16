@@ -1,10 +1,8 @@
+#pragma newdecls required
 #pragma semicolon 1
 
 #include <sourcemod>
 #include <store>
-
-//New Syntax
-#pragma newdecls required
 
 #define PLUGIN_NAME "[Store] Inventory Module"
 #define PLUGIN_DESCRIPTION "Inventory module for the Sourcemod Store."
@@ -51,7 +49,7 @@ public void OnPluginStart()
 	LoadTranslations("common.phrases");
 	LoadTranslations("store.phrases");
 	
-	CreateConVar(PLUGIN_VERSION_CONVAR, STORE_VERSION, PLUGIN_NAME, FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_DONTRECORD);
+	CreateConVar(PLUGIN_VERSION_CONVAR, STORE_VERSION, PLUGIN_NAME, FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_SPONLY|FCVAR_DONTRECORD);
 	
 	RegAdminCmd("store_itemtypes", Command_PrintItemTypes, ADMFLAG_RCON, "Prints registered item types");
 	RegAdminCmd("sm_store_itemtypes", Command_PrintItemTypes, ADMFLAG_RCON, "Prints registered item types");
@@ -94,13 +92,21 @@ void LoadConfig()
 	KvGetString(kv, "inventory_commands", menuCommands, sizeof(menuCommands), "!inventory /inventory !inv /inv");
 	Store_RegisterChatCommands(menuCommands, ChatCommand_OpenInventory);
 
-	g_hideEmptyCategories = view_as<bool>KvGetNum(kv, "hide_empty_categories", 0);
-	g_showMenuDescriptions = view_as<bool>KvGetNum(kv, "show_menu_descriptions", 1);
-	g_showItemsMenuDescriptions = view_as<bool>KvGetNum(kv, "show_itesm_menu_descriptions", 1);
+	g_hideEmptyCategories = ConvertIntToBool(KvGetNum(kv, "hide_empty_categories", 0));
+	g_showMenuDescriptions = ConvertIntToBool(KvGetNum(kv, "show_menu_descriptions", 1));
+	g_showItemsMenuDescriptions = ConvertIntToBool(KvGetNum(kv, "show_itesm_menu_descriptions", 1));
 	
 	CloseHandle(kv);
 	
 	Store_AddMainMenuItem("Inventory", "Inventory Description", _, OnMainMenuInventoryClick, 4);
+}
+
+// Below is unnecessary but just in case for future-proofing.
+public bool ConvertIntToBool(int numberInput)
+{
+	if (numberInput > 0) 
+		return true;
+	return false;
 }
 
 public void OnMainMenuInventoryClick(int client, const char[] value)
@@ -117,12 +123,14 @@ public Action Command_PrintItemTypes(int client, int args)
 {
 	for (int itemTypeIndex = 0, size = GetArraySize(g_itemTypes); itemTypeIndex < size; itemTypeIndex++)
 	{
-		Handle itemType = view_as<Handle>GetArrayCell(g_itemTypes, itemTypeIndex);
+		Handle itemType = view_as<Handle>(GetArrayCell(g_itemTypes, itemTypeIndex));
 		
 		ResetPack(itemType);
-		Handle plugin = view_as<Handle>ReadPackCell(itemType);
+		Handle plugin = view_as<Handle>(ReadPackCell(itemType));
+		
+		DataPackPos packPos = GetPackPosition(itemType);
 
-		SetPackPosition(itemType, 24);
+		SetPackPosition(itemType, packPos);
 		char typeName[32];
 		ReadPackString(itemType, typeName, sizeof(typeName));
 
@@ -471,7 +479,7 @@ public int ShopCategoryMenuSelectHandle(Handle menu, MenuAction action, int clie
 				char buffers[2][16];
 				ExplodeString(sMenuItem, ",", buffers, sizeof(buffers), sizeof(buffers[]));
 				
-				bool equipped = view_as<bool>StringToInt(buffers[0]);
+				bool equipped = view_as<bool>(StringToInt(buffers[0]));
 				int id = StringToInt(buffers[1]);
 				
 				char name[STORE_MAX_NAME_LENGTH];
@@ -501,8 +509,8 @@ public int ShopCategoryMenuSelectHandle(Handle menu, MenuAction action, int clie
 				Handle itemType = GetArrayCell(g_itemTypes, itemTypeIndex);
 				ResetPack(itemType);
 				
-				Handle plugin = view_as<Handle>ReadPackCell(itemType);
-				Store_ItemUseCallback callback = view_as<Store_ItemUseCallback>ReadPackFunction(itemType);
+				Handle plugin = view_as<Handle>(ReadPackCell(itemType));
+				Store_ItemUseCallback callback = view_as<Store_ItemUseCallback>(ReadPackFunction(itemType));
 				
 				Call_StartFunction(plugin, callback);
 				Call_PushCell(client);
@@ -565,7 +573,7 @@ public int InventoryCategoryMenuSelectHandle(Handle menu, MenuAction action, int
 				char buffers[2][16];
 				ExplodeString(sMenuItem, ",", buffers, sizeof(buffers), sizeof(buffers[]));
 				
-				bool equipped = view_as<bool>StringToInt(buffers[0]);
+				bool equipped = view_as<bool>(StringToInt(buffers[0]));
 				int id = StringToInt(buffers[1]);
 				
 				char name[STORE_MAX_NAME_LENGTH];
@@ -595,8 +603,8 @@ public int InventoryCategoryMenuSelectHandle(Handle menu, MenuAction action, int
 				Handle itemType = GetArrayCell(g_itemTypes, itemTypeIndex);
 				ResetPack(itemType);
 				
-				Handle plugin = view_as<Handle>ReadPackCell(itemType);
-				Store_ItemUseCallback callback = view_as<Store_ItemUseCallback>ReadPackFunction(itemType);
+				Handle plugin = view_as<Handle>(ReadPackCell(itemType));
+				Store_ItemUseCallback callback = view_as<Store_ItemUseCallback>(ReadPackFunction(itemType));
 				
 				Call_StartFunction(plugin, callback);
 				Call_PushCell(client);
@@ -681,7 +689,7 @@ void RegisterItemType(const char[] type, Handle plugin, Store_ItemUseCallback us
 		int itemType;
 		if (GetTrieValue(g_itemTypeNameIndex, type, itemType))
 		{
-			CloseHandle(view_as<Handle>GetArrayCell(g_itemTypes, itemType));
+			CloseHandle(view_as<Handle>(GetArrayCell(g_itemTypes, itemType)));
 		}
 	}
 
@@ -709,7 +717,7 @@ public int Native_RegisterItemType(Handle plugin, int numParams)
 {
 	char type[STORE_MAX_TYPE_LENGTH];
 	GetNativeString(1, type, sizeof(type));
-	RegisterItemType(type, plugin, view_as<Store_ItemUseCallback>GetNativeFunction(2), view_as<Store_ItemGetAttributesCallback>GetNativeFunction(3));
+	RegisterItemType(type, plugin, view_as<Store_ItemUseCallback>(GetNativeFunction(2)), view_as<Store_ItemGetAttributesCallback>(GetNativeFunction(3)));
 }
 
 public int Native_IsItemTypeRegistered(Handle plugin, int params)
@@ -746,11 +754,11 @@ public int Native_CallItemAttrsCallback(Handle plugin, int params)
 	Handle hPack = GetArrayCell(g_itemTypes, typeIndex);
 	ResetPack(hPack);
 
-	Handle callbackPlugin = view_as<Handle>ReadPackCell(hPack);
+	Handle callbackPlugin = view_as<Handle>(ReadPackCell(hPack));
 	
 	ReadPackFunction(hPack);
 	
-	Store_ItemGetAttributesCallback callback = view_as<Store_ItemGetAttributesCallback>ReadPackFunction(hPack);
+	Store_ItemGetAttributesCallback callback = view_as<Store_ItemGetAttributesCallback>(ReadPackFunction(hPack));
 	
 	if (callback == INVALID_FUNCTION)
 	{

@@ -1,10 +1,8 @@
+#pragma newdecls required
 #pragma semicolon 1
 
 #include <sourcemod>
 #include <store>
-
-//New Syntax
-#pragma newdecls required
 
 #define PLUGIN_NAME "[Store] Refunds Module"
 #define PLUGIN_DESCRIPTION "Refunds module for the Sourcemod Store."
@@ -32,7 +30,7 @@ public void OnPluginStart()
 	LoadTranslations("common.phrases");
 	LoadTranslations("store.phrases");
 	
-	CreateConVar(PLUGIN_VERSION_CONVAR, STORE_VERSION, PLUGIN_NAME, FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_DONTRECORD);
+	CreateConVar(PLUGIN_VERSION_CONVAR, STORE_VERSION, PLUGIN_NAME, FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_SPONLY|FCVAR_DONTRECORD);
 	
 	LoadConfig();
 }
@@ -70,9 +68,9 @@ void LoadConfig()
 	Store_RegisterChatCommands(menuCommands, ChatCommand_OpenRefund);
 	
 	g_refundPricePercentage = KvGetFloat(kv, "refund_price_percentage", 0.5);
-	g_confirmItemRefund = view_as<bool>KvGetNum(kv, "confirm_item_refund", 1);
-	g_ShowMenuDescriptions = view_as<bool>KvGetNum(kv, "show_menu_descriptions", 1);
-	g_showMenuItemDescriptions = view_as<bool>KvGetNum(kv, "show_menu_item_descriptions", 1);
+	g_confirmItemRefund = view_as<bool>(KvGetNum(kv, "confirm_item_refund", 1));
+	g_ShowMenuDescriptions = view_as<bool>(KvGetNum(kv, "show_menu_descriptions", 1));
+	g_showMenuItemDescriptions = view_as<bool>(KvGetNum(kv, "show_menu_item_descriptions", 1));
 
 	CloseHandle(kv);
 	
@@ -326,7 +324,7 @@ public int ConfirmationMenuSelectHandle(Handle menu, MenuAction action, int clie
 				char buffer[255];
 				Format(buffer, sizeof(buffer), "%T", sDisplay, client);
 				
-				return view_as<int>RedrawMenuItem(buffer);
+				return view_as<int>(RedrawMenuItem(buffer));
 			}
 		case MenuAction_Cancel: OpenRefundMenu(client);
 		case MenuAction_End: CloseHandle(menu);

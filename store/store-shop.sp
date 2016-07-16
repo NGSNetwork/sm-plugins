@@ -4,9 +4,6 @@
 #include <sourcemod>
 #include <store>
 
-//New Syntax
-#pragma newdecls required
-
 #define PLUGIN_NAME "[Store] Shop Module"
 #define PLUGIN_DESCRIPTION "Shop module for the Sourcemod Store."
 #define PLUGIN_VERSION_CONVAR "store_shop_version"
@@ -54,7 +51,7 @@ public void OnPluginStart()
 	LoadTranslations("common.phrases");
 	LoadTranslations("store.phrases");
 	
-	CreateConVar(PLUGIN_VERSION_CONVAR, STORE_VERSION, PLUGIN_NAME, FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_DONTRECORD);
+	CreateConVar(PLUGIN_VERSION_CONVAR, STORE_VERSION, PLUGIN_NAME, FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_SPONLY|FCVAR_DONTRECORD);
 	
 	LoadConfig();
 }
@@ -91,11 +88,11 @@ void LoadConfig()
 	KvGetString(kv, "shop_commands", menuCommands, sizeof(menuCommands), "!shop /shop");
 	Store_RegisterChatCommands(menuCommands, ChatCommand_OpenShop);
 
-	g_confirmItemPurchase = view_as<bool>KvGetNum(kv, "confirm_item_purchase", 0);
-	g_hideEmptyCategories = view_as<bool>KvGetNum(kv, "hide_empty_categories", 0);
-	g_showCategoryDescriptions = view_as<bool>KvGetNum(kv, "show_category_descriptions", 1);
-	g_allowBuyingDuplicates = view_as<bool>KvGetNum(kv, "allow_buying_duplicates", 0);
-	g_equipAfterPurchase = view_as<bool>KvGetNum(kv, "equip_after_purchase", 1);
+	g_confirmItemPurchase = view_as<bool>(KvGetNum(kv, "confirm_item_purchase", 0));
+	g_hideEmptyCategories = view_as<bool>(KvGetNum(kv, "hide_empty_categories", 0));
+	g_showCategoryDescriptions = view_as<bool>(KvGetNum(kv, "show_category_descriptions", 1));
+	g_allowBuyingDuplicates = view_as<bool>(KvGetNum(kv, "allow_buying_duplicates", 0));
+	g_equipAfterPurchase = view_as<bool>(KvGetNum(kv, "equip_after_purchase", 1));
 	
 	if (KvJumpToKey(kv, "Menu Sorting"))
 	{

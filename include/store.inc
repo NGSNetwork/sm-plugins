@@ -11,14 +11,14 @@
 #include <store/store-logging>
 
 //External Includes
-#include <multicolors>
+#include <morecolors>
 
 //Optional Includes
 #undef REQUIRE_PLUGIN
 #include <updater>
 
-#define STORE_AUTHORS "Alongub, Keith Warren(Drixevel), Arrow768"
+#define STORE_AUTHORS "Alongub, Keith Warren(Drixevel), Arrow768 / TheXeon"
 #define STORE_URL "https://github.com/SourceMod-Store/store"
-#define STORE_VERSION "1.2 Final"
+#define STORE_VERSION "1.3"
 
 #define STORE_PREFIX "\x04[Store] \x01"

@@ -12,7 +12,7 @@ ConVar cEnabled;
 bool bEnabled;
 
 public Plugin myinfo = {
-	name = "[NGS] Grappling Hook for Donators",
+	name = "[NGS] Grappling Hook Restrictor",
 	author = "Tak (Chaosxk) / TheXeon",
 	description = "Allow grappling hook for donators only.",
 	version = PLUGIN_VERSION,

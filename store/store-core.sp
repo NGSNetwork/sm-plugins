@@ -4,9 +4,6 @@
 #include <sourcemod>
 #include <store>
 
-//New Syntax
-#pragma newdecls required
-
 #define PLUGIN_NAME "[Store] Core Module"
 #define PLUGIN_DESCRIPTION "Core module for the Sourcemod Store."
 #define PLUGIN_VERSION_CONVAR "store_core_version"
@@ -34,7 +31,7 @@ int g_menuItemCount;
 enum ChatCommand
 {
 	String:ChatCommandName[32],
-	/*Handle */ChatCommandPlugin,
+	Handle:ChatCommandPlugin,
 	Store_ChatCommandCallback:ChatCommandCallback,
 }
 
@@ -71,7 +68,7 @@ public Plugin myinfo =
 	description = PLUGIN_DESCRIPTION,
 	version = STORE_VERSION,
 	url = STORE_URL
-};
+}
 
 //Ask Plugin Load 2
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -198,9 +195,9 @@ public void LoadConfig()
 		KvGoBack(kv);
 	}
 	
-	g_hideChatCommands = view_as<bool>KvGetNum(kv, "hide_chat_commands", 0);
+	g_hideChatCommands = ConvertIntToBool(KvGetNum(kv, "hide_chat_commands", 0));
 	g_firstConnectionCredits = KvGetNum(kv, "first_connection_credits");
-	g_hideMenuItemDescriptions = view_as<bool>KvGetNum(kv, "hide_menu_descriptions", 0);
+	g_hideMenuItemDescriptions = ConvertIntToBool(KvGetNum(kv, "hide_menu_descriptions", 0));
 	g_serverID = KvGetNum(kv, "server_id", 0);
 	
 	if (KvGetString(kv, "updater_url", g_updaterURL, sizeof(g_updaterURL)))
@@ -217,6 +214,14 @@ public void LoadConfig()
 	CloseHandle(kv);
 }
 
+// Below is unnecessary but just in case for future-proofing.
+public bool ConvertIntToBool(int numberInput)
+{
+	if (numberInput > 0) 
+		return true;
+	return false;
+}
+
 public void OnClientPostAdminCheck(int client)
 {
 	bDeveloperMode[client] = false;
@@ -231,7 +236,7 @@ public void OnClientDisconnect(int client)
 
 public Action OnClientSayCommand(int client, const char[] command, const char[] sArgs)
 {
-	if (!IsClientInGame(client))
+	if (client == 0 || !IsClientConnected(client))
 	{
 		return Plugin_Continue;
 	}
@@ -560,7 +565,7 @@ public int Native_AddMainMenuItem(Handle plugin, int params)
 	char value[64];
 	GetNativeString(3, value, sizeof(value));
 
-	AddMainMenuItem(true, displayName, description, value, plugin, view_as<Store_MenuItemClickCallback>GetNativeFunction(4), GetNativeCell(5));
+	AddMainMenuItem(true, displayName, description, value, plugin, view_as<Store_MenuItemClickCallback>(GetNativeFunction(4)), GetNativeCell(5));
 }
 
 public int Native_AddMainMenuItemEx(Handle plugin, int params)
@@ -574,7 +579,7 @@ public int Native_AddMainMenuItemEx(Handle plugin, int params)
 	char value[64];
 	GetNativeString(3, value, sizeof(value));
 
-	AddMainMenuItem(false, displayName, description, value, plugin, view_as<Store_MenuItemClickCallback>GetNativeFunction(4), GetNativeCell(5));
+	AddMainMenuItem(false, displayName, description, value, plugin, view_as<Store_MenuItemClickCallback>(GetNativeFunction(4)), GetNativeCell(5));
 }
 
 public int Native_GetCurrencyName(Handle plugin, int params)
@@ -637,7 +642,7 @@ public int Native_RegisterChatCommands(Handle plugin, int params)
 	char command[32];
 	GetNativeString(1, command, sizeof(command));
 
-	return RegisterCommands(plugin, command, view_as<Store_ChatCommandCallback>GetNativeFunction(2));
+	return RegisterCommands(plugin, command, view_as<Store_ChatCommandCallback>(GetNativeFunction(2)));
 }
 
 public int Native_GetServerID(Handle plugin, int params)

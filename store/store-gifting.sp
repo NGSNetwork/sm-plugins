@@ -1,3 +1,4 @@
+#pragma newdecls required
 #pragma semicolon 1
 
 #include <sourcemod>
@@ -7,9 +8,6 @@
 #include <sdktools>
 #include <adminmenu>
 #include <smartdm>
-
-//New Syntax
-#pragma newdecls required
 
 #define PLUGIN_NAME "[Store] Gifting Module"
 #define PLUGIN_DESCRIPTION "Gifting module for the Sourcemod Store."
@@ -56,14 +54,13 @@ int g_spawnedPresents[2048][Present];
 char g_game[32];
 char g_currencyName[64];
 
-public Plugin myinfo =
-{
+public Plugin myinfo = {
 	name = PLUGIN_NAME,
 	author = STORE_AUTHORS,
 	description = PLUGIN_DESCRIPTION,
 	version = STORE_VERSION,
 	url = STORE_URL
-};
+}
 
 public void OnPluginStart()
 {
@@ -595,7 +592,7 @@ public void GetCreditsCallback(int credits, any hPack)
 	ResetPack(hPack);
 
 	int client = GetClientOfUserId(ReadPackCell(hPack));
-	GiftAction giftAction = view_as<GiftAction>ReadPackCell(hPack);
+	GiftAction giftAction = view_as<GiftAction>(ReadPackCell(hPack));
 	int giftTo = ReadPackCell(hPack);
 	int giftCredits = ReadPackCell(hPack);
 
@@ -653,7 +650,7 @@ public int CreditsConfirmMenuSelectItem(Handle menu, MenuAction action, int clie
 				char values[3][16];
 				ExplodeString(sMenuItem, ",", values, sizeof(values), sizeof(values[]));
 
-				GiftAction giftAction = view_as<GiftAction>StringToInt(values[0]);
+				GiftAction giftAction = view_as<GiftAction>(StringToInt(values[0]));
 				int giftTo = StringToInt(values[1]);
 				int credits = StringToInt(values[2]);
 				
@@ -712,7 +709,7 @@ public void GetUserItemsCallback(int[] ids, bool[] equipped, int[] itemCount, in
 	ResetPack(hPack);
 	
 	int client = GetClientOfUserId(ReadPackCell(hPack));
-	GiftAction giftAction = view_as<GiftAction>ReadPackCell(hPack);
+	GiftAction giftAction = view_as<GiftAction>(ReadPackCell(hPack));
 	int giftTo = ReadPackCell(hPack);
 	
 	CloseHandle(hPack);
@@ -782,7 +779,7 @@ void OpenGiveItemConfirmMenu(int client, const char[] sValue)
 	char sValues[3][16];
 	ExplodeString(sValue, ",", sValues, sizeof(sValues), sizeof(sValues[]));
 
-	GiftAction giftAction = view_as<GiftAction>StringToInt(sValues[0]);
+	GiftAction giftAction = view_as<GiftAction>(StringToInt(sValues[0]));
 	int giftTo = StringToInt(sValues[1]);
 	int itemId = StringToInt(sValues[2]);
 
@@ -820,7 +817,7 @@ public int ItemConfirmMenuSelectItem(Handle menu, MenuAction action, int client,
 				char values[3][16];
 				ExplodeString(sMenuItem, ",", values, sizeof(values), sizeof(values[]));
 
-				GiftAction giftAction = view_as<GiftAction>StringToInt(values[0]);
+				GiftAction giftAction = view_as<GiftAction>(StringToInt(values[0]));
 				int giftTo = StringToInt(values[1]);
 				int itemId = StringToInt(values[2]);
 				
@@ -880,7 +877,7 @@ void AskForPermission(int client, int giftTo, GiftType giftType, int value)
 	char sName[MAX_NAME_LENGTH];
 	
 	GetClientName(giftTo, sName, sizeof(sName));
-	CPrintToChatEx(client, giftTo, "%t%t", "Store Tag Colored", "Gift Waiting to accept", client, sName);	
+	CPrintToChatEx(client, giftTo, "%t%t", "Store Tag Colored", "Gift Waiting to accept", sName);	
 
 	char what[64];
 	switch (giftType)
@@ -890,7 +887,7 @@ void AskForPermission(int client, int giftTo, GiftType giftType, int value)
 	}
 	
 	GetClientName(client, sName, sizeof(sName));
-	CPrintToChatEx(giftTo, client, "%t%t", "Store Tag Colored", "Gift Request Accept", client, sName, what);
+	CPrintToChatEx(giftTo, client, "%t%t", "Store Tag Colored", "Gift Request Accept", sName, what);
 
 	g_giftRequests[giftTo][GiftRequestActive] = true;
 	g_giftRequests[giftTo][GiftRequestSender] = client;

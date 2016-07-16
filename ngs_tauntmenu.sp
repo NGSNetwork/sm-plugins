@@ -1,4 +1,6 @@
+/** Commented as tf2items isnt using new-style syntax yet.
 #pragma newdecls required
+*/
 #pragma semicolon 1
 
 #include <sdktools>
@@ -7,18 +9,17 @@
 
 #define PLUGIN_VERSION "1.3"
 
-public Plugin myinfo =
-{
+public Plugin myinfo = {
 	name = "[NGS] Taunt Menu",
 	author = "FlaminSarge, Nighty, xCoderx / TheXeon",
 	description = "Displays a nifty taunt menu.",
 	version = PLUGIN_VERSION,
 	url = "http://forums.alliedmods.net/showthread.php?t=242866"
-};
+}
 
 Handle hPlayTaunt;
 
-public OnPluginStart()
+public void OnPluginStart()
 {
 	Handle conf = LoadGameConfigFile("tf2.tauntem");
 	
@@ -46,19 +47,19 @@ public OnPluginStart()
 	
 	CloseHandle(conf);
 	LoadTranslations("common.phrases");
-	CreateConVar("tf_tauntem_version", PLUGIN_VERSION, "[TF2] Taunt 'em Version", FCVAR_NOTIFY|FCVAR_PLUGIN);
+	CreateConVar("tf_tauntem_version", PLUGIN_VERSION, "[TF2] Taunt 'em Version", FCVAR_NOTIFY);
 }
 
-public Action Cmd_TauntMenu(client, args)
+public Action Cmd_TauntMenu(int client, int args)
 {
 	ShowMenu(client);
 	return Plugin_Handled;
 }
 
-public Action ShowMenu(client)
+public Action ShowMenu(int client)
 {
 	TFClassType class = TF2_GetPlayerClass(client);
-	Handle menu = CreateMenu(Tauntme_MenuSelected);
+	Menu menu = CreateMenu(Tauntme_MenuSelected);
 	SetMenuTitle(menu, "===== NGS Taunt Menu =====");
 	
 	switch(class)
@@ -134,7 +135,7 @@ public Action ShowMenu(client)
 	DisplayMenu(menu, client, 20);
 }
 
-public Tauntme_MenuSelected(Handle menu, MenuAction action, iClient, param2)
+public int Tauntme_MenuSelected(Handle menu, MenuAction action, int iClient, int param2)
 {
 	if(action == MenuAction_End)
 	{
@@ -150,7 +151,7 @@ public Tauntme_MenuSelected(Handle menu, MenuAction action, iClient, param2)
 	}
 }
 
-ExecuteTaunt(client, itemdef)
+void ExecuteTaunt(int client, int itemdef)
 {
 	static Handle hItem;
 	hItem = TF2Items_CreateItem(OVERRIDE_ALL|PRESERVE_ATTRIBUTES|FORCE_GENERATION);
@@ -161,8 +162,8 @@ ExecuteTaunt(client, itemdef)
 	TF2Items_SetNumAttributes(hItem, 0);
 	TF2Items_SetItemIndex(hItem, itemdef);
 	
-	new ent = TF2Items_GiveNamedItem(client, hItem);
-	Address pEconItemView = GetEntityAddress(ent) + Address:FindSendPropInfo("CTFWearable", "m_Item");
+	int ent = TF2Items_GiveNamedItem(client, hItem);
+	Address pEconItemView = GetEntityAddress(ent) + view_as<Address>(FindSendPropInfo("CTFWearable", "m_Item"));
 	
 	SDKCall(hPlayTaunt, client, pEconItemView) ? 1 : 0;
 	AcceptEntityInput(ent, "Kill");

@@ -12,14 +12,14 @@ public Plugin myinfo = {
 	description = "Displays your ping.",
 	version = VERSION,
 	url = "matespastdates.servegame.com"
-};
+}
 
 public void OnPluginStart()
 {
 	RegConsoleCmd("sm_ping", CommandGetPing, "Displays your ping.");
 }
 
-public Action CommandGetPing(client, args)
+public Action CommandGetPing(int client, int args)
 {
 	if(IsClientInGame(client))
 	{

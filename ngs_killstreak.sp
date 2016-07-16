@@ -11,7 +11,7 @@ public Plugin myinfo = {
 	author = "Dr_Knuckles / Kredit / TheXeon",
 	description = "Killstreak value toggler/changer",
 	version = VERSION
-};
+}
 
 ConVar hKillstreakAmount = null;
 bool KSToggle[MAXPLAYERS + 1] = {};
@@ -21,16 +21,16 @@ int KSAmount[MAXPLAYERS + 1] = {};
 Handle hKSToggleCookie = null;
 Handle hKSAmountCookie = null;
 
-public OnPluginStart() {
+public void OnPluginStart() {
 	RegConsoleCmd("sm_ks", CommandKillstreak, "Set your killstreak.");
 	RegConsoleCmd("sm_kson", CommandKillstreakToggleOn, "Enable plugin's killstreak.");
 	RegConsoleCmd("sm_ksoff", CommandKillstreakToggleOff, "Disable plugin's killstreak.");
 	hKSToggleCookie = RegClientCookie("killstreak_kstoggle", "Killstreak Toggle", CookieAccess_Protected);
 	hKSAmountCookie = RegClientCookie("killstreak_ksamount", "Killstreak Amount", CookieAccess_Protected);
 
-	hKillstreakAmount = CreateConVar("sm_killstreak_amount", "10", "Default Killstreak Amount", FCVAR_PLUGIN|FCVAR_NOTIFY);
+	hKillstreakAmount = CreateConVar("sm_killstreak_amount", "10", "Default Killstreak Amount", FCVAR_NOTIFY);
 	AutoExecConfig();
-	CreateConVar("sm_ks_version", VERSION, "Killstreak modifier", FCVAR_PLUGIN|FCVAR_NOTIFY);
+	CreateConVar("sm_ks_version", VERSION, "Killstreak modifier", FCVAR_NOTIFY);
 	HookEvent("player_spawn", Event_Spawn);
 
 	for (int i = MaxClients; i > 0; --i) {
@@ -39,7 +39,7 @@ public OnPluginStart() {
 	}
 }
 
-public OnClientCookiesCached(client) {
+public void OnClientCookiesCached(int client) {
 	int KSAmountValue = 0;
 	bool bKSToggleValue = false;
 
@@ -62,7 +62,7 @@ public OnClientCookiesCached(client) {
 	refreshKillstreak(client);
 }
 
-public void OnClientDisconnect(client) {
+public void OnClientDisconnect(int client) {
 	if (IsClientInGame(client)) {
 		char sToggleValue[5];
 		char sAmountValue[4];
@@ -76,7 +76,7 @@ public void OnClientDisconnect(client) {
 	}
 }
 
-public Action CommandKillstreak(client, args) {
+public Action CommandKillstreak(int client, int args) {
 	if(IsClientInGame(client) && IsPlayerAlive(client)) {
 		char sAmount[4];
 		GetCmdArg(1, sAmount, sizeof(sAmount));
@@ -123,7 +123,7 @@ public Action CommandKillstreak(client, args) {
 	return Plugin_Handled;
 }
 
-public Action CommandKillstreakToggleOn(client, args) {
+public Action CommandKillstreakToggleOn(int client, int args) {
 	if(IsClientInGame(client) && IsPlayerAlive(client)) 
 	{
 		//Initialize amount to whatever the convar is
@@ -144,7 +144,7 @@ public Action CommandKillstreakToggleOn(client, args) {
 	return Plugin_Handled;
 }
 
-public Action CommandKillstreakToggleOff(client, args) {
+public Action CommandKillstreakToggleOff(int client, int args) {
 	if(IsClientInGame(client) && IsPlayerAlive(client)) 
 	{
 		//Set to 0
@@ -160,14 +160,14 @@ public Action CommandKillstreakToggleOff(client, args) {
 	return Plugin_Handled;
 }
 
-public Event_Spawn(Handle hEvent, char[] sName, bool bNoBroadcast) {
+public void Event_Spawn(Handle hEvent, char[] sName, bool bNoBroadcast) {
 	int client = GetClientOfUserId(GetEventInt(hEvent, "userid"));
 	if (IsClientInGame(client) && IsPlayerAlive(client)) {
 		refreshKillstreak(client);
 	}
 }
 
-public refreshKillstreak(client) {
+public void refreshKillstreak(int client) {
 	if(IsValidEntity(client) && IsClientInGame(client) && !IsFakeClient(client)) {
 		if(KSToggle[client] || KSAmount[client] == 0) {
 			SetEntProp(client, Prop_Send, "m_nStreaks", KSAmount[client], _, 0);

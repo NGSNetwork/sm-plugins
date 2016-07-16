@@ -12,14 +12,14 @@ public Plugin myinfo = {
 	description = "Slaps those who try rtd",
 	version = VERSION,
 	url = "matespastdates.servegame.com"
-};
+}
 
 public void OnPluginStart()
 {
 	RegConsoleCmd("sm_rtd", CommandRTDSlap, "Anti-RTD in chat.");
 }
 
-public Action CommandRTDSlap(client, args)
+public Action CommandRTDSlap(int client, int args)
 {
 	if(IsClientInGame(client) && IsPlayerAlive(client))
 	{

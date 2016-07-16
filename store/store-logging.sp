@@ -3,13 +3,11 @@
 	-https://github.com/Bara20/Extended-Logging/blob/master/addons/sourcemod/scripting/include/extended_logging.inc
 	-https://forums.alliedmods.net/showthread.php?t=247769
 */
+#pragma newdecls required
 #pragma semicolon 1
 
 #include <sourcemod>
 #include <store>
-
-//New Syntax
-#pragma newdecls required
 
 #define PLUGIN_NAME "[Store] Logging Module"
 #define PLUGIN_DESCRIPTION "Logging module for the Sourcemod Store."
@@ -71,7 +69,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
 public void OnPluginStart() 
 {
-	CreateConVar(PLUGIN_VERSION_CONVAR, STORE_VERSION, PLUGIN_NAME, FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_DONTRECORD);
+	CreateConVar(PLUGIN_VERSION_CONVAR, STORE_VERSION, PLUGIN_NAME, FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_SPONLY|FCVAR_DONTRECORD);
 	
 	LoadConfig();
 	
@@ -116,26 +114,26 @@ void LoadConfig()
 	
 	if (KvJumpToKey(hKV, "Logging_types"))
 	{
-		bLog_Default = view_as<bool>KvGetNum(hKV, "default", 1);
-		bLog_Trace = view_as<bool>KvGetNum(hKV, "trace", 1);
-		bLog_Debug = view_as<bool>KvGetNum(hKV, "debug", 1);
-		bLog_Info = view_as<bool>KvGetNum(hKV, "info", 1);
-		bLog_Warn = view_as<bool>KvGetNum(hKV, "warn", 1);
-		bLog_Error = view_as<bool>KvGetNum(hKV, "error", 1);
+		bLog_Default = view_as<bool>(KvGetNum(hKV, "default", 1));
+		bLog_Trace = view_as<bool>(KvGetNum(hKV, "trace", 1));
+		bLog_Debug = view_as<bool>(KvGetNum(hKV, "debug", 1));
+		bLog_Info = view_as<bool>(KvGetNum(hKV, "info", 1));
+		bLog_Warn = view_as<bool>(KvGetNum(hKV, "warn", 1));
+		bLog_Error = view_as<bool>(KvGetNum(hKV, "error", 1));
 		
 		KvGoBack(hKV);
 	}
 	
-	bool bSubDirectories = view_as<bool>KvGetNum(hKV, "log_subfolders", 0);
+	bool bSubDirectories = view_as<bool>(KvGetNum(hKV, "log_subfolders", 0));
 	
 	if (bSubDirectories && KvJumpToKey(hKV, "Logging_subfolders"))
 	{
-		bFolder_Default = view_as<bool>KvGetNum(hKV, "default", 0);
-		bFolder_Trace = view_as<bool>KvGetNum(hKV, "trace", 0);
-		bFolder_Debug = view_as<bool>KvGetNum(hKV, "debug", 0);
-		bFolder_Info = view_as<bool>KvGetNum(hKV, "info", 0);
-		bFolder_Warn = view_as<bool>KvGetNum(hKV, "warn", 0);
-		bFolder_Error = view_as<bool>KvGetNum(hKV, "error", 0);
+		bFolder_Default = view_as<bool>(KvGetNum(hKV, "default", 0));
+		bFolder_Trace = view_as<bool>(KvGetNum(hKV, "trace", 0));
+		bFolder_Debug = view_as<bool>(KvGetNum(hKV, "debug", 0));
+		bFolder_Info = view_as<bool>(KvGetNum(hKV, "info", 0));
+		bFolder_Warn = view_as<bool>(KvGetNum(hKV, "warn", 0));
+		bFolder_Error = view_as<bool>(KvGetNum(hKV, "error", 0));
 		
 		KvGoBack(hKV);
 	}

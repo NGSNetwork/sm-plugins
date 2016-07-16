@@ -1,5 +1,6 @@
+/** Commented as morecolors isnt using new-style syntax yet.
 #pragma newdecls required
-
+*/
 #include <sourcemod>
 #include <sdktools>
 #include <morecolors>

@@ -10,28 +10,27 @@
 
 //--------------------//
 
-public Plugin myinfo = 
-{
+public Plugin myinfo = {
 	name = "[NGS] Admin Tools",
 	author = "TheXeon",
 	description = "Respawns The Player, changes the players team",
 	version = VERSION,
 	url = "https://matespastdates.servegame.com"
-};
+}
 
-public OnPluginStart()
+public void OnPluginStart()
 {
 	RegAdminCmd("respawn", Spawn, ADMFLAG_ROOT, "Usage: respawn [target]");
 	RegAdminCmd("move", CT, ADMFLAG_ROOT, "Usage: move [target] <team> (1 = Spec / 2 = Red / 3 = Blue)");
 }
 
-public Action Spawn(client, args)
+public Action Spawn(int client, int args)
 {
 	if (args == 1)
 	{
 		char arg[MAX_NAME_LENGTH];
 		GetCmdArg(1, arg, sizeof(arg));
-		new target = FindTarget(client, arg);
+		int target = FindTarget(client, arg);
 		if (IsClientConnected(target))
 		{
 			TF2_RespawnPlayer(target);
@@ -46,14 +45,14 @@ public Action Spawn(client, args)
 }
 
 
-public Action CT(client, args)
+public Action CT(int client, int args)
 {
 	if (args != 1)
 	{
 		char arg[MAX_NAME_LENGTH], arg2[32];
 		GetCmdArg(1, arg, sizeof(arg));
-		new target2 = FindTarget(client, arg);
-		new Team;
+		int target2 = FindTarget(client, arg);
+		int Team;
 		if (args >= 2 && GetCmdArg(2, arg2, sizeof(arg2)) && !IsClientReplay(target2))
 		{
 			if (StringToInt(arg2) == 1)

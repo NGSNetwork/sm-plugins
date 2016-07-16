@@ -9,7 +9,7 @@
 
 //-------------------------------------------------------------------------------------------------
 public Plugin myinfo = {
-	name = "MPD Find Item",
+	name = "[NGS] Find Item",
 	author = "TheXeon",
 	description = "Finds an item from someone's backpack.",
 	version = VERSION,
@@ -18,6 +18,7 @@ public Plugin myinfo = {
 
 public void OnPluginStart()
 {
+	char path[MAX_NAME_LENGTH];
 	RegConsoleCmd("sm_find", Command_Find, "Finds supplied weapon name and quality in people's backpacks.");
 	BuildPath(Path_SM, path, sizeof(path), "data/backpack-tf.txt");
 	if(!FileExists(path)) {
@@ -28,11 +29,11 @@ public void OnPluginStart()
 public Action Command_Find(client, args)
 {
 	if(args == 0) {
-		new Handle:menu = CreateMenu(Handler_ItemSelection);
+		Handle menu = CreateMenu(Handler_ItemSelection);
 		SetMenuTitle(menu, "Find Item");
 		PrepPriceKv();
 		KvGotoFirstSubKey(backpackTFPricelist);
-		decl String:name[128];
+		char name[128];
 		do {
 			if(!KvJumpToKey(backpackTFPricelist, "item_info")) {
 				continue;
@@ -47,13 +48,13 @@ public Action Command_Find(client, args)
 		DisplayMenu(menu, client, GetConVarInt(cvarMenuHoldTime));
 		return Plugin_Handled;
 	}
-	new resultDefindex = -1;
+	int resultDefindex = -1;
 	char defindex[8], name[128], itemName[128];
 	GetCmdArgString(name, sizeof(name));
 	bool exact = StripQuotes(name);
 	PrepPriceKv();
 	KvGotoFirstSubKey(backpackTFPricelist);
-	new Handle:matches;
+	Handle matches;
 	if(!exact) {
 		matches = CreateArray(128);
 	}
@@ -80,9 +81,9 @@ public Action Command_Find(client, args)
 		}
 	} while(KvGotoNextKey(backpackTFPricelist));
 	if(!exact && GetArraySize(matches) > 1) {
-		new Handle:menu = CreateMenu(Handler_ItemSelection);
+		Handle menu = CreateMenu(Handler_ItemSelection);
 		SetMenuTitle(menu, "Search Results");
-		new size = GetArraySize(matches);
+		int size = GetArraySize(matches);
 		for(new i = 0; i < size; i++) {
 			GetArrayString(matches, i, itemName, sizeof(itemName));
 			AddMenuItem(menu, itemName, itemName);

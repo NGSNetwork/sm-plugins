@@ -1,10 +1,8 @@
+#pragma newdecls required
 #pragma semicolon 1
 
 #include <sourcemod>
 #include <store>
-
-//New Syntax
-#pragma newdecls required
 
 #define PLUGIN_NAME "[Store] Distributor Module"
 #define PLUGIN_DESCRIPTION "Distributor module for the Sourcemod Store."
@@ -51,7 +49,7 @@ public void OnPluginStart()
 {
 	LoadTranslations("store.phrases");
 	
-	CreateConVar(PLUGIN_VERSION_CONVAR, STORE_VERSION, PLUGIN_NAME, FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_DONTRECORD);
+	CreateConVar(PLUGIN_VERSION_CONVAR, STORE_VERSION, PLUGIN_NAME, FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_SPONLY|FCVAR_DONTRECORD);
 		
 	LoadConfig();
 	
@@ -82,7 +80,7 @@ void LoadConfig()
 	}
 
 	g_timeInSeconds = KvGetFloat(kv, "time_per_distribute", 180.0);
-	g_enableMessagePerTick = view_as<bool>KvGetNum(kv, "enable_message_per_distribute", 1);
+	g_enableMessagePerTick = ConvertIntToBool(KvGetNum(kv, "enable_message_per_distribute", 1));
 
 	if (KvJumpToKey(kv, "distribution"))
 	{
@@ -125,6 +123,14 @@ void LoadConfig()
 	}
 
 	CloseHandle(kv);
+}
+
+// Below is unnecessary but just in case for future-proofing.
+public bool ConvertIntToBool(int numberInput)
+{
+	if (numberInput > 0) 
+		return true;
+	return false;
 }
 
 
@@ -194,7 +200,7 @@ bool HasPermission(int client, int flags)
 		{
 			count++;
 
-			if (GetAdminFlag(admin, view_as<AdminFlag>i))
+			if (GetAdminFlag(admin, view_as<AdminFlag>(i)))
 			{
 				found++;
 			}

@@ -1,4 +1,6 @@
+/** Commented as steamtools isnt using new-style syntax yet.
 #pragma newdecls required
+*/
 #pragma semicolon 1
 
 #include <sourcemod>
@@ -6,56 +8,54 @@
 #include <advanced_motd>
 
 #define PLUGIN_VERSION "1.2"
-#define PLUGIN_DESCRIPTION "Redux of Web Shortcuts with Large/Small MOTD Support"
 
-public Plugin myinfo =
-{
+public Plugin myinfo = {
     name 		=		"[NGS] Web Shortcuts",				/* https://www.youtube.com/watch?v=h6k5jwllFfA&hd=1 */
     author		=		"Kyle Sanderson, Nicholas Hastings / TheXeon",
-    description	=		PLUGIN_DESCRIPTION,
+    description	=		"Redux of Web Shortcuts with Large/Small MOTD Support",
     version		=		PLUGIN_VERSION,
     url			=		"http://SourceMod.net"
-};
+}
 
 enum States {
-	Game_TF2 = (1<<0),
-	Game_L4D = (1<<1),
-	Big_MOTD = (1<<8)
+	game_TF2 = (1<<0),
+	game_L4D = (1<<1),
+	big_MOTD = (1<<8)
 };
 
-new g_iGameMode;
+int g_iGameMode;
 
 enum FieldCheckFlags
 {
-	Flag_Steam_ID			=	(1<<0),
-	Flag_User_ID			=	(1<<1),
-	Flag_Friend_ID			=	(1<<2),
-	Flag_Name				=	(1<<3),
-	Flag_IP					=	(1<<4),
-	Flag_Language			=	(1<<5),
-	Flag_Rate				=	(1<<6),
-	Flag_Server_IP			=	(1<<7),
-	Flag_Server_Port		=	(1<<8),
-	Flag_Server_Name		=	(1<<9),
-	Flag_Server_Custom		=	(1<<10),
-	Flag_L4D_GameMode		=	(1<<11),
-	Flag_Current_Map		=	(1<<12),
-	Flag_Next_Map			=	(1<<13),
-	Flag_GameDir			=	(1<<14),
-	Flag_CurPlayers			=	(1<<15),
+	flag_Steam_ID			=	(1<<0),
+	flag_User_ID			=	(1<<1),
+	flag_Friend_ID			=	(1<<2),
+	flag_Name				=	(1<<3),
+	flag_IP					=	(1<<4),
+	flag_Language			=	(1<<5),
+	flag_Rate				=	(1<<6),
+	flag_Server_IP			=	(1<<7),
+	flag_Server_Port		=	(1<<8),
+	flag_Server_Name		=	(1<<9),
+	flag_Server_Custom		=	(1<<10),
+	flag_L4D_GameMode		=	(1<<11),
+	flag_Current_Map		=	(1<<12),
+	flag_Next_Map			=	(1<<13),
+	flag_GameDir			=	(1<<14),
+	flag_CurPlayers			=	(1<<15),
 	#if defined _steamtools_included
-	Flag_MaxPlayers			=	(1<<16),
-	Flag_VACStatus			=	(1<<17),
-	Flag_Server_Pub_IP		=	(1<<18),
-	Flag_Steam_ConnStatus	=	(1<<19)
+	flag_MaxPlayers			=	(1<<16),
+	flag_VACStatus			=	(1<<17),
+	flag_Server_Pub_IP		=	(1<<18),
+	flag_Steam_ConnStatus	=	(1<<19)
 	#else
-	Flag_MaxPlayers			=	(1<<16)
+	flag_MaxPlayers			=	(1<<16)
 	#endif  /* _steamtools_included	 */
 }; 
 
-#define IsTeamFortress2() (g_iGameMode & Game_TF2)
-#define IsLeftForDead() (g_iGameMode & Game_L4D)
-#define GoLargeOrGoHome() (IsTeamFortress2() && (g_iGameMode & Big_MOTD))
+#define isTeamFortress2() (g_iGameMode & game_TF2)
+#define isLeftForDead() (g_iGameMode & game_L4D)
+#define goLargeOrGoHome() (isTeamFortress2() && (g_iGameMode & big_MOTD))
 
 /*#include "Duck"*/
 
@@ -65,7 +65,7 @@ Handle g_hFastLookupTrie = null;
 Handle g_hCurrentTrie = null;
 char g_sCurrentSection[128];
 
-public OnPluginStart()
+public void OnPluginStart()
 {
 	g_hIndexArray = CreateArray(); /* We'll only use this for cleanup to prevent handle leaks and what not.
 									  Our friend below doesn't have iteration, so we have to do this... */
@@ -77,13 +77,13 @@ public OnPluginStart()
 	/* From Psychonic */
 	Duck_OnPluginStart();
 	
-	Handle cvarVersion = CreateConVar("webshortcutsredux_version", PLUGIN_VERSION, PLUGIN_DESCRIPTION, FCVAR_PLUGIN|FCVAR_NOTIFY);
+	Handle cvarVersion = CreateConVar("webshortcutsredux_version", PLUGIN_VERSION, "Redux of Web Shortcuts with Large/Small MOTD Support", FCVAR_NOTIFY);
 	
 	/* On a reload, this will be set to the old version. Let's update it. */
 	SetConVarString(cvarVersion, PLUGIN_VERSION);
 }
 
-public Action Client_Say(iClient, char[] sCommand, int argc)
+public Action Client_Say(int iClient, char[] sCommand, int argc)
 {
 	if (argc < 1 || !IsValidClient(iClient))
 	{
@@ -108,7 +108,7 @@ public Action Client_Say(iClient, char[] sCommand, int argc)
 	return Plugin_Continue; /* Well this is embarasing. We didn't actually hook this. Or atleast didn't intend to. */
 }
 
-public bool DealWithOurTrie(iClient, char[] sHookedString, Handle hStoredTrie)
+public bool DealWithOurTrie(int iClient, char[] sHookedString, Handle hStoredTrie)
 {
 	char sUrl[256];
 	if (!GetTrieString(hStoredTrie, "Url", sUrl, sizeof(sUrl)))
@@ -145,7 +145,7 @@ public bool DealWithOurTrie(iClient, char[] sHookedString, Handle hStoredTrie)
 	bool bNotSilent = true;
 	
 	GetTrieValue(hStoredTrie, "Silent", bNotSilent);
-	if (GoLargeOrGoHome() )
+	if (goLargeOrGoHome())
 	{
 		GetTrieValue(hStoredTrie, "Big", bBig);
 	}
@@ -167,7 +167,7 @@ public bool DealWithOurTrie(iClient, char[] sHookedString, Handle hStoredTrie)
 	return true;
 }
 
-public OnMOTDFailure(client, MOTDFailureReason:reason) {
+public void OnMOTDFailure(int client, MOTDFailureReason reason) {
 	switch(reason) {
 		case MOTDFailure_Disabled: PrintToChat(client, "\x04[SM] \x01You cannot view websites with HTML MOTDs disabled.");
 		case MOTDFailure_Matchmaking: PrintToChat(client, "\x04[SM] \x01You cannot view websites after joining via Quickplay.");
@@ -175,7 +175,7 @@ public OnMOTDFailure(client, MOTDFailureReason:reason) {
 	}
 }
 
-public ClearExistingData()
+public void ClearExistingData()
 {
 	Handle hHandle = null;
 	for (int i = (GetArraySize(g_hIndexArray) - 1); i >= 0; i--)
@@ -194,7 +194,7 @@ public ClearExistingData()
 	ClearTrie(g_hFastLookupTrie);
 }
 
-public OnConfigsExecuted()
+public void OnConfigsExecuted()
 {
 	ClearExistingData();
 	
@@ -208,7 +208,7 @@ public OnConfigsExecuted()
 	ProcessFile(sPath);
 }
 
-public ProcessFile(char[] sPathToFile)
+public void ProcessFile(char[] sPathToFile)
 {
 	Handle hSMC = SMC_CreateParser();
 	SMC_SetReaders(hSMC, SMC_NewSection, SMC_KeyValue, SMC_EndSection);
@@ -281,7 +281,7 @@ public SMCResult SMC_KeyValue(Handle smc, char[] key, char[] value, bool key_quo
 				return SMCParse_Continue;
 			}
 			
-			new iFindValue;
+			int iFindValue;
 			iFindValue = FindValueInArray(g_hIndexArray, g_hCurrentTrie);
 			
 			if (iFindValue > -1)
@@ -338,7 +338,7 @@ public SMCResult SMC_KeyValue(Handle smc, char[] key, char[] value, bool key_quo
 		
 		case 'b','B':
 		{
-			if (!GoLargeOrGoHome() || !StrEqual(key, "Big", false)) /* Maybe they don't know they can't use it? Oh well. Protect the silly. */
+			if (!goLargeOrGoHome() || !StrEqual(key, "Big", false)) /* Maybe they don't know they can't use it? Oh well. Protect the silly. */
 			{
 				return SMCParse_Continue;
 			}
@@ -409,7 +409,7 @@ public bool TranslateToBool(char[] sSource)
 	return false; /* Assume False */
 }
 
-static stock bool IsValidClient(iClient)
+static stock bool IsValidClient(int iClient)
 {
 	return (0 < iClient <= MaxClients && IsClientInGame(iClient));
 }
@@ -476,19 +476,19 @@ public OnLibraryRemoved(const char[] sLibrary)
 
 #endif
 
-public Duck_OnPluginStart()
+public void Duck_OnPluginStart()
 {
 	char sGameDir[64];
 	GetGameFolderName(sGameDir, sizeof(sGameDir));
 	if (!strncmp(sGameDir, "tf", 2, false) || !strncmp(sGameDir, "tf_beta", 7, false))
 	{
-		g_iGameMode |= Game_TF2;
-		g_iGameMode |= Big_MOTD;
+		g_iGameMode |= game_TF2;
+		g_iGameMode |= big_MOTD;
 	}
 	
 	/* On a reload, these will already be registered and could be set to non-default */
 	
-	if (IsTeamFortress2())
+	if (isTeamFortress2())
 	{
 		/* AddCommandListener(Duck_TF2OnClose, "closed_htmlpage"); */
 	}	
@@ -512,7 +512,7 @@ public Duck_OnPluginStart()
 	EngineVersion iSDKVersion = GetEngineVersion();
 	if (iSDKVersion == Engine_Left4Dead || iSDKVersion == Engine_Left4Dead2)
 	{
-		g_iGameMode |= Game_L4D;
+		g_iGameMode |= game_L4D;
 		Handle hGameMode = FindConVar("mp_gamemode");
 		char szGamemode[256];
 		GetConVarString(hGameMode, szGamemode, sizeof(szGamemode));
@@ -523,7 +523,7 @@ public Duck_OnPluginStart()
 	Duck_UrlEncodeString(g_szGameDir, sizeof(g_szGameDir), sGameDir);
 }
 
-public OnMapStart()
+public void OnMapStart()
 {
 	char sTempMap[sizeof(g_szCurrentMap)];
 	GetCurrentMap(sTempMap, sizeof(sTempMap));
@@ -531,119 +531,119 @@ public OnMapStart()
 	Duck_UrlEncodeString(g_szCurrentMap, sizeof(g_szCurrentMap), sTempMap);
 }
 
-stock Duck_DoReplacements(iClient, char sUrl[256], iUrlBits, char sTitle[256], iTitleBits) /* Huge thanks to Psychonic */
+stock void Duck_DoReplacements(int iClient, char sUrl[256], int iUrlBits, char sTitle[256], int iTitleBits) /* Huge thanks to Psychonic */
 {
-	if (iUrlBits & Flag_Steam_ID || iTitleBits & Flag_Steam_ID)
+	if (iUrlBits & flag_Steam_ID || iTitleBits & flag_Steam_ID)
 	{
 		char sSteamId[64];
 		if (GetClientAuthId(iClient, AuthId_Steam2, sSteamId, sizeof(sSteamId), true))
 		{
 			ReplaceString(sSteamId, sizeof(sSteamId), ":", "%3a");
-			if (iTitleBits & Flag_Steam_ID)
+			if (iTitleBits & flag_Steam_ID)
 				ReplaceString(sTitle, sizeof(sTitle), TOKEN_STEAM_ID, sSteamId);
-			if (iUrlBits & Flag_Steam_ID)
+			if (iUrlBits & flag_Steam_ID)
 				ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_STEAM_ID, sSteamId);
 		}
 		else
 		{
-			if (iTitleBits & Flag_Steam_ID)
+			if (iTitleBits & flag_Steam_ID)
 				ReplaceString(sTitle,   sizeof(sTitle),   TOKEN_STEAM_ID, "");
-			if (iUrlBits & Flag_Steam_ID)
+			if (iUrlBits & flag_Steam_ID)
 				ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_STEAM_ID, "");
 		}
 	}
 	
-	if (iUrlBits & Flag_User_ID || iTitleBits & Flag_User_ID)
+	if (iUrlBits & flag_User_ID || iTitleBits & flag_User_ID)
 	{
 		char sUserId[16];
 		IntToString(GetClientUserId(iClient), sUserId, sizeof(sUserId));
-		if (iTitleBits & Flag_User_ID)
+		if (iTitleBits & flag_User_ID)
 			ReplaceString(sTitle, sizeof(sTitle), TOKEN_USER_ID, sUserId);
-		if (iUrlBits & Flag_User_ID)
+		if (iUrlBits & flag_User_ID)
 			ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_USER_ID, sUserId);
 	}
 	
-	if (iUrlBits & Flag_Friend_ID || iTitleBits & Flag_Friend_ID)
+	if (iUrlBits & flag_Friend_ID || iTitleBits & flag_Friend_ID)
 	{
 		char sFriendId[64];
 		if (GetClientFriendID(iClient, sFriendId, sizeof(sFriendId)))
 		{
-			if (iTitleBits & Flag_Friend_ID)
+			if (iTitleBits & flag_Friend_ID)
 				ReplaceString(sTitle, sizeof(sTitle), TOKEN_FRIEND_ID, sFriendId);
-			if (iUrlBits & Flag_Friend_ID)
+			if (iUrlBits & flag_Friend_ID)
 				ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_FRIEND_ID, sFriendId);
 		}
 		else
 		{
-			if (iTitleBits & Flag_Friend_ID)
+			if (iTitleBits & flag_Friend_ID)
 				ReplaceString(sTitle, sizeof(sTitle), TOKEN_FRIEND_ID, "");
-			if (iUrlBits & Flag_Friend_ID)
+			if (iUrlBits & flag_Friend_ID)
 				ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_FRIEND_ID, "");
 		}
 	}
 	
-	if (iUrlBits & Flag_Name || iTitleBits & Flag_Name)
+	if (iUrlBits & flag_Name || iTitleBits & flag_Name)
 	{
 		char sName[MAX_NAME_LENGTH];
 		if (GetClientName(iClient, sName, sizeof(sName)))
 		{
 			char sEncName[sizeof(sName)*3];
 			Duck_UrlEncodeString(sEncName, sizeof(sEncName), sName);
-			if (iTitleBits & Flag_Name)
+			if (iTitleBits & flag_Name)
 				ReplaceString(sTitle, sizeof(sTitle), TOKEN_NAME, sEncName);
-			if (iUrlBits & Flag_Name)
+			if (iUrlBits & flag_Name)
 				ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_NAME, sEncName);
 		}
 		else
 		{
-			if (iTitleBits & Flag_Name)
+			if (iTitleBits & flag_Name)
 				ReplaceString(sTitle, sizeof(sTitle), TOKEN_NAME, "");
-			if (iUrlBits & Flag_Name)
+			if (iUrlBits & flag_Name)
 				ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_NAME, "");
 		}
 	}
 	
-	if (iUrlBits & Flag_IP || iTitleBits & Flag_IP)
+	if (iUrlBits & flag_IP || iTitleBits & flag_IP)
 	{
 		char sClientIp[32];
 		if (GetClientIP(iClient, sClientIp, sizeof(sClientIp)))
 		{
-			if (iTitleBits & Flag_IP)
+			if (iTitleBits & flag_IP)
 				ReplaceString(sTitle, sizeof(sTitle), TOKEN_IP, sClientIp);
-			if (iUrlBits & Flag_IP)
+			if (iUrlBits & flag_IP)
 				ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_IP, sClientIp);
 		}
 		else
 		{
-			if (iTitleBits & Flag_IP)
+			if (iTitleBits & flag_IP)
 				ReplaceString(sTitle, sizeof(sTitle), TOKEN_IP, "");
-			if (iUrlBits & Flag_IP)
+			if (iUrlBits & flag_IP)
 				ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_IP, "");
 		}
 	}
 	
-	if (iUrlBits & Flag_Language || iTitleBits & Flag_Language)
+	if (iUrlBits & flag_Language || iTitleBits & flag_Language)
 	{
 		char sLanguage[32];
 		if (GetClientInfo(iClient, "cl_language", sLanguage, sizeof(sLanguage)))
 		{
 			char sEncLanguage[sizeof(sLanguage)*3];
 			Duck_UrlEncodeString(sEncLanguage, sizeof(sEncLanguage), sLanguage);
-			if (iTitleBits & Flag_Language)
+			if (iTitleBits & flag_Language)
 				ReplaceString(sTitle, sizeof(sTitle), TOKEN_LANGUAGE, sEncLanguage);
-			if (iUrlBits & Flag_Language)
+			if (iUrlBits & flag_Language)
 				ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_LANGUAGE, sEncLanguage);
 		}
 		else
 		{
-			if (iTitleBits & Flag_Language)
+			if (iTitleBits & flag_Language)
 				ReplaceString(sTitle, sizeof(sTitle), TOKEN_LANGUAGE, "");
-			if (iUrlBits & Flag_Language)
+			if (iUrlBits & flag_Language)
 				ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_LANGUAGE, "");
 		}
 	}
 	
-	if (iUrlBits & Flag_Rate || iTitleBits & Flag_Rate)
+	if (iUrlBits & flag_Rate || iTitleBits & flag_Rate)
 	{
 		char sRate[16];
 		if (GetClientInfo(iClient, "rate", sRate, sizeof(sRate)))
@@ -651,117 +651,117 @@ stock Duck_DoReplacements(iClient, char sUrl[256], iUrlBits, char sTitle[256], i
 			/* due to iClient's rate being silly, this won't necessarily be all digits */
 			char sEncRate[sizeof(sRate)*3];
 			Duck_UrlEncodeString(sEncRate, sizeof(sEncRate), sRate);
-			if (iTitleBits & Flag_Rate)
+			if (iTitleBits & flag_Rate)
 				ReplaceString(sTitle, sizeof(sTitle), TOKEN_RATE, sEncRate);
-			if (iUrlBits & Flag_Rate)
+			if (iUrlBits & flag_Rate)
 				ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_RATE, sEncRate);
 		}
 		else
 		{
-			if (iTitleBits & Flag_Rate)
+			if (iTitleBits & flag_Rate)
 				ReplaceString(sTitle, sizeof(sTitle), TOKEN_RATE, "");
-			if (iUrlBits & Flag_Rate)
+			if (iUrlBits & flag_Rate)
 				ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_RATE, "");
 		}
 	}
 	
-	if (iTitleBits & Flag_Server_IP)
+	if (iTitleBits & flag_Server_IP)
 		ReplaceString(sTitle, sizeof(sTitle), TOKEN_SERVER_IP, g_szServerIp);
-	if (iUrlBits & Flag_Server_IP)
+	if (iUrlBits & flag_Server_IP)
 		ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_SERVER_IP, g_szServerIp);
 	
-	if (iTitleBits & Flag_Server_Port)
+	if (iTitleBits & flag_Server_Port)
 		ReplaceString(sTitle, sizeof(sTitle), TOKEN_SERVER_PORT, g_szServerPort);
-	if (iUrlBits & Flag_Server_Port)
+	if (iUrlBits & flag_Server_Port)
 		ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_SERVER_PORT, g_szServerPort);
 	
-	if (iTitleBits & Flag_Server_Name)
+	if (iTitleBits & flag_Server_Name)
 		ReplaceString(sTitle, sizeof(sTitle), TOKEN_SERVER_NAME, g_szServerName);
-	if (iUrlBits & Flag_Server_Name)
+	if (iUrlBits & flag_Server_Name)
 		ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_SERVER_NAME, g_szServerName);	
 	
-	if (iTitleBits & Flag_Server_Custom)
+	if (iTitleBits & flag_Server_Custom)
 		ReplaceString(sTitle, sizeof(sTitle), TOKEN_SERVER_CUSTOM, g_szServerCustom);
-	if (iUrlBits & Flag_Server_Custom)
+	if (iUrlBits & flag_Server_Custom)
 		ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_SERVER_CUSTOM, g_szServerCustom);
 	
-	if (IsLeftForDead() && ((iUrlBits & Flag_L4D_GameMode) || (iTitleBits & Flag_L4D_GameMode)))
+	if (isLeftForDead() && ((iUrlBits & flag_L4D_GameMode) || (iTitleBits & flag_L4D_GameMode)))
 	{
-		if (iTitleBits & Flag_L4D_GameMode)
+		if (iTitleBits & flag_L4D_GameMode)
 			ReplaceString(sTitle, sizeof(sTitle), TOKEN_L4D_GAMEMODE, g_szL4DGameMode);
-		if (iUrlBits & Flag_L4D_GameMode)
+		if (iUrlBits & flag_L4D_GameMode)
 			ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_L4D_GAMEMODE, g_szL4DGameMode);
 	}
 	
-	if (iTitleBits & Flag_Current_Map)
+	if (iTitleBits & flag_Current_Map)
 		ReplaceString(sTitle, sizeof(sTitle), TOKEN_CURRENT_MAP, g_szCurrentMap);
-	if (iUrlBits & Flag_Current_Map)
+	if (iUrlBits & flag_Current_Map)
 		ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_CURRENT_MAP, g_szCurrentMap);
 	
-	if (iUrlBits & Flag_Next_Map || iTitleBits & Flag_Next_Map)
+	if (iUrlBits & flag_Next_Map || iTitleBits & flag_Next_Map)
 	{
 		char szNextMap[PLATFORM_MAX_PATH];
 		if (GetNextMap(szNextMap, sizeof(szNextMap)))
 		{
-			if (iTitleBits & Flag_Next_Map)
+			if (iTitleBits & flag_Next_Map)
 				ReplaceString(sTitle, sizeof(sTitle), TOKEN_NEXT_MAP, szNextMap);
-			if (iUrlBits & Flag_Next_Map)
+			if (iUrlBits & flag_Next_Map)
 				ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_NEXT_MAP, szNextMap);
 		}
 		else
 		{
-			if (iTitleBits & Flag_Next_Map)
+			if (iTitleBits & flag_Next_Map)
 				ReplaceString(sTitle, sizeof(sTitle), TOKEN_NEXT_MAP, "");
-			if (iUrlBits & Flag_Next_Map)
+			if (iUrlBits & flag_Next_Map)
 				ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_NEXT_MAP, "");
 		}
 	}
 	
-	if (iTitleBits & Flag_GameDir)
+	if (iTitleBits & flag_GameDir)
 		ReplaceString(sTitle, sizeof(sTitle), TOKEN_GAMEDIR, g_szGameDir);
-	if (iUrlBits & Flag_GameDir)
+	if (iUrlBits & flag_GameDir)
 		ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_GAMEDIR, g_szGameDir);
 	
-	if (iUrlBits & Flag_CurPlayers || iTitleBits & Flag_CurPlayers)
+	if (iUrlBits & flag_CurPlayers || iTitleBits & flag_CurPlayers)
 	{
 		char sCurPlayers[10];
 		IntToString(GetClientCount(false), sCurPlayers, sizeof(sCurPlayers));
-		if (iTitleBits & Flag_CurPlayers)
+		if (iTitleBits & flag_CurPlayers)
 			ReplaceString(sTitle, sizeof(sTitle), TOKEN_CURPLAYERS, sCurPlayers);
-		if (iUrlBits & Flag_CurPlayers)
+		if (iUrlBits & flag_CurPlayers)
 			ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_CURPLAYERS, sCurPlayers);
 	}
 	
-	if (iUrlBits & Flag_MaxPlayers || iTitleBits & Flag_MaxPlayers)
+	if (iUrlBits & flag_MaxPlayers || iTitleBits & flag_MaxPlayers)
 	{
 		char maxplayers[10];
 		IntToString(MaxClients, maxplayers, sizeof(maxplayers));
-		if (iTitleBits & Flag_MaxPlayers)
+		if (iTitleBits & flag_MaxPlayers)
 			ReplaceString(sTitle, sizeof(sTitle), TOKEN_MAXPLAYERS, maxplayers);
-		if (iUrlBits & Flag_MaxPlayers)
+		if (iUrlBits & flag_MaxPlayers)
 			ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_MAXPLAYERS, maxplayers);
 	}
 	
 #if defined _steamtools_included	
-	if (iUrlBits & Flag_VACStatus || iTitleBits & Flag_VACStatus)
+	if (iUrlBits & flag_VACStatus || iTitleBits & flag_VACStatus)
 	{
 		if (g_bSteamTools && Steam_IsVACEnabled())
 		{
-			if (iTitleBits & Flag_VACStatus)
+			if (iTitleBits & flag_VACStatus)
 				ReplaceString(sTitle, sizeof(sTitle), TOKEN_VACSTATUS, "1");
-			if (iUrlBits & Flag_VACStatus)
+			if (iUrlBits & flag_VACStatus)
 				ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_VACSTATUS, "1");
 		}
 		else
 		{
-			if (iTitleBits & Flag_VACStatus)
+			if (iTitleBits & flag_VACStatus)
 				ReplaceString(sTitle, sizeof(sTitle), TOKEN_VACSTATUS, "0");
-			if (iUrlBits & Flag_VACStatus)
+			if (iUrlBits & flag_VACStatus)
 				ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_VACSTATUS, "0");
 		}
 	}
 	
-	if (iUrlBits & Flag_Server_Pub_IP || iTitleBits & Flag_Server_Pub_IP)
+	if (iUrlBits & flag_Server_Pub_IP || iTitleBits & flag_Server_Pub_IP)
 	{
 		if (g_bSteamTools)
 		{
@@ -770,47 +770,47 @@ stock Duck_DoReplacements(iClient, char sUrl[256], iUrlBits, char sTitle[256], i
 			Steam_GetPublicIP(ip);
 			FormatEx(sIPString, sizeof(sIPString), "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
 			
-			if (iTitleBits & Flag_Server_Pub_IP)
+			if (iTitleBits & flag_Server_Pub_IP)
 				ReplaceString(sTitle, sizeof(sTitle), TOKEN_SERVER_PUB_IP, sIPString);
-			if (iUrlBits & Flag_Server_Pub_IP)
+			if (iUrlBits & flag_Server_Pub_IP)
 				ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_SERVER_PUB_IP, sIPString);
 		}
 		else
 		{
-			if (iTitleBits & Flag_Server_Pub_IP)
+			if (iTitleBits & flag_Server_Pub_IP)
 				ReplaceString(sTitle, sizeof(sTitle), TOKEN_SERVER_PUB_IP, "");
-			if (iUrlBits & Flag_Server_Pub_IP)
+			if (iUrlBits & flag_Server_Pub_IP)
 				ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_SERVER_PUB_IP, "");
 		}
 	}
 	
-	if (iUrlBits & Flag_Steam_ConnStatus || iTitleBits & Flag_Steam_ConnStatus)
+	if (iUrlBits & flag_Steam_ConnStatus || iTitleBits & flag_Steam_ConnStatus)
 	{
 		if (g_bSteamTools && Steam_IsConnected())
 		{
-			if (iTitleBits & Flag_Steam_ConnStatus)
+			if (iTitleBits & flag_Steam_ConnStatus)
 				ReplaceString(sTitle, sizeof(sTitle), TOKEN_STEAM_CONNSTATUS, "1");
-			if (iUrlBits & Flag_Steam_ConnStatus)
+			if (iUrlBits & flag_Steam_ConnStatus)
 				ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_STEAM_CONNSTATUS, "1");
 		}
 		else
 		{
-			if (iTitleBits & Flag_Steam_ConnStatus)
+			if (iTitleBits & flag_Steam_ConnStatus)
 				ReplaceString(sTitle, sizeof(sTitle), TOKEN_STEAM_CONNSTATUS, "0");
-			if (iUrlBits & Flag_Steam_ConnStatus)
+			if (iUrlBits & flag_Steam_ConnStatus)
 				ReplaceString(sUrl,   sizeof(sUrl),   TOKEN_STEAM_CONNSTATUS, "0");
 		}
 	}
 #endif  /* _steamtools_included */
 }
 
-stock bool GetClientFriendID(client, char[] sFriendID, size) 
+stock bool GetClientFriendID(int client, char[] sFriendID, int size) 
 {
 #if defined _steamtools_included
 	Steam_GetCSteamIDForClient(client, sFriendID, size);
 #else
 	char sSteamID[64];
-	if (!GetClientAuthId(iClient, AuthId_Steam2, sSteamId, sizeof(sSteamId), true))
+	if (!GetClientAuthId(iClient, AuthId_Steam2, sSteamID, sizeof(sSteamID), true))
 	{
 		sFriendID[0] = '\0'; /* Sanitize incase the return isn't checked. */
 		return false;
@@ -855,33 +855,33 @@ Duck_CalcBits(char[] source, &field)
 {
 	field = 0;
 	
-	FIELD_CHECK(TOKEN_STEAM_ID,    Flag_Steam_ID);
-	FIELD_CHECK(TOKEN_USER_ID,     Flag_User_ID);
-	FIELD_CHECK(TOKEN_FRIEND_ID,   Flag_Friend_ID);
-	FIELD_CHECK(TOKEN_NAME,        Flag_Name);
-	FIELD_CHECK(TOKEN_IP,          Flag_IP);
-	FIELD_CHECK(TOKEN_LANGUAGE,    Flag_Language);
-	FIELD_CHECK(TOKEN_RATE,        Flag_Rate);
-	FIELD_CHECK(TOKEN_SERVER_IP,   Flag_Server_IP);
-	FIELD_CHECK(TOKEN_SERVER_PORT, Flag_Server_Port);
-	FIELD_CHECK(TOKEN_SERVER_NAME, Flag_Server_Name);
-	FIELD_CHECK(TOKEN_SERVER_CUSTOM, Flag_Server_Custom);
+	FIELD_CHECK(TOKEN_STEAM_ID,    flag_Steam_ID);
+	FIELD_CHECK(TOKEN_USER_ID,     flag_User_ID);
+	FIELD_CHECK(TOKEN_FRIEND_ID,   flag_Friend_ID);
+	FIELD_CHECK(TOKEN_NAME,        flag_Name);
+	FIELD_CHECK(TOKEN_IP,          flag_IP);
+	FIELD_CHECK(TOKEN_LANGUAGE,    flag_Language);
+	FIELD_CHECK(TOKEN_RATE,        flag_Rate);
+	FIELD_CHECK(TOKEN_SERVER_IP,   flag_Server_IP);
+	FIELD_CHECK(TOKEN_SERVER_PORT, flag_Server_Port);
+	FIELD_CHECK(TOKEN_SERVER_NAME, flag_Server_Name);
+	FIELD_CHECK(TOKEN_SERVER_CUSTOM, flag_Server_Custom);
 	
-	if (IsLeftForDead())
+	if (isLeftForDead())
 	{
-		FIELD_CHECK(TOKEN_L4D_GAMEMODE, Flag_L4D_GameMode);
+		FIELD_CHECK(TOKEN_L4D_GAMEMODE, flag_L4D_GameMode);
 	}
 	
-	FIELD_CHECK(TOKEN_CURRENT_MAP, Flag_Current_Map);
-	FIELD_CHECK(TOKEN_NEXT_MAP,    Flag_Next_Map);
-	FIELD_CHECK(TOKEN_GAMEDIR,     Flag_GameDir);
-	FIELD_CHECK(TOKEN_CURPLAYERS,  Flag_CurPlayers);
-	FIELD_CHECK(TOKEN_MAXPLAYERS,  Flag_MaxPlayers);
+	FIELD_CHECK(TOKEN_CURRENT_MAP, flag_Current_Map);
+	FIELD_CHECK(TOKEN_NEXT_MAP,    flag_Next_Map);
+	FIELD_CHECK(TOKEN_GAMEDIR,     flag_GameDir);
+	FIELD_CHECK(TOKEN_CURPLAYERS,  flag_CurPlayers);
+	FIELD_CHECK(TOKEN_MAXPLAYERS,  flag_MaxPlayers);
 
 #if defined _steamtools_included
-	FIELD_CHECK(TOKEN_VACSTATUS,        Flag_VACStatus);
-	FIELD_CHECK(TOKEN_SERVER_PUB_IP,    Flag_Server_Pub_IP);
-	FIELD_CHECK(TOKEN_STEAM_CONNSTATUS, Flag_Steam_ConnStatus);
+	FIELD_CHECK(TOKEN_VACSTATUS,        flag_VACStatus);
+	FIELD_CHECK(TOKEN_SERVER_PUB_IP,    flag_Server_Pub_IP);
+	FIELD_CHECK(TOKEN_STEAM_CONNSTATUS, flag_Steam_ConnStatus);
 #endif
 }
 

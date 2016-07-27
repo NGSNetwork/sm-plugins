@@ -3,14 +3,16 @@
 
 #include <sdktools>
 #include <sourcemod>
-#define VERSION "1.0"
+#include <morecolors>
+
+#define PLUGIN_VERSION "1.1"
 
 //-------------------------------------------------------------------------------------------------
 public Plugin myinfo = {
 	name = "[NGS] Get Ping",
 	author = "caty / TheXeon",
 	description = "Displays your ping.",
-	version = VERSION,
+	version = PLUGIN_VERSION,
 	url = "matespastdates.servegame.com"
 }
 
@@ -21,10 +23,13 @@ public void OnPluginStart()
 
 public Action CommandGetPing(int client, int args)
 {
+	char playerName[MAX_NAME_LENGTH];
+	GetClientName(client, playerName, sizeof(playerName));
 	if(IsClientInGame(client))
 	{
 		float ping = GetClientLatency(client, NetFlow_Outgoing) * 1024;
-		ReplyToCommand(client, "Your ping is %f!", ping);
+		CReplyToCommand(client, "{GREEN}[SM]{NORMAL} Your ping is {LIGHTGREEN}%f{NORMAL}!", ping);
+		LogMessage("%s checked their ping, and it is %f!", playerName, ping);
 		return Plugin_Handled;
 	}
 	return Plugin_Handled;

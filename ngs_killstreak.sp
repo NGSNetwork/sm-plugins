@@ -4,13 +4,13 @@
 #include <sourcemod>
 #include <clientprefs>
 
-#define VERSION "2.1"
+#define PLUGIN_VERSION "2.1"
 
 public Plugin myinfo = {
 	name = "[NGS] Killstreak",
 	author = "Dr_Knuckles / Kredit / TheXeon",
 	description = "Killstreak value toggler/changer",
-	version = VERSION
+	version = PLUGIN_VERSION
 }
 
 ConVar hKillstreakAmount = null;
@@ -30,7 +30,7 @@ public void OnPluginStart() {
 
 	hKillstreakAmount = CreateConVar("sm_killstreak_amount", "10", "Default Killstreak Amount", FCVAR_NOTIFY);
 	AutoExecConfig();
-	CreateConVar("sm_ks_version", VERSION, "Killstreak modifier", FCVAR_NOTIFY);
+	CreateConVar("sm_ks_version", PLUGIN_VERSION, "Killstreak modifier", FCVAR_NOTIFY);
 	HookEvent("player_spawn", Event_Spawn);
 
 	for (int i = MaxClients; i > 0; --i) {

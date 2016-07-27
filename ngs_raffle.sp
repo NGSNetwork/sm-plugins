@@ -1,6 +1,5 @@
-/** Commented as morecolors isnt using new-style syntax yet.
 #pragma newdecls required
-*/
+
 #include <sourcemod>
 #include <sdktools>
 #include <morecolors>
@@ -34,11 +33,11 @@ public Action CommandListRaffle(int client, int args) {
 		PrintToConsole(client, "Usage: sm_raffle_list");
 		return Plugin_Handled;
 	}
-	for (new i = 0; i <= MAXPLAYERS; i++) {
+	for (int i = 0; i <= MAXPLAYERS; i++) {
 		if (arr_RaffleNum[i] != 0) {
 			char rafflename[32];
 			GetClientName(i, rafflename, sizeof(rafflename));			
-			CPrintToChat(client, "{green}%s {default}has raffle number {green}%d", rafflename, arr_RaffleNum[i]);
+			CPrintToChat(client, "{LIGHTGREEN}%s {NORMAL}has raffle number {GREEN}%d.", rafflename, arr_RaffleNum[i]);
 		}
 	}
 	return Plugin_Handled;
@@ -49,7 +48,7 @@ public Action CommandCancelRaffle(int client, int args) {
 		PrintToConsole(client, "Usage: sm_raffle_cancel");
 		return Plugin_Handled;
 	}
-	for (new i = 0; i <= MAXPLAYERS; i++) {
+	for (int i = 0; i <= MAXPLAYERS; i++) {
 		arr_RaffleNum[i] = 0;
 	}
 	PrintToChatAll("The raffle has been canceled.");
@@ -77,12 +76,12 @@ public Action CommandGenerateRaffle(int client, int args) {
 	}
 	int randnumber;
 	randnumber = GetRandomInt(1, rafflemax);
-	CPrintToChatAll("The winning raffle number is: {green}%d", randnumber);
+	CPrintToChatAll("The winning raffle number is: {GREEN}%d", randnumber);
 	for (int i = 0; i <= MAXPLAYERS; i++) {
 		if (arr_RaffleNum[i] == randnumber) {
 			char winname[32];
 			GetClientName(i, winname, sizeof(winname));
-			CPrintToChatAll("The winner of the raffle is: {green}%s", winname);
+			CPrintToChatAll("The winner of the raffle is {LIGHTGREEN}%s!", winname);
 			LogAction(client, -1, "%s won the raffle with raffle number %d", winname, randnumber);
 			arr_RaffleNum[i] = 0;
 		}
@@ -113,16 +112,16 @@ public Action CommandAssignRaffle(int client, int args) {
 			argnum++;
 			return Plugin_Handled;
 		}
-		for (new i = 0; i < target_count; i++) {
+		for (int i = 0; i < target_count; i++) {
 			char rafflename[32];
 			GetClientName(target_list[i], rafflename, sizeof(rafflename));
 			if (arr_RaffleNum[target_list[i]] > 0) {
-				CPrintToChat(client, "{green}%s {default}is already in the raffle.", rafflename);
+				CPrintToChat(client, "{LIGHTGREEN}%s {NORMAL}is already in the raffle.", rafflename);
 				return Plugin_Handled;
 			}
 			rafflemax++;	
 			arr_RaffleNum[target_list[i]] = rafflemax;
-			CPrintToChatAll("{green}%s {default}has raffle number {green}%d", rafflename, rafflemax);	
+			CPrintToChatAll("{LIGHTGREEN}%s {NORMAL}has raffle number {GREEN}%d{NORMAL}.", rafflename, rafflemax);	
 			LogAction(client, target_list[i], "%s given raffle number %d", rafflename, rafflemax);
 			argnum++;
 		}
@@ -148,21 +147,21 @@ public Action CommandRemoveRaffle(int client, int args) {
 			char rafflename[32];
 			GetClientName(target, rafflename, sizeof(rafflename));
 			if (arr_RaffleNum[target] == 0) {
-				CPrintToChat(client, "{green}%s {default}was not in the raffle to begin with!", rafflename);
+				CPrintToChat(client, "{LIGHTGREEN}%s{NORMAL} was not in the raffle to begin with!", rafflename);
 				return Plugin_Handled;
 			}
 			int removenum = arr_RaffleNum[target];
 			arr_RaffleNum[target] = 0;
-			CPrintToChatAll("{green}%s {default}was removed from the raffle.", rafflename);
+			CPrintToChatAll("{LIGHTGREEN}%s{NORMAL} was removed from the raffle.", rafflename);
 			LogAction(client, target, "%s was removed from the raffle", rafflename);
 			
 			if (removenum != 0) {
-				for (new i = 0; i <= MAXPLAYERS; i++) {
+				for (int i = 0; i <= MAXPLAYERS; i++) {
 					char iname[32];
 					GetClientName(i, iname, sizeof(iname));
 					if (arr_RaffleNum[i] > removenum) {
 						arr_RaffleNum[i] = arr_RaffleNum[i] - 1;
-						CPrintToChat(i, "Your raffle number has changed from {green}%d {default} to {green}%d{default}.", arr_RaffleNum[i] +1, arr_RaffleNum[i]);
+						CPrintToChat(i, "Your raffle number has changed from {GREEN}%d{NORMAL} to {GREEN}%d{NORMAL}.", arr_RaffleNum[i] +1, arr_RaffleNum[i]);
 						LogAction(client, target, "%s had raffle number changed from %d to %d", iname, arr_RaffleNum[i] +1, arr_RaffleNum[i]);
 					}
 				}

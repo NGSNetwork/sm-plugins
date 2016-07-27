@@ -11,6 +11,7 @@ enum CommandItem
 {
 	String:CommandItemName[STORE_MAX_NAME_LENGTH],
 	String:CommandItemText[255],
+	String:CommandItemRetain[255],
 	CommandItemTeams[5]
 }
 
@@ -48,7 +49,7 @@ public void OnLibraryAdded(const char[] name)
 
 public void Store_OnReloadItems() 
 {
-	if (g_commandItemsNameIndex != INVALID_HANDLE)
+	if (g_commandItemsNameIndex != null)
 		CloseHandle(g_commandItemsNameIndex);
 		
 	g_commandItemsNameIndex = CreateTrie();
@@ -63,6 +64,7 @@ public void OnCommandItemAttributesLoad(const char[] itemName, const char[] attr
 	
 	Handle json = json_load(attrs);
 	json_object_get_string(json, "command", g_commandItems[g_commandItemCount][CommandItemText], 255);
+	json_object_get_string(json, "retain", g_commandItems[g_commandItemCount][CommandItemRetain], 255);
 
 	Handle teams = json_object_get(json, "teams");
 
@@ -130,5 +132,9 @@ public Store_ItemUseAction OnCommandItemUse(int client, int itemId, bool equippe
 	ReplaceString(commandText, sizeof(commandText), "{clientUser}", clientUser, false);		
 
 	ServerCommand(commandText);
+	
+	if(StrEqual(g_commandItems[commandItemhold][CommandItemRetain], "false", false))
+		return Store_DeleteItem;
+	
 	return Store_DoNothing;
 }

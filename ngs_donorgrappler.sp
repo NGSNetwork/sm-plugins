@@ -56,21 +56,7 @@ public void OnClientPutInServer(int client)
 	SDKHook(client, SDKHook_WeaponCanUse, OnWeaponCanUse);
 }
 
-public Action OnWeaponCanUse(int client, int weapon)
-{
-	if(!bEnabled)
-		return Plugin_Continue;
-	int index = GetEntProp(weapon, Prop_Send, "m_iItemDefinitionIndex");
-	char playername[MAX_NAME_LENGTH];
-	GetClientName(client, playername, sizeof(playername));
-	
-	if(index == GRAPPLER && !CheckCommandAccess(client, "sm_vipgrappler_override", ADMFLAG_RESERVATION, false) && StrContains(playername, "ngs", false) == -1)
-		return Plugin_Handled;
-		
-	return Plugin_Continue;
-}
-
-void ExecuteLateLoad()
+public void ExecuteLateLoad()
 {
 	for (int i = 1; i <= MaxClients; i++)
 	{
@@ -80,7 +66,19 @@ void ExecuteLateLoad()
 	}
 }
 
-void RemoveGrappler()
+public Action OnWeaponCanUse(int client, int weapon)
+{
+	if(!bEnabled)
+		return Plugin_Continue;
+	int index = GetEntProp(weapon, Prop_Send, "m_iItemDefinitionIndex");	
+	
+	if(index == GRAPPLER && !CheckCommandAccess(client, "sm_vipgrappler_override", ADMFLAG_RESERVATION, false))
+		return Plugin_Handled;
+		
+	return Plugin_Continue;
+}
+
+public void RemoveGrappler()
 {
 	if(!bEnabled)
 		return;
@@ -90,9 +88,7 @@ void RemoveGrappler()
 	while((entity = FindEntityByClassname(entity, "tf_weapon_grapplinghook")) != -1)
 	{
 		int owner = GetEntPropEnt(entity, Prop_Send, "m_hOwnerEntity");
-		char playername[MAX_NAME_LENGTH];
-		GetClientName(owner, playername, sizeof(playername));
-		if(!CheckCommandAccess(owner, "sm_vipgrappler_override", ADMFLAG_RESERVATION, false) && StrContains(playername, "ngs", false) == -1)
+		if(!CheckCommandAccess(owner, "sm_vipgrappler_override", ADMFLAG_RESERVATION, false))
 		{
 			SDKHooks_DropWeapon(owner, entity, NULL_VECTOR, NULL_VECTOR);
 			AcceptEntityInput(entity, "kill");

@@ -23,7 +23,7 @@ public void OnPluginStart()
 {
 	Handle conf = LoadGameConfigFile("tf2.tauntem");
 	
-	if (conf == INVALID_HANDLE)
+	if (conf == null)
 	{
 		SetFailState("Unable to load gamedata/tf2.tauntem.txt. Good luck figuring that out.");
 		return;
@@ -35,7 +35,7 @@ public void OnPluginStart()
 	PrepSDKCall_SetReturnInfo(SDKType_Bool, SDKPass_Plain);
 	hPlayTaunt = EndPrepSDKCall();
 	
-	if (hPlayTaunt == INVALID_HANDLE)
+	if (hPlayTaunt == null)
 	{
 		SetFailState("Unable to initialize call to CTFPlayer::PlayTauntSceneFromItem. Wait patiently for a fix.");
 		CloseHandle(conf);
@@ -47,7 +47,25 @@ public void OnPluginStart()
 	
 	CloseHandle(conf);
 	LoadTranslations("common.phrases");
-	CreateConVar("tf_tauntem_version", PLUGIN_VERSION, "[TF2] Taunt 'em Version", FCVAR_NOTIFY);
+	CreateConVar("tf_tauntmenu_version", PLUGIN_VERSION, "[NGS] Taunt Menu Version", FCVAR_NOTIFY);
+	
+	
+	PrecacheModel("models/player/items/taunts/cash_wad.mdl", true);
+	PrecacheModel("models/player/items/taunts/medic_xray_taunt.mdl", true);
+	PrecacheModel("models/player/items/taunts/victory_mug.mdl", true);
+	PrecacheModel("models/player/items/taunts/balloon_animal_pyro/balloon_animal_pyro.mdl", true);
+	PrecacheModel("models/player/items/taunts/beer_crate/beer_crate.mdl", true);
+	PrecacheModel("models/player/items/taunts/chicken_bucket/chicken_bucket.mdl", true);
+	PrecacheModel("models/player/items/taunts/demo_nuke_bottle/demo_nuke_bottle.mdl", true);
+	PrecacheModel("models/player/items/taunts/dizzy_bottle1/dizzy_bottle1.mdl", true);
+	PrecacheModel("models/player/items/taunts/dizzy_bottle2/dizzy_bottle2.mdl", true);
+	PrecacheModel("models/player/items/taunts/engys_new_chair/engys_new_chair.mdl", true);
+	PrecacheModel("models/player/items/taunts/engys_new_chair/engys_new_chair_articulated.mdl", true);
+	PrecacheModel("models/player/items/taunts/wupass_mug/wupass_mug.mdl", true);
+	PrecacheModel("models/workshop/player/items/taunts/pyro_poolparty/pyro_poolparty.mdl", true);
+	PrecacheModel("models/workshop/player/items/spy/taunt_spy_boxtrot/taunt_spy_boxtrot.mdl", true);
+	PrecacheModel("models/workshop/player/items/sniper/killer_solo/killer_solo.mdl", true);
+	PrecacheModel("models/workshop/player/items/sniper/taunt_most_wanted/taunt_most_wanted.mdl", true);
 }
 
 public Action Cmd_TauntMenu(int client, int args)
@@ -59,7 +77,7 @@ public Action Cmd_TauntMenu(int client, int args)
 public Action ShowMenu(int client)
 {
 	TFClassType class = TF2_GetPlayerClass(client);
-	Menu menu = CreateMenu(Tauntme_MenuSelected);
+	Menu menu = CreateMenu(Taunt_MenuSelected);
 	SetMenuTitle(menu, "===== NGS Taunt Menu =====");
 	
 	switch(class)
@@ -135,7 +153,7 @@ public Action ShowMenu(int client)
 	DisplayMenu(menu, client, 20);
 }
 
-public int Tauntme_MenuSelected(Handle menu, MenuAction action, int iClient, int param2)
+public int Taunt_MenuSelected(Handle menu, MenuAction action, int iClient, int param2)
 {
 	if(action == MenuAction_End)
 	{
@@ -151,10 +169,9 @@ public int Tauntme_MenuSelected(Handle menu, MenuAction action, int iClient, int
 	}
 }
 
-void ExecuteTaunt(int client, int itemdef)
+public void ExecuteTaunt(int client, int itemdef)
 {
-	static Handle hItem;
-	hItem = TF2Items_CreateItem(OVERRIDE_ALL|PRESERVE_ATTRIBUTES|FORCE_GENERATION);
+	Handle hItem = TF2Items_CreateItem(OVERRIDE_ALL|PRESERVE_ATTRIBUTES|FORCE_GENERATION);
 	
 	TF2Items_SetClassname(hItem, "tf_wearable_vm");
 	TF2Items_SetQuality(hItem, 6);

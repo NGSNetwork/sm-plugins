@@ -242,7 +242,7 @@ stock void CReplaceColorCodes(char[] buffer, int author=0, bool removeTags=false
 	}
 	int cursor = 0;
 	int value;
-	char tag[32], buff[32], output[MAX_BUFFER_LENGTH];
+	char atag[32], buff[32], output[MAX_BUFFER_LENGTH];
 	
 	strcopy(output, maxlen, buffer);
 	// Since the string's size is going to be changing, output will hold the replaced string and we'll search buffer
@@ -254,10 +254,10 @@ stock void CReplaceColorCodes(char[] buffer, int author=0, bool removeTags=false
 			strcopy(buffer, maxlen, output);
 			return;
 		}
-		GetRegexSubString(regex, 0, tag, sizeof(tag));
-		CStrToLower(tag);
-		cursor = StrContains(buffer[cursor], tag, false) + cursor + 1;
-		strcopy(buff, sizeof(buff), tag);
+		GetRegexSubString(regex, 0, atag, sizeof(atag));
+		CStrToLower(atag);
+		cursor = StrContains(buffer[cursor], atag, false) + cursor + 1;
+		strcopy(buff, sizeof(buff), atag);
 		ReplaceString(buff, sizeof(buff), "{", "");
 		ReplaceString(buff, sizeof(buff), "}", "");
 		
@@ -266,10 +266,10 @@ stock void CReplaceColorCodes(char[] buffer, int author=0, bool removeTags=false
 		}
 		
 		if(removeTags) {
-			ReplaceString(output, maxlen, tag, "", false);
+			ReplaceString(output, maxlen, atag, "", false);
 		} else {
 			Format(buff, sizeof(buff), "\x07%06X", value);
-			ReplaceString(output, maxlen, tag, buff, false);
+			ReplaceString(output, maxlen, atag, buff, false);
 		}
 	}
 	LogError("[MORE COLORS] Infinite loop broken.");
@@ -410,7 +410,7 @@ stock void CShowActivity(int client, const char[] message, any ...) {
  * @param message		Message (formatting rules)
  * @noreturn
  */
-stock void CShowActivityEx(int client, const char[] tag, const char[] message, any ...) {
+stock void CShowActivityEx(int client, const char[] atag, const char[] message, any ...) {
 	CCheckTrie();
 	if(client < 0 || client > MaxClients) {
 		ThrowError("Invalid client index %d", client);
@@ -422,9 +422,9 @@ stock void CShowActivityEx(int client, const char[] tag, const char[] message, a
 	Format(buffer, sizeof(buffer), "\x01%s", message);
 	VFormat(buffer2, sizeof(buffer2), buffer, 4);
 	CReplaceColorCodes(buffer2);
-	strcopy(buffer, sizeof(buffer), tag);
+	strcopy(buffer, sizeof(buffer), atag);
 	CReplaceColorCodes(buffer);
-	ShowActivityEx(client, tag, "%s", buffer2);
+	ShowActivityEx(client, atag, "%s", buffer2);
 }
 
 /**
@@ -435,7 +435,7 @@ stock void CShowActivityEx(int client, const char[] tag, const char[] message, a
  * @param message		Message (formatting rules)
  * @noreturn
  */
-stock void CShowActivity2(int client, const char[] tag, const char[] message, any ...) {
+stock void CShowActivity2(int client, const char[] atag, const char[] message, any ...) {
 	CCheckTrie();
 	if(client < 0 || client > MaxClients) {
 		ThrowError("Invalid client index %d", client);
@@ -447,7 +447,7 @@ stock void CShowActivity2(int client, const char[] tag, const char[] message, an
 	Format(buffer, sizeof(buffer), "\x01%s", message);
 	VFormat(buffer2, sizeof(buffer2), buffer, 4);
 	CReplaceColorCodes(buffer2);
-	strcopy(buffer, sizeof(buffer), tag);
+	strcopy(buffer, sizeof(buffer), atag);
 	CReplaceColorCodes(buffer);
 	ShowActivity2(client, buffer, "%s", buffer2);
 }

@@ -28,6 +28,7 @@ int g_points_teamkill;
 int g_ignore_bots;
 bool g_enable_message_per_kill;
 bool g_enable_only_name_tag;
+bool g_enable_case_sensitive_tag;
 
 public Plugin myinfo = {
 	name        = "[Store] Kill Awards",
@@ -79,6 +80,7 @@ void LoadConfig()
 	g_enable_message_per_kill = view_as<bool>(KvGetNum(kv, "enable_message_per_kill", 0));
 	g_enable_only_name_tag = view_as<bool>(KvGetNum(kv, "enable_only_name_tag", 0));
 	KvGetString(kv, "name_tag", g_nameTag, sizeof(g_nameTag), "ngs");
+	g_enable_case_sensitive_tag = view_as<bool>(KvGetNum(kv, "enable_case_sensitive_tag", 0));
 
 	if (KvJumpToKey(kv, "filters"))
 	{
@@ -138,17 +140,14 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
 		return Plugin_Continue;
 	}
 	
-	
-	
-	// Checking here shouldn't make a difference.
 	if (g_enable_only_name_tag)
 	{
 		char killerName[MAX_NAME_LENGTH];
 		GetClientName(client_killer, killerName, sizeof(killerName));
-		if (StrContains(killerName, g_nameTag, false) != -1)
+		if (StrContains(killerName, g_nameTag, g_enable_case_sensitive_tag) != -1)
 		{
 			// teamkill
-			if (GetClientTeam(client_killer) == GetClientTeam(client_died) && client_killer != client_died)
+			if (GetClientTeam(client_killer) == GetClientTeam(client_died))
 			{
 				int points = Calculate(event, g_points_teamkill);
 				if (points != 0)
@@ -181,7 +180,7 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
 	else
 	{	
 		// teamkill
-		if (GetClientTeam(client_killer) == GetClientTeam(client_died) && client_killer != client_died)
+		if (GetClientTeam(client_killer) == GetClientTeam(client_died))
 		{
 			int points = Calculate(event, g_points_teamkill);
 			if (points != 0)

@@ -11,7 +11,7 @@
 
 //-------------------------------------------------------------------------------------------------
 public Plugin myinfo = {
-	name = "[NGS] Spy Crab Event Creator",
+	name = "|WIP| [NGS] Spy Crab Event Creator",
 	author = "caty / TheXeon",
 	description = "Start spycrab events!",
 	version = PLUGIN_VERSION,
@@ -32,7 +32,7 @@ public Action CommandSpycrab(int client, int args)
 	}
 	
 	int clientTeam = GetClientTeam(client);
-	if(clientTeam < 1 && clientTeam > 4)
+	if(clientTeam > 1 && clientTeam < 4)
 	{
 		float spy_redorigin[3];
 		float spy_blueorigin[3];

@@ -5,14 +5,16 @@
 
 #include <sdktools>
 #include <tf2items>
+#include <tf2>
 #include <tf2_stocks>
+#include <morecolors>
 
 #define PLUGIN_VERSION "1.3"
 
 public Plugin myinfo = {
 	name = "[NGS] Taunt Menu",
 	author = "FlaminSarge, Nighty, xCoderx / TheXeon",
-	description = "Displays a nifty taunt menu.",
+	description = "Displays a nifty taunt menu. TF2 only.",
 	version = PLUGIN_VERSION,
 	url = "http://forums.alliedmods.net/showthread.php?t=242866"
 }
@@ -70,6 +72,11 @@ public void OnPluginStart()
 
 public Action Cmd_TauntMenu(int client, int args)
 {
+	if (GetClientTeam(client) < 1 || GetClientTeam(client) > 4 || !IsClientConnected(client))
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{NORMAL} You must join a team to use this command.");
+		return Plugin_Handled;
+	}
 	ShowMenu(client);
 	return Plugin_Handled;
 }
@@ -171,6 +178,10 @@ public int Taunt_MenuSelected(Handle menu, MenuAction action, int iClient, int p
 
 public void ExecuteTaunt(int client, int itemdef)
 {
+	if (TF2_GetPlayerClass(client) == TFClass_Spy)
+	{
+		TF2_RemovePlayerDisguise(client);
+	}
 	Handle hItem = TF2Items_CreateItem(OVERRIDE_ALL|PRESERVE_ATTRIBUTES|FORCE_GENERATION);
 	
 	TF2Items_SetClassname(hItem, "tf_wearable_vm");

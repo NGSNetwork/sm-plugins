@@ -1,3 +1,9 @@
+/****************************************************
+*													*
+*	Requires the included translations and configs	*
+*													*
+****************************************************/
+
 #pragma newdecls required
 #pragma semicolon 1
 

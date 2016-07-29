@@ -155,8 +155,14 @@ public Action CommandRemoveRaffle(int client, int args) {
 			CPrintToChatAll("{LIGHTGREEN}%s{NORMAL} was removed from the raffle.", rafflename);
 			LogAction(client, target, "%s was removed from the raffle", rafflename);
 			
-			if (removenum != 0) {
-				for (int i = 0; i <= MAXPLAYERS; i++) {
+			if (removenum != 0) 
+			{
+				for (int i = 0; i <= MAXPLAYERS; i++) 
+				{
+					if (!IsClientInGame(i)) 
+					{
+						argnum++;
+					}
 					char iname[32];
 					GetClientName(i, iname, sizeof(iname));
 					if (arr_RaffleNum[i] > removenum) {

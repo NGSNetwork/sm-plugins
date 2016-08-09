@@ -27,7 +27,7 @@ public Action CommandSpycrab(int client, int args)
 {
 	if(client == 0 || !IsClientInGame(client) || GetClientTeam(client) == 1 || !IsPlayerAlive(client))
 	{
-		CReplyToCommand(client, "{GREEN}[SM]{NORMAL} Event: You must be alive to start this event.");
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Event: You must be alive to start this event.");
 		return Plugin_Handled;
 	}
 	

@@ -92,21 +92,13 @@ void LoadConfig()
 	KvGetString(kv, "inventory_commands", menuCommands, sizeof(menuCommands), "!inventory /inventory !inv /inv");
 	Store_RegisterChatCommands(menuCommands, ChatCommand_OpenInventory);
 
-	g_hideEmptyCategories = ConvertIntToBool(KvGetNum(kv, "hide_empty_categories", 0));
-	g_showMenuDescriptions = ConvertIntToBool(KvGetNum(kv, "show_menu_descriptions", 1));
-	g_showItemsMenuDescriptions = ConvertIntToBool(KvGetNum(kv, "show_itesm_menu_descriptions", 1));
+	g_hideEmptyCategories = view_as<bool>(KvGetNum(kv, "hide_empty_categories", 0));
+	g_showMenuDescriptions = view_as<bool>(KvGetNum(kv, "show_menu_descriptions", 1));
+	g_showItemsMenuDescriptions = view_as<bool>(KvGetNum(kv, "show_itesm_menu_descriptions", 1));
 	
 	CloseHandle(kv);
 	
 	Store_AddMainMenuItem("Inventory", "Inventory Description", _, OnMainMenuInventoryClick, 4);
-}
-
-// Below is unnecessary but just in case for future-proofing.
-public bool ConvertIntToBool(int numberInput)
-{
-	if (numberInput > 0) 
-		return true;
-	return false;
 }
 
 public void OnMainMenuInventoryClick(int client, const char[] value)

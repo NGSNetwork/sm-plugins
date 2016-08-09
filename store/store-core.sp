@@ -320,11 +320,7 @@ public void OnCommandGetCredits(int credits, any client)
 
 public Action Command_DeveloperMode(int client, int args)
 {
-	switch (bDeveloperMode[client])
-	{
-		case true: bDeveloperMode[client] = false;
-		case false: bDeveloperMode[client] = true;
-	}
+	bDeveloperMode[client] = !bDeveloperMode;
 	
 	CPrintToChat(client, "%t%t", "Store Tag Colored", "Store Developer Toggled", bDeveloperMode[client] ? "ON" : "OFF");
 	

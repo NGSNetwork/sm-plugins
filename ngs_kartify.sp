@@ -92,7 +92,7 @@ public void OnClientConnected(int client) {
 
 public Action Command_Kartify(int client, int args) {
 	if(args == 0) {
-		CReplyToCommand(client, "{GREEN}[SM]{NORMAL} Usage: sm_kartify <name|#userid>");
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_kartify <name|#userid>");
 		return Plugin_Handled;
 	}
 	
@@ -113,14 +113,14 @@ public Action Command_Kartify(int client, int args) {
 	
 	if(result == 1 && TF2_IsPlayerInCondition(targets[0], view_as<TFCond>(82))) {
 		// Only one player chosen and they're in a kart
-		CShowActivity2(client, "{GREEN}[SM]{NORMAL} ", "Unkartified {LIGHTGREEN}%s{NORMAL}!", target_name);
+		CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "Unkartified {LIGHTGREEN}%s{DEFAULT}!", target_name);
 		LogAction(client, targets[0], "\"%L\" unkartified \"%L\"", client, targets[0]);
 		g_KartSpawn[targets[0]] = false;
 		Unkartify(targets[0]);
 		return Plugin_Handled;
 	}
 	
-	CShowActivity2(client, "{GREEN}[SM]{NORMAL} ", "Kartified {LIGHTGREEN}%s{NORMAL}!", target_name);
+	CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "Kartified {LIGHTGREEN}%s{DEFAULT}!", target_name);
 	for(int i = 0; i < result; i++) {
 		LogAction(client, targets[i], "\"%L\" kartified \"%L\"", client, targets[i]);
 		g_KartSpawn[targets[i]] = true;
@@ -132,7 +132,7 @@ public Action Command_Kartify(int client, int args) {
 
 public Action Command_Unkartify(int client, int args) {
 	if(args == 0) {
-		CReplyToCommand(client, "{GREEN}[SM]{NORMAL} Usage: sm_unkartify <name|#userid>");
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_unkartify <name|#userid>");
 		return Plugin_Handled;
 	}
 	
@@ -150,7 +150,7 @@ public Action Command_Unkartify(int client, int args) {
 		return Plugin_Handled;
 	}
 	
-	CShowActivity2(client, "{GREEN}[SM]{NORMAL} ", "Unkartified {LIGHTGREEN}%s{NORMAL}!", target_name);
+	CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "Unkartified {LIGHTGREEN}%s{DEFAULT}!", target_name);
 	for(int i = 0; i < result; i++) {
 		LogAction(client, targets[i], "\"%L\" unkartified \"%L\"", client, targets[i]);
 		g_KartSpawn[targets[i]] = false;
@@ -166,7 +166,7 @@ public Action Command_KartifyMe(int client, int args) {
 		return Plugin_Handled;
 	}
 	
-	CShowActivity2(client, "{GREEN}[SM]{LIGHTGREEN} ", "{NORMAL}Put self into a kart.");
+	CShowActivity2(client, "{GREEN}[SM]{LIGHTGREEN} ", "{DEFAULT}Put self into a kart.");
 	LogAction(client, client, "\"%L\" put themselves into a kart", client);
 	g_KartSpawn[client] = true;
 	Kartify(client);
@@ -174,7 +174,7 @@ public Action Command_KartifyMe(int client, int args) {
 }
 
 public Action Command_UnkartifyMe(int client, int args) {
-	CShowActivity2(client, "{GREEN}[SM]{LIGHTGREEN} ", "{NORMAL}Removed self from a kart.");
+	CShowActivity2(client, "{GREEN}[SM]{LIGHTGREEN} ", "{DEFAULT}Removed self from a kart.");
 	LogAction(client, client, "\"%L\" removed themselves from a kart", client);
 	g_KartSpawn[client] = false;
 	Unkartify(client);

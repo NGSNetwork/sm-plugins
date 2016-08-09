@@ -92,7 +92,7 @@ public Action Command_ArrowsMe(int client, int args) {
 	if(!IsValidClient(client))
 		return Plugin_Handled;
 	g_Arrows[client] = !g_Arrows[client];
-	CReplyToCommand(client, "{GREEN}[SM]{NORMAL} You have %s explosive arrows.", g_Arrows[client] ? "enabled" : "disabled");
+	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You have %s explosive arrows.", g_Arrows[client] ? "enabled" : "disabled");
 	return Plugin_Handled;
 }
 
@@ -104,7 +104,7 @@ public Action Command_Arrows(int client, int args) {
 	char arg1[65], arg2[65];
 
 	if(args < 1) {
-		CReplyToCommand(client, "{NORMAL}Usage: sm_explarrows <client> (<On: 1 ; Off = 0>)");
+		CReplyToCommand(client, "{DEFAULT}Usage: sm_explarrows <client> (<On: 1 ; Off = 0>)");
 		return Plugin_Handled;
 	}
 
@@ -136,9 +136,9 @@ public Action Command_Arrows(int client, int args) {
 			g_Arrows[target_list[i]] = button;
 	}
 	if (tn_is_ml)
-		CShowActivity2(client, "{GREEN}[SM]{NORMAL} ", "{LIGHTGREEN}%N{NORMAL} has %s {LIGHTGREEN}%t's{NORMAL} explosive arrows.", client, g_Arrows[client] ? "enabled" : "disabled", target_name);
+		CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "{LIGHTGREEN}%N{DEFAULT} has %s {LIGHTGREEN}%t's{DEFAULT} explosive arrows.", client, g_Arrows[client] ? "enabled" : "disabled", target_name);
 	else
-		CShowActivity2(client, "{GREEN}[SM]{NORMAL} ", "{LIGHTGREEN}%N{NORMAL} has %s {LIGHTGREEN}%s's{NORMAL} explosive arrows.", client, g_Arrows[client] ? "enabled" : "disabled", target_name);
+		CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "{LIGHTGREEN}%N{DEFAULT} has %s {LIGHTGREEN}%s's{DEFAULT} explosive arrows.", client, g_Arrows[client] ? "enabled" : "disabled", target_name);
 	return Plugin_Handled;
 }
 

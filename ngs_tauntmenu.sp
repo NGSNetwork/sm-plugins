@@ -74,7 +74,7 @@ public Action Cmd_TauntMenu(int client, int args)
 {
 	if (GetClientTeam(client) < 1 || GetClientTeam(client) > 4 || !IsClientConnected(client))
 	{
-		CReplyToCommand(client, "{GREEN}[SM]{NORMAL} You must join a team to use this command.");
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You must join a team to use this command.");
 		return Plugin_Handled;
 	}
 	ShowMenu(client);

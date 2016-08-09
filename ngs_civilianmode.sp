@@ -44,7 +44,7 @@ public Action CommandRemoveWeapons(int client, int args)
 	GetCmdArg(1, target, sizeof(target));
 	if (args != 1)
 	{
-		CReplyToCommand(client, "{GREEN}[SM]{NORMAL} Usage: sm_rweapons <name>");
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_rweapons <name>");
 		return Plugin_Handled;
 	}
 
@@ -94,7 +94,7 @@ public Action PerformRemoveWeapons(int client, int target)
 	{
 		TF2_RemoveAllWeapons(target);
 		LogAction(client, target, "\"%L\" removed weapons on \"%L\".", client, target);
-		CReplyToCommand(client, "You removed {LIGHTGREEN}%N's{NORMAL} weapons.", target);
+		CReplyToCommand(client, "You removed {LIGHTGREEN}%N's{DEFAULT} weapons.", target);
 		ShowActivity2(client, "", "%N has removed %N's weapons.", client,target);
 		return Plugin_Handled;
 	}
@@ -173,11 +173,11 @@ public int MenuHandler_Players(Handle menu, MenuAction action, int param1, int p
 
 		if ((target = GetClientOfUserId(userid)) == 0)
 		{
-			CPrintToChat(param1, "{GREEN}[SM]{NORMAL} %s", "Player no longer available");
+			CPrintToChat(param1, "{GREEN}[SM]{DEFAULT} %s", "Player no longer available");
 		}
 		else if (!CanUserTarget(param1, target))
 		{
-			CPrintToChat(param1, "{GREEN}[SM]{NORMAL} %s", "Unable to target");
+			CPrintToChat(param1, "{GREEN}[SM]{DEFAULT} %s", "Unable to target");
 		}
 		else
 		{			

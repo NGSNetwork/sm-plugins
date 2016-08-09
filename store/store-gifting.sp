@@ -104,7 +104,7 @@ void LoadConfig()
 		SetFailState("Can't read config file %s", path);
 	}
 	
-	g_showItemsMenuDescriptions = ConvertIntToBool(KvGetNum(kv, "show_items_menu_descriptions", 1));
+	g_showItemsMenuDescriptions = view_as<bool>(KvGetNum(kv, "show_items_menu_descriptions", 1));
 	
 	char creditChoicesString[255];
 	KvGetString(kv, "credits_choices", creditChoicesString, sizeof(creditChoicesString));
@@ -117,7 +117,7 @@ void LoadConfig()
 		g_creditChoices[choice] = StringToInt(creditChoices[choice]);
 	}
 	
-	g_drop_enabled = ConvertIntToBool(KvGetNum(kv, "drop_enabled", 0));
+	g_drop_enabled = view_as<bool>(KvGetNum(kv, "drop_enabled", 0));
 
 	if (g_drop_enabled)
 	{
@@ -126,22 +126,15 @@ void LoadConfig()
 
 		if (!g_itemModel[0] || !FileExists(g_itemModel, true))
 		{
+
 			if (StrEqual(g_game, "cstrike"))
-			{
 				strcopy(g_itemModel,sizeof(g_itemModel), "models/items/cs_gift.mdl");
-			}
 			else if (StrEqual(g_game, "tf"))
-			{
 				strcopy(g_itemModel,sizeof(g_itemModel), "models/items/tf_gift.mdl");
-			}
 			else if (StrEqual(g_game, "dod"))
-			{
 				strcopy(g_itemModel,sizeof(g_itemModel), "models/items/dod_gift.mdl");
-			}
 			else
-			{
 				g_drop_enabled = false;
-			}
 		}
 	}
 	
@@ -172,18 +165,6 @@ void LoadConfig()
 	CloseHandle(kv);
 	
 	Store_AddMainMenuItem("Gift", "Gift Description", _, OnMainMenuGiftClick, 5);
-}
-
-public bool ConvertIntToBool(int input)
-{
-	if(input > 0)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
 }
 
 public void OnMapStart()
@@ -356,36 +337,36 @@ public int GiftTypeMenuSelectHandle(Handle menu, MenuAction action, int client, 
 {
 	switch (action)
 	{
-	case MenuAction_Select:
-		{
-			char sInfo[12];
-			GetMenuItem(menu, slot, sInfo, sizeof(sInfo));
-				
-			if (StrEqual(sInfo, "credits"))
+		case MenuAction_Select:
 			{
-				switch (g_drop_enabled)
+				char sInfo[12];
+				GetMenuItem(menu, slot, sInfo, sizeof(sInfo));
+					
+				if (StrEqual(sInfo, "credits"))
 				{
-					case true: OpenChooseActionMenu(client, GiftType_Credits);
-					case false: OpenChoosePlayerMenu(client, GiftType_Credits);
+					switch (g_drop_enabled)
+					{
+						case true: OpenChooseActionMenu(client, GiftType_Credits);
+						case false: OpenChoosePlayerMenu(client, GiftType_Credits);
+					}
+				}
+				else if (StrEqual(sInfo, "item"))
+				{
+					switch (g_drop_enabled)
+					{
+						case true: OpenChooseActionMenu(client, GiftType_Item);
+						case false: OpenChoosePlayerMenu(client, GiftType_Item);
+					}
 				}
 			}
-			else if (StrEqual(sInfo, "item"))
+		case MenuAction_Cancel:
 			{
-				switch (g_drop_enabled)
+				if (slot == MenuCancel_ExitBack)
 				{
-					case true: OpenChooseActionMenu(client, GiftType_Item);
-					case false: OpenChoosePlayerMenu(client, GiftType_Item);
+					Store_OpenMainMenu(client);
 				}
 			}
-		}
-	case MenuAction_Cancel:
-		{
-			if (slot == MenuCancel_ExitBack)
-			{
-				Store_OpenMainMenu(client);
-			}
-		}
-	case MenuAction_End: CloseHandle(menu);
+		case MenuAction_End: CloseHandle(menu);
 	}
 }
 

@@ -19,6 +19,7 @@ public Plugin myinfo = {
 public void OnPluginStart()
 {
 	RegConsoleCmd("sm_rtd", CommandRTDEffect, "Anti-RTD in chat.");
+	RegConsoleCmd("sm_rollthedice", CommandRTDEffect, "Anti-RTD in chat.");
 }
 
 public Action CommandRTDEffect(int client, int args)
@@ -47,7 +48,7 @@ public Action CommandRTDEffect(int client, int args)
 		case 2:
 		{
 			TF2_IgnitePlayer(client, client);
-			CReplyToCommand(client, "{YELLOW}[RTD]{DEFAULT} You rolled {PURPLE}Ignition{DEFAULT}!");
+			CReplyToCommand(client, "{YELLOW}[RTD]{DEFAULT} You rolled {PURPLE}Ignition{DEFAULT}! {LIGHTGREEN}We will unfortunately never have this plugin on the server.");
 			SayToAllElse(client, playerName);
 			return Plugin_Handled;
 		}

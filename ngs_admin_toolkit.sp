@@ -21,8 +21,9 @@ public Plugin myinfo = {
 
 public void OnPluginStart()
 {
-	RegAdminCmd("sm_forcerespawn", CommandForceRespawn, ADMFLAG_GENERIC, "Usage: sm_forcerespawn [target]");
-	RegAdminCmd("sm_changeteam", CommandChangeTeam, ADMFLAG_GENERIC, "Usage: sm_changeteam [target] <team> (1 = Spec / 2 = Red / 3 = Blue)");
+	RegAdminCmd("sm_forcerespawn", CommandForceRespawn, ADMFLAG_GENERIC, "Usage: sm_forcerespawn <#userid|name>");
+	RegAdminCmd("sm_changeteam", CommandChangeTeam, ADMFLAG_GENERIC, "Usage: sm_changeteam <#userid|name> <team> (1 = Spec / 2 = Red / 3 = Blue)");
+	RegAdminCmd("sm_sethealth", CommandSetHealth, ADMFLAG_GENERIC, " Usage: sm_sethealth <#userid|name> <amount>");
 	LoadTranslations("common.phrases");
 }
 
@@ -118,12 +119,82 @@ public Action CommandChangeTeam(int client, int args)
 	}
  
 	if (tn_is_ml)
-	{
 		CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "Moved %t to team %d!", target_name, Team);
-	}
 	else
-	{
 		CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "Moved %s to team %d!", target_name, Team);
-	}
 	return Plugin_Handled;
+}
+
+public Action CommandSetHealth(int client, int args)
+{
+	char arg1[MAX_TARGET_LENGTH], arg2[10], mod[32];
+	int iHealth;
+
+	GetGameFolderName(mod, sizeof(mod));
+
+	if (args < 2)
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_sethealth <#userid|name> <amount>");
+		return Plugin_Handled;
+	}
+	else {
+		GetCmdArg(1, arg1, sizeof(arg1));
+		GetCmdArg(2, arg2, sizeof(arg2));
+		iHealth = StringToInt(arg2);
+	}
+
+	if (iHealth < 0) {
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Health must be greater then zero.");
+		return Plugin_Handled;
+	}
+
+	char target_name[MAX_TARGET_LENGTH];
+	int target_list[MAXPLAYERS], target_count;
+	bool tn_is_ml;
+
+	if ((target_count = ProcessTargetString(
+			arg1,
+			client,
+			target_list,
+			MAXPLAYERS,
+			COMMAND_FILTER_ALIVE,
+			target_name,
+			sizeof(target_name),
+			tn_is_ml)) <= 0)
+	{
+		ReplyToTargetError(client, target_count);
+		return Plugin_Handled;
+	}
+
+	for (int i = 0; i < target_count; i++)
+	{
+		if (StrEqual(mod, "tf", false)) 
+		{		
+			if (iHealth == 0)
+				FakeClientCommand(target_list[i], "explode");
+			else
+			{
+				SetEntProp(target_list[i], Prop_Data, "m_iMaxHealth", iHealth);
+				SetEntityHealth(target_list[i], iHealth);
+			}
+		}
+
+		else 
+		{
+			if (iHealth == 0)
+				SetEntityHealth(target_list[i], 1);
+			else
+				SetEntityHealth(target_list[i], iHealth);
+		}
+
+		LogAction(client, target_list[i], "\"%L\" set \"%L\"'s health to  %i", client, target_list[i], iHealth);
+	}
+
+	if (tn_is_ml)
+		CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "Set {LIGHTGREEN}%t{DEFAULT}'s health to {LIGHTGREEN}%d{DEFAULT}.", target_name, iHealth);
+	else
+		CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "Set {LIGHTGREEN}%s{DEFAULT}'s health to {LIGHTGREEN}%d{DEFAULT}.", target_name, iHealth);
+	
+	return Plugin_Handled;
+
 }

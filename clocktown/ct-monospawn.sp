@@ -33,7 +33,6 @@ public void OnPluginStart()
 	if (!Enabled) return;
 	// Late loading
 	FindTimers();
-	RegAdminCmd("sm_testmajora", CommandTestMajora, ADMFLAG_BAN, "Spawns Majora as a test.");
 }
 
 public void OnMapStart()
@@ -121,17 +120,6 @@ stock void FindTimers()
 		else if (StrEqual(entName, "day3relay")) Relays[4] = Ent;
 		else if (StrEqual(entName, "night3relay")) Relays[5] = Ent;
 	}
-}
-
-public Action CommandTestMajora (int client, int args)
-{
-	if (!IsValidClient(client)) return Plugin_Handled;
-	
-	DayCount = 3;
-	HourCount = 12;
-	HourSeconds = false;
-	Nighttime = true;
-	return Plugin_Handled;
 }
 
 public bool IsValidClient (int client)

@@ -1,0 +1,167 @@
+"Phrases"
+{
+	"Advert1"
+	{
+		"en"		"{green}[%s] {default}Remember, say {lightgreen}/T {default}before messages about trading."
+		"hu"		"{green}[%s] {default}Üzleteléshez használd a {lightgreen}/T {default}parancsot!."
+		"pl"		"{green}[%s] {default}Pamiętaj, by wszelkie wiadomości na temat wymiany przedmiotów poprzedzać {lightgreen}/T{default}."
+		"ru"		"{green}[%s] {default}Пишите {lightgreen}/T {default} перед сообщением об обмене вещами."
+		"es"		"{green}[%s] {default}Recuerda, pon {lightgreen}/T {default} antes de cualquier mensaje relacionado con el comercio."
+		"fr"		"{green}[%s] {default}N'oubliez pas, tapez {lightgreen}/T {default}avant les messages pour trade."
+		"pt"		"{green}[%s] {default}Lembre-se, digite {lightgreen}/T {default}antes de mensagens sobre trocas."
+		"ko"		"[green][%s] {default}거래와 관련된 이야기를 하려면, /T 기능을 사용하세요."
+	}
+	"Advert2"
+	{
+		"en"		"{green}[%s] {default}If you don't want to see trade chat, say {lightgreen}/TOGGLECHAT{default}."
+		"hu"		"{green}[%s] {default}Ha nem szeretnéd látni a trade chatet, használd a {lightgreen}/TOGGLECHAT {default} parancsot."
+		"pl"		"{green}[%s] {default}Jeśli nie chcesz widzieć wiadomości na temat wymiany, wpisz {lightgreen}/TOGGLECHAT{default}."
+		"ru"		"{green}[%s] {default}Если вы не хотите видеть торговый чат, напишите {lightgreen}/TOGGLECHAT{default}."
+		"es"		"{green}[%s] {default}Si no quieres ver el chat de comercio, escribe {lightgreen}/TOGGLECHAT{default}."
+		"fr"		"{green}[%s] {default}Si vous ne voulez pas voir le chat de trade, tapez {lightgreen}/TOGGLECHAT{default}."
+		"pt"		"{green}[%s] {default}Se você não quer ver o chat de trocas, envie {lightgreen}/TOGGLECHAT{default}."
+		"ko"		"{green}[%s] {default}거래 채팅을 숨기려면, 채팅에 {lightgreen}/TOGGLECHAT{default}을(를) 입력하세요."
+	}
+	"Advert3"
+	{
+		"en"		"{green}[%s] {default}To send again your last offer, say {lightgreen}/LT{default}."
+		"hu"		"{green}[%s] {default}Az utolsó ajánlatok megtekintéséhez írd be: {lightgreen}/LT{default}."
+		"pl"		"{green}[%s] {default}By wysłać ponownie poprzednią ofertę, wpisz {lightgreen}/LT{default}."
+		"ko"		"{green}[%s] {default}마지막으로 보낸 거래 메세지를 다시 보내려면, 채팅에 {lightgreen}/LT{default}을(를) 입력하세요."
+	}
+	"Advert4"
+	{
+		"en"		"{green}[%s] {default}To check what was your last offer, say {lightgreen}/MLT{default}."
+		"pl"		"{green}[%s] {default}By sprawdzić jaka była Twoja poprzednia oferta, wpisz {lightgreen}/MLT{default}."
+		"ko"		"{green}[%s] {default}자신이 마지막으로 보낸 거래 메세지를 확인하려면, 채팅에 {lightgreen}/MLT{default}을(를) 입력하세요."
+	}
+	"HideChatOn"
+	{
+		"en"		"{green}[%s] {lightgreen}You {green}will not {lightgreen}see the trade chat."
+		"hu"		"{green}[%s] {lightgreen}Már {green}nem látod {lightgreen}a trade chatet."
+		"pl"		"{green}[%s] {lightgreen}Od teraz {green}nie będziesz {lightgreen}widział wiadomości dotyczących wymiany przedmiotów."
+		"ru"		"{green}[%s] {lightgreen}Торговый чат теперь {green}спрятан{lightgreen}."
+		"es"		"{green}[%s] {lightgreen}Ya {green}no {lightgreen}verás el chat de comercio."
+		"fr"		"{green}[%s] {lightgreen}Vous {green}n'allez pas {lightgreen}voir le chat de trade."
+		"pt"		"{green}[%s] {lightgreen}Voce {green}não verá {lightgreen}o chat de trocas."
+		"ko"		"{green][%s] {lightgreen}이제 거래 채팅은 {green}나오지 않습니다{lightgreen}."
+	}
+	"HideChatOff"
+	{
+		"en"		"{green}[%s] {lightgreen}You {green}will {lightgreen}see the trade chat."
+		"hu"		"{green}[%s] {lightgreen}Már {green}látod {lightgreen}a trade chatet."
+		"pl"		"{green}[%s] {lightgreen}Od teraz {green}będziesz {lightgreen}widział wiadomości dotyczące wymiany przedmiotów."
+		"ru"		"{green}[%s] {lightgreen}Торговый чат теперь {green}включен{lightgreen}."
+		"es"		"{green}[%s] {lightgreen}Ahora {green}verás {lightgreen} el chat de comercio."
+		"fr"		"{green}[%s] {lightgreen}Vous {green}allez {lightgreen}voir le chat de trade."
+		"pt"		"{green}[%s] {lightgreen}Você {green}verá {lightgreen}o chat de trocas."
+		"ko"		"{green}[%s] {lightgreen}이제 거래 채팅이 {green}나옵니다{lightgreen}."
+	}
+	"HideChatUnavailable"
+	{
+		"en"		"{green}[%s] {lightgreen}This option is currently unavailable."
+		"pl"		"{green}[%s] {lightgreen}Ta opcja jest chwilo niedostępna."
+		"ko"		"{green}[%s] {lightgreen}이 기능은 사용할 수 없습니다."
+	}
+	"TradeDisabledForYou"
+	{
+		"en"		"{green}[%s] {lightgreen}You can't use {green}/T {lightgreen}when you have disabled trade chat."
+		"hu"		"{green}[%s] {lightgreen}Nem használhatod a {green}/T {lightgreen}parancsot, miközben ki van kapcsolva a trade chat."
+		"pl"		"{green}[%s] {lightgreen}Nie możesz używać {green}/T {lightgreen}gdy wyłączyłeś widok wiadomości na temat wymiany przedmiotów."
+		"ru"		"{green}[%s] {lightgreen}Вы не можете использовать {green}/T{lightgreen}, потому что вы отключили торговый чат."
+		"es"		"{green}[%s] {lightgreen}No puedes usar {green}/T {lightgreen}si tienes desactivado el chat de comercio."
+		"fr"		"{green}[%s] {lightgreen}Vous ne pouvez pas utiliser {green}/T {lightgreen}si vous avez desactive le chat de trade."
+		"pt"		"{green}[%s] {lightgreen}Você não pode usar {green}/T {lightgreen}com o chat de trocas desabilitado."
+		"ko"		"{green}[%s] {lightgreen}거래 채팅을 보지 않는 도중에 {green}/T {lightgreen}명령어를 사용할 수 없습니다."
+	}
+	"TradeBanned"
+	{
+		"en"		"{green}[%s] {lightgreen}You are banned from trade chat."
+		"hu"		"{green}[%s] {lightgreen}Kitiltottak a trade chatről."
+		"pl"		"{green}[%s] {lightgreen}Zostałeś pozbawiony możliwości korzystania z trade chatu{lightgreen}."
+		"ru"		"{green}[%s] {lightgreen}Вам заблокировали торговый чат."
+		"es"		"{green}[%s] {lightgreen}Has sido baneado del chat de comercio."
+		"fr"		"{green}[%s] {lightgreen}Vous etes banni du chat de trade."
+		"pt"		"{green}[%s] {lightgreen}Você está banido do chat de trocas."
+		"ko"		"{green}[%s] {lightgreen}거래 채팅이 금지되어있는 상태입니다."
+	}
+	"TradeBan"
+	{
+		"en"		"{green}[%s] {lightgreen}%s {default}has banned {lightgreen}%s {default}from trade chat."
+		"hu"		"{green}[%s] {lightgreen}%s {default}tiltotta {lightgreen}%s {default}számár a trade chatet."
+		"pl"		"{green}[%s] {lightgreen}%s {default}zablokował {lightgreen}%s {default}możliwość korzystania z trade chatu{default}."
+		"ru"		"{green}[%s] {lightgreen}%s {default}заблокировали {lightgreen}%s {default}в торговый чат."
+		"es"		"{green}[%s] {lightgreen}%s {default}ha baneado a {lightgreen}%s {default}del chat de comercio."
+		"fr" 		"{green}[%s] {lightgreen}%s {default}a banni {lightgreen}%s {default}du chat de trade."
+		"pt"		"{green}[%s] {lightgreen}%s {default}baniu {lightgreen}%s {default}do chat de trocas"
+		"ko"		"{green}[%s] {lightgreen}%s{default}님이 {lightgreen}%s{default}님의 거래 채팅을 금지했습니다."
+	}
+	"TradeUnBan"
+	{
+		"en"		"{green}[%s] {lightgreen}%s {default}has unbanned {lightgreen}%s {default}from trade chat"
+		"hu"		"{green}[%s] {lightgreen}%s {default}engedélyezte {lightgreen}%s {default}számár a trade chatet."
+		"pl"		"{green}[%s] {lightgreen}%s {default}odblokował {lightgreen}%s {default}możliwość korzystania z trade chatu{default}."
+		"ru"		"{green}[%s] {lightgreen}%s {default}разблокирован {lightgreen}%s {default}в торговом чате."
+		"es"		"{green}[%s] {lightgreen}%s {default}ha desbaneado a {lightgreen}%s {default}del chat de comercio."
+		"fr"		"{green}[%s] {lightgreen}%s {default}a debanni {lightgreen}%s {default}du chat de trade."
+		"pt"		"{green}[%s] {lightgreen}%s {default}desbaniu {lightgreen}%s {default}do chat de trocas."
+		"ko"		"{green}[%s] {lightgreen}%s{default}님이 {lightgreen}%s{default}님의 거래 채팅 금지을 해제했습니다."
+	}
+	"TradeGagUsage"
+	{
+		"en"		"Usage: sm_trade_gag <#userid|name> | sm_trade_ungag <#userid|name>"
+		"hu"		"Usage: sm_trade_gag <#userid|name> | sm_trade_ungag <#userid|name>"
+		"pl"		"Użycie: sm_trade_gag <#userid|name> | sm_trade_ungag <#userid|name>"
+		"ru"		"Использование: sm_trade_gag <#userid или имя игрока> | sm_trade_ungag <#userid или имя игрока>"
+		"es"		"Uso: sm_trade_gag <#userid|name> | sm_trade_ungag <#userid|name>"
+		"fr"		"Utilisation: sm_trade_gag <#userid|name> | sm_trade_ungag <#userid|name>"
+		"pt"		"Uso: sm_trade_gag <#userid|name> | sm_trade_ungag <#userid|name>"
+		"ko"		"사용법: sm_trade_gag <#userid|이름> | sm_trade_ungag <#userid|이름>"
+	}
+	"AntiSpamAutoGag"
+	{
+		"en"		"{green}[%s] {lightgreen}%s {default}was automatically banned from trade chat."
+		"hu"		"{green}[%s] {lightgreen}%s {default}automatikusan tiltva lett a trade chatről."
+		"pl"		"{green}[%s] {lightgreen}%s {default}został automatycznie pozbawiony możliwości korzystania z trade chatu{default}."
+		"ru"		"{green}[%s] {lightgreen}%s {default}был заблокирован в торговом чате."
+		"es"		"{green}[%s] {lightgreen}%s {default}fue baneado automáticamente del chat de comercio."
+		"fr"		"{green}[%s] {lightgreen}%s {default}a ete banni automatiquement du chat de trade."
+		"pt"		"{green}[%s] {lightgreen}%s {default}foi banido automaticamente do chat de trocas."
+		"ko"		"{green}[%s] {lightgreen}자동으로 %s{default}님의 거래 채팅이 금지되었습니다."
+	}
+	"AntiSpamBlocked"
+	{
+		"en"		"{green}[%s] {lightgreen}You must wait before sending next offer."
+		"hu"		"{green}[%s] {lightgreen}Várnod kell a következő ajánlattételig."
+		"pl"		"{green}[%s] {lightgreen}Musisz poczekać przed wysłaniem kolejnej oferty."
+		"ru"		"{green}[%s] {lightgreen}Не отправляйте сообщения так часто."
+		"es"		"{green}[%s] {lightgreen}Debes esperar para poder enviar tu siguiente oferta."
+		"fr"		"{green}[%s] {lightgreen}Vous devez attendre avant d'envoyer la prochaine offre."
+		"pt"		"{green}[%s] {lightgreen}Você deve esperar antes de enviar sua próxima oferta."
+		"ko"		"{green}[%s] {lightgreen}거래 채팅을 다시 보내려면 잠시 기다리세요."
+	}
+	"AntiSpamBlockedInterval"
+	{
+		"en"		"{green}[%s] {lightgreen}You must wait %d seconds before sending next offer."
+		"pl"		"{green}[%s] {lightgreen}Musisz poczekać %d sekund przed wysłaniem kolejnej oferty."
+		"ko"		"{green}[%s] {lightgreen}%d초 이내에 거래 채팅을 다시 보낼 수 없습니다."
+	}
+	"LastMessageIsEmpty"
+	{
+		"en"		"{green}[%s] {lightgreen}You have not sent any offers yet."
+		"hu"		"{green}[%s] {lightgreen}Nem küldtél semmilyen ajánlatot."
+		"pl"		"{green}[%s] {lightgreen}Nie wysłałeś jeszcze żadnej oferty."
+		"ko"		"{green}[%s] {lightgreen}아직 거래 채팅을 사용하지 않았습니다."
+	}
+	"YourLastMessage"
+	{
+		"en"		"{green}[%s] {lightgreen}Your last offer: {default}%s"
+		"pl"		"{green}[%s] {lightgreen}Twoja poprzednia oferta: {default}%s"
+		"ko"		"{green}[%s] {lightgreen}마지막으로 보낸 거래 채팅: {default}%s"
+	}
+	"Offer"
+	{
+		"en"		"{green}[%s] {lightgreen}%s: {default}%s"
+		//Should not be translated
+	}
+}

@@ -11,7 +11,7 @@
 
 //-------------------------------------------------------------------------------------------------
 public Plugin myinfo = {
-	name = "|WIP| [NGS] Spy Crab Event Creator",
+	name = "[NGS] Spy Crab Event Creator",
 	author = "caty / TheXeon",
 	description = "Start spycrab events!",
 	version = PLUGIN_VERSION,
@@ -20,12 +20,12 @@ public Plugin myinfo = {
 
 public void OnPluginStart()
 {
-	RegConsoleCmd("sm_spycrab", CommandSpycrab, "starts and ends a spycrab");
+	RegConsoleCmd("sm_spycrab", CommandSpycrab, "Starts and ends a spycrab");
 }
 
 public Action CommandSpycrab(int client, int args)
 {
-	if(client == 0 || !IsClientInGame(client) || GetClientTeam(client) == 1 || !IsPlayerAlive(client))
+	if(!IsValidClient(client) || !IsPlayerAlive(client))
 	{
 		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Event: You must be alive to start this event.");
 		return Plugin_Handled;
@@ -49,4 +49,14 @@ public Action CommandSpycrab(int client, int args)
 		return Plugin_Handled;
 	}
 	return Plugin_Handled;
+}
+
+public bool IsValidClient(int client)
+{
+	if(client > 4096) client = EntRefToEntIndex(client);
+	if(client < 1 || client > MaxClients) return false;
+	if(!IsClientInGame(client)) return false;
+	if(IsFakeClient(client)) return false;
+	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
+	return true;
 }

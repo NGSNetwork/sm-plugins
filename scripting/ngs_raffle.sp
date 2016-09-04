@@ -20,7 +20,9 @@ public Plugin myinfo = {
 
 public void OnPluginStart() 
 {
-	CreateConVar("sm_raffle_version", PLUGIN_VERSION, "Generates a random number for a raffle.", FCVAR_NOTIFY | FCVAR_REPLICATED);
+	HookEvent("player_death", Event_PlayerDeath, EventHookMode_Pre);
+	HookEvent("player_death", Event_PlayerDeath, EventHookMode_Pre);
+	CreateConVar("sm_raffle_version", PLUGIN_VERSION, "Version of the raffle plugin!", FCVAR_NOTIFY | FCVAR_REPLICATED);
 	RegAdminCmd("sm_raffle", CommandGenerateRaffle, ADMFLAG_CHAT, "Generates a random number for a raffle.");
 	RegAdminCmd("sm_raffle_assign", CommandAssignRaffle, ADMFLAG_CHAT, "Assigns a raffle number to a player.");
 	RegAdminCmd("sm_raffle_remove", CommandRemoveRaffle, ADMFLAG_CHAT, "Removes a raffle number from a player.");

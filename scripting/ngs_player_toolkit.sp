@@ -12,6 +12,9 @@
 #define PLUGIN_VERSION "1.0.0"
 #define STEAMCOMMUNITY_PROFILESURL "https://steamcommunity.com/profiles/"
 
+int BAMCooldown[MAXPLAYERS + 1];
+bool BAMOptOut[MAXPLAYERS + 1];
+
 //--------------------//
 
 public Plugin myinfo = {
@@ -28,10 +31,18 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_friend", CommandGetProfile, "Usage: sm_friend <#userid|name>");
 	RegConsoleCmd("sm_yum", CommandYum, "Usage: sm_yum");
 	RegConsoleCmd("sm_doquack", CommandDoQuack, "Usage: sm_doquack");
+	RegConsoleCmd("sm_bamboozle", CommandBamboozle, "Usage: sm_bamboozle <#userid|name>");
+	RegConsoleCmd("sm_dontbamboozleme", CommandDontBamboozle, "Usage: sm_dontbamboozleme");
 	
 	PrecacheSound("ambient/bumper_car_quack11.wav", false);
+	PrecacheSound("vo/demoman_specialcompleted11.mp3", false);
 	
 	LoadTranslations("common.phrases");
+}
+
+public void OnClientPutInServer(int client)
+{ 
+	BAMCooldown[client] = 0; 
 }
 
 public Action CommandGetProfile(int client, int args)
@@ -45,7 +56,7 @@ public Action CommandGetProfile(int client, int args)
 	}
 	
 	GetCmdArg(1, arg1, sizeof(arg1));
-	int target = FindTarget(client, arg1);
+	int target = FindTarget(client, arg1, true, false);
 
 	if (target == -1) return Plugin_Handled;
 	
@@ -75,10 +86,77 @@ public Action CommandDoQuack(int client, int args)
 	if (!IsValidClient) return Plugin_Handled;
 	
 	EmitSoundToClient(client, "ambient/bumper_car_quack11.wav");
+	EmitSoundToClient(client, "ambient/bumper_car_quack11.wav");
+	EmitSoundToClient(client, "ambient/bumper_car_quack11.wav");
 	Handle hHudText = CreateHudSynchronizer();
 	SetHudTextParams(-1.0, 0.1, 3.0, 255, 0, 0, 255, 1, 1.0, 1.0, 1.0);
 	ShowSyncHudText(client, hHudText, "._o< *quack* >o_.");
 	CloseHandle(hHudText);
+	return Plugin_Handled;
+}
+
+public Action CommandBamboozle(int client, int args)
+{
+	if (!IsValidClient) return Plugin_Handled;
+	
+	if (BAMOptOut[client])
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You may not bamboozle when opted out. Use !dontbamboozleme to opt back in.");
+		return Plugin_Handled;
+	}
+	
+	int currentTime = GetTime(); 
+	if (currentTime - BAMCooldown[client] < 7)
+    {
+   		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You must wait {PURPLE}%d{DEFAULT} seconds to bam again.", currentTime - BAMCooldown[client]);
+   		BAMCooldown[client] = currentTime;
+   		return Plugin_Handled;
+  	}
+
+	BAMCooldown[client] = currentTime;
+	
+	if (args < 1)
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_bamboozle <#userid|name>");
+		return Plugin_Handled;
+	}
+	
+	char arg1[MAX_BUFFER_LENGTH];
+	
+	GetCmdArg(1, arg1, sizeof(arg1));
+	int target = FindTarget(client, arg1, true, false);
+
+	if (target == -1) return Plugin_Handled;
+	
+	if (BAMOptOut[target])
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} The target has opted out of bamboozlement.");
+		return Plugin_Handled;
+	}
+	
+	EmitSoundToClient(target, "vo/demoman_specialcompleted11.mp3");
+	EmitSoundToClient(target, "vo/demoman_specialcompleted11.mp3");
+	EmitSoundToClient(target, "vo/demoman_specialcompleted11.mp3");
+	Handle hHudText = CreateHudSynchronizer();
+	SetHudTextParams(-1.0, 0.1, 3.0, 255, 0, 0, 255, 1, 1.0, 1.0, 1.0);
+	ShowSyncHudText(target, hHudText, "BAMBOOZLED");
+	ShowSyncHudText(client, hHudText, "BAMBOOZLED");
+	CloseHandle(hHudText);
+	
+	char targetName[MAX_BUFFER_LENGTH], clientName[MAX_BUFFER_LENGTH];
+	GetClientName(target, targetName, sizeof(targetName));
+	GetClientName(client, clientName, sizeof(clientName));
+	
+	CPrintToChatAll("{GREEN}[SM]{DEFAULT} {LIGHTGREEN}%s{DEFAULT} just {RED}B{ORANGE}A{YELLOW}M{GREEN}B{BLUE}O{PURPLE}O{MAGENTA}Z{BLACK}L{WHITE}E{GREEN}D{DEFAULT} {LIGHTGREEN}%s{DEFAULT}!", clientName, targetName);
+	return Plugin_Handled;
+}
+
+public Action CommandDontBamboozle(int client, int args)
+{
+	if (!IsValidClient) return Plugin_Handled;
+	
+	BAMOptOut[client] = !BAMOptOut[client];
+	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You have opted %s bamboozlement.", BAMOptOut[client] ? "out of" : "into");
 	return Plugin_Handled;
 }
 

@@ -1,4 +1,4 @@
-#pragma newdecls required
+/*#pragma newdecls required
 #pragma semicolon 1
 
 #define PLUGIN_VERSION "1.1"
@@ -98,7 +98,8 @@ public void RemoveGrappler()
 
 
 
-/*
+*/
+#pragma newdecls required
 #pragma semicolon 1
 
 #define PLUGIN_VERSION "1.1"
@@ -201,4 +202,3 @@ public void RemoveGrappler()
 		}
 	}
 }
-*/

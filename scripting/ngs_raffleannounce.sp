@@ -10,7 +10,7 @@
 #define PLUGIN_VERSION "1.0.0"
 #define NGSRAFFLEURL "https://steamcommunity.com/groups/NGSRaffle#announcements/detail/"
 
-Handle hHudText = null;
+Handle hHudText;
 
 char raffleID[MAX_BUFFER_LENGTH];
 char raffleItem[MAX_BUFFER_LENGTH];
@@ -94,6 +94,7 @@ public Action CommandCancelRaffle(int client, int args)
 {
 	raffleID = NULL_STRING;
 	raffleItem = NULL_STRING;
+	if (hHudText != null) ClearSyncHud(i, hHudText);
 	if (hHudText == null) hHudText = CreateHudSynchronizer();
 	
 	SetHudTextParams(-1.0, 0.1, 5.0, 255, 0, 0, 255, 1, 1.0, 1.0, 1.0);
@@ -102,7 +103,6 @@ public Action CommandCancelRaffle(int client, int args)
 	{
 		if (IsValidClient(i))
 		{
-			if (hHudText != null) ClearSyncHud(i, hHudText);
 			ShowSyncHudText(i, hHudText, "Raffle has been canceled...");
 		}
 	}

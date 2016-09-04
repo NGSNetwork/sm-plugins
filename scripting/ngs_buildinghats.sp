@@ -17,11 +17,12 @@ int g_hatEnt[2049] = {INVALID_ENT_REFERENCE, ... };
 int g_particleEnt[2049] = {INVALID_ENT_REFERENCE, ... };
 
 int stringTable;
-Handle hHatInfo = null;
+Handle hHatInfo = INVALID_HANDLE;
 
 float RollCooldown[MAXPLAYERS+1];
 
-char g_sParticleList[][] = {
+char g_sParticleList[][] =
+{
 	{"superrare_confetti_green"},
 	{"superrare_confetti_purple"},
 	{"superrare_ghosts"},
@@ -35,15 +36,25 @@ char g_sParticleList[][] = {
 	{"unusual_storm"},
 	{"unusual_blizzard"},
 	{"unusual_orbit_nutsnbolts"},
+	{"unusual_orbit_planets"},
 	{"unusual_orbit_fire"},
 	{"unusual_bubbles"},
 	{"unusual_smoking"},
 	{"unusual_steaming"},
 	{"unusual_bubbles_green"},
 	{"unusual_orbit_fire_dark"},
+	{"unusual_skull_misty"},
+	{"unusual_storm_knives"},
+	{"unusual_orbit_jack_flaming"},
+	{"unusual_fullmoon_cloudy_green"},
+	{"unusual_fullmoon_cloudy_secret"},
+	{"unusual_fullmoon_cloudy"},
 	{"unusual_storm_knives"},
 	{"unusual_storm_spooky"},
 	{"unusual_zap_yellow"},
+	{"unusual_orbit_cards_teamcolor_blue"},
+	{"unusual_orbit_cards_teamcolor_red"},
+	{"unusual_orbit_cash"},
 	{"unusual_zap_green"},
 	{"unusual_hearts_bubbling"},
 	{"unusual_crisp_spotlights"},
@@ -60,27 +71,55 @@ char g_sParticleList[][] = {
 	{"unusual_robot_radioactive2"},
 	{"unusual_spellbook_circle_purple"},
 	{"unusual_spellbook_circle_green"},
+	{"unusual_bats_flaming_proxy_green"},
+	{"unusual_bats_flaming_proxy_purple"},
+	{"unusual_bats_flaming_proxy_orange"},
+	{"unusual_meteor_shower_parent_orange"},
+	{"unusual_meteor_shower_parent_purple"},
+	{"unusual_meteor_shower_parent_green"},
+	{"unusual_tentmonster_purple_parent"},
+	{"unusual_eyes_purple_parent"},
+	{"unusual_eyes_orange_parent"},
+	{"unusual_eyes_green_parent"},
 	{"unusual_souls_purple_parent"},
-	{"unusual_souls_green_parent"}
+	{"unusual_souls_green_parent"},
+	{"unusual_eotl_frostbite"},
+	{"unusual_eotl_oribiting_burning_duck_parent"},
+	{"unusual_eotl_sunrise"},
+	{"unusual_eotl_sunset"},
+	{"unusual_invasion_abduction"},
+	{"unusual_invasion_atomic"},
+	{"unusual_invasion_atomic_green"},
+	{"unusual_invasion_boogaloop"},
+	{"unusual_invasion_boogaloop_2"},
+	{"unusual_invasion_boogaloop_3"},
+	{"unusual_invasion_codex"},
+	{"unusual_invasion_codex_2"},
+	{"unusual_invasion_nebula"},
+	{"unusual_hw_deathbydisco_parent"},
+	{"unusual_mystery_parent"},
+	{"unusual_mystery_parent_green"},
+	{"unusual_nether_blue"},
+	{"unusual_nether_pink"},
+	{"unusual_eldritch_flames_purple"},
+	{"unusual_eldritch_flames_orange"}
 };
 
-Handle g_hCvarVersion;
-Handle g_hCvarEnabled; 
+ConVar g_hCvarVersion;
+ConVar g_hCvarEnabled;
 bool g_bCvarEnabled;
-
-Handle g_hCvarUnusualChance; 
+ConVar g_hCvarUnusualChance;
 float g_flCvarUnusualChance;
-Handle g_hCvarRerollCooldown; 
+ConVar g_hCvarRerollCooldown;
 int g_CvarRerollCooldown;
 
-Handle g_hParticleMenu = null;
-Handle g_hHatMenu = null;
-Handle g_hClientCookie = null;
+Handle g_hParticleMenu = INVALID_HANDLE;
+Handle g_hClientCookie = INVALID_HANDLE;
 
 #define PLUGIN_VERSION 		"2.0"
 
 public Plugin myinfo = {
-	name		= "[NGS] Building Hats",
+	name		= "[TF2] Building Hats",
 	author		= "Pelipoika / TheXeon",
 	description	= "Ain't that a cute little gun?",
 	version		= PLUGIN_VERSION,
@@ -107,10 +146,9 @@ public void OnPluginStart()
 	RegAdminCmd("sm_buildinghats",		 Command_iDontWantHatsOnMyThings, 0);
 	RegAdminCmd("sm_bhats_reloadconfig", Command_Parse, ADMFLAG_ROOT);
 	RegAdminCmd("sm_rerollhat", 		 Command_RerollHats, 0);
-	RegAdminCmd("sm_choosebh",  Command_ChooseBuildingHat, ADMFLAG_ROOT);
 	RegAdminCmd("sm_buildinghateffect",  Command_ChooseBuildingEffect, ADMFLAG_ROOT);
 	
-	AutoExecConfig(true);
+	AutoExecConfig(true, "buildhats");
 	
 	for(int i = 0; i <= MaxClients; i++)
 	{
@@ -136,18 +174,7 @@ public void OnConfigsExecuted()
 		Format(display, sizeof(display), "%s", g_sParticleList[i][0]);
 		AddMenuItem(g_hParticleMenu, info, display);
 	}
-	SetMenuExitBackButton(g_hParticleMenu, false);
-	
-	g_hHatMenu = CreateMenu(Menu_SetHat);
-	SetMenuTitle(g_hHatMenu, "[Building Hats] Hats");
-	for(int i = 0; i < sizeof(g_sParticleList); i++)
-	{
-		char info[128], display[128];
-		Format(info, sizeof(info), "%s", g_sParticleList[i][0]);
-		Format(display, sizeof(display), "%s", g_sParticleList[i][0]);
-		AddMenuItem(g_hHatMenu, info, display);
-	}
-	SetMenuExitBackButton(g_hHatMenu, false); 
+	SetMenuExitBackButton(g_hParticleMenu, false); 
 }
 
 public void OnClientAuthorized(int client)
@@ -169,10 +196,10 @@ public void OnClientCookiesCached(int client)
 
 public void OnMapEnd()
 {
-	if(g_hParticleMenu != null)
+	if(g_hParticleMenu != INVALID_HANDLE)
 	{
 		CloseHandle(g_hParticleMenu);
-		g_hParticleMenu = null;
+		g_hParticleMenu = INVALID_HANDLE;
 	}
 }
 
@@ -188,14 +215,6 @@ public Action Command_ChooseBuildingEffect(int client, int args)
 {
 	if(client >= 1 && client <= MaxClients && IsClientInGame(client))
 		DisplayMenuSafely(g_hParticleMenu, client);
-		
-	return Plugin_Handled;
-}
-
-public Action Command_ChooseBuildingHat(int client, int args)
-{
-	if(client >= 1 && client <= MaxClients && IsClientInGame(client))
-		DisplayMenuSafely(g_hHatMenu, client);
 		
 	return Plugin_Handled;
 }
@@ -272,107 +291,6 @@ public int Menu_SetEffect(Handle menu, MenuAction action, int param1, int param2
 		
 		DisplayMenuAtItem(menu, param1, GetMenuSelectionPosition(), MENU_TIME_FOREVER); 
 	}
-}
-
-public int Menu_SetHat(Handle menu, MenuAction action, int param1, int param2)
-{
-	if (action == MenuAction_Select && IsClientInGame(param1))
-	{
-		char info[128];
-		GetMenuItem(menu, param2, info, sizeof(info));
-		
-		int iBuilding = -1;
-		while ((iBuilding = FindEntityByClassname(iBuilding, "obj_*")) != -1) 
-		{
-			if(GetEntPropEnt(iBuilding, Prop_Send, "m_hBuilder") == param1 && GetEntProp(iBuilding, Prop_Send, "m_bPlacing") == 0 && GetEntProp(iBuilding, Prop_Send, "m_bCarried") == 0)
-			{
-				if(IsValidEntity(g_particleEnt[iBuilding]))
-				{
-					int particle = EntRefToEntIndex(g_particleEnt[iBuilding]);
-					AcceptEntityInput(particle, "Stop");
-					AcceptEntityInput(particle, "Kill");
-				}
-				
-				int iParticle = CreateEntityByName("info_particle_system"); 
-				if(IsValidEdict(iParticle))
-				{
-					float flPos[3]; 
-
-					DispatchKeyValue(iParticle, "effect_name", info); 
-					DispatchSpawn(iParticle); 
-					
-					SetVariantString("!activator"); 
-					AcceptEntityInput(iParticle, "SetParent", iBuilding); 
-					ActivateEntity(iParticle); 
-
-					TFObjectType objectT = view_as<TFObjectType>(TF2_GetObjectType(iBuilding));
-					if(objectT == TFObject_Dispenser)
-					{
-						SetVariantString("build_point_0");
-					}
-					else if(objectT == TFObject_Sentry)
-					{
-						if(GetEntProp(iBuilding, Prop_Send, "m_iUpgradeLevel") < 3)
-							SetVariantString("build_point_0");
-						else
-							SetVariantString("rocket_r");
-					}
-					AcceptEntityInput(iParticle, "SetParentAttachment", iBuilding);
-					
-					GetEntPropVector(iParticle, Prop_Send, "m_vecOrigin", flPos);
-					
-					if(objectT == TFObject_Dispenser)
-					{
-						flPos[2] += 13.0;	//Make sure the effect is on top of the dispenser
-						
-						if(GetEntProp(iBuilding, Prop_Send, "m_iUpgradeLevel") == 3)
-							flPos[2] += 8.0;	//Account for level 3 dispenser
-					}
-					
-					if(GetEntProp(iBuilding, Prop_Send, "m_iUpgradeLevel") == 3 && objectT != TFObject_Dispenser)
-					{
-						flPos[2] += 6.5;	//Level 3 sentry offsets
-						flPos[0] -= 11.0;	//Gotta get that effect on top of the missile thing
-					}
-					
-					SetEntPropVector(iParticle, Prop_Send, "m_vecOrigin", flPos);
-					AcceptEntityInput(iParticle, "start"); 
-					
-					g_particleEnt[iBuilding] = EntIndexToEntRef(iParticle);
-					Format(g_strParticle[iBuilding], sizeof(g_strParticle), "%s", info);
-				}
-			}
-		}
-		
-		DisplayMenuAtItem(menu, param1, GetMenuSelectionPosition(), MENU_TIME_FOREVER); 
-	}
-}
-
-public Action Timer_SetHat(Handle timer, any iBuilding)
-{
-	if(!g_bCvarEnabled) 
-		return Plugin_Continue;
-
-	if(iBuilding > MaxClients && IsValidEntity(iBuilding))
-	{
-		char strPath[PLATFORM_MAX_PATH], strOffz[16], strScale[16], strAnima[128];
-		int row = (GetArraySize(hHatInfo) / 4) - 1;
-		int index = (GetRandomInt(0, row)) * 4;
-
-		GetArrayString(hHatInfo, index+1, strPath, sizeof(strPath));
-		GetArrayString(hHatInfo, index+2, strOffz, sizeof(strOffz));
-		GetArrayString(hHatInfo, index+3, strScale, sizeof(strScale));
-		GetArrayString(hHatInfo, index+4, strAnima, sizeof(strAnima));
-		
-		TFObjectType objectT = view_as<TFObjectType>(TF2_GetObjectType(iBuilding));
-		
-		if(objectT == TFObject_Sentry)
-			ParentHatEntity(iBuilding, strPath, StringToFloat(strOffz), StringToFloat(strScale), TFObject_Sentry, strAnima);
-		else if(objectT == TFObject_Dispenser)
-			ParentHatEntity(iBuilding, strPath, StringToFloat(strOffz), StringToFloat(strScale), TFObject_Dispenser, strAnima);
-	}
-	
-	return Plugin_Handled;
 }
 
 public Action Command_RerollHats(int client, int args)
@@ -873,7 +791,8 @@ void ParentHatEntity(int entity, const char[] smodel, float flZOffset = 0.0, flo
 
 bool ParseConfigurations()
 {
-	char strPath[PLATFORM_MAX_PATH], strFileName[PLATFORM_MAX_PATH];
+	char strPath[PLATFORM_MAX_PATH];
+	char strFileName[PLATFORM_MAX_PATH];
 	Format(strFileName, sizeof(strFileName), "configs/buildinghats.cfg");
 	BuildPath(Path_SM, strPath, sizeof(strPath), strFileName);
 
@@ -911,7 +830,7 @@ stock void DisplayMenuSafely(Handle menu, int client)
 {
     if(client >= 1 && client <= MaxClients && IsClientInGame(client))
     {
-        if(menu == null)
+        if(menu == INVALID_HANDLE)
         {
             PrintToConsole(client, "ERROR: Unable to open Menu.");
         }

@@ -9,6 +9,8 @@
 #include <morecolors>
 #define PLUGIN_VERSION "1.2.1"
 
+ConVar cvarPluginVersion;
+
 //--------------------//
 
 public Plugin myinfo = {
@@ -24,6 +26,10 @@ public void OnPluginStart()
 	RegAdminCmd("sm_forcerespawn", CommandForceRespawn, ADMFLAG_GENERIC, "Usage: sm_forcerespawn <#userid|name>");
 	RegAdminCmd("sm_changeteam", CommandChangeTeam, ADMFLAG_GENERIC, "Usage: sm_changeteam <#userid|name> <team> (1 = Spec / 2 = Red / 3 = Blue)");
 	RegAdminCmd("sm_sethealth", CommandSetHealth, ADMFLAG_GENERIC, " Usage: sm_sethealth <#userid|name> <amount>");
+	RegAdminCmd("sm_bamall", CommandBamboozleAll, ADMFLAG_GENERIC, " Usage: sm_bamall <#userid|name>");
+	
+	cvarPluginVersion = CreateConVar("tf_ngsadmintoolkit_version", PLUGIN_VERSION, "Version of [NGS] Admin Toolkit");
+	
 	LoadTranslations("common.phrases");
 }
 
@@ -197,4 +203,43 @@ public Action CommandSetHealth(int client, int args)
 	
 	return Plugin_Handled;
 
+}
+
+public Action CommandBamboozleAll(int client, int args)
+{
+	if (args < 1) return Plugin_Handled;
+	char arg1[MAX_BUFFER_LENGTH], playerName[MAX_NAME_LENGTH];
+	GetCmdArg(1, arg1, sizeof(arg1));
+	
+	int target = FindTarget(client, arg1, false, false);
+	if (target == -1) return Plugin_Handled;
+	GetClientName(target, playerName, sizeof(playerName));
+		
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsValidClient(i))
+		{
+			EmitSoundToClient(i, "vo/demoman_specialcompleted11.mp3");
+			EmitSoundToClient(i, "vo/demoman_specialcompleted11.mp3");
+			Handle hHudText = CreateHudSynchronizer();
+			SetHudTextParams(-1.0, 0.1, 3.0, 255, 0, 0, 255, 1, 1.0, 1.0, 1.0);
+			ShowSyncHudText(i, hHudText, "BAMBOOZLED");
+			CloseHandle(hHudText);
+			LogAction(target, i, "\"%s\" bamboozled \"%L\"!", playerName, i);
+		}
+	}
+	
+	CPrintToChatAll("{GREEN}[SM]{DEFAULT} {LIGHTGREEN}%s{DEFAULT} just {RED}B{ORANGE}A{YELLOW}M{GREEN}B{BLUE}O{PURPLE}O{MAGENTA}Z{BLACK}L{WHITE}E{GREEN}D{DEFAULT} {LIGHTGREEN}EVERYONE{DEFAULT}!", playerName);
+	CPrintToChatAll("{GREEN}[SM]{DEFAULT} FEEL THE {BLACK}B{BLUE}A{YELLOW}M{GREEN}B{ORANGE}O{PURPLE}O{MAGENTA}Z{RED}L{WHITE}E{DEFAULT}!");
+	return Plugin_Handled;
+}
+
+public bool IsValidClient (int client)
+{
+	if(client > 4096) client = EntRefToEntIndex(client);
+	if(client < 1 || client > MaxClients) return false;
+	if(!IsClientInGame(client)) return false;
+	if(IsFakeClient(client)) return false;
+	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
+	return true;
 }

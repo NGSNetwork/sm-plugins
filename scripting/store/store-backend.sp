@@ -2449,3 +2449,13 @@ public int Native_ProcessItem(Handle plugin, int numParams)
 	
 	return false;
 }
+
+public bool IsValidClient (int client)
+{
+	if(client > 4096) client = EntRefToEntIndex(client);
+	if(client < 1 || client > MaxClients) return false;
+	if(!IsClientInGame(client)) return false;
+	if(IsFakeClient(client)) return false;
+	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
+	return true;
+}

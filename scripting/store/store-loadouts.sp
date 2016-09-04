@@ -127,6 +127,10 @@ public void OnMainMenuLoadoutClick(int client, const char[] value)
 public void Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
+	if (!IsValidClient(client))
+	{
+		return;
+	}
 	
 	if (g_clientLoadout[client] == 0 || !IsLoadoutAvailableFor(client, g_clientLoadout[client]))
 	{
@@ -303,4 +307,14 @@ public int Native_GetClientLoadout(Handle plugin, int params)
 void TF2_GetClassName(TFClassType classType, char[] buffer, int maxlength)
 {
 	strcopy(buffer, maxlength, TF2_ClassName[classType]);
+}
+
+public bool IsValidClient (int client)
+{
+	if(client > 4096) client = EntRefToEntIndex(client);
+	if(client < 1 || client > MaxClients) return false;
+	if(!IsClientInGame(client)) return false;
+	if(IsFakeClient(client)) return false;
+	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
+	return true;
 }

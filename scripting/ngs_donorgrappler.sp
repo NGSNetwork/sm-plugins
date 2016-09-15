@@ -1,4 +1,4 @@
-/*#pragma newdecls required
+#pragma newdecls required
 #pragma semicolon 1
 
 #define PLUGIN_VERSION "1.1"
@@ -98,7 +98,7 @@ public void RemoveGrappler()
 
 
 
-*/
+/*
 #pragma newdecls required
 #pragma semicolon 1
 
@@ -129,14 +129,7 @@ public void OnPluginStart()
 	
 	cEnabled.AddChangeHook(OnConvarChanged);
 	
-	ExecuteLateLoad();
-}
-
-public void OnConfigsExecuted()
-{
-	bEnabled = cEnabled.BoolValue;
-	//Removes grappler is plugin is late-loaded/refreshed during gameplay
-	RemoveGrappler();
+	HookEvent("post_inventory_application", Event_RemoveGrapplingHook,  EventHookMode_Post);
 }
 
 public void OnConvarChanged(Handle convar, char[] oldValue, char[] newValue) 
@@ -149,56 +142,35 @@ public void OnConvarChanged(Handle convar, char[] oldValue, char[] newValue)
 	if(convar == cEnabled)
 	{
 		bEnabled = view_as<bool>(iNewValue);
-		RemoveGrappler();
 	}
 }
 
-public void OnClientPutInServer(int client)
-{
-	SDKHook(client, SDKHook_WeaponCanUse, OnWeaponCanUse);
-}
+public void Event_RemoveGrapplingHook(Handle hEvent, char[] strName, bool bDontBroadcast) 
+{ 
+	int iClient = GetClientOfUserId(GetEventInt(hEvent, "userid")); 
+	if (!bEnabled || !IsValidClient(iClient)) return; 
+	if (TF2Friendly_IsFriendly(iClient)) return;
 
-public void ExecuteLateLoad()
-{
-	for (int i = 1; i <= MaxClients; i++)
-	{
-		if(!IsClientInGame(i))
-			continue;
-		SDKHook(i, SDKHook_WeaponCanUse, OnWeaponCanUse);
+	for (int iSlot = 0; iSlot < 8; iSlot++) 
+	{ 
+		int iWeapon = GetPlayerWeaponSlot(iClient, iSlot); 
+		if (IsValidEntity(iWeapon) && GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex") == GRAPPLER) 
+		{ 
+			SDKHooks_DropWeapon(iClient, iWeapon, NULL_VECTOR, NULL_VECTOR);
+			AcceptEntityInput(iWeapon, "kill");
+			break; 
+		} 
 	}
 }
 
-public Action OnWeaponCanUse(int client, int weapon)
+public bool IsValidClient (int client)
 {
-	if(!bEnabled)
-		return Plugin_Continue;
-	int index = GetEntProp(weapon, Prop_Send, "m_iItemDefinitionIndex");	
-	
-	if(index == GRAPPLER && !TF2Friendly_IsFriendly(client))
-		return Plugin_Handled;
-		
-	return Plugin_Continue;
+	if(client > 4096) client = EntRefToEntIndex(client);
+	if(client < 1 || client > MaxClients) return false;
+	if(!IsClientInGame(client)) return false;
+	if(IsFakeClient(client)) return false;
+	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
+	return true;
 }
 
-public int TF2Friendly_OnDisableFriendly_Post(int client)
-{
-	RemoveGrappler();
-}
-
-public void RemoveGrappler()
-{
-	if(!bEnabled)
-		return;
-		
-	//Can i get the grappling hook with GetClientWeaponSlot? Doesn't seem to work.
-	int entity;
-	while((entity = FindEntityByClassname(entity, "tf_weapon_grapplinghook")) != -1)
-	{
-		int owner = GetEntPropEnt(entity, Prop_Send, "m_hOwnerEntity");
-		if(!TF2Friendly_IsFriendly(owner))
-		{
-			SDKHooks_DropWeapon(owner, entity, NULL_VECTOR, NULL_VECTOR);
-			AcceptEntityInput(entity, "kill");
-		}
-	}
-}
+*/

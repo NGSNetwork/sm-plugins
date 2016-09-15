@@ -50,7 +50,6 @@ public bool TargetRandom(const char[] pattern, Handle clients)
 {
 	for (int iter = 0; iter < 5; iter++)
 	{
-		SetRandomSeed(GetTime() + iter);
 		int client = GetRandomInt(1, MaxClients);
 		if (IsValidClient(client))
 		{
@@ -65,7 +64,6 @@ public bool TargetRandomBlue(const char[] pattern, Handle clients)
 {
 	for (int iter = 0; iter < 5; iter++)
 	{
-		SetRandomSeed(GetTime() + iter);
 		int client = GetRandomInt(1, MaxClients);
 		if (IsValidClient(client))
 		{
@@ -84,7 +82,6 @@ public bool TargetRandomRed(const char[] pattern, Handle clients)
 {
 	for (int iter = 0; iter < 5; iter++)
 	{
-		SetRandomSeed(GetTime() + iter);
 		int client = GetRandomInt(1, MaxClients);
 		if (IsValidClient(client))
 		{
@@ -103,7 +100,6 @@ public bool TargetRandomNotBlue(const char[] pattern, Handle clients)
 {
 	for (int iter = 0; iter < 5; iter++)
 	{
-		SetRandomSeed(GetTime() + iter);
 		int client = GetRandomInt(1, MaxClients);
 		if (IsValidClient(client))
 		{
@@ -122,7 +118,6 @@ public bool TargetRandomNotRed(const char[] pattern, Handle clients)
 {
 	for (int iter = 0; iter < 5; iter++)
 	{
-		SetRandomSeed(GetTime() + iter);
 		int client = GetRandomInt(1, MaxClients);
 		if (IsValidClient(client))
 		{

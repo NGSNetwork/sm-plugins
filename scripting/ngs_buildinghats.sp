@@ -152,7 +152,7 @@ public void OnPluginStart()
 	
 	for(int i = 0; i <= MaxClients; i++)
 	{
-		if(i > 0 && i <= MaxClients && IsClientInGame(i))
+		if(IsValidClient(i))
 			g_bWantsTheH[i] = true;
 	}
 }
@@ -213,7 +213,7 @@ public void OnConVarChange(Handle hConvar, const char[] strOldValue, const char[
 
 public Action Command_ChooseBuildingEffect(int client, int args)
 {
-	if(client >= 1 && client <= MaxClients && IsClientInGame(client))
+	if(IsValidClient(client))
 		DisplayMenuSafely(g_hParticleMenu, client);
 		
 	return Plugin_Handled;
@@ -221,7 +221,7 @@ public Action Command_ChooseBuildingEffect(int client, int args)
 
 public int Menu_SetEffect(Handle menu, MenuAction action, int param1, int param2)
 {
-	if (action == MenuAction_Select && IsClientInGame(param1))
+	if (action == MenuAction_Select && IsValidClient(param1))
 	{
 		char info[128];
 		GetMenuItem(menu, param2, info, sizeof(info));
@@ -295,7 +295,7 @@ public int Menu_SetEffect(Handle menu, MenuAction action, int param1, int param2
 
 public Action Command_RerollHats(int client, int args)
 {
-	if(client >= 1 && client <= MaxClients && IsClientInGame(client))
+	if(IsValidClient(client))
 	{
 		if(CheckCommandAccess(client, "sm_buildinghats_access", 0))
 		{
@@ -348,7 +348,7 @@ public Action Command_RerollHats(int client, int args)
 
 public Action Command_iDontWantHatsOnMyThings(int client, int args)
 {
-	if(client >= 1 && client <= MaxClients && IsClientInGame(client))
+	if(IsValidClient(client))
 	{
 		if(CheckCommandAccess(client, "sm_buildinghats_access", 0))
 		{
@@ -412,7 +412,7 @@ public Action Event_PickupObject(Handle event, const char[] name, bool dontBroad
 {	
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
 	
-	if(client >= 1 && client <= MaxClients && IsClientInGame(client))
+	if(IsValidClient(client))
 	{
 		int iBuilding = GetEventInt(event, "index");
 		if(iBuilding > MaxClients && IsValidEntity(iBuilding))
@@ -839,4 +839,14 @@ stock void DisplayMenuSafely(Handle menu, int client)
             DisplayMenu(menu, client, MENU_TIME_FOREVER);
         }
     }
+}
+
+public bool IsValidClient (int client)
+{
+	if(client > 4096) client = EntRefToEntIndex(client);
+	if(client < 1 || client > MaxClients) return false;
+	if(!IsClientInGame(client)) return false;
+	if(IsFakeClient(client)) return false;
+	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
+	return true;
 }

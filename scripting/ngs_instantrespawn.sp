@@ -11,12 +11,14 @@
 
 bool ToggleTags = true;
 bool bEnabled = false;
+bool bPlayerEnabled = false;
 bool bClientEnabled[MAXPLAYERS + 1];
 
 Handle g_hInstantRespawnEnabled;
 
 ConVar cv_version;
 ConVar cv_enabled;
+ConVar cv_playerenabled;
 
 public Plugin myinfo = {
 	name = "[NGS] Instant Respawn",
@@ -27,8 +29,9 @@ public Plugin myinfo = {
 
 public void OnPluginStart()
 {
-	cv_version = CreateConVar("sm_tf2instantrespawn_version", PLUGIN_VERSION, "Plugin Version of [TF2] Instant Respawn", FCVAR_SPONLY | FCVAR_NOTIFY | FCVAR_REPLICATED | FCVAR_DONTRECORD);
-	cv_enabled = CreateConVar("sm_tf2instantrespawn_enabled", "0", "If TF2 Instant Respawn is enabled.", FCVAR_SPONLY | FCVAR_NOTIFY | FCVAR_REPLICATED | FCVAR_DONTRECORD);
+	cv_version = CreateConVar("tf_instantrespawn_version", PLUGIN_VERSION, "Plugin Version of [TF2] Instant Respawn", FCVAR_SPONLY | FCVAR_NOTIFY | FCVAR_REPLICATED | FCVAR_DONTRECORD);
+	cv_enabled = CreateConVar("tf_instantrespawn_enabled", "0", "If TF2 Instant Respawn for all is enabled.", FCVAR_SPONLY | FCVAR_NOTIFY | FCVAR_REPLICATED | FCVAR_DONTRECORD);
+	cv_playerenabled = CreateConVar("tf_instantrespawn_player_enabled", "0", "If TF2 Instant Respawn for individual people is enabled.", FCVAR_SPONLY | FCVAR_NOTIFY | FCVAR_REPLICATED | FCVAR_DONTRECORD);
 	
 	RegConsoleCmd("sm_instantrespawn", CommandInstantRespawn, "Enables opt-in instant respawn.");
 	
@@ -43,8 +46,11 @@ public void OnPluginStart()
 	SetConVarString(cv_version, PLUGIN_VERSION);
 	HookConVarChange(cv_version, cvhook_version);
 	HookConVarChange(cv_enabled, cvhook_enabled);
+	HookConVarChange(cv_playerenabled, cvhook_playerenabled);
 	
-	g_hInstantRespawnEnabled = RegClientCookie("instantrespawn", "If instantrespawn is enabled or not.", CookieAccess_Private);
+	AutoExecConfig(true, "instantrespawn");
+	
+	g_hInstantRespawnEnabled = RegClientCookie("instantrespawnenabled", "If instantrespawn is enabled or not.", CookieAccess_Private);
 	
 	for (int i = 1; i <= MaxClients; i++)
     {
@@ -69,6 +75,11 @@ public void OnClientCookiesCached(int client)
 public Action CommandInstantRespawn(int client, int args)
 {
 	if (!IsValidClient(client)) return Plugin_Handled;
+	if (!bPlayerEnabled)
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Sorry, but player instant respawn is not currently enabled!");
+		return Plugin_Handled;
+	}
 	if (AreClientCookiesCached(client))
 	{
 		char cClientCookie[MAX_BUFFER_LENGTH];
@@ -95,6 +106,7 @@ public void cvhook_version(Handle cvar, const char[] oldVal, const char[] newVal
 		SetConVarString(cvar, PLUGIN_VERSION);
 }
 public void cvhook_enabled(Handle cvar, const char[] oldVal, const char[] newVal) { bEnabled = GetConVarBool(cvar); }
+public void cvhook_playerenabled(Handle cvar, const char[] oldVal, const char[] newVal) { bPlayerEnabled = GetConVarBool(cvar); }
 
 public Action OnPlayerDeath(Handle event, const char[] name, bool dontBroadcast)
 {

@@ -6,8 +6,8 @@
 #include <sdkhooks>
 #include <store>
 #include <smjansson>
-
-#include <zombiereloaded>
+#include <tf2>
+#include <tf2_stocks>
 
 enum Trail
 {
@@ -21,15 +21,14 @@ enum Trail
 	TrailModelIndex
 }
 
-new g_trails[1024][Trail];
-new g_trailCount;
-new bool:g_zombieReloaded;
+int g_trails[1024][Trail];
+int g_trailCount;
 
-new String:g_game[32];
+char g_game[32];
 
-new Handle:g_trailsNameIndex = INVALID_HANDLE;
-new Handle:g_trailTimers[MAXPLAYERS+1];
-new g_SpriteModel[MAXPLAYERS + 1];
+Handle g_trailsNameIndex = INVALID_HANDLE;
+Handle g_trailTimers[MAXPLAYERS+1];
+int g_SpriteModel[MAXPLAYERS + 1];
 
 /**
  * Called before plugin is loaded.
@@ -41,7 +40,7 @@ new g_SpriteModel[MAXPLAYERS + 1];
  *
  * @return          APLRes_Success for load success, APLRes_Failure or APLRes_SilentFailure otherwise.
  */
-public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
 	MarkNativeAsOptional("ZR_IsClientHuman"); 
 	MarkNativeAsOptional("ZR_IsClientZombie"); 
@@ -49,24 +48,21 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	return APLRes_Success;
 }
 
-public Plugin:myinfo =
-{
+public Plugin myinfo = {
 	name        = "[Store] Trails",
 	author      = "alongub",
 	description = "Trails component for [Store]",
 	version     = "1.1-alpha",
 	url         = "https://github.com/alongubkin/store"
-};
+}
 
 /**
  * Plugin is loading.
  */
-public OnPluginStart()
+public void OnPluginStart()
 {
 	LoadTranslations("common.phrases");
 	LoadTranslations("store.phrases");
-
-	g_zombieReloaded = LibraryExists("zombiereloaded");
 	
 	HookEvent("player_spawn", PlayerSpawn);
 	HookEvent("player_death", PlayerDeath);
@@ -81,44 +77,29 @@ public OnPluginStart()
 /** 
  * Called when a new API library is loaded.
  */
-public OnLibraryAdded(const String:name[])
+public void OnLibraryAdded(const char[] name)
 {
-	if (StrEqual(name, "zombiereloaded"))
-	{
-		g_zombieReloaded = true;
-	}
-	else if (StrEqual(name, "store-inventory"))
+	if (StrEqual(name, "store-inventory"))
 	{
 		Store_RegisterItemType("trails", OnEquip, LoadItem);
 	}	
 }
 
-/** 
- * Called when an API library is removed.
- */
-public OnLibraryRemoved(const String:name[])
-{
-	if (StrEqual(name, "zombiereloaded"))
-	{
-		g_zombieReloaded = false;
-	}
-}
-
 /**
  * Map is starting
  */
-public OnMapStart()
+public void OnMapStart()
 {
-	for (new client = 1; client <= MaxClients; client++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
 		g_SpriteModel[client] = -1;
 	}
 
-	for (new item = 0; item < g_trailCount; item++)
+	for (int item = 0; item < g_trailCount; item++)
 	{
 		if (strcmp(g_trails[item][TrailMaterial], "") != 0 && (FileExists(g_trails[item][TrailMaterial]) || FileExists(g_trails[item][TrailMaterial], true)))
 		{
-			decl String:_sBuffer[PLATFORM_MAX_PATH];
+			char _sBuffer[PLATFORM_MAX_PATH];
 			strcopy(_sBuffer, sizeof(_sBuffer), g_trails[item][TrailMaterial]);
 			g_trails[item][TrailModelIndex] = PrecacheModel(_sBuffer);
 			AddFileToDownloadsTable(_sBuffer);
@@ -131,9 +112,9 @@ public OnMapStart()
 /**
  * The map is ending.
  */
-public OnMapEnd()
+public void OnMapEnd()
 {
-	for (new client = 1; client <= MaxClients; client++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
 		if (g_trailTimers[client] != INVALID_HANDLE)
 		{
@@ -145,7 +126,7 @@ public OnMapEnd()
 	}
 }
 
-public Store_OnReloadItems() 
+public void Store_OnReloadItems() 
 {
 	if (g_trailsNameIndex != INVALID_HANDLE)
 		CloseHandle(g_trailsNameIndex);
@@ -154,13 +135,13 @@ public Store_OnReloadItems()
 	g_trailCount = 0;
 }
 
-public LoadItem(const String:itemName[], const String:attrs[])
+public void LoadItem(const char[] itemName, const char[] attrs)
 {
 	strcopy(g_trails[g_trailCount][TrailName], STORE_MAX_NAME_LENGTH, itemName);
 		
 	SetTrieValue(g_trailsNameIndex, g_trails[g_trailCount][TrailName], g_trailCount);
 	
-	new Handle:json = json_load(attrs);
+	Handle json = json_load(attrs);
 	json_object_get_string(json, "material", g_trails[g_trailCount][TrailMaterial], PLATFORM_MAX_PATH);
 
 	g_trails[g_trailCount][TrailLifetime] = json_object_get_float(json, "lifetime")
@@ -183,7 +164,7 @@ public LoadItem(const String:itemName[], const String:attrs[])
 	if (g_trails[g_trailCount][TrailFadeLength] == 0)
 		g_trails[g_trailCount][TrailFadeLength] = 1;
 
-	new Handle:color = json_object_get(json, "color");
+	Handle color = json_object_get(json, "color");
 
 	if (color == INVALID_HANDLE)
 	{
@@ -191,7 +172,7 @@ public LoadItem(const String:itemName[], const String:attrs[])
 	}
 	else
 	{
-		for (new i = 0; i < 4; i++)
+		for (int i = 0; i < 4; i++)
 			g_trails[g_trailCount][TrailColor][i] = json_array_get_int(color, i);
 
 		CloseHandle(color);
@@ -201,7 +182,7 @@ public LoadItem(const String:itemName[], const String:attrs[])
 
 	if (strcmp(g_trails[g_trailCount][TrailMaterial], "") != 0 && (FileExists(g_trails[g_trailCount][TrailMaterial]) || FileExists(g_trails[g_trailCount][TrailMaterial], true)))
 	{
-		decl String:_sBuffer[PLATFORM_MAX_PATH];
+		char _sBuffer[PLATFORM_MAX_PATH];
 		strcopy(_sBuffer, sizeof(_sBuffer), g_trails[g_trailCount][TrailMaterial]);
 		g_trails[g_trailCount][TrailModelIndex] = PrecacheModel(_sBuffer);
 		AddFileToDownloadsTable(_sBuffer);
@@ -212,9 +193,9 @@ public LoadItem(const String:itemName[], const String:attrs[])
 	g_trailCount++;
 }
 
-public Store_ItemUseAction:OnEquip(client, itemId, bool:equipped)
+public Store_ItemUseAction OnEquip(int client, int itemId, bool equipped)
 {
-	if (!IsClientInGame(client))
+	if (!IsValidClient(client) || !IsPlayerAlive(client))
 	{
 		return Store_DoNothing;
 	}
@@ -224,24 +205,18 @@ public Store_ItemUseAction:OnEquip(client, itemId, bool:equipped)
 		PrintToChat(client, "%s%t", STORE_PREFIX, "Equipped item apply next spawn");
 		return Store_EquipItem;
 	}
-
-	if (g_zombieReloaded && !ZR_IsClientHuman(client))
-	{
-		PrintToChat(client, "%s%t", STORE_PREFIX, "Equipped item apply next spawn");	
-		return Store_EquipItem;
-	}
 	
-	decl String:name[STORE_MAX_NAME_LENGTH];
+	char name[STORE_MAX_NAME_LENGTH];
 	Store_GetItemName(itemId, name, sizeof(name));
 	
-	decl String:loadoutSlot[STORE_MAX_LOADOUTSLOT_LENGTH];
+	char loadoutSlot[STORE_MAX_LOADOUTSLOT_LENGTH];
 	Store_GetItemLoadoutSlot(itemId, loadoutSlot, sizeof(loadoutSlot));
 	
 	KillTrail(client);
 
 	if (equipped)
 	{
-		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
+		char displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 		
 		PrintToChat(client, "%s%t", STORE_PREFIX, "Unequipped item", displayName);
@@ -253,7 +228,7 @@ public Store_ItemUseAction:OnEquip(client, itemId, bool:equipped)
 		if (!Equip(client, name))
 			return Store_DoNothing;
 			
-		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
+		char displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 		
 		PrintToChat(client, "%s%t", STORE_PREFIX, "Equipped item", displayName);
@@ -262,7 +237,7 @@ public Store_ItemUseAction:OnEquip(client, itemId, bool:equipped)
 	}
 }
 
-public OnClientDisconnect(client)
+public void OnClientDisconnect(int client)
 {
 	if (g_trailTimers[client] != INVALID_HANDLE)
 	{
@@ -273,11 +248,11 @@ public OnClientDisconnect(client)
 	g_SpriteModel[client] = -1;
 }
 
-public Action:PlayerSpawn(Handle:event,const String:name[],bool:dontBroadcast)
+public Action PlayerSpawn(Handle event, const char[] name, bool dontBroadcast)
 {
-	new client = GetClientOfUserId(GetEventInt(event, "userid"));
+	int client = GetClientOfUserId(GetEventInt(event, "userid"));
 	
-	if (IsClientInGame(client) && IsPlayerAlive(client)) 
+	if (IsValidClient(client) && IsPlayerAlive(client)) 
 	{
 		if (g_trailTimers[client] != INVALID_HANDLE)
 		{
@@ -291,26 +266,25 @@ public Action:PlayerSpawn(Handle:event,const String:name[],bool:dontBroadcast)
 	}
 }
 
-public PlayerTeam(Handle:Spawn_Event, const String:Death_Name[], bool:Death_Broadcast )
+public void PlayerTeam(Handle Spawn_Event, const char[] Death_Name, bool Death_Broadcast )
 {
-	new client = GetClientOfUserId(GetEventInt(Spawn_Event,"userid") );
-	new team = GetEventInt(Spawn_Event, "team");
+	int client = GetClientOfUserId(GetEventInt(Spawn_Event,"userid"));
 	
-	if (team == 1)
+	if (GetClientTeam(client) == 1)
 	{
 		KillTrail(client);
 	}
 }
 
-public Action:PlayerDeath(Handle:event,const String:name[],bool:dontBroadcast)
+public Action PlayerDeath(Handle event, const char[] name,bool dontBroadcast)
 {
-	new client = GetClientOfUserId(GetEventInt(event, "userid"));
+	int client = GetClientOfUserId(GetEventInt(event, "userid"));
 	KillTrail(client);
 }
 
-public Action:RoundEnd(Handle:event,const String:name[],bool:dontBroadcast)
+public Action RoundEnd(Handle event, const char[] name, bool dontBroadcast)
 {
-	for (new client = 1; client <= MaxClients; client++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
 		if (g_trailTimers[client] != INVALID_HANDLE)
 		{
@@ -322,53 +296,47 @@ public Action:RoundEnd(Handle:event,const String:name[],bool:dontBroadcast)
 	}
 }
 
-public Action:GiveTrail(Handle:timer, any:serial)
+public Action GiveTrail(Handle timer, any serial)
 {
-	new client = GetClientFromSerial(serial);
+	int client = GetClientFromSerial(serial);
 	if (client == 0)
 		return Plugin_Handled;
 
 	if (!IsPlayerAlive(client))
 		return Plugin_Continue;
 		
-	if (g_zombieReloaded && !ZR_IsClientHuman(client))
-		return Plugin_Continue;
-		
 	Store_GetEquippedItemsByType(Store_GetClientAccountID(client), "trails", Store_GetClientLoadout(client), OnGetPlayerTrail, GetClientSerial(client));
 	return Plugin_Handled;
 }
 
-public Store_OnClientLoadoutChanged(client)
+public void Store_OnClientLoadoutChanged(int client)
 {
 	Store_GetEquippedItemsByType(Store_GetClientAccountID(client), "trails", Store_GetClientLoadout(client), OnGetPlayerTrail, GetClientSerial(client));
 }
 
-public OnGetPlayerTrail(ids[], count, any:serial)
+public void OnGetPlayerTrail(int[] ids, int count, any serial)
 {
-	new client = GetClientFromSerial(serial);
+	int client = GetClientFromSerial(serial);
 	
-	if (client == 0)
-		return;
-		
-	if (g_zombieReloaded && !ZR_IsClientHuman(client))
+	if (!IsValidClient(client))
 		return;
 		
 	KillTrail(client);
 	
-	for (new index = 0; index < count; index++)
+	for (int index = 0; index < count; index++)
 	{
-		decl String:itemName[32];
+		char itemName[32];
 		Store_GetItemName(ids[index], itemName, sizeof(itemName));
 		
 		Equip(client, itemName);
 	}
 }
 
-bool:Equip(client, const String:name[])
+bool Equip(int client, const char[] name)
 {	
 	KillTrail(client);
 
-	new trail = -1;
+	int trail = -1;
 	if (!GetTrieValue(g_trailsNameIndex, name, trail))
 	{
 		PrintToChat(client, "%s%t", STORE_PREFIX, "No item attributes");
@@ -379,7 +347,7 @@ bool:Equip(client, const String:name[])
 	{
 		EquipTrailTempEnts(client, trail);
 
-		new Handle:pack;
+		Handle pack;
 		g_trailTimers[client] = CreateDataTimer(0.1, Timer_RenderBeam, pack, TIMER_REPEAT);
 
 		WritePackCell(pack, GetClientSerial(client));
@@ -393,13 +361,13 @@ bool:Equip(client, const String:name[])
 	}
 }
 
-bool:EquipTrailTempEnts(client, trail)
+bool EquipTrailTempEnts(int client, int trail)
 {
-	new entityToFollow = GetPlayerWeaponSlot(client, 2);
+	int entityToFollow = GetPlayerWeaponSlot(client, 2);
 	if (entityToFollow == -1)
 		entityToFollow = client;
 
-	new color[4];
+	int color[4];
 	Array_Copy(g_trails[client][TrailColor], color, sizeof(color));
 
 	TE_SetupBeamFollow(entityToFollow, 
@@ -415,14 +383,14 @@ bool:EquipTrailTempEnts(client, trail)
 	return true;
 }
 
-bool:EquipTrail(client, trail)
+bool EquipTrail(int client, int trail)
 {
 	g_SpriteModel[client] = CreateEntityByName("env_spritetrail");
 
 	if (!IsValidEntity(g_SpriteModel[client])) 
 		return false;
 
-	new String:strTargetName[MAX_NAME_LENGTH];
+	char strTargetName[MAX_NAME_LENGTH];
 	GetClientName(client, strTargetName, sizeof(strTargetName));
 
 	DispatchKeyValue(client, "targetname", strTargetName);
@@ -433,7 +401,7 @@ bool:EquipTrail(client, trail)
 	DispatchKeyValue(g_SpriteModel[client], "spritename", g_trails[trail][TrailMaterial]);
 	DispatchKeyValue(g_SpriteModel[client], "renderamt", "255");
 
-	decl String:color[32];
+	char color[32];
 	Format(color, sizeof(color), "%d %d %d %d", g_trails[trail][TrailColor][0], g_trails[trail][TrailColor][1], g_trails[trail][TrailColor][2], g_trails[trail][TrailColor][3]);
 
 	DispatchKeyValue(g_SpriteModel[client], "rendercolor", color);
@@ -441,7 +409,7 @@ bool:EquipTrail(client, trail)
 
 	DispatchSpawn(g_SpriteModel[client]);
 
-	new Float:Client_Origin[3];
+	float Client_Origin[3];
 	GetClientAbsOrigin(client,Client_Origin);
 	Client_Origin[2] += 10.0; //Beam clips into the floor without this
 
@@ -454,7 +422,20 @@ bool:EquipTrail(client, trail)
 	return true;
 }
 
-KillTrail(client)
+public void TF2_OnConditionAdded(int client, TFCond cond)
+{
+    if (cond == TFCond_Cloaked)
+        KillTrail(client);
+}
+ 
+public void TF2_OnConditionRemoved(int client, TFCond cond)
+{
+    if (cond == TFCond_Cloaked)
+       Store_GetEquippedItemsByType(Store_GetClientAccountID(client), "trails", Store_GetClientLoadout(client), OnGetPlayerTrail, GetClientSerial(client));
+       //EquipTrail(client);
+}
+
+void KillTrail(int client)
 {
 	if (g_trailTimers[client] != INVALID_HANDLE)
 	{
@@ -463,29 +444,25 @@ KillTrail(client)
 	}
 
 	if (g_SpriteModel[client] != -1 && IsValidEntity(g_SpriteModel[client]))
-		RemoveEdict(g_SpriteModel[client]);
+		AcceptEntityInput(g_SpriteModel[client],"kill");
+		//RemoveEdict(g_SpriteModel[client]);
 
 	g_SpriteModel[client] = -1;
 }
 
-public ZR_OnClientInfected(client, attacker, bool:motherInfect, bool:respawnOverride, bool:respawn)
-{
-	KillTrail(client);
-}
-
-public Action:Timer_RenderBeam(Handle:timer, Handle:pack)
+public Action Timer_RenderBeam(Handle timer, Handle pack)
 {
 	ResetPack(pack);
 
-	new client = GetClientFromSerial(ReadPackCell(pack));
+	int client = GetClientFromSerial(ReadPackCell(pack));
 
 	if (client == 0)
 		return Plugin_Stop;
 
-	decl Float:velocity[3];
+	float velocity[3];
 	GetEntPropVector(client, Prop_Data, "m_vecVelocity", velocity);		
 
-	new bool:isMoving = !(velocity[0] == 0.0 && velocity[1] == 0.0 && velocity[2] == 0.0);
+	bool isMoving = !(velocity[0] == 0.0 && velocity[1] == 0.0 && velocity[2] == 0.0);
 	if (isMoving)
 		return Plugin_Continue;
 
@@ -502,10 +479,21 @@ public Action:Timer_RenderBeam(Handle:timer, Handle:pack)
  * @param size			Size of the array (or number of cells to copy)
  * @noreturn
  */
-stock Array_Copy(const any:array[], any:newArray[], size)
+stock void Array_Copy(const any[] array, any[] newArray, int size)
 {
-	for (new i=0; i < size; i++) 
+	for (int i=0; i < size; i++) 
 	{
 		newArray[i] = array[i];
 	}
+}
+
+
+public bool IsValidClient (int client)
+{
+	if(client > 4096) client = EntRefToEntIndex(client);
+	if(client < 1 || client > MaxClients) return false;
+	if(!IsClientInGame(client)) return false;
+	if(IsFakeClient(client)) return false;
+	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
+	return true;
 }

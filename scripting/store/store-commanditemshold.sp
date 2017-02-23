@@ -50,7 +50,10 @@ public void OnLibraryAdded(const char[] name)
 public void Store_OnReloadItems() 
 {
 	if (g_commandItemsNameIndex != null)
+	{
 		CloseHandle(g_commandItemsNameIndex);
+		g_commandItemsNameIndex = null;
+	}
 		
 	g_commandItemsNameIndex = CreateTrie();
 	g_commandItemCount = 0;
@@ -112,8 +115,24 @@ public Store_ItemUseAction OnCommandItemUse(int client, int itemId, bool equippe
 	}
 
 	char clientName[64];
+	char sanitizedName[MAX_NAME_LENGTH];
 	GetClientName(client, clientName, sizeof(clientName));
-
+	
+	int j = 0;
+	for (int i = 0; i <= strlen(clientName); i++)
+	{
+		if (IsCharAlpha(clientName[i]) || IsCharNumeric(clientName[i]) || IsCharSpace(clientName[i]))
+		{
+			sanitizedName[j] = clientName[i];
+			j++;
+		}
+		else
+		{
+			sanitizedName[j] = 32;
+			j++;
+		}
+	}
+	
 	char clientTeamStr[13];
 	IntToString(clientTeam, clientTeamStr, sizeof(clientTeamStr));
 
@@ -126,7 +145,7 @@ public Store_ItemUseAction OnCommandItemUse(int client, int itemId, bool equippe
 	char commandText[255];
 	strcopy(commandText, sizeof(commandText), g_commandItems[commandItemhold][CommandItemText]);
 
-	ReplaceString(commandText, sizeof(commandText), "{clientName}", clientName, false);
+	ReplaceString(commandText, sizeof(commandText), "{clientName}", sanitizedName, false);
 	ReplaceString(commandText, sizeof(commandText), "{clientTeam}", clientTeamStr, false);		
 	ReplaceString(commandText, sizeof(commandText), "{clientAuth}", clientAuth, false);
 	ReplaceString(commandText, sizeof(commandText), "{clientUser}", clientUser, false);		

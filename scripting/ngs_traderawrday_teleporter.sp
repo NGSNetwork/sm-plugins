@@ -7,6 +7,8 @@
 
 #define PLUGIN_VERSION "1.1"
 
+float skyboxorigin[3] = {-622.707153, 1183.728271, 2972.568115};
+
 //-------------------------------------------------------------------------------------------------
 public Plugin myinfo = {
 	name = "[NGS] Trade Rawr Club Day Teleport",
@@ -29,11 +31,6 @@ public Action CommandSkybox(int client, int args)
 		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Skybox: Sorry! You can only do this while you are alive!");
 		return Plugin_Handled;
 	}
-	
-	float skyboxorigin[3];
-	skyboxorigin[0] = -622.707153;
-	skyboxorigin[1] = 1183.728271;
-	skyboxorigin[2] = 2972.568115;
 	
 	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Teleported to skybox!");
 	

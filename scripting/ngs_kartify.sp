@@ -24,11 +24,6 @@ Handle g_cvarAllowSuicide;
 
 bool g_KartSpawn[MAXPLAYERS + 1];
 
-#define UPDATE_FILE		"kartify.txt"
-#define CONVAR_PREFIX	"kartify"
-
-#include "mckayupdater.sp"
-
 public void OnPluginStart() {
 	g_cvarSpawnKart = CreateConVar("kartify_spawn", "0", "0 = do nothing, 1 = put all players into karts when they spawn, 2 = put players into karts when they spawn only if sm_kartify was used on them", _, true, 0.0, true, 2.0);
 	g_cvarStartPercentage = CreateConVar("kartify_start_percentage", "0", "Starting percentage, as an integer, of damage for kartified players", _, true, 0.0);

@@ -64,7 +64,7 @@ public void DoRTD(int client)
 	int currentTime = GetTime(); 
 	if (currentTime - RTDCooldown[client] < 7)
     {
-   		CReplyToCommand(client, "{YELLOW}[LOLRTD]{DEFAULT} You must wait {PURPLE}%d{DEFAULT} seconds to roll again.", currentTime - RTDCooldown[client]);
+   		CReplyToCommand(client, "{YELLOW}[LOLRTD]{DEFAULT} You must wait {PURPLE}%d{DEFAULT} seconds to roll again.", 7 - (currentTime - RTDCooldown[client]));
    		return;
   	}
 

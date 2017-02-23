@@ -10,6 +10,7 @@
 #include <sourcemod>
 #include <store>
 #include <morecolors>
+#include <tf2_stocks>
 
 #define MAX_FILTERS 128
 #define MAX_FILTER_KVLEN 255
@@ -124,10 +125,10 @@ void LoadConfig()
 	CloseHandle(kv);
 }
 
-public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadcast)
+public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
-	int client_died = GetClientOfUserId(GetEventInt(event, "userid"));
-	int client_killer = GetClientOfUserId(GetEventInt(event, "attacker"));
+	int client_died = GetClientOfUserId(event.GetInt("userid"));
+	int client_killer = GetClientOfUserId(event.GetInt("attacker"));
 	
 	// ignore suicides
 	if (client_killer == client_died)
@@ -146,6 +147,9 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
 		return Plugin_Continue;
 	}
 	
+	bool DeadRingered = event.GetInt("death_flags") & TF_DEATHFLAG_DEADRINGER; // This will be true if they didn't actually die.
+	
+	if (DeadRingered) return Plugin_Continue;
 	if (g_enable_only_name_tag)
 	{
 		char killerName[MAX_NAME_LENGTH];
@@ -215,7 +219,7 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
 	}
 }
 
-int Calculate(Handle event, int basepoints)
+int Calculate(Event event, int basepoints)
 {
 	int points = basepoints;
 
@@ -225,7 +229,7 @@ int Calculate(Handle event, int basepoints)
 		if (StrEqual(g_filters[filter][FilterType], "string"))
 		{
 			char value[MAX_FILTER_KVLEN];
-			GetEventString(event, g_filters[filter][FilterKey], value, sizeof(value));
+			event.GetString(g_filters[filter][FilterKey], value, sizeof(value));
 			if(StrEqual(value, g_filters[filter][FilterValue]))
 			{
 				matches = true;
@@ -233,7 +237,7 @@ int Calculate(Handle event, int basepoints)
 		}
 		else if (StrEqual(g_filters[filter][FilterType], "int"))
 		{
-			int value = GetEventInt(event, g_filters[filter][FilterKey]);
+			int value = event.GetInt(g_filters[filter][FilterKey]);
 			if (value == StringToInt(g_filters[filter][FilterValue]))
 			{
 				matches = true;
@@ -241,7 +245,7 @@ int Calculate(Handle event, int basepoints)
 		}
 		else if (StrEqual(g_filters[filter][FilterType], "bool"))
 		{
-			bool value = view_as<bool>(GetEventInt(event, g_filters[filter][FilterKey]));
+			bool value = view_as<bool>(event.GetInt(g_filters[filter][FilterKey]));
 			if (value == view_as<bool>(StringToInt(g_filters[filter][FilterValue])))
 			{
 				matches = true;
@@ -249,7 +253,7 @@ int Calculate(Handle event, int basepoints)
 		}
 		else if (StrEqual(g_filters[filter][FilterType], "float"))
 		{
-			float value = GetEventFloat(event, g_filters[filter][FilterKey]);
+			float value = event.GetFloat(g_filters[filter][FilterKey]);
 			if (value == StringToFloat(g_filters[filter][FilterValue]))
 			{
 				matches = true;

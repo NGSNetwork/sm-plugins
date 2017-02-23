@@ -33,9 +33,6 @@ Handle g_hEnabled;
 Handle g_hFlags;
 Handle g_hImmunity;
 Handle g_hLimits[4][10];
-char g_sSounds[10][24] = {"", "vo/scout_no03.wav",   "vo/sniper_no04.wav", "vo/soldier_no01.wav",
-																		"vo/demoman_no03.wav", "vo/medic_no03.wav",  "vo/heavy_no02.wav",
-																		"vo/pyro_no01.wav",    "vo/spy_no02.wav",    "vo/engineer_no03.wav"};
 
 public void OnPluginStart()
 {
@@ -65,18 +62,13 @@ public void OnPluginStart()
 	HookEvent("player_changeclass", Event_PlayerClass);
 	HookEvent("player_spawn",       Event_PlayerSpawn);
 	HookEvent("player_team",        Event_PlayerTeam);
+	
+	PrecacheSounds();
 }
 
 public void OnMapStart()
 {
-	int i;
-	char sSound[32];
-	for(i = 1; i < sizeof(g_sSounds); i++)
-	{
-		Format(sSound, sizeof(sSound), "sound/%s", g_sSounds[i]);
-		PrecacheSound(g_sSounds[i]);
-		AddFileToDownloadsTable(sSound);
-	}
+	PrecacheSounds();
 }
 
 public void OnClientPutInServer(int client)
@@ -93,7 +85,7 @@ public void Event_PlayerClass(Handle event, const char[] name, bool dontBroadcas
 	if(!(GetConVarBool(g_hImmunity) && IsImmune(iClient)) && IsFull(iTeam, iClass))
 	{
 		ShowVGUIPanel(iClient, iTeam == TF_TEAM_BLU ? "class_blue" : "class_red");
-		EmitSoundToClient(iClient, g_sSounds[iClass]);
+		EmitSoundToClient(iClient, "sound/vo/medic_no03.mp3");
 		TF2_SetPlayerClass(iClient, view_as<TFClassType>(g_iClass[iClient]));
 	}
 }
@@ -106,7 +98,7 @@ public void Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadcas
 	if(!(GetConVarBool(g_hImmunity) && IsImmune(iClient)) && IsFull(iTeam, (g_iClass[iClient] = view_as<int>(TF2_GetPlayerClass(iClient)))))
 	{
 		ShowVGUIPanel(iClient, iTeam == TF_TEAM_BLU ? "class_blue" : "class_red");
-		EmitSoundToClient(iClient, g_sSounds[g_iClass[iClient]]);
+		EmitSoundToClient(iClient, "sound/vo/medic_no03.mp3");
 		PickClass(iClient);
 	}
 }
@@ -119,7 +111,7 @@ public void Event_PlayerTeam(Handle event,  const char[] name, bool dontBroadcas
 	if(!(GetConVarBool(g_hImmunity) && IsImmune(iClient)) && IsFull(iTeam, g_iClass[iClient]))
 	{
 		ShowVGUIPanel(iClient, iTeam == TF_TEAM_BLU ? "class_blue" : "class_red");
-		EmitSoundToClient(iClient, g_sSounds[g_iClass[iClient]]);
+		EmitSoundToClient(iClient, "sound/vo/medic_no03.mp3");
 		PickClass(iClient);
 	}
 }
@@ -190,4 +182,9 @@ void PickClass(int iClient)
 		else if(i == iClass)
 			break;
 	}
+}
+
+void PrecacheSounds()
+{
+	PrecacheSound("sound/vo/medic_no03.mp3");
 }

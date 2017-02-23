@@ -50,24 +50,12 @@ public void OnPluginStart()
 	CloseHandle(conf);
 	LoadTranslations("common.phrases");
 	CreateConVar("tf_tauntmenu_version", PLUGIN_VERSION, "[NGS] Taunt Menu Version", FCVAR_NOTIFY);
-	
-	
-	PrecacheModel("models/player/items/taunts/cash_wad.mdl", true);
-	PrecacheModel("models/player/items/taunts/medic_xray_taunt.mdl", true);
-	PrecacheModel("models/player/items/taunts/victory_mug.mdl", true);
-	PrecacheModel("models/player/items/taunts/balloon_animal_pyro/balloon_animal_pyro.mdl", true);
-	PrecacheModel("models/player/items/taunts/beer_crate/beer_crate.mdl", true);
-	PrecacheModel("models/player/items/taunts/chicken_bucket/chicken_bucket.mdl", true);
-	PrecacheModel("models/player/items/taunts/demo_nuke_bottle/demo_nuke_bottle.mdl", true);
-	PrecacheModel("models/player/items/taunts/dizzy_bottle1/dizzy_bottle1.mdl", true);
-	PrecacheModel("models/player/items/taunts/dizzy_bottle2/dizzy_bottle2.mdl", true);
-	PrecacheModel("models/player/items/taunts/engys_new_chair/engys_new_chair.mdl", true);
-	PrecacheModel("models/player/items/taunts/engys_new_chair/engys_new_chair_articulated.mdl", true);
-	PrecacheModel("models/player/items/taunts/wupass_mug/wupass_mug.mdl", true);
-	PrecacheModel("models/workshop/player/items/taunts/pyro_poolparty/pyro_poolparty.mdl", true);
-	PrecacheModel("models/workshop/player/items/spy/taunt_spy_boxtrot/taunt_spy_boxtrot.mdl", true);
-	PrecacheModel("models/workshop/player/items/sniper/killer_solo/killer_solo.mdl", true);
-	PrecacheModel("models/workshop/player/items/sniper/taunt_most_wanted/taunt_most_wanted.mdl", true);
+	PrecacheTaunts();
+}
+
+public void OnMapStart()
+{
+	PrecacheTaunts();
 }
 
 public Action Cmd_TauntMenu(int client, int args)
@@ -84,94 +72,100 @@ public Action Cmd_TauntMenu(int client, int args)
 public Action ShowMenu(int client)
 {
 	TFClassType class = TF2_GetPlayerClass(client);
-	Menu menu = CreateMenu(Taunt_MenuSelected);
-	SetMenuTitle(menu, "===== NGS Taunt Menu =====");
+	Menu menu = new Menu(Taunt_MenuSelected);
+	menu.SetTitle("===== NGS Taunt Menu =====");
 	
 	switch(class)
 	{
 		case TFClass_Scout:
 		{
-			AddMenuItem(menu, "1117", "Taunt: Battin' a Thousand");
-			AddMenuItem(menu, "1119", "Taunt: Deep Fried Desire");
-			AddMenuItem(menu, "1168", "Taunt: The Carlton");
-			AddMenuItem(menu, "30572", "Taunt: The Boston Breakdance");
+			menu.AddItem("1117", "Taunt: Battin' a Thousand");
+			menu.AddItem("1119", "Taunt: Deep Fried Desire");
+			menu.AddItem("1168", "Taunt: The Carlton");
+			menu.AddItem("30572", "Taunt: The Boston Breakdance");
 		}
 		case TFClass_Sniper:
 		{
-			AddMenuItem(menu, "1116", "Taunt: I See You");
-			AddMenuItem(menu, "30609", "Taunt: The Killer Solo");
-			AddMenuItem(menu, "30614", "Taunt: Most Wanted");
+			menu.AddItem("1116", "Taunt: I See You");
+			menu.AddItem("30609", "Taunt: The Killer Solo");
+			menu.AddItem("30614", "Taunt: Most Wanted");
+			menu.AddItem("30839", "Taunt: Didgeridrongo");
 		}
 		case TFClass_Soldier:
 		{
-			AddMenuItem(menu, "1113", "Taunt: Fresh Brewed Victory");
-			AddMenuItem(menu, "30673", "Taunt: Soldier's Requiem");
-			AddMenuItem(menu, "30761", "Taunt: The Fubar Fanfare");
+			menu.AddItem("1113", "Taunt: Fresh Brewed Victory");
+			menu.AddItem("30673", "Taunt: Soldier's Requiem");
+			menu.AddItem("30761", "Taunt: The Fubar Fanfare");
 		}
 		case TFClass_Heavy:
 		{
-			AddMenuItem(menu, "30616", "Taunt: The Proletariat Posedown");
+			menu.AddItem("30616", "Taunt: The Proletariat Posedown");
+			menu.AddItem("1174", "Taunt: The Table Tantrum");
+			menu.AddItem("1175", "Taunt: The Boiling Point");
 		}
 		case TFClass_DemoMan:
 		{
-			AddMenuItem(menu, "1114", "Taunt: Spent Well Spirits");
-			AddMenuItem(menu, "1120", "Taunt: Oblooterated");
-			AddMenuItem(menu, "30671", "Taunt: True Scotsman's Call");
+			menu.AddItem("1114", "Taunt: Spent Well Spirits");
+			menu.AddItem("1120", "Taunt: Oblooterated");
+			menu.AddItem("30671", "Taunt: True Scotsman's Call");
+			menu.AddItem("30840", "Taunt: Scotsmann's Stagger");
 		}
 		case TFClass_Medic:
 		{
-			AddMenuItem(menu, "477", "Taunt: The Meet the Medic");
-			AddMenuItem(menu, "1109", "Taunt: Results Are In");
+			menu.AddItem("477", "Taunt: The Meet the Medic");
+			menu.AddItem("1109", "Taunt: Results Are In");
 		}
 		
 		case TFClass_Pyro:
 		{
-			AddMenuItem(menu, "1112", "Taunt: Party Trick");
-			AddMenuItem(menu, "30570", "Taunt: Pool Party");
-			AddMenuItem(menu, "30763", "Taunt: The Balloonibouncer");
+			menu.AddItem("1112", "Taunt: Party Trick");
+			menu.AddItem("30570", "Taunt: Pool Party");
+			menu.AddItem("30763", "Taunt: The Balloonibouncer");
 		}
 		case TFClass_Spy:
 		{
-			AddMenuItem(menu, "1108", "Taunt: Buy A Life");
-			AddMenuItem(menu, "30615", "Taunt: The Box Trot");
-			AddMenuItem(menu, "30762", "Taunt: Disco Fever");
+			menu.AddItem("1108", "Taunt: Buy A Life");
+			menu.AddItem("30615", "Taunt: The Box Trot");
+			menu.AddItem("30762", "Taunt: Disco Fever");
 		}
 		case TFClass_Engineer:
 		{
-			AddMenuItem(menu, "1115", "Taunt: Rancho Relaxo");
-			AddMenuItem(menu, "30618", "Taunt: Bucking Bronco");
+			menu.AddItem("1115", "Taunt: Rancho Relaxo");
+			menu.AddItem("30618", "Taunt: Bucking Bronco");
 		}
 	}
 	
-	AddMenuItem(menu, "167", "Taunt: The High Five!");
-	AddMenuItem(menu, "438", "Taunt: The Director's Vision");
-	AddMenuItem(menu, "463", "Taunt: The Schadenfreude");
-	AddMenuItem(menu, "1015", "Taunt: The Shred Alert");
-	AddMenuItem(menu, "1106", "Taunt: Square Dance");
-	AddMenuItem(menu, "1107", "Taunt: Flippin' Awesome");
-	AddMenuItem(menu, "1110", "Taunt: Rock, Paper, Scissors");
-	AddMenuItem(menu, "1111", "Taunt: Skullcracker");
-	AddMenuItem(menu, "1118", "Taunt: Conga");
-	AddMenuItem(menu, "1157", "Taunt: Kazotsky Kick");
-	AddMenuItem(menu, "1162", "Taunt: Mannrobics");
-	AddMenuItem(menu, "30621", "Taunt: Burstchester");
-	AddMenuItem(menu, "30672", "Taunt: Zoomin' Broom");
+	menu.AddItem("167", "Taunt: The High Five!");
+	menu.AddItem("438", "Taunt: The Director's Vision");
+	menu.AddItem("463", "Taunt: The Schadenfreude");
+	menu.AddItem("1015", "Taunt: The Shred Alert");
+	menu.AddItem("1106", "Taunt: Square Dance");
+	menu.AddItem("1107", "Taunt: Flippin' Awesome");
+	menu.AddItem("1110", "Taunt: Rock, Paper, Scissors");
+	menu.AddItem("1111", "Taunt: Skullcracker");
+	menu.AddItem("1118", "Taunt: Conga");
+	menu.AddItem("1157", "Taunt: Kazotsky Kick");
+	menu.AddItem("1162", "Taunt: Mannrobics");
+	menu.AddItem("30621", "Taunt: Burstchester");
+	menu.AddItem("30672", "Taunt: Zoomin' Broom");
+	menu.AddItem("1172", "Taunt: The Victory Lap");
+	menu.AddItem("30816", "Taunt: Second Rate Sorcery");
 	
-	DisplayMenu(menu, client, 20);
+	menu.Display(client, 20);
 }
 
-public int Taunt_MenuSelected(Handle menu, MenuAction action, int iClient, int param2)
+public int Taunt_MenuSelected(Menu menu, MenuAction action, int iClient, int param2)
 {
 	if(action == MenuAction_End)
 	{
-		CloseHandle(menu);
+		delete menu;
 	}
 	
 	if(action == MenuAction_Select)
 	{
 		char info[12];
 		
-		GetMenuItem(menu, param2, info, sizeof(info));
+		menu.GetItem(param2, info, sizeof(info));
 		ExecuteTaunt(iClient, StringToInt(info));
 	}
 }
@@ -195,4 +189,63 @@ public void ExecuteTaunt(int client, int itemdef)
 	
 	SDKCall(hPlayTaunt, client, pEconItemView) ? 1 : 0;
 	AcceptEntityInput(ent, "Kill");
+}
+
+public void PrecacheTaunts()
+{
+	PrecacheModel("models/player/items/taunts/cash_wad.mdl", false);
+	PrecacheModel("models/player/items/taunts/medic_xray_taunt.mdl", false);
+	PrecacheModel("models/player/items/taunts/victory_mug.mdl", false);
+	PrecacheModel("models/player/items/taunts/balloon_animal_pyro/balloon_animal_pyro.mdl", false);
+	PrecacheModel("models/player/items/taunts/beer_crate/beer_crate.mdl", false);
+	PrecacheModel("models/player/items/taunts/chicken_bucket/chicken_bucket.mdl", false);
+	PrecacheModel("models/player/items/taunts/demo_nuke_bottle/demo_nuke_bottle.mdl", false);
+	PrecacheModel("models/player/items/taunts/dizzy_bottle1/dizzy_bottle1.mdl", false);
+	PrecacheModel("models/player/items/taunts/dizzy_bottle2/dizzy_bottle2.mdl", false);
+	PrecacheModel("models/player/items/taunts/engys_new_chair/engys_new_chair.mdl", false);
+	PrecacheModel("models/player/items/taunts/engys_new_chair/engys_new_chair_articulated.mdl", false);
+	PrecacheModel("models/player/items/taunts/wupass_mug/wupass_mug.mdl", false);
+	PrecacheModel("models/workshop/player/items/taunts/pyro_poolparty/pyro_poolparty.mdl", false);
+	PrecacheModel("models/workshop/player/items/spy/taunt_spy_boxtrot/taunt_spy_boxtrot.mdl", false);
+	PrecacheModel("models/workshop/player/items/sniper/killer_solo/killer_solo.mdl", false);
+	PrecacheModel("models/workshop/player/items/sniper/taunt_most_wanted/taunt_most_wanted.mdl", false);
+	PrecacheModel("models/player/items/taunts/bumpercar/parts/bumpercar.mdl", false);
+	PrecacheModel("models/player/items/heavy/heavy_table_flip_prop.mdl", false);
+	PrecacheModel("models/player/items/heavy/heavy_table_flip_joule_prop.mdl", false);
+	PrecacheModel("models/workshop/player/items/engineer/bucking_bronco/bucking_bronco.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/taunt_burstchester/taunt_burstchester_scout.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/taunt_burstchester/taunt_burstchester_sniper.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/taunt_burstchester/taunt_burstchester_soldier.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/taunt_burstchester/taunt_burstchester_demo.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/taunt_burstchester/taunt_burstchester_medic.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/taunt_burstchester/taunt_burstchester_heavy.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/taunt_burstchester/taunt_burstchester_pyro.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/taunt_burstchester/taunt_burstchester_spy.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/taunt_burstchester/taunt_burstchester_engineer.mdl", false);
+	PrecacheModel("models/workshop/player/items/demo/bagpipes/bagpipes.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/zoomin_broom/zoomin_broom_scout.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/zoomin_broom/zoomin_broom_sniper.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/zoomin_broom/zoomin_broom_soldier.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/zoomin_broom/zoomin_broom_demo.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/zoomin_broom/zoomin_broom_medic.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/zoomin_broom/zoomin_broom_heavy.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/zoomin_broom/zoomin_broom_pyro.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/zoomin_broom/zoomin_broom_spy.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/zoomin_broom/zoomin_broom_engineer.mdl", false);
+	PrecacheModel("models/workshop/player/items/soldier/taunt_maggots_condolence/taunt_maggots_condolence.mdl", false);
+	PrecacheModel("models/workshop/player/items/soldier/fumblers_fanfare/fumblers_fanfare.mdl", false);
+	PrecacheModel("models/workshop/player/items/pyro/spring_rider/spring_rider.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/secondrate_sorcery/secondrate_sorcery_scout.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/secondrate_sorcery/secondrate_sorcery_sniper.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/secondrate_sorcery/secondrate_sorcery_soldier.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/secondrate_sorcery/secondrate_sorcery_demo.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/secondrate_sorcery/secondrate_sorcery_medic.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/secondrate_sorcery/secondrate_sorcery_heavy.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/secondrate_sorcery/secondrate_sorcery_pyro.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/secondrate_sorcery/secondrate_sorcery_spy.mdl", false);
+	PrecacheModel("models/workshop/player/items/all_class/secondrate_sorcery/secondrate_sorcery_engineer.mdl", false);
+	PrecacheModel("models/workshop/player/items/sniper/taunt_didgeridrongo/taunt_didgeridrongo.mdl", false);
+	PrecacheModel("models/workshop/player/items/demo/taunt_scotsmans_stagger/taunt_scotsmans_stagger.mdl", false);
+	PrecacheModel("models/player/items/heavy/brutal_guitar.mdl", false);
+	PrecacheModel("models/player/items/heavy/brutal_guitar_xl.mdl", false);
 }

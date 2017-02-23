@@ -5,7 +5,7 @@
 #include <sdktools>
 #include <morecolors>
 
-#define PLUGIN_VERSION "1.0"
+#define PLUGIN_VERSION "1.1"
 
 int arr_RaffleNum[MAXPLAYERS + 1];
 int rafflemax;
@@ -15,13 +15,11 @@ public Plugin myinfo = {
 	author = "NuclearWatermelon / TheXeon",
 	description = "Raffle number generator",
 	version = PLUGIN_VERSION,
-	url = "https://matespastdates,servegame.com"
+	url = "https://neogenesisnetwork.net"
 }
 
 public void OnPluginStart() 
 {
-	HookEvent("player_death", Event_PlayerDeath, EventHookMode_Pre);
-	HookEvent("player_death", Event_PlayerDeath, EventHookMode_Pre);
 	CreateConVar("sm_raffle_version", PLUGIN_VERSION, "Version of the raffle plugin!", FCVAR_NOTIFY | FCVAR_REPLICATED);
 	RegAdminCmd("sm_raffle", CommandGenerateRaffle, ADMFLAG_CHAT, "Generates a random number for a raffle.");
 	RegAdminCmd("sm_raffle_assign", CommandAssignRaffle, ADMFLAG_CHAT, "Assigns a raffle number to a player.");
@@ -29,18 +27,34 @@ public void OnPluginStart()
 	RegAdminCmd("sm_raffle_cancel", CommandCancelRaffle, ADMFLAG_CHAT, "Cancels a raffle.");
 	RegConsoleCmd("sm_raffle_list", CommandListRaffle, "List those in a raffle.");
 	LoadTranslations("common.phrases");
-	rafflemax = 0;
+	HookEvent("player_disconnect", Event_PlayerDisconnect);
 }
 
-public Action CommandListRaffle(int client, int args) 
+public void Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast)
 {
-	if (args > 1) {
-		CReplyToCommand(client, "{GREEN}[RAFFLE]{DEFAULT} Usage: sm_raffle_list");
-		return Plugin_Handled;
+	int client = GetClientOfUserId(event.GetInt("userid"));
+ 
+	if (arr_RaffleNum[client] > 0)
+	{
+		char playerName[MAX_NAME_LENGTH];
+		for (int i = 1; i <= MaxClients; i++)
+		{
+			if (arr_RaffleNum[i] > arr_RaffleNum[client])
+			{
+				arr_RaffleNum[i]--;
+				GetClientName(i, playerName, sizeof(playerName));
+				CPrintToChatAll("{GREEN}[RAFFLE]{DEFAULT} %s's raffle number is now %d.", playerName, arr_RaffleNum[i]);
+			}
+		}
 	}
+}
+
+public Action CommandListRaffle(int client, int args)
+{
 	for (int i = 1; i <= MaxClients; i++) 
 	{
-		if (arr_RaffleNum[i] != 0) {
+		if (arr_RaffleNum[i] != 0)
+		{
 			char rafflename[32];
 			GetClientName(i, rafflename, sizeof(rafflename));			
 			CPrintToChat(client, "{LIGHTGREEN}%s{DEFAULT} has raffle number {GREEN}%d{DEFAULT}.", rafflename, arr_RaffleNum[i]);
@@ -55,7 +69,7 @@ public Action CommandCancelRaffle(int client, int args)
 		CReplyToCommand(client, "{GREEN}[RAFFLE]{DEFAULT} Usage: sm_raffle_cancel");
 		return Plugin_Handled;
 	}
-	for (int i = 0; i <= MaxClients; i++) 
+	for (int i = 1; i <= MaxClients; i++) 
 	{
 		arr_RaffleNum[i] = 0;
 	}
@@ -71,30 +85,31 @@ public Action CommandCancelRaffle(int client, int args)
 
 public Action CommandGenerateRaffle(int client, int args) 
 {
-	if (args > 1) {
+	if (args > 1)
+	{
 		CReplyToCommand(client, "{GREEN}[RAFFLE]{DEFAULT} Usage: sm_raffle");
 		return Plugin_Handled;
 	}
-	if (rafflemax == 0) {
-		CReplyToCommand(client, "{GREEN}[RAFFLE]{DEFAULT} No persons in the raffle.");
-		return Plugin_Handled;
-	}
-	if (rafflemax == 1) {
-		CReplyToCommand(client, "{GREEN}[RAFFLE]{DEFAULT} Only one person in the raffle.");
+	if (rafflemax <= 1)
+	{
+		CReplyToCommand(client, "{GREEN}[RAFFLE]{DEFAULT} Not enough people in the raffle.");
 		return Plugin_Handled;
 	}
 	int randnumber;
 	randnumber = GetRandomInt(1, rafflemax);
 	CPrintToChatAll("{GREEN}[RAFFLE]{DEFAULT} The winning raffle number is {GREEN}%d!", randnumber);
-	for (int i = 1; i <= MaxClients; i++) {
-		if (arr_RaffleNum[i] == randnumber) {
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (arr_RaffleNum[i] == randnumber)
+		{
 			char winname[32];
 			GetClientName(i, winname, sizeof(winname));
 			CPrintToChatAll("{GREEN}[RAFFLE]{DEFAULT} The winner of the raffle is {LIGHTGREEN}%s!", winname);
 			LogAction(client, -1, "%s won the raffle with raffle number %d.", winname, randnumber);
 			arr_RaffleNum[i] = 0;
 		}
-		else {
+		else
+		{
 			arr_RaffleNum[i] = 0;
 		}
 	}
@@ -104,12 +119,14 @@ public Action CommandGenerateRaffle(int client, int args)
 
 public Action CommandAssignRaffle(int client, int args) 
 {
-	if (args < 1) {
+	if (args < 1)
+	{
 		CReplyToCommand(client, "{GREEN}[RAFFLE]{DEFAULT} Usage: sm_raffle_assign <name> <name2> ...");
 		return Plugin_Handled;
 	}
 	int argnum = 1;
-	while (argnum <= args) {
+	while (argnum <= args)
+	{
 		char argstr[32];
 		GetCmdArg(argnum, argstr, sizeof(argstr));
 		
@@ -124,12 +141,14 @@ public Action CommandAssignRaffle(int client, int args)
 			COMMAND_FILTER_NO_IMMUNITY|COMMAND_FILTER_NO_BOTS|COMMAND_FILTER_CONNECTED, 
 			target_name, 
 			sizeof(target_name), 
-			tn_is_ml)) <= 0) {
+			tn_is_ml)) <= 0)
+		{
 			ReplyToTargetError(client, target_count);
 			argnum++;
 			return Plugin_Handled;
 		}
-		for (int i = 0; i < target_count; i++) {
+		for (int i = 0; i < target_count; i++)
+		{
 			char rafflename[32];
 			GetClientName(target_list[i], rafflename, sizeof(rafflename));
 			if (arr_RaffleNum[target_list[i]] > 0)
@@ -150,17 +169,18 @@ public Action CommandAssignRaffle(int client, int args)
 
 public Action CommandRemoveRaffle(int client, int args) 
 {
-	if (args < 1) {
+	if (args < 1)
+	{
 		CReplyToCommand(client, "{GREEN}[RAFFLE]{DEFAULT} Usage: sm_raffle_remove <name> <name2> ...");
 		return Plugin_Handled;
 	}
 	int argnum = 1;
 	while (argnum <= args) 
 	{
-		char argstr[32];
+		char argstr[MAX_NAME_LENGTH];
 		GetCmdArg(argnum, argstr, sizeof(argstr));
 		int target = FindTarget(client, argstr, true, false);
-		if  (target == -1) 
+		if (target == -1) 
 		{
 			argnum++;
 		}
@@ -168,7 +188,8 @@ public Action CommandRemoveRaffle(int client, int args)
 		{
 			char rafflename[32];
 			GetClientName(target, rafflename, sizeof(rafflename));
-			if (arr_RaffleNum[target] == 0) {
+			if (arr_RaffleNum[target] == 0)
+			{
 				CReplyToCommand(client, "{GREEN}[RAFFLE]{DEFAULT} {LIGHTGREEN}%s{DEFAULT} was not in the raffle to begin with!", rafflename);
 				return Plugin_Handled;
 			}

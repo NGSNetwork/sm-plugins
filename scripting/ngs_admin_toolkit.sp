@@ -7,7 +7,7 @@
 #include <tf2_stocks>
 #include <tf2>
 #include <morecolors>
-#define PLUGIN_VERSION "1.2.1"
+#define PLUGIN_VERSION "1.2.2"
 
 ConVar cvarPluginVersion;
 

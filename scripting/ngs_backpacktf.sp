@@ -4,6 +4,8 @@
 *																*
 ****************************************************************/
 
+// TODO: Convert to Backpack.tf v4 API
+
 #pragma newdecls required
 #pragma semicolon 1
 
@@ -59,11 +61,6 @@ Handle sv_tags;
 float budsToKeys;
 float keysToRef;
 float refToUsd;
-
-#define UPDATE_FILE		"backpack-tf.txt"
-#define CONVAR_PREFIX	"backpack_tf"
-
-#include "mckayupdater.sp"
 
 public void OnPluginStart() {
 	cvarBPCommand = CreateConVar("backpack_tf_bp_command", "1", "Enables the !bp command for use with backpack.tf");
@@ -206,6 +203,11 @@ public void OnPluginStart() {
 	SetTrieString(unusualNameTrie, "104", "Nether Trail");
 	SetTrieString(unusualNameTrie, "105", "Ancient Eldritch");
 	SetTrieString(unusualNameTrie, "106", "Eldritch Flame");
+	// Halloween 2016
+	SetTrieString(unusualNameTrie, "107", "Neutron Star");
+	SetTrieString(unusualNameTrie, "108", "Tesla Coil");
+	SetTrieString(unusualNameTrie, "109", "Sandstorm Insomnia");
+	SetTrieString(unusualNameTrie, "110", "Sandstorm Slumber");
 	// Taunt effects
 	SetTrieString(unusualNameTrie, "3001", "Showstopper");
 	SetTrieString(unusualNameTrie, "3002", "Showstopper");
@@ -220,6 +222,13 @@ public void OnPluginStart() {
 	// Halloween 2014 taunt effects
 	SetTrieString(unusualNameTrie, "3011", "Haunted Phantasm");
 	SetTrieString(unusualNameTrie, "3012", "Ghastly Ghosts");
+	// Halloween 2016 taunt effects
+	/*
+	SetTrieString(unusualNameTrie, "3013", "Ghastly Ghosts");
+	SetTrieString(unusualNameTrie, "3014", "Ghastly Ghosts");
+	SetTrieString(unusualNameTrie, "3015", "Ghastly Ghosts");
+	SetTrieString(unusualNameTrie, "3016", "Ghastly Ghosts");
+	*/
 	
 	hudText = CreateHudSynchronizer();
 }

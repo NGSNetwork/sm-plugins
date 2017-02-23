@@ -8,6 +8,7 @@
 #include <tf2_stocks>
 #include <morecolors>
 #include <free_duels>
+#include <friendly>
 
 
 #define PLUGIN_NAME         "[NGS] Free duels"
@@ -98,10 +99,11 @@ public void OnPluginStart()
 	c_EnableType[2]		= CreateConVar("duel_type2", 			"1", 	"0 = disable `time left` duel, 1 = enable", 0, true, 0.0, true, 1.0);
 	c_EnableType[3]		= CreateConVar("duel_type3", 			"1",	"0 = disable `amount of kills` duel, 1 = enable", 0, true, 0.0, true, 1.0);
 	c_EnableGodMod		= CreateConVar("duel_godmod", 			"1", 	"0 = disable challenger godmod, 1 = enable", 0, true, 0.0, true, 1.0);
-	c_GodModFlag		= CreateConVar("duel_godmod_flag", 		"a", 	"Flag needed to create godmod duel : a or b or o or p or q or r or s or t or z, 0 = no flag");	
+	c_GodModFlag		= CreateConVar("duel_godmod_flag", 		"0", 	"Flag needed to create godmod duel : a or b or o or p or q or r or s or t or z, 0 = no flag");	
 	c_EnableHeadShot	= CreateConVar("duel_headshot", 		"1", 	"0 = disable head shot only (sniper), 1 = enable", 0, true, 0.0, true, 1.0);
 	c_HeadShotFlag		= CreateConVar("duel_headshot_flag", 	"a", 	"Flag needed to create head shot duel : a or b or o or p or q or r or s or t or z, 0 = no flag");	
-		
+	
+	
 	if(GetConVarBool(cvarEnabled))
 	{
 		LogMessage("[0/5] Loading : Enabled");
@@ -424,7 +426,12 @@ public Action EventPlayerSpawn(Handle hEvent, const char[] strName, bool bHidden
 	}
 	
 	if(g_Duel[iClient][Enabled] && g_Duel[iClient][GodMod] == 1)
+	{
 		SetGodModColor(iClient);
+		SetEntProp(iClient, Prop_Send, "m_CollisionGroup", 2);
+	}
+	else if (!g_Duel[iClient][GodMod] && !TF2Friendly_IsFriendly(iClient))
+		SetEntProp(iClient, Prop_Send, "m_CollisionGroup", 5);
 }
 
 public Action EventPlayerDeath(Handle hEvent, const char[] strName, bool bHidden)
@@ -610,7 +617,7 @@ public void OnGameFrame()
 	for(int iClient = 1; iClient <= MaxClients; iClient++ )
 		if(IsValidClient(iClient) && g_Duel[iClient][Enabled])
 		{
-			if(/*TF2_GetPlayerClass(iClient) == TFClass_Spy && */TF2_IsPlayerInCondition(iClient, TFCond_Cloaked)) // prevents showing during spells or plugin stuffs
+			if(TF2_IsPlayerInCondition(iClient, TFCond_Cloaked)) // prevents showing during spells or plugin stuffs
 			{
 				if(!g_Duel[iClient][HideSprite])
 					g_Duel[iClient][HideSprite] = true;
@@ -1252,6 +1259,8 @@ void LoadDuel(int Player2)
 			
 		SetGodModColor(Player2);
 		SetGodModColor(g_Duel[Player2][Challenger]);
+		TF2_RespawnPlayer(Player2);
+		TF2_RespawnPlayer(g_Duel[Player2][Challenger]);
 	}
 	
 	CreateChallengerParticle(Player2);
@@ -1441,10 +1450,12 @@ public Action AbortDuel(int iClient, int Args)
 		if(g_Duel[iClient][Challenger] != 0)
 		{
 			ClientCommand(g_Duel[iClient][Challenger], "playgamesound ui/duel_event.wav");
+			TF2_RespawnPlayer(g_Duel[iClient][Challenger]);
 		}
 		if(iClient != 0)
 		{
 			ClientCommand(iClient, "playgamesound ui/duel_event.wav");
+			TF2_RespawnPlayer(iClient);
 		}
 	}
 	else

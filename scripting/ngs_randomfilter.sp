@@ -23,12 +23,8 @@ public void OnPluginStart()
 	AddMultiTargetFilter("@r", TargetRandom, "Random player", false);
 	AddMultiTargetFilter("@randomred", TargetRandomRed, "Random player on red", false);
 	AddMultiTargetFilter("@rred", TargetRandomRed, "Random player on red", false);
-	AddMultiTargetFilter("@!randomred", TargetRandomNotRed, "Random player not on red", false);
-	AddMultiTargetFilter("@!rred", TargetRandomNotRed, "Random player not on red", false);
 	AddMultiTargetFilter("@randomblue", TargetRandomBlue, "Random player on blue", false);
 	AddMultiTargetFilter("@rblue", TargetRandomBlue, "Random player on blue", false);
-	AddMultiTargetFilter("@!randomblue", TargetRandomNotBlue, "Random player not on blue", false);
-	AddMultiTargetFilter("@!rblue", TargetRandomNotBlue, "Random player not on blue", false);
 }
 
 public void OnPluginEnd ()
@@ -37,99 +33,48 @@ public void OnPluginEnd ()
 	RemoveMultiTargetFilter("@r", TargetRandom);
 	RemoveMultiTargetFilter("@randomred", TargetRandomRed);
 	RemoveMultiTargetFilter("@rred", TargetRandomRed);
-	RemoveMultiTargetFilter("@!randomred", TargetRandomNotRed);
-	RemoveMultiTargetFilter("@!rred", TargetRandomNotRed);
 	RemoveMultiTargetFilter("@randomblue", TargetRandomBlue);
 	RemoveMultiTargetFilter("@rblue", TargetRandomBlue);
-	RemoveMultiTargetFilter("@!randomblue", TargetRandomNotBlue);
-	RemoveMultiTargetFilter("@!rblue", TargetRandomNotBlue);
 	
 }
 
 public bool TargetRandom(const char[] pattern, Handle clients)
 {
-	for (int iter = 0; iter < 5; iter++)
+	if (GetClientCount() < 1) return false;
+	int client;
+	do
 	{
-		int client = GetRandomInt(1, MaxClients);
-		if (IsValidClient(client))
-		{
-			PushArrayCell(clients, client);
-			return true;
-		}
+		client = GetRandomInt(1, MaxClients);
 	}
-	return false;
+	while(!IsClientInGame(client));
+	PushArrayCell(clients, client);
+	return true;
 }
 
 public bool TargetRandomBlue(const char[] pattern, Handle clients)
 {
-	for (int iter = 0; iter < 5; iter++)
+	if (GetTeamClientCount(view_as<int>(TFTeam_Blue)) < 1) return false;
+	int client;
+	do
 	{
-		int client = GetRandomInt(1, MaxClients);
-		if (IsValidClient(client))
-		{
-			if (TF2_GetClientTeam(client) == TFTeam_Blue)
-			{
-				PushArrayCell(clients, client);
-				return true;
-			}
-		}
+		client = GetRandomInt(1, MaxClients);
 	}
-	
-	return false;
+	while(!IsClientInGame(client) || TF2_GetClientTeam(client) != TFTeam_Blue);
+	PushArrayCell(clients, client);
+	return true;
 }
 
 public bool TargetRandomRed(const char[] pattern, Handle clients)
 {
-	for (int iter = 0; iter < 5; iter++)
+	if (GetTeamClientCount(view_as<int>(TFTeam_Red)) < 1) return false;
+	int client;
+	do
 	{
-		int client = GetRandomInt(1, MaxClients);
-		if (IsValidClient(client))
-		{
-			if (TF2_GetClientTeam(client) == TFTeam_Red)
-			{
-				PushArrayCell(clients, client);
-				return true;
-			}
-		}
+		client = GetRandomInt(1, MaxClients);
 	}
-	
-	return false;
-}
-
-public bool TargetRandomNotBlue(const char[] pattern, Handle clients)
-{
-	for (int iter = 0; iter < 5; iter++)
-	{
-		int client = GetRandomInt(1, MaxClients);
-		if (IsValidClient(client))
-		{
-			if (TF2_GetClientTeam(client) != TFTeam_Blue && TF2_GetClientTeam(client) != TFTeam_Unassigned)
-			{
-				PushArrayCell(clients, client);
-				return true;
-			}
-		}
-	}
-	
-	return false;
-}
-
-public bool TargetRandomNotRed(const char[] pattern, Handle clients)
-{
-	for (int iter = 0; iter < 5; iter++)
-	{
-		int client = GetRandomInt(1, MaxClients);
-		if (IsValidClient(client))
-		{
-			if (TF2_GetClientTeam(client) != TFTeam_Red && TF2_GetClientTeam(client) != TFTeam_Unassigned)
-			{
-				PushArrayCell(clients, client);
-				return true;
-			}
-		}
-	}
-	
-	return false;
+	while(!IsClientInGame(client) || TF2_GetClientTeam(client) != TFTeam_Red);
+	PushArrayCell(clients, client);
+	return true;
 }
 
 public bool IsValidClient (int client)

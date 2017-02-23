@@ -1,60 +1,97 @@
 #pragma newdecls required
 #pragma semicolon 1
 
-#include <sourcemod>
-#include <sdktools>
-#include <morecolors>
-#include <tf2>
+#include <friendly>
 #include <tf2_stocks>
-#undef REQUIRE_PLUGIN
-#include <adminmenu>
+#include <morecolors>
 
-#define PLUGIN_VERSION 			"1.4"
+#define PLUGIN_VERSION "1.4"
 
-Handle sm_rweapons_show = null;
-Handle hAdminMenu = null;
+Handle cvar_version = INVALID_HANDLE;
+Handle cvar_enabled = INVALID_HANDLE;
+
+bool InCivilianMode[MAXPLAYERS + 1];
+int CivilianCooldown[MAXPLAYERS + 1];
 
 public Plugin myinfo = {
-	name = "[NGS] Remove Weapons / Civilian Mode",
-	author = "Starman2098 / TheXeon",
-	description = "Lets an admin remove a players weapons or a player enter civlian mode.",
-	version = PLUGIN_VERSION,
-	url = "http://www.starman2098.com"
+    name = "[NGS] Civilian Command",
+    author = "Derek D. Howard / TheXeon",
+    description = "No weapons on command.",
+    version = PLUGIN_VERSION,
+    url = "https://forums.alliedmods.net/showthread.php?t=232318"
+}
+
+public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] strError, int iErr_Max) {
+    char strGame[32];
+    GetGameFolderName(strGame, sizeof(strGame));
+    if(!StrEqual(strGame, "tf")) {
+        Format(strError, iErr_Max, "This plugin only works for Team Fortress 2.");
+        return APLRes_Failure;
+    }
+    return APLRes_Success;
 }
 
 public void OnPluginStart()
 {
-	CreateConVar("sm_rwepciv_version", PLUGIN_VERSION, "Remove weapons plugin Version", FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
-	sm_rweapons_show = CreateConVar("sm_rweapons_show", "1", "Toggles target messages on and off, 0 for off, 1 for on. - Default 1");
-	RegAdminCmd("sm_rweapons", CommandRemoveWeapons, ADMFLAG_KICK,"sm_rweapons <user id | name>");
-	LoadTranslations("common.phrases");
-	AutoExecConfig();
-	Handle topmenu;
-	if (LibraryExists("adminmenu") && ((topmenu = GetAdminTopMenu()) != null))
-	{
-		OnAdminMenuReady(topmenu);
-	}
+    cvar_version = CreateConVar("sm_civilianmode_version", PLUGIN_VERSION, "Plugin Version", FCVAR_DONTRECORD|FCVAR_NOTIFY|FCVAR_CHEAT);
+    SetConVarString(cvar_version, PLUGIN_VERSION);
+    HookConVarChange(cvar_version, cvarChange);
+    RegConsoleCmd("sm_civilian", CommandCivilian, "Usage: sm_civilian");
+    RegConsoleCmd("sm_civ", CommandCivilian, "Usage: sm_civilian");
+    RegAdminCmd("sm_forcecivilian", CommandForceCivilian, ADMFLAG_GENERIC, "Usage: sm_forcecivilian <#userid|name>");
+    cvar_enabled = CreateConVar("sm_alwayscivilian_enabled", "1", "0 to disable the plugin, 1 to enable", 0);
+    
+    HookEvent("post_inventory_application", Inventory_App, EventHookMode_Post);
 }
 
-public Action CommandRemoveWeapons(int client, int args)
+public void cvarChange(Handle hHandle, const char[] oldValue, const char[] newValue)
 {
-	char target[MAXPLAYERS], target_name[MAX_TARGET_LENGTH];
+    if (hHandle == cvar_version) {
+        SetConVarString(hHandle, PLUGIN_VERSION);
+    }
+}
+
+public Action CommandCivilian(int client, int args)
+{
+	if(!IsValidClient(client))
+	{
+		return Plugin_Handled;
+	}
+	int currentTime = GetTime(); 
+	if (currentTime - CivilianCooldown[client] < 7)
+    {
+   		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You must wait {PURPLE}%d{DEFAULT} seconds to use this again.", 7 - (currentTime - CivilianCooldown[client]));
+   		return Plugin_Handled;
+  	}
+	CivilianCooldown[client] = currentTime;
+	
+	InCivilianMode[client] = !InCivilianMode[client];
+	if(InCivilianMode[client]) TF2_RemoveAllWeapons(client);
+	else
+	{
+		ForcePlayerSuicide(client);
+		TF2_RespawnPlayer(client);
+	}
+	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You have %s civilian mode!", InCivilianMode[client] ? "enabled" : "disabled");
+	return Plugin_Handled;
+}
+
+public Action CommandForceCivilian(int client, int args)
+{
+	if (args < 1)
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_forcecivilian <#userid|name>");
+		return Plugin_Handled;
+	}
+	char arg1[32];
+	GetCmdArg(1, arg1, sizeof(arg1));
+	
+	char target_name[MAX_TARGET_LENGTH];
 	int target_list[MAXPLAYERS], target_count;
 	bool tn_is_ml;
-	GetCmdArg(1, target, sizeof(target));
-	if (args != 1)
-	{
-		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_rweapons <name>");
-		return Plugin_Handled;
-	}
-
-	if (target[client] == -1)
-	{
-		return Plugin_Handled;
-	}
-
+ 
 	if ((target_count = ProcessTargetString(
-			target,
+			arg1,
 			client,
 			target_list,
 			MAXPLAYERS,
@@ -66,128 +103,55 @@ public Action CommandRemoveWeapons(int client, int args)
 		ReplyToTargetError(client, target_count);
 		return Plugin_Handled;
 	}
-	
+ 
 	for (int i = 0; i < target_count; i++)
 	{
-		PerformRemoveWeapons(client,target_list[i]);
-	}	
-	return Plugin_Handled;
-}
-
-public Action PerformRemoveWeapons(int client, int target)
-{
-	if((GetConVarInt(sm_rweapons_show) < 0) || (GetConVarInt(sm_rweapons_show) > 1))
-	{
-		ReplyToCommand(client, "[SM] Usage: sm_rweapons_show <0 - off | 1 - on> - Defaulting to 1");
-		SetConVarInt(sm_rweapons_show, 1);
-		return Plugin_Handled;
+		InCivilianMode[target_list[i]] = !InCivilianMode[target_list[i]];
+		if(InCivilianMode[target_list[i]]) TF2_RemoveAllWeapons(target_list[i]);
+		else TF2_RespawnPlayer(target_list[i]);
 	}
-
-	if(GetConVarInt(sm_rweapons_show) == 0)
+	
+	if (tn_is_ml)
 	{
-		TF2_RemoveAllWeapons(target);
-		LogAction(client, target, "\"%L\" removed weapons on \"%L\"", client, target);
-		return Plugin_Handled;
+		CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "Toggled civilian on %t!", target_name);
 	}
-
-	if(GetConVarInt(sm_rweapons_show) == 1)
+	else
 	{
-		TF2_RemoveAllWeapons(target);
-		LogAction(client, target, "\"%L\" removed weapons on \"%L\".", client, target);
-		CReplyToCommand(client, "You removed {LIGHTGREEN}%N's{DEFAULT} weapons.", target);
-		ShowActivity2(client, "", "%N has removed %N's weapons.", client,target);
-		return Plugin_Handled;
+		CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "Toggled civilian on %s!", target_name);
 	}
 	return Plugin_Handled;
 }
 
-public void OnAdminMenuReady(Handle topmenu)
+public Action Inventory_App(Handle event, const char[] name, bool dontBroadcast)
 {
-	if (topmenu == hAdminMenu)
-	{
-		return;
-	}
-	
-	hAdminMenu = topmenu;
-
-	TopMenuObject player_commands = FindTopMenuCategory(hAdminMenu, ADMINMENU_PLAYERCOMMANDS);
-
-	if (player_commands != INVALID_TOPMENUOBJECT)
-	{
-		AddToTopMenu(hAdminMenu,
-			"sm_rweapons",
-			TopMenuObject_Item,
-			AdminMenu_Particles, 
-			player_commands,
-			"sm_rweapons",
-			ADMFLAG_KICK);
-	}
-}
- 
-public void AdminMenu_Particles(Handle topmenu, TopMenuAction action, TopMenuObject object_id, int param, char[] buffer, int maxlength)
-{
-	if (action == TopMenuAction_DisplayOption)
-	{
-		Format(buffer, maxlength, "Remove Weapons");
-	}
-	else if( action == TopMenuAction_SelectOption)
-	{
-		DisplayPlayerMenu(param);
-	}
+    if (GetConVarBool(cvar_enabled))
+    {
+        int clientUserID = GetEventInt(event, "userid");
+        int client = GetClientOfUserId(clientUserID);
+        if(IsValidClient(client) && InCivilianMode[client]) CreateTimer(0.1, RemoveAllWeapons, clientUserID);
+    }
 }
 
-void DisplayPlayerMenu(int client)
-{
-	Handle menu = CreateMenu(MenuHandler_Players);
-	
-	char title[100];
-	Format(title, sizeof(title), "Choose Player:");
-	SetMenuTitle(menu, title);
-	SetMenuExitBackButton(menu, true);
-	
-	AddTargetsToMenu(menu, client, true, true);
-	
-	DisplayMenu(menu, client, MENU_TIME_FOREVER);
+public void OnClientPutInServer(int client)
+{ 
+	CivilianCooldown[client] = 0;
+	InCivilianMode[client] = false;
 }
 
-public int MenuHandler_Players(Handle menu, MenuAction action, int param1, int param2)
+public Action RemoveAllWeapons(Handle timer, any clientUserID)
 {
-	if (action == MenuAction_End)
-	{
-		CloseHandle(menu);
-	}
-	else if (action == MenuAction_Cancel)
-	{
-		if (param2 == MenuCancel_ExitBack && hAdminMenu != null)
-		{
-			DisplayTopMenu(hAdminMenu, param1, TopMenuPosition_LastCategory);
-		}
-	}
-	else if (action == MenuAction_Select)
-	{
-		char info[32];
-		int userid, target;
-		
-		GetMenuItem(menu, param2, info, sizeof(info));
-		userid = StringToInt(info);
+    int client = GetClientOfUserId(clientUserID);
+    if (!IsValidClient(client))
+        return;
+    TF2_RemoveAllWeapons(client);
+}
 
-		if ((target = GetClientOfUserId(userid)) == 0)
-		{
-			CPrintToChat(param1, "{GREEN}[SM]{DEFAULT} %s", "Player no longer available");
-		}
-		else if (!CanUserTarget(param1, target))
-		{
-			CPrintToChat(param1, "{GREEN}[SM]{DEFAULT} %s", "Unable to target");
-		}
-		else
-		{			
-			PerformRemoveWeapons(param1, target);
-			if (IsClientInGame(param1) && !IsClientInKickQueue(param1))
-			{
-				DisplayPlayerMenu(param1);
-			}
-			
-		}
-	}
-
+public bool IsValidClient (int client)
+{
+	if(client > 4096) client = EntRefToEntIndex(client);
+	if(client < 1 || client > MaxClients) return false;
+	if(!IsClientInGame(client)) return false;
+	if(IsFakeClient(client)) return false;
+	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
+	return true;
 }

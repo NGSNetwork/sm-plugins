@@ -22,7 +22,7 @@ public Plugin myinfo = {
 	author = "TheXeon",
 	description = "Player commands for NGS people.",
 	version = PLUGIN_VERSION,
-	url = "https://matespastdates.servegame.com"
+	url = "https://neogenesisnetwork.servegame.com"
 }
 
 public void OnPluginStart()
@@ -33,11 +33,17 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_doquack", CommandDoQuack, "Usage: sm_doquack");
 	RegConsoleCmd("sm_bamboozle", CommandBamboozle, "Usage: sm_bamboozle <#userid|name>");
 	RegConsoleCmd("sm_dontbamboozleme", CommandDontBamboozle, "Usage: sm_dontbamboozleme");
-	
+	RegConsoleCmd("sm_administration", CommandAdministration, "Usage: sm_administration");
+	RegConsoleCmd("sm_chowmane", CommandChowMane, "Usage: sm_chowmane");
+	LoadTranslations("common.phrases");
+}
+
+public void OnMapStart()
+{
 	PrecacheSound("ambient/bumper_car_quack11.wav", false);
 	PrecacheSound("vo/demoman_specialcompleted11.mp3", false);
-	
-	LoadTranslations("common.phrases");
+	PrecacheSound("ambient/train.wav", false);
+	PrecacheBirthdaySounds();
 }
 
 public void OnClientPutInServer(int client)
@@ -108,7 +114,7 @@ public Action CommandBamboozle(int client, int args)
 	int currentTime = GetTime(); 
 	if (currentTime - BAMCooldown[client] < 7)
     {
-   		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You must wait {PURPLE}%d{DEFAULT} seconds to bam again.", currentTime - BAMCooldown[client]);
+   		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You must wait {PURPLE}%d{DEFAULT} seconds to bam again.", 7 - (currentTime - BAMCooldown[client]));
    		BAMCooldown[client] = currentTime;
    		return Plugin_Handled;
   	}
@@ -158,6 +164,32 @@ public Action CommandDontBamboozle(int client, int args)
 	BAMOptOut[client] = !BAMOptOut[client];
 	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You have opted %s bamboozlement.", BAMOptOut[client] ? "out of" : "into");
 	return Plugin_Handled;
+}
+
+public Action CommandChowMane(int client, int args)
+{
+	if (!IsValidClient) return Plugin_Handled;
+	
+	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} APPLY CHOW MANE LIBERALLY TO EAR CANALS!!ONE!11!ONE");
+	EmitGameSoundToClient(client, "ambient\train.wav");
+	return Plugin_Handled;
+}
+
+public Action CommandAdministration(int client, int args)
+{
+	if (!IsValidClient) return Plugin_Handled;
+	
+	char playerName[MAX_NAME_LENGTH];
+	GetClientName(client, playerName, sizeof(playerName));
+	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Happy birthday, {LIGHTGREEN}%s{DEFAULT}!", playerName);
+	EmitSoundToClient(client, "misc/happy_birthday_tf_08.wav");
+	return Plugin_Handled;
+}
+
+
+public void PrecacheBirthdaySounds()
+{
+	PrecacheSound("misc/happy_birthday_tf_08.wav", false);
 }
 
 public bool IsValidClient(int client)

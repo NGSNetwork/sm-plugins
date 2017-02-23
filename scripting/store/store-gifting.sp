@@ -93,7 +93,7 @@ public void Store_OnDatabaseInitialized()
 
 void LoadConfig() 
 {
-	Handle kv = CreateKeyValues("root");
+	KeyValues kv = CreateKeyValues("root");
 	
 	char path[PLATFORM_MAX_PATH];
 	BuildPath(Path_SM, path, sizeof(path), "configs/store/gifting.cfg");

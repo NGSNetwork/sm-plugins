@@ -1,7 +1,7 @@
 #include <sourcemod>
 #include <tf2_stocks>
 #include <sdktools>
-#include <timers>
+
 public Plugin myinfo = 
 {
 	name = "Event Manager",
@@ -18,38 +18,53 @@ public void OnPluginStart()
 	RegAdminCmd("sm_setlocation", Command_SetLocation, ADMFLAG_GENERIC, "Set's the location where players will teleport to");
 	RegConsoleCmd("sm_joinevent", Command_JoinEvent, "When an event is started, use this to join it!");
 }
+int eventType = 0;
 int eLocationSet = 0;
-int eventStart = 0;
-new Float:eLocation[3];
-
+bool eventStart = false;
+float eLocation[3];
 
 public Action Command_StartEvent(int client, int args) {
-	if (eventStart == 0 && eLocationSet == 1) {
-		if (eLocationSet == 1){
-			eventStart = 1;
-			PrintToChatAll("\x04[Event]The spycrab event has been started, do !JoinEvent to join!");
-			return Plugin_Handled;
-		}
-		else {
-			PrintToChat(client,"\x04[Event]There is no location set.");
-			return Plugin_Handled;
+	if (eventStart == false && eLocationSet == 1) {
+			char arg1[15];
+			GetCmdArg(1, arg1, sizeof(arg1));
+			eventType = StringToInt(arg1);
+			if(eventType == 1) {
+				eventStart = true;
+				PrintToChatAll("\x04[Event]The spycrab event has been started, do !joinevent to join!");
+				return Plugin_Handled;
+			}
+			
+			else if(eventType == 2) {
+				eventStart = true;
+				PrintToChatAll("\x04[Event]The Sharks and Minnows event has been started, do !joinevent to join!");
+				return Plugin_Handled;
+			}
+			
+			
 	}
-	} else {
+	else if (eLocationSet == 0) {
+		PrintToChat(client,"\x04[Event]There is no location set.");
+		return Plugin_Handled;
+	}	
+	 else {
 		PrintToChat(client, "\x04[Event]There's already an event running!")
 		return Plugin_Handled;
 	}
+
+	return Plugin_Handled;
 }
 
 public Action Command_StopEvent(int client, int args) {
-	if ( eventStart == 1) {
+	if (eventStart) {
 		PrintToChatAll("\x04[Event]The event joining time is over.");
-		eventStart = 0;
+		eventStart = false;
+		eventType = 0;
+		eLocationSet = 0;
 		return Plugin_Handled;
 	} else {
 		PrintToChat(client, "\x04[Event]There is no event to stop.");
 		return Plugin_Handled;
 	}
-
 }
 
 public Action Command_SetLocation(int client, int args) {
@@ -60,24 +75,31 @@ public Action Command_SetLocation(int client, int args) {
 }
 
 public Action Command_JoinEvent(int client, int args) {
-	if (eventStart == 1) {
-		if(TF2_GetClientTeam(client) == TFTeam_Blue) {
-		TF2_SetPlayerClass(client, TFClass_Spy);
-		TF2_RespawnPlayer(client);
-		
-		TeleportEntity(client, eLocation, NULL_VECTOR, NULL_VECTOR);
-		return Plugin_Handled;
-		
-	}
+	if (eventStart == true) {
+		if (TF2_GetClientTeam(client) == TFTeam_Blue) {
+			switch(eventType) {
+				case 1: {
+					TF2_SetPlayerClass(client, TFClass_Spy);
+					TF2_RespawnPlayer(client);
+					TeleportEntity(client, eLocation, NULL_VECTOR, NULL_VECTOR);
+				}
+				
+				case 2: {
+					TF2_SetPlayerClass(client, TFClass_Scout);
+					TF2_RespawnPlayer(client);
+					TeleportEntity(client, eLocation, NULL_VECTOR, NULL_VECTOR);
+				}
+			}
+		}
 		else {
 		PrintToChat(client,"\x04[Event]Please join blue team to join the event.");
 		return Plugin_Handled;
-	}
+		}
 	}
 	else {
 		PrintToChat(client, "\x04[Event]There is no event available to join.");
 		return Plugin_Handled;
 	}
-	
+	return Plugin_Handled;
 }
 

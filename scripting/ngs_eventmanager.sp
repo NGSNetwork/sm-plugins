@@ -79,14 +79,23 @@ public Action Command_JoinEvent(int client, int args) {
 		if (TF2_GetClientTeam(client) == TFTeam_Blue) {
 			switch(eventType) {
 				case 1: {
+					TF2_RespawnPlayer(client);
 					TF2_SetPlayerClass(client, TFClass_Spy);
 					TF2_RespawnPlayer(client);
+					TF2_RemoveWeaponSlot(client, 0);
+					TF2_RemoveWeaponSlot(client, 1);
+					TF2_RemoveWeaponSlot(client, 2);
+					EquipPlayerWeapon(client, GetPlayerWeaponSlot(client, view_as<int>(TFWeaponSlot_PDA)));
 					TeleportEntity(client, eLocation, NULL_VECTOR, NULL_VECTOR);
 				}
 				
 				case 2: {
+					TF2_RespawnPlayer(client);
 					TF2_SetPlayerClass(client, TFClass_Scout);
 					TF2_RespawnPlayer(client);
+					TF2_RemoveWeaponSlot(client, 0);
+					TF2_RemoveWeaponSlot(client, 1);
+					EquipPlayerWeapon(client, GetPlayerWeaponSlot(client, view_as<int>(TFWeaponSlot_Melee)));
 					TeleportEntity(client, eLocation, NULL_VECTOR, NULL_VECTOR);
 				}
 			}

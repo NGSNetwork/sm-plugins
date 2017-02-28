@@ -1290,10 +1290,16 @@ void LoadDuel(int Player2)
 
 void SetGodModColor(int iClient)
 {
+	if(GetCommandFlags("sm_colorize") != INVALID_FCVAR_FLAGS)
+	{
+	    ServerCommand("sm_colorize #%d normal", GetClientUserId(iClient));
+	}  
+	else SetEntityRenderColor(iClient, 255, 255, 255, 255);
+	
 	if(GetClientTeam(iClient) == 2)
-		SetEntityRenderColor(iClient, 200, 0, 0, 0);
+		SetEntityRenderColor(iClient, 200, 0, 0, 255);
 	else
-		SetEntityRenderColor(iClient, 0, 0, 200, 0);
+		SetEntityRenderColor(iClient, 0, 0, 200, 255);
 }
 
 
@@ -1848,9 +1854,16 @@ public void T_UpdateClient(Handle owner, Handle hndl, const char[] error, any iC
 
 void ResetPlayer(int iClient)
 {
+	/*
 	if(IsValidClient(iClient) && g_Duel[iClient][GodMod])
-		SetEntityRenderColor(iClient, 255, 255, 255, 0);
-	
+	{
+		if(GetCommandFlags("sm_colorize") != INVALID_FCVAR_FLAGS)
+		{
+		    ServerCommand("sm_colorize #%d normal", GetClientUserId(iClient));
+		}  
+		else SetEntityRenderColor(iClient, 255, 255, 255, 255);
+	}
+	*/
 	g_Duel[iClient][Enabled] 		= false;
 	g_Duel[iClient][HeadShot]		= false;
 	g_Duel[iClient][ClassRestrict] 	= 0;

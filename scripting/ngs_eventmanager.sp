@@ -12,9 +12,10 @@ public Plugin myinfo =
 };
 /*General description on how the plugin works:
 	First, the player with admin privileges types !setlocation, the players position is then stored for later use.
-	Then !startevent (1for spycrab, 2 for sharks and minnows) advertises in the chat to type !joinevent
+	Then !startevent (1 for spycrab, 2 for sharks and minnows) advertises in the chat to type !joinevent
 	The players that type !joinevent will be set to the proper class, and teleported to the event location. If
 	they are on red team, they will be told to join blu(May change in later version of the plugin)
+	!stopevent can be used to prevent players from joining the event.
 */
 
 public void OnPluginStart()
@@ -58,8 +59,6 @@ public Action Command_StartEvent(int client, int args) {
 					return Plugin_Handled;	
 				}
 			}
-			
-			
 	}
 	else if (eLocationSet == false) {
 		PrintToChat(client,"\x04[Event] There is no location set.");
@@ -74,14 +73,12 @@ public Action Command_StartEvent(int client, int args) {
 }
 /*Stopevent:
 	Prevents players from using !joinevent, but does not do anything to the players already joined.
-	Also clears the previous set location, forcing the user to run !setlocation again.
 */
 public Action Command_StopEvent(int client, int args) {
 	if (eventStart) {
 		PrintToChatAll("\x04[Event] The event joining time is over.");
 		eventStart = false;
 		eventType = 0;
-		eLocationSet = false;
 		return Plugin_Handled;
 	} else {
 		PrintToChat(client, "\x04[Event] There is no event to stop.");
@@ -113,8 +110,7 @@ public Action Command_JoinEvent(int client, int args) {
 					TF2_RespawnPlayer(client);
 					TF2_RemoveWeaponSlot(client, 0);
 					TF2_RemoveWeaponSlot(client, 1);
-					TF2_RemoveWeaponSlot(client, 2);
-					EquipPlayerWeapon(client, GetPlayerWeaponSlot(client, view_as<int>(TFWeaponSlot_Secondary)));
+					EquipPlayerWeapon(client, GetPlayerWeaponSlot(client, view_as<int>(TFWeaponSlot_PDA)));
 					TeleportEntity(client, eLocation, NULL_VECTOR, NULL_VECTOR);
 					return Plugin_Handled;
 				}

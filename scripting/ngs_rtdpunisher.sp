@@ -11,7 +11,7 @@
 #include <basecomm>
 
 
-#define PLUGIN_VERSION "1.4"
+#define PLUGIN_VERSION "1.5"
 
 //-------------------------------------------------------------------------------------------------
 
@@ -25,15 +25,15 @@ public Plugin myinfo = {
 	author = "TheXeon",
 	description = "Negatively affects those who try rtd",
 	version = PLUGIN_VERSION,
-	url = "matespastdates.servegame.com"
+	url = "https://neogenesisnetwork.net"
 }
 
 public void OnPluginStart()
 {
 	RegConsoleCmd("sm_rtd", CommandRTDEffect, "Anti-RTD in chat.");
 	RegConsoleCmd("sm_rollthedice", CommandRTDEffect, "Anti-RTD in chat.");
-	AddCommandListener(Listener_Say, "say");
-	AddCommandListener(Listener_Say, "say_team");
+	RegConsoleCmd("say", Listener_Say);
+	RegConsoleCmd("say_team", Listener_Say);
 }
 
 public void OnClientPutInServer(int client)
@@ -103,58 +103,38 @@ public void DoRTD(int client)
 	}
 	return;
 }
-/*
-public Action Command_Say(int client, int args)
+
+public Action Listener_Say(int client, int args)
 {
 	char text[512];
 	GetCmdArgString(text, sizeof(text));
-	
-	if (!(FindCharInString(text, '/') == 1 || FindCharInString(text, '!') == 1) && (StrEqual(text, "rtd", false) || StrEqual(text, "rollthedice", false)))
+	StripQuotes(text);
+	// LogMessage("Text is %s!", text);
+	if (!(FindCharInString(text, '/') == 1 || FindCharInString(text, '!') == 1) && 
+		(StrEqual(text, "rtd", false) || StrEqual(text, "rollthedice", false)))
 	{
 		if (basecommExists && BaseComm_IsClientGagged(client))
 		{
 			CPrintToChat(client, "{YELLOW}[RTD]{DEFAULT} Sorry, you may not use RTD!");
-			return Plugin_Handled;
+			return Plugin_Continue;
 		}
 		else
 		{
 			DoRTD(client);
-			return Plugin_Handled;
+			return Plugin_Continue;
 		}
 	}
 	
 	return Plugin_Continue;
 }
-*/
-public Action Listener_Say(int client, const char[] sCommand, int args)
-{
-	if(!IsValidClient(client))
-	{
-		return Plugin_Continue;
-	}
-	if (basecommExists && BaseComm_IsClientGagged(client))
-	{
-		CPrintToChat(client, "{YELLOW}[RTD]{DEFAULT} Sorry, you may not use RTD!");
-		return Plugin_Continue;
-	}
 
-	char sText[16];
-	GetCmdArg(1, sText, sizeof(sText));
-
-	if(!StrEqual(sText, "rtd", false) || !StrEqual(sText, "rollthedice", false))
-		return Plugin_Continue;
-
-	DoRTD(client);
-	return Plugin_Continue;
-}
-
-public void SayToAllElse(int iClient, char[] cPlayerName)
+public void SayToAllElse(int client, char[] cPlayerName)
 {
 	int randomSayID = GetRandomInt(1, 6);
 	
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		if (IsClientConnected(i) && i != iClient && IsClientInGame(i))
+		if (IsValidClient(i) && i != client)
 		{
 			switch (randomSayID)
 			{
@@ -192,21 +172,12 @@ public void SayToAllElse(int iClient, char[] cPlayerName)
 	}
 }
 
-public bool IsValidClient (int client)
+public bool IsValidClient(int client)
 {
-	if(client > 4096)
-	{
-		client = EntRefToEntIndex(client);
-	}
-
+	if(client > 4096) client = EntRefToEntIndex(client);
 	if(client < 1 || client > MaxClients) return false;
-
 	if(!IsClientInGame(client)) return false;
-
 	if(IsFakeClient(client)) return false;
-
 	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
-
 	return true;
-
 }

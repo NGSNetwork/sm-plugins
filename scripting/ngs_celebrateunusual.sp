@@ -31,16 +31,14 @@ public void OnMapStart()
 	PrecacheSound("ngs/unusualcelebration/sf13_bcon_misc17.wav");
 }
 
-public Action OnItemFound(Handle event, const char[] name, bool dontBroadcast)
+public void OnItemFound(Event event, const char[] name, bool dontBroadcast)
 {
-    if(GetEventInt(event, "quality") == 5 && GetEventInt(event, "method") == 4)
+    if(event.GetInt("quality") == 5 && event.GetInt("method") == 4)
     {
 		char playerName[MAX_NAME_LENGTH];
-		GetClientName(GetEventInt(event, "player"), playerName, sizeof(playerName));
+		GetClientName(event.GetInt("player"), playerName, sizeof(playerName));
 		AnnounceUnbox(playerName);
-		return;
 	}
-    return;
 }
 
 public void AnnounceUnbox(char[] player)
@@ -56,6 +54,8 @@ public void AnnounceUnbox(char[] player)
 		}
 	}
 	CloseHandle(hHudText);
+	EmitSoundToAll("ngs/unusualcelebration/sf13_bcon_misc17.wav");
+	EmitSoundToAll("ngs/unusualcelebration/sf13_bcon_misc17.wav");
 	EmitSoundToAll("ngs/unusualcelebration/sf13_bcon_misc17.wav");
 	return;
 }

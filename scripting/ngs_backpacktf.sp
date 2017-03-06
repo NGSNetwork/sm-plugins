@@ -42,18 +42,18 @@ Handle backpackTFPricelist;
 Handle qualityNameTrie;
 Handle unusualNameTrie;
 
-Handle cvarBPCommand;
-Handle cvarDisplayUpdateNotification;
-Handle cvarDisplayChangedPrices;
-Handle cvarHudXPos;
-Handle cvarHudYPos;
-Handle cvarHudRed;
-Handle cvarHudGreen;
-Handle cvarHudBlue;
-Handle cvarHudHoldTime;
-Handle cvarMenuHoldTime;
-Handle cvarAPIKey;
-Handle cvarTag;
+ConVar cvarBPCommand;
+ConVar cvarDisplayUpdateNotification;
+ConVar cvarDisplayChangedPrices;
+ConVar cvarHudXPos;
+ConVar cvarHudYPos;
+ConVar cvarHudRed;
+ConVar cvarHudGreen;
+ConVar cvarHudBlue;
+ConVar cvarHudHoldTime;
+ConVar cvarMenuHoldTime;
+ConVar cvarAPIKey;
+ConVar cvarTag;
 
 Handle hudText;
 Handle sv_tags;
@@ -223,12 +223,10 @@ public void OnPluginStart() {
 	SetTrieString(unusualNameTrie, "3011", "Haunted Phantasm");
 	SetTrieString(unusualNameTrie, "3012", "Ghastly Ghosts");
 	// Halloween 2016 taunt effects
-	/*
-	SetTrieString(unusualNameTrie, "3013", "Ghastly Ghosts");
-	SetTrieString(unusualNameTrie, "3014", "Ghastly Ghosts");
-	SetTrieString(unusualNameTrie, "3015", "Ghastly Ghosts");
-	SetTrieString(unusualNameTrie, "3016", "Ghastly Ghosts");
-	*/
+	SetTrieString(unusualNameTrie, "3013", "Hellish Inferno");
+	SetTrieString(unusualNameTrie, "3014", "Spectral Swirl");
+	SetTrieString(unusualNameTrie, "3015", "Infernal Flames");
+	SetTrieString(unusualNameTrie, "3016", "Infernal Smoke");
 	
 	hudText = CreateHudSynchronizer();
 }

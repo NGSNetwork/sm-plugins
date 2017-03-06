@@ -15,16 +15,20 @@ public Plugin myinfo = {
 	author = "TheXeon",
 	description = "A bombastic celebration of achieving an unusual!",
 	version = PLUGIN_VERSION,
-	url = "neogenesisnetwork.servegame.com"
+	url = "https://neogenesisnetwork.net"
 }
 
 public void OnPluginStart()
 {
 	HookEvent("item_found", OnItemFound);
 	LoadTranslations("common.phrases");
-	PrecacheSound("ambient/thunder2.wav");
-	PrecacheSound("ambient/thunder3.wav");
-	PrecacheSound("ambient/thunder4.wav");
+	PrecacheSound("ngs/unusualcelebration/sf13_bcon_misc17.wav");
+	AddFileToDownloadsTable("sound/ngs/unusualcelebration/sf13_bcon_misc17.wav");
+}
+
+public void OnMapStart()
+{
+	PrecacheSound("ngs/unusualcelebration/sf13_bcon_misc17.wav");
 }
 
 public Action OnItemFound(Handle event, const char[] name, bool dontBroadcast)
@@ -52,9 +56,7 @@ public void AnnounceUnbox(char[] player)
 		}
 	}
 	CloseHandle(hHudText);
-	EmitSoundToAll("ambient/thunder2.wav");
-	EmitSoundToAll("ambient/thunder3.wav");	
-	EmitSoundToAll("ambient/thunder4.wav");
+	EmitSoundToAll("ngs/unusualcelebration/sf13_bcon_misc17.wav");
 	return;
 }
 

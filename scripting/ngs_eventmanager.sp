@@ -128,6 +128,7 @@ public Action Command_JoinEvent(int client, int args)
 			{
 				case 1:
 				{
+					CheckClient(client);
 					TF2_RespawnPlayer(client);
 					TF2_SetPlayerClass(client, TFClass_Spy);
 					TF2_RespawnPlayer(client);
@@ -140,6 +141,7 @@ public Action Command_JoinEvent(int client, int args)
 				
 				case 2:
 				{
+					CheckClient(client);
 					TF2_RespawnPlayer(client);
 					TF2_SetPlayerClass(client, TFClass_Scout);
 					TF2_RespawnPlayer(client);
@@ -170,3 +172,25 @@ public Action Command_JoinEvent(int client, int args)
 	return Plugin_Handled;
 }
 
+public void CheckClient(int client)
+{
+	if (IsValidClient(client) == false) return;
+}
+
+public bool IsValidClient (int client)
+{
+	if(client > 4096)
+	{
+		client = EntRefToEntIndex(client);
+	}
+
+	if(client < 1 || client > MaxClients) return false;
+
+	if(!IsClientInGame(client)) return false;
+
+	if(IsFakeClient(client)) return false;
+
+	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
+
+	return true;
+}

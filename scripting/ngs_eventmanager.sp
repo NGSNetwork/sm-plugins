@@ -174,7 +174,7 @@ public Action Command_JoinEvent(int client, int args)
 
 public void CheckClient(int client)
 {
-	if (IsValidClient(client) == false) return;
+	if (!IsValidClient(client)) return;
 }
 
 public bool IsValidClient (int client)

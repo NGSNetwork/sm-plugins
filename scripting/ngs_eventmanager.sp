@@ -4,12 +4,15 @@
 #include <sourcemod>
 #include <tf2_stocks>
 #include <sdktools>
+#include <morecolors>
+
+#define PLUGIN_VERSION "1.0.0"
 
 public Plugin myinfo = {
 	name = "Event Manager",
 	author = "EasyE",
 	description = "Event manager made for ngs",
-	version = "1",
+	version = PLUGIN_VERSION,
 	url = "https://neogenesisnetwork.net/"
 }
 /*General description on how the plugin works:
@@ -20,6 +23,12 @@ public Plugin myinfo = {
 	!stopevent can be used to prevent players from joining the event.
 */
 
+//Declaring variables for later use
+bool eLocationSet = false;
+bool eventStart = false;
+int eventType = 0;
+float eLocation[3];
+
 public void OnPluginStart()
 {
 	RegAdminCmd("sm_startevent", Command_StartEvent, ADMFLAG_GENERIC,"Starts the event. 1 for spycrab, 2 for sharks and minnows.");
@@ -27,11 +36,6 @@ public void OnPluginStart()
 	RegAdminCmd("sm_setlocation", Command_SetLocation, ADMFLAG_GENERIC, "Set's the location where players will teleport to");
 	RegConsoleCmd("sm_joinevent", Command_JoinEvent, "When an event is started, use this to join it!");
 }
-//Declaring variables for later use
-bool eLocationSet = false;
-bool eventStart = false;
-int eventType = 0;
-float eLocation[3];
 /*Startevent:
 	First, a check to see if an event is already running is done, if so it warns the player and stops the command.
 	Then another check to see if a location has been set, if it hasn't, it warns the player and stops the command.
@@ -41,14 +45,14 @@ float eLocation[3];
 */
 public Action Command_StartEvent(int client, int args)
 {
-	if (eventStart == false && eLocationSet)
+	if (!eventStart && eLocationSet)
 	{
 		char arg1[15];
 		GetCmdArg(1, arg1, sizeof(arg1));
 		eventType = StringToInt(arg1);
 		if(args < 1)
 		{
-			PrintToChat(client, "\x04[Event] After !startevent, please enter 1 for spycrab, or 2 for sharks and minnows");
+			CPrintToChat(client, "{GREEN}[Event]{DEFAULT} After !startevent, please enter 1 for spycrab, or 2 for sharks and minnows");
 			return Plugin_Handled;
 		}
 		switch(eventType)
@@ -56,25 +60,25 @@ public Action Command_StartEvent(int client, int args)
 			case 1:
 			{
 				eventStart = true;
-				PrintToChatAll("\x04[Event] The spycrab event has been started, do !joinevent to join!");
+				CPrintToChatAll("{GREEN}[Event]{DEFAULT} The spycrab event has been started, do !joinevent to join!");
 				return Plugin_Handled;					
 			}
 			
 			case 2:
 			{
 				eventStart = true;
-				PrintToChatAll("\x04[Event] The Sharks and Minnows event has been started, do !joinevent to join!");
+				CPrintToChatAll("{GREEN}[Event]{DEFAULT} The Sharks and Minnows event has been started, do !joinevent to join!");
 				return Plugin_Handled;	
 			}
 		}
 	}
-	else if (eLocationSet == false)
+	else if (!eLocationSet)
 	{
-		PrintToChat(client,"\x04[Event] There is no location set.");
+		CPrintToChat(client, "{GREEN}[Event]{DEFAULT} There is no location set.");
 		return Plugin_Handled;
 	}	
-	 else
-	 {
+	else
+	{
 		PrintToChat(client, "\x04[Event] There's already an event running!");
 		return Plugin_Handled;
 	}
@@ -88,16 +92,15 @@ public Action Command_StopEvent(int client, int args)
 {
 	if (eventStart)
 	{
-		PrintToChatAll("\x04[Event] The event joining time is over.");
+		CPrintToChatAll("{GREEN}[Event]{DEFAULT} The event joining time is over.");
 		eventStart = false;
 		eventType = 0;
-		return Plugin_Handled;
 	}
 	else
 	{
-		PrintToChat(client, "\x04[Event] There is no event to stop.");
-		return Plugin_Handled;
+		CPrintToChat(client, "{GREEN}[Event]{DEFAULT} There is no event to stop.");
 	}
+	return Plugin_Handled;
 }
 /*Setlocation:
 	Stores the players current location in eLocation, where the players will be teleported to.
@@ -107,7 +110,7 @@ public Action Command_SetLocation(int client, int args)
 {
 	GetClientAbsOrigin(client, eLocation);
 	eLocationSet = true;
-	PrintToChat(client, "\x04[Event] Location has been set.");
+	CPrintToChat(client, "{GREEN}[Event]{DEFAULT} Location has been set.");
 	return Plugin_Handled;
 }
 /*Joinevent:
@@ -117,7 +120,7 @@ public Action Command_SetLocation(int client, int args)
 */
 public Action Command_JoinEvent(int client, int args)
 {
-	if (eventStart == true)
+	if (eventStart)
 	{
 		if (TF2_GetClientTeam(client) == TFTeam_Blue)
 		{
@@ -146,17 +149,22 @@ public Action Command_JoinEvent(int client, int args)
 					TeleportEntity(client, eLocation, NULL_VECTOR, NULL_VECTOR);
 					return Plugin_Handled;
 				}
+				
+				default:
+				{
+					return Plugin_Handled;
+				}
 			}
 		}
 		else
 		{
-			PrintToChat(client,"\x04[Event] Please join blue team to join the event.");
+			CPrintToChat(client, "{GREEN}[Event]{DEFAULT} Please join blue team to join the event.");
 			return Plugin_Handled;
 		}
 	}
 	else
 	{
-		PrintToChat(client, "\x04[Event] There is no event available to join.");
+		CPrintToChat(client, "{GREEN}[Event]{DEFAULT} There is no event available to join.");
 		return Plugin_Handled;
 	}
 	return Plugin_Handled;

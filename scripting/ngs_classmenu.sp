@@ -94,19 +94,31 @@ public void SetClass(int client, TFClassType class)
 {
 	if (!IsValidClient(client)) return;
 	
-	/*
 	if (TF2_GetPlayerClass(client) == TFClass_Engineer)
 	{
 		int iEnt = -1;
-		while ((iEnt = FindEntityByClassname(iEnt, "obj_sentrygun")) != INVALID_ENT_REFERENCE || (iEnt = FindEntityByClassname(iEnt, "obj_dispenser")) != INVALID_ENT_REFERENCE || (iEnt = FindEntityByClassname(iEnt, "obj_teleporter")) != INVALID_ENT_REFERENCE)
+		while ((iEnt = FindEntityByClassname(iEnt, "obj_sentrygun")) != INVALID_ENT_REFERENCE)
 		{
 			if (GetEntPropEnt(iEnt, Prop_Send, "m_hBuilder") == client)
 			{
 				AcceptEntityInput(iEnt, "Kill");
 			}
 		}
+		while ((iEnt = FindEntityByClassname(iEnt, "obj_dispenser")) != INVALID_ENT_REFERENCE)
+		{
+			if (GetEntPropEnt(iEnt, Prop_Send, "m_hBuilder") == client)
+			{
+				AcceptEntityInput(iEnt, "Kill");
+			}
+		}
+		while ((iEnt = FindEntityByClassname(iEnt, "obj_teleporter")) != INVALID_ENT_REFERENCE)
+		{
+			if (GetEntPropEnt(iEnt, Prop_Send, "m_hBuilder") == client && (TF2_GetObjectMode(iEnt) == TFObjectMode_Entrance || TF2_GetObjectMode(iEnt) == TFObjectMode_Exit))
+			{
+				AcceptEntityInput(iEnt, "Kill");
+			}
+		}
 	}
-	*/
 	float setHealth = GetDefaultMaxHealth(class) * (GetClientHealth(client) / GetDefaultMaxHealth(TF2_GetPlayerClass(client)));
 	TF2_SetPlayerClass(client, class);
 	if(IsPlayerAlive(client))

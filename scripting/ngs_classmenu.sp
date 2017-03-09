@@ -6,13 +6,13 @@
 #include <tf2_stocks>
 #include <morecolors>
 
-#define PLUGIN_VERSION "1.2.2"
+#define PLUGIN_VERSION "1.5"
 
 
 public Plugin myinfo = {
-	name = "TF2 Set Class",
-	author = "Tylerst",
-	description = "Set the target(s) class",
+	name = "[NGS] TF2 Class Menu",
+	author = "Tylerst / TheXeon",
+	description = "Set your class from a menu.",
 	version = PLUGIN_VERSION,
 }
 

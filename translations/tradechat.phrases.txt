@@ -2,7 +2,7 @@
 {
 	"Advert1"
 	{
-		"en"		"{green}[%s] {default}Remember, say {lightgreen}/T {default}before messages about trading."
+		"en"		"{green}[%s] {default}Remember, use {lightgreen}/T {default}before any messages about trading."
 		"hu"		"{green}[%s] {default}Üzleteléshez használd a {lightgreen}/T {default}parancsot!."
 		"pl"		"{green}[%s] {default}Pamiętaj, by wszelkie wiadomości na temat wymiany przedmiotów poprzedzać {lightgreen}/T{default}."
 		"ru"		"{green}[%s] {default}Пишите {lightgreen}/T {default} перед сообщением об обмене вещами."
@@ -13,7 +13,7 @@
 	}
 	"Advert2"
 	{
-		"en"		"{green}[%s] {default}If you don't want to see trade chat, say {lightgreen}/TOGGLECHAT{default}."
+		"en"		"{green}[%s] {default}If you don't want to see trade chat, type {lightgreen}/TOGGLECHAT{default}."
 		"hu"		"{green}[%s] {default}Ha nem szeretnéd látni a trade chatet, használd a {lightgreen}/TOGGLECHAT {default} parancsot."
 		"pl"		"{green}[%s] {default}Jeśli nie chcesz widzieć wiadomości na temat wymiany, wpisz {lightgreen}/TOGGLECHAT{default}."
 		"ru"		"{green}[%s] {default}Если вы не хотите видеть торговый чат, напишите {lightgreen}/TOGGLECHAT{default}."
@@ -24,20 +24,20 @@
 	}
 	"Advert3"
 	{
-		"en"		"{green}[%s] {default}To send again your last offer, say {lightgreen}/LT{default}."
+		"en"		"{green}[%s] {default}To send your last offer again, type {lightgreen}/LT{default}."
 		"hu"		"{green}[%s] {default}Az utolsó ajánlatok megtekintéséhez írd be: {lightgreen}/LT{default}."
 		"pl"		"{green}[%s] {default}By wysłać ponownie poprzednią ofertę, wpisz {lightgreen}/LT{default}."
 		"ko"		"{green}[%s] {default}마지막으로 보낸 거래 메세지를 다시 보내려면, 채팅에 {lightgreen}/LT{default}을(를) 입력하세요."
 	}
 	"Advert4"
 	{
-		"en"		"{green}[%s] {default}To check what was your last offer, say {lightgreen}/MLT{default}."
+		"en"		"{green}[%s] {default}To check what your last offer was, type {lightgreen}/MLT{default}."
 		"pl"		"{green}[%s] {default}By sprawdzić jaka była Twoja poprzednia oferta, wpisz {lightgreen}/MLT{default}."
 		"ko"		"{green}[%s] {default}자신이 마지막으로 보낸 거래 메세지를 확인하려면, 채팅에 {lightgreen}/MLT{default}을(를) 입력하세요."
 	}
 	"HideChatOn"
 	{
-		"en"		"{green}[%s] {lightgreen}You {green}will not {lightgreen}see the trade chat."
+		"en"		"{green}[%s] {lightgreen}You {green}will not {lightgreen}see trade chat."
 		"hu"		"{green}[%s] {lightgreen}Már {green}nem látod {lightgreen}a trade chatet."
 		"pl"		"{green}[%s] {lightgreen}Od teraz {green}nie będziesz {lightgreen}widział wiadomości dotyczących wymiany przedmiotów."
 		"ru"		"{green}[%s] {lightgreen}Торговый чат теперь {green}спрятан{lightgreen}."
@@ -48,7 +48,7 @@
 	}
 	"HideChatOff"
 	{
-		"en"		"{green}[%s] {lightgreen}You {green}will {lightgreen}see the trade chat."
+		"en"		"{green}[%s] {lightgreen}You {green}will {lightgreen}see trade chat."
 		"hu"		"{green}[%s] {lightgreen}Már {green}látod {lightgreen}a trade chatet."
 		"pl"		"{green}[%s] {lightgreen}Od teraz {green}będziesz {lightgreen}widział wiadomości dotyczące wymiany przedmiotów."
 		"ru"		"{green}[%s] {lightgreen}Торговый чат теперь {green}включен{lightgreen}."
@@ -65,7 +65,7 @@
 	}
 	"TradeDisabledForYou"
 	{
-		"en"		"{green}[%s] {lightgreen}You can't use {green}/T {lightgreen}when you have disabled trade chat."
+		"en"		"{green}[%s] {lightgreen}You can't use {green}/T {lightgreen}when you have disabled trade chat. Type {GREEN}/togglechat{lightgreen} to enable it."
 		"hu"		"{green}[%s] {lightgreen}Nem használhatod a {green}/T {lightgreen}parancsot, miközben ki van kapcsolva a trade chat."
 		"pl"		"{green}[%s] {lightgreen}Nie możesz używać {green}/T {lightgreen}gdy wyłączyłeś widok wiadomości na temat wymiany przedmiotów."
 		"ru"		"{green}[%s] {lightgreen}Вы не можете использовать {green}/T{lightgreen}, потому что вы отключили торговый чат."
@@ -131,7 +131,7 @@
 	}
 	"AntiSpamBlocked"
 	{
-		"en"		"{green}[%s] {lightgreen}You must wait before sending next offer."
+		"en"		"{green}[%s] {lightgreen}You must wait before sending your next offer."
 		"hu"		"{green}[%s] {lightgreen}Várnod kell a következő ajánlattételig."
 		"pl"		"{green}[%s] {lightgreen}Musisz poczekać przed wysłaniem kolejnej oferty."
 		"ru"		"{green}[%s] {lightgreen}Не отправляйте сообщения так часто."
@@ -142,7 +142,7 @@
 	}
 	"AntiSpamBlockedInterval"
 	{
-		"en"		"{green}[%s] {lightgreen}You must wait %d seconds before sending next offer."
+		"en"		"{green}[%s] {lightgreen}You must wait %d seconds before sending your next offer."
 		"pl"		"{green}[%s] {lightgreen}Musisz poczekać %d sekund przed wysłaniem kolejnej oferty."
 		"ko"		"{green}[%s] {lightgreen}%d초 이내에 거래 채팅을 다시 보낼 수 없습니다."
 	}

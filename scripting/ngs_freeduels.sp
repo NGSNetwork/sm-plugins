@@ -52,16 +52,17 @@ bool Equality[MAXPLAYERS+1]		= {false, ...};
 bool Winner[MAXPLAYERS+1]		= {false, ...};
 bool SQLite 					= false;
 
-Handle c_EnableType[4]			= {null, ...};
-Handle cvarEnabled				= null;
-Handle c_Tag					= null;
-Handle c_EnableClass			= null;
-Handle c_EnableGodMod			= null;
-Handle c_EnableHeadShot			= null;
-Handle c_HeadShotFlag			= null;
-Handle c_Immunity				= null;
-Handle c_ClassRestriction		= null;
-Handle c_GodModFlag				= null;
+ConVar c_EnableType[4];
+ConVar cvarEnabled;
+ConVar c_Tag;
+ConVar c_EnableClass;
+ConVar c_EnableGodMod;
+ConVar c_EnableHeadShot;
+ConVar c_HeadShotFlag;
+ConVar c_Immunity;
+ConVar c_ClassRestriction;
+ConVar c_GodModFlag;
+
 Handle db 						= null;
 
 char ClientSteamID[MAXPLAYERS+1][24];
@@ -168,16 +169,16 @@ public void OnConfigsExecuted()
 
 void TagsCheck(const char[] tag)
 {
-	Handle hTags = FindConVar("sv_tags");
+	ConVar hTags = FindConVar("sv_tags");
 	char tags[255];
-	GetConVarString(hTags, tags, sizeof(tags));
+	hTags.GetString(tags, sizeof(tags));
 
-	if (!(StrContains(tags, tag, false)>-1))
+	if (!(StrContains(tags, tag, false) > -1))
 	{
 		char newTags[255];
 		Format(newTags, sizeof(newTags), "%s,%s", tags, tag);
-		SetConVarString(hTags, newTags);
-		GetConVarString(hTags, tags, sizeof(tags));
+		hTags.SetString(newTags);
+		hTags.GetString(tags, sizeof(tags));
 	}
 	CloseHandle(hTags);
 }
@@ -516,9 +517,9 @@ public Action EventPlayerTeam(Handle hEvent, const char[] strName, bool bHidden)
 	}
 }
 
-public Action EventPlayerchangeclass(Handle hEvent, const char[] strName, bool bHidden)
+public void EventPlayerchangeclass(Event event, const char[] name, bool bHidden)
 {
-	int iClient = GetClientOfUserId(GetEventInt(hEvent, "userid"));
+	int iClient = GetClientOfUserId(event.GetInt("userid"));
 	if(g_Duel[iClient][Enabled] && g_Duel[iClient][ClassRestrict] != 0 && TF2_GetPlayerClass(iClient) != view_as<TFClassType>(g_Duel[iClient][ClassRestrict]))
 	{
 		TF2_SetPlayerClass(iClient, view_as<TFClassType>(g_Duel[iClient][ClassRestrict]), false);
@@ -528,7 +529,7 @@ public Action EventPlayerchangeclass(Handle hEvent, const char[] strName, bool b
 	}
 }
 
-public Action EventRoundEnd(Handle hEvent, const char[] strName, bool bHidden)
+public Action EventRoundEnd(Event event, const char[] name, bool bHidden)
 {
 	for(int i = 1; i < MaxClients ; i++)
 	{
@@ -541,16 +542,18 @@ public Action EventRoundEnd(Handle hEvent, const char[] strName, bool bHidden)
 	}
 }
 
-public Action Eventplayerhurt(Handle hEvent, const char[] strName, bool bHidden)
+public Action Eventplayerhurt(Event event, const char[] name, bool bHidden)
 {	
-	if(GetConVarBool(c_EnableGodMod))
+	if(c_EnableGodMod.BoolValue)
 	{
-		int iClient 		= GetClientOfUserId(GetEventInt(hEvent, "userid"));
-		int DamageAmount 	= GetEventInt(hEvent, "damageamount");
-		int Attacker 		= GetClientOfUserId(GetEventInt(hEvent, "attacker"));
+		int client = GetClientOfUserId(event.GetInt("userid"));
+		int damageAmount = event.GetInt("damageamount");
+		int attacker = GetClientOfUserId(event.GetInt("attacker"));
 	
-		if( ((g_Duel[iClient][Challenger] != Attacker) || (g_Duel[Attacker][Challenger] != iClient))  && ((g_Duel[iClient][Enabled] && g_Duel[iClient][GodMod] == 1 ) || (g_Duel[Attacker][Enabled] && g_Duel[Attacker][GodMod] == 1)))
-			SetEntityHealth(iClient, GetClientHealth(iClient) + DamageAmount);
+		if(((g_Duel[client][Challenger] != attacker) || (g_Duel[attacker][Challenger] != client)) && (client != attacker) && ((g_Duel[client][Enabled] && g_Duel[client][GodMod] == 1 ) || (g_Duel[attacker][Enabled] && g_Duel[attacker][GodMod] == 1)) && IsValidClient(attacker))
+		{
+			SetEntityHealth(client, GetClientHealth(client) + damageAmount);
+		}
 	}
 }
 
@@ -1474,12 +1477,14 @@ public Action AbortDuel(int iClient, int Args)
 //------------------------------------------------------------------------------------------------------------------------
 
 
-stock bool IsValidClient(int iClient)
+public bool IsValidClient(int client)
 {
-	if( iClient <= 0 ) return false;
-	if( iClient > MaxClients ) return false;
-	if( !IsClientConnected(iClient) ) return false;
-	return IsClientInGame(iClient);
+	if(client > 4096) client = EntRefToEntIndex(client);
+	if(client < 1 || client > MaxClients) return false;
+	if(!IsClientInGame(client)) return false;
+	if(IsFakeClient(client)) return false;
+	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
+	return true;
 }
 
 public bool isGoodSituation(int iClient, int Player2)

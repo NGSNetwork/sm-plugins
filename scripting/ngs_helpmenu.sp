@@ -12,6 +12,8 @@
 #define PLUGIN_VERSION "1.0.0"
 #define STEAMCOMMUNITY_PROFILESURL "https://steamcommunity.com/profiles/"
 
+bool showRulesMenu[MAXPLAYERS + 1];
+
 Menu helpMenu;
 Menu serverRulesMenu;
 Menu serverCommandsMainMenu;
@@ -30,6 +32,8 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_helpmenu", CommandHelpMenu, "Usage: sm_helpmenu");
 	LoadTranslations("common.phrases");
 	
+	HookEvent("post_inventory_application", OnPlayerFirstSpawn, EventHookMode_Post);
+	
 	helpMenu = new Menu(HelpMenuHandler);
 	helpMenu.SetTitle("=== NGS Help Menu ===");
 	helpMenu.AddItem("serverrules", "Server rules!");
@@ -38,8 +42,16 @@ public void OnPluginStart()
 	
 	serverRulesMenu = new Menu(ServerRulesMenuHandler);
 	serverRulesMenu.SetTitle("=== NGS Server Rules ===");
-	serverRulesMenu.AddItem("rule1", "Don\'t scam!");
-	serverRulesMenu.AddItem("rule2", "Don\'t hack!");
+	serverRulesMenu.AddItem("rule1", "No hacks or glitches!");
+	serverRulesMenu.AddItem("rule2", "No scamming!");
+	serverRulesMenu.AddItem("rule3", "No running from spycrabs!");
+	serverRulesMenu.AddItem("rule4", "Don\'t spam binds!");
+	serverRulesMenu.AddItem("rule5", "Avoid politics, religion, and race in conversation!");
+	serverRulesMenu.AddItem("rule6", "Don\'t impersonate staff!");
+	serverRulesMenu.AddItem("rule7", "Don\'t kill friendlies during events or otherwise!");
+	serverRulesMenu.AddItem("rule8", "Don\'t beg for items or ask for donations!");
+	serverRulesMenu.AddItem("playerrulelink", "Select me to go to regular rules.");
+	serverRulesMenu.AddItem("donorrulelink", "Select me to go to donor rules.");
 	SetMenuExitBackButton(serverRulesMenu, true);
 	
 	serverCommandsMainMenu = new Menu(ServerCommandsMenuHandler);
@@ -51,10 +63,23 @@ public void OnPluginStart()
 	serverCommandsSubMenu = new Menu(ServerCommandsSubMenuHandler);
 }
 
+public void OnClientConnected(int client)
+{
+	showRulesMenu[client] = true;
+}
+
 public Action CommandHelpMenu(int client, int args)
 {
 	if (!IsValidClient(client)) return Plugin_Handled;
 	helpMenu.Display(client, MENU_TIME_FOREVER);
+	return Plugin_Handled;
+}
+
+public Action CommandVIP(int client, int args)
+{
+	if (!IsValidClient(client)) return Plugin_Handled;
+	FillCommands(false);
+	serverCommandsSubMenu.Display(client, MENU_TIME_FOREVER);
 	return Plugin_Handled;
 }
 
@@ -65,15 +90,11 @@ public int HelpMenuHandler(Menu menu, MenuAction action, int param1, int param2)
 		char info[32];
 		menu.GetItem(param2, info, sizeof(info));
 		if (StrEqual(info, "serverrules", false))
-		{
 			serverRulesMenu.Display(param1, MENU_TIME_FOREVER);
-		}
 		else if (StrEqual(info, "servercommands", false))
-		{
 			serverCommandsMainMenu.Display(param1, MENU_TIME_FOREVER);
-		}
-		else if (StrEqual(info, "bamoptout", false))
-			FakeClientCommand(param1, "!dontbamboozleme");
+		else if (StrEqual(info, "extrasettings", false))
+			FakeClientCommand(param1, "sm_settings");
 	}
 }
 
@@ -87,8 +108,12 @@ public int ServerRulesMenuHandler(Menu menu, MenuAction action, int param1, int 
 	{
 		char info[32];
 		menu.GetItem(param2, info, sizeof(info));
-		if (StrEqual(info, "bamoptout", false))
-			FakeClientCommand(param1, "!dontbamboozleme");
+		if (StrEqual(info, "donorrulelink", false))
+			FakeClientCommand(param1, "say /donorperks");
+		else if (StrEqual(info, "playerrulelink", false))
+			FakeClientCommand(param1, "say /rules");
+		else 
+			serverRulesMenu.Display(param1, MENU_TIME_FOREVER);
 	}
 }
 
@@ -125,8 +150,8 @@ public int ServerCommandsSubMenuHandler(Menu menu, MenuAction action, int param1
 	{
 		char info[32];
 		menu.GetItem(param2, info, sizeof(info));
-		if (StrEqual(info, "bamoptout", false))
-			FakeClientCommand(param1, "!dontbamboozleme");
+		FakeClientCommand(param1, info);
+		serverCommandsSubMenu.Display(param1, MENU_TIME_FOREVER);
 	}
 }
 
@@ -161,6 +186,17 @@ public void FillCommands(bool regularPlayers)
 		}
 	}
 	CloseHandle(hIterator);
+	SetMenuExitBackButton(serverCommandsSubMenu, true);
+}
+
+public void OnPlayerFirstSpawn(Event event, const char[] name, bool dontBroadcast)
+{
+	int client = GetClientOfUserId(event.GetInt("userid"));
+	if (showRulesMenu[client])
+	{
+		serverRulesMenu.Display(client, MENU_TIME_FOREVER);
+		showRulesMenu[client] = false;
+	}
 }
 
 public bool IsValidClient(int client)

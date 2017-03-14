@@ -189,6 +189,7 @@ public Action Command_JoinEvent(int client, int args) {
 	return Plugin_Handled;
 }
 
+
 public void CheckClient(int client)
 {
 	if (IsValidClient(client) == false) return;

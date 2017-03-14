@@ -14,7 +14,8 @@
 
 Menu helpMenu;
 Menu serverRulesMenu;
-Menu serverCommandsMenu;
+Menu serverCommandsMainMenu;
+Menu serverCommandsSubMenu;
 
 public Plugin myinfo = {
 	name = "[NGS] Help Menu",
@@ -33,33 +34,27 @@ public void OnPluginStart()
 	helpMenu.SetTitle("=== NGS Help Menu ===");
 	helpMenu.AddItem("serverrules", "Server rules!");
 	helpMenu.AddItem("servercommands", "Server commands!");
-	helpMenu.AddItem("serversettings", "Server settings!");
 	helpMenu.AddItem("extrasettings", "Change some extra settings!");
 	
 	serverRulesMenu = new Menu(ServerRulesMenuHandler);
 	serverRulesMenu.SetTitle("=== NGS Server Rules ===");
 	serverRulesMenu.AddItem("rule1", "Don\'t scam!");
 	serverRulesMenu.AddItem("rule2", "Don\'t hack!");
-	serverRulesMenu.AddItem("serversettings", "Server settings!");
-	serverRulesMenu.AddItem("extrasettings", "Change some extra settings!");
-	// serverRulesMenu.ExitBackButton(true);
 	SetMenuExitBackButton(serverRulesMenu, true);
 	
-	serverCommandsMenu = new Menu(ServerCommandsMenuHandler);
-	serverCommandsMenu.SetTitle("=== NGS Server Commands ===");
-	serverCommandsMenu.AddItem("dontbamboozleme", "Opt-out of bamboozlement.");
-	serverCommandsMenu.AddItem("fp", "First Person.");
-	serverCommandsMenu.AddItem("serversettings", "Server settings!");
-	serverCommandsMenu.AddItem("extrasettings", "Change some extra settings!");
-	// serverCommandsMenu.ExitBackButton(true);
-	SetMenuExitBackButton(serverCommandsMenu, true);
+	serverCommandsMainMenu = new Menu(ServerCommandsMenuHandler);
+	serverCommandsMainMenu.SetTitle("=== NGS Server Commands ===");
+	serverCommandsMainMenu.AddItem("players", "Player Commands!");
+	serverCommandsMainMenu.AddItem("donors", "Donor Commands!");
+	SetMenuExitBackButton(serverCommandsMainMenu, true);
+	
+	serverCommandsSubMenu = new Menu(ServerCommandsSubMenuHandler);
 }
 
 public Action CommandHelpMenu(int client, int args)
 {
 	if (!IsValidClient(client)) return Plugin_Handled;
 	helpMenu.Display(client, MENU_TIME_FOREVER);
-	PrintToChatAll("Showing help menu.");
 	return Plugin_Handled;
 }
 
@@ -67,19 +62,15 @@ public int HelpMenuHandler(Menu menu, MenuAction action, int param1, int param2)
 {
 	if (action == MenuAction_Select)
 	{
-		PrintToChatAll("Selected in Help Menu!");
 		char info[32];
 		menu.GetItem(param2, info, sizeof(info));
-		PrintToChatAll("Selected in Help Menu: %s", info);
 		if (StrEqual(info, "serverrules", false))
 		{
 			serverRulesMenu.Display(param1, MENU_TIME_FOREVER);
-			PrintToChatAll("Showing server rules menu.");
 		}
 		else if (StrEqual(info, "servercommands", false))
 		{
-			serverCommandsMenu.Display(param1, MENU_TIME_FOREVER);
-			PrintToChatAll("Showing server commands menu.");
+			serverCommandsMainMenu.Display(param1, MENU_TIME_FOREVER);
 		}
 		else if (StrEqual(info, "bamoptout", false))
 			FakeClientCommand(param1, "!dontbamboozleme");
@@ -91,13 +82,11 @@ public int ServerRulesMenuHandler(Menu menu, MenuAction action, int param1, int 
 	if(action == MenuAction_Cancel && param2 == MenuCancel_ExitBack)
 	{
 		helpMenu.Display(param1, MENU_TIME_FOREVER);
-		PrintToChatAll("Showing help menu back from server rules menu.");
 	}
 	else if(action == MenuAction_Select)
 	{
 		char info[32];
 		menu.GetItem(param2, info, sizeof(info));
-		PrintToChatAll("Selected in server rules Menu: %s", info);
 		if (StrEqual(info, "bamoptout", false))
 			FakeClientCommand(param1, "!dontbamboozleme");
 	}
@@ -108,16 +97,70 @@ public int ServerCommandsMenuHandler(Menu menu, MenuAction action, int param1, i
 	if(action == MenuAction_Cancel && param2 == MenuCancel_ExitBack)
 	{
 		helpMenu.Display(param1, MENU_TIME_FOREVER);
-		PrintToChatAll("Showing help menu back from server commands menu.");
 	}
 	else if(action == MenuAction_Select)
 	{
 		char info[32];
 		menu.GetItem(param2, info, sizeof(info));
-		PrintToChatAll("Selected in server commands Menu: %s", info);
+		if (StrEqual(info, "players", false))
+		{
+			FillCommands(true);
+			serverCommandsSubMenu.Display(param1, MENU_TIME_FOREVER);
+		}
+		else if (StrEqual(info, "donors", false))
+		{
+			FillCommands(false);
+			serverCommandsSubMenu.Display(param1, MENU_TIME_FOREVER);
+		}
+	}
+}
+
+public int ServerCommandsSubMenuHandler(Menu menu, MenuAction action, int param1, int param2)
+{
+	if(action == MenuAction_Cancel && param2 == MenuCancel_ExitBack)
+	{
+		serverCommandsMainMenu.Display(param1, MENU_TIME_FOREVER);
+	}
+	else if(action == MenuAction_Select)
+	{
+		char info[32];
+		menu.GetItem(param2, info, sizeof(info));
 		if (StrEqual(info, "bamoptout", false))
 			FakeClientCommand(param1, "!dontbamboozleme");
 	}
+}
+
+public void FillCommands(bool regularPlayers)
+{
+	serverCommandsSubMenu.RemoveAllItems();
+	char command[MAX_BUFFER_LENGTH], description[MAX_BUFFER_LENGTH], buffer[MAX_BUFFER_LENGTH];
+	int flags;
+	Handle hIterator = GetCommandIterator();
+	if (regularPlayers)
+	{
+		serverCommandsSubMenu.SetTitle("=== NGS Player Commands ===");
+		while (ReadCommandIterator(hIterator, command, sizeof(command), flags, description, sizeof(description)))
+		{
+			if (flags == 0)
+			{
+				Format(buffer, sizeof(buffer), "%s - %s", command, description);
+				serverCommandsSubMenu.AddItem(command, buffer);
+			}
+		}
+	}
+	else
+	{
+		serverCommandsSubMenu.SetTitle("=== NGS Donor Commands ===");
+		while (ReadCommandIterator(hIterator, command, sizeof(command), flags, description, sizeof(description)))
+		{
+			if (flags & ADMFLAG_RESERVATION)
+			{
+				Format(buffer, sizeof(buffer), "%s - %s", command, description);
+				serverCommandsSubMenu.AddItem(command, buffer);
+			}
+		}
+	}
+	CloseHandle(hIterator);
 }
 
 public bool IsValidClient(int client)

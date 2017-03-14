@@ -59,7 +59,7 @@ public Action CommandHelpMenu(int client, int args)
 {
 	if (!IsValidClient(client)) return Plugin_Handled;
 	helpMenu.Display(client, MENU_TIME_FOREVER);
-	LogMessage("Showing help menu.");
+	PrintToChatAll("Showing help menu.");
 	return Plugin_Handled;
 }
 
@@ -67,14 +67,19 @@ public int HelpMenuHandler(Menu menu, MenuAction action, int param1, int param2)
 {
 	if (action == MenuAction_Select)
 	{
-		LogMessage("Selected in Help Menu!");
+		PrintToChatAll("Selected in Help Menu!");
 		char info[32];
-		menu.GetItem(param1, info, sizeof(info));
-		LogMessage("Selected in Help Menu: %s", info);
+		menu.GetItem(param2, info, sizeof(info));
+		PrintToChatAll("Selected in Help Menu: %s", info);
 		if (StrEqual(info, "serverrules", false))
 		{
 			serverRulesMenu.Display(param1, MENU_TIME_FOREVER);
-			LogMessage("Showing server rules menu.");
+			PrintToChatAll("Showing server rules menu.");
+		}
+		else if (StrEqual(info, "servercommands", false))
+		{
+			serverCommandsMenu.Display(param1, MENU_TIME_FOREVER);
+			PrintToChatAll("Showing server commands menu.");
 		}
 		else if (StrEqual(info, "bamoptout", false))
 			FakeClientCommand(param1, "!dontbamboozleme");
@@ -86,13 +91,13 @@ public int ServerRulesMenuHandler(Menu menu, MenuAction action, int param1, int 
 	if(action == MenuAction_Cancel && param2 == MenuCancel_ExitBack)
 	{
 		helpMenu.Display(param1, MENU_TIME_FOREVER);
-		LogMessage("Showing help menu from server rules menu.");
+		PrintToChatAll("Showing help menu back from server rules menu.");
 	}
 	else if(action == MenuAction_Select)
 	{
 		char info[32];
-		menu.GetItem(param1, info, sizeof(info));
-		LogMessage("Selected in server rules Menu: %s", info);
+		menu.GetItem(param2, info, sizeof(info));
+		PrintToChatAll("Selected in server rules Menu: %s", info);
 		if (StrEqual(info, "bamoptout", false))
 			FakeClientCommand(param1, "!dontbamboozleme");
 	}
@@ -103,13 +108,13 @@ public int ServerCommandsMenuHandler(Menu menu, MenuAction action, int param1, i
 	if(action == MenuAction_Cancel && param2 == MenuCancel_ExitBack)
 	{
 		helpMenu.Display(param1, MENU_TIME_FOREVER);
-		LogMessage("Showing help menu from server commands menu.");
+		PrintToChatAll("Showing help menu back from server commands menu.");
 	}
 	else if(action == MenuAction_Select)
 	{
 		char info[32];
-		menu.GetItem(param1, info, sizeof(info));
-		LogMessage("Selected in server commands Menu: %s", info);
+		menu.GetItem(param2, info, sizeof(info));
+		PrintToChatAll("Selected in server commands Menu: %s", info);
 		if (StrEqual(info, "bamoptout", false))
 			FakeClientCommand(param1, "!dontbamboozleme");
 	}

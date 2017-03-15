@@ -53,15 +53,12 @@ public void OnPluginStart()
 	startMenu.AddItem("minnows", "Sharks and Minnows")
 }
 
-public void OnAllPluginsLoaded()
-{
+public void OnAllPluginsLoaded() {
 	necromashEnable = FindConVar("sm_necromash_enable");
-	if(necromashEnable)
-	{
+	if(necromashEnable) {
 		eventMenu.AddItem("stopsmash", "Turn off necrosmashing");
 	}
-	else if(!necromashEnable)
-	{
+	else if(!necromashEnable) {
 		eventMenu.AddItem("stopsmash", "Turn on necrosmashing");
 	}
 }
@@ -103,6 +100,19 @@ public int EventMenuHandler(Menu menu, MenuAction action, int param1, int param2
 		}
 		else if(!necromashEnable)
 		{
+			necromashEnable.SetInt(1);
+			eventMenu.RemoveItem(3);
+			eventMenu.AddItem("stopsmash", "Turn off necrosmashing");
+		}
+	}
+	else if (StrEqual(info, "stopsmash", false)) {
+		if(necromashEnable) {
+			necromashEnable.SetInt(0);
+			eventMenu.RemoveItem(3);
+			eventMenu.AddItem("stopsmash", "Turn on necrosmashing");
+			eventMenu.Display(param1, MENU_TIME_FOREVER);
+		}
+		else if(!necromashEnable) {
 			necromashEnable.SetInt(1);
 			eventMenu.RemoveItem(3);
 			eventMenu.AddItem("stopsmash", "Turn off necrosmashing");

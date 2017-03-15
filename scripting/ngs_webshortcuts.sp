@@ -1,11 +1,13 @@
 /** Commented as steamtools isnt using new-style syntax yet.
 #pragma newdecls required
 */
+#pragma newdecls required
 #pragma semicolon 1
 
 #include <sourcemod>
 #tryinclude <steamtools>
 #include <advanced_motd>
+#include <morecolors>
 
 #define PLUGIN_VERSION "1.2"
 
@@ -77,7 +79,7 @@ public void OnPluginStart()
 	/* From Psychonic */
 	Duck_OnPluginStart();
 	
-	Handle cvarVersion = CreateConVar("webshortcutsredux_version", PLUGIN_VERSION, "Redux of Web Shortcuts with Large/Small MOTD Support", FCVAR_NOTIFY);
+	ConVar cvarVersion = CreateConVar("webshortcutsredux_version", PLUGIN_VERSION, "Redux of Web Shortcuts with Large/Small MOTD Support", FCVAR_NOTIFY);
 	
 	/* On a reload, this will be set to the old version. Let's update it. */
 	SetConVarString(cvarVersion, PLUGIN_VERSION);
@@ -161,17 +163,19 @@ public bool DealWithOurTrie(int iClient, char[] sHookedString, Handle hStoredTri
 			Duck_DoReplacements(iClient, sMessage, iMsgBits, sMessage, 0); /* Lame Hack for now */
 		}
 		
-		PrintToChatAll("%s", sMessage);
+		CPrintToChatAll("%s", sMessage);
 	}
 	AdvMOTD_ShowMOTDPanel(iClient, sTitle, sUrl, MOTDPANEL_TYPE_URL, true, true, true, OnMOTDFailure);
 	return true;
 }
 
-public void OnMOTDFailure(int client, MOTDFailureReason reason) {
-	switch(reason) {
-		case MOTDFailure_Disabled: PrintToChat(client, "\x04[SM] \x01You cannot view websites with HTML MOTDs disabled.");
-		case MOTDFailure_Matchmaking: PrintToChat(client, "\x04[SM] \x01You cannot view websites after joining via Quickplay.");
-		case MOTDFailure_QueryFailed: PrintToChat(client, "\x04[SM] \x01Unable to open website.");
+public void OnMOTDFailure(int client, MOTDFailureReason reason)
+{
+	switch(reason)
+	{
+		case MOTDFailure_Disabled: CPrintToChat(client, "{GREEN}[SM]{DEFAULT} You cannot view websites with HTML MOTDs disabled.");
+		case MOTDFailure_Matchmaking: CPrintToChat(client, "{GREEN}[SM]{DEFAULT} You cannot view websites after joining via Quickplay.");
+		case MOTDFailure_QueryFailed: CPrintToChat(client, "{GREEN}[SM]{DEFAULT} Unable to open website.");
 	}
 }
 
@@ -441,7 +445,7 @@ if (StrContains(source, %1) != -1) { field |= %2; }
 #define TOKEN_VACSTATUS		   "{VAC_STATUS}"
 #define TOKEN_SERVER_PUB_IP    "{SERVER_PUB_IP}"
 #define TOKEN_STEAM_CONNSTATUS "{STEAM_CONNSTATUS}"	
-new g_bSteamTools;
+int g_bSteamTools;
 #endif  /* _steamtools_included */
 
 /* Cached values */
@@ -459,12 +463,12 @@ char g_szGameDir[64];
 /*Handle g_hCmdQueue[MAXPLAYERS+1];*/
 
 #if defined _steamtools_included
-public Steam_FullyLoaded()
+public void Steam_FullyLoaded()
 {
 	g_bSteamTools = true;
 }
 
-public OnLibraryRemoved(const char[] sLibrary)
+public void OnLibraryRemoved(const char[] sLibrary)
 {
 	if (!StrEqual(sLibrary, "SteamTools", false))
 	{
@@ -765,7 +769,7 @@ stock void Duck_DoReplacements(int iClient, char sUrl[256], int iUrlBits, char s
 	{
 		if (g_bSteamTools)
 		{
-			decl ip[4];
+			int ip[4];
 			char sIPString[16];
 			Steam_GetPublicIP(ip);
 			FormatEx(sIPString, sizeof(sIPString), "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
@@ -851,7 +855,7 @@ stock bool GetClientFriendID(int client, char[] sFriendID, int size)
 	return true;
 }
 
-Duck_CalcBits(char[] source, &field)
+void Duck_CalcBits(char[] source, int &field)
 {
 	field = 0;
 	
@@ -886,13 +890,13 @@ Duck_CalcBits(char[] source, &field)
 }
 
 /* Courtesy of Mr. Asher Baker */
-stock LongIPToString(ip, char szBuffer[16])
+stock void LongIPToString(int ip, char szBuffer[16])
 {
 	FormatEx(szBuffer, sizeof(szBuffer), "%i.%i.%i.%i", (((ip & 0xFF000000) >> 24) & 0xFF), (((ip & 0x00FF0000) >> 16) & 0xFF), (((ip & 0x0000FF00) >>  8) & 0xFF), (((ip & 0x000000FF) >>  0) & 0xFF));
 }
 
 /* loosely based off of PHP's urlencode */
-stock Duck_UrlEncodeString(char[] output, int size, char[] input)
+stock void Duck_UrlEncodeString(char[] output, int size, char[] input)
 {
 	int icnt = 0;
 	int ocnt = 0;
@@ -905,7 +909,7 @@ stock Duck_UrlEncodeString(char[] output, int size, char[] input)
 			return;
 		}
 		
-		new c = input[icnt];
+		int c = input[icnt];
 		if (c == '\0')
 		{
 			output[ocnt] = '\0';
@@ -936,17 +940,17 @@ stock Duck_UrlEncodeString(char[] output, int size, char[] input)
 	}
 }
 
-public OnCvarHostnameChange(Handle convar, char[] oldValue, char[] newValue)
+public void OnCvarHostnameChange(ConVar convar, char[] oldValue, char[] newValue)
 {
 	Duck_UrlEncodeString(g_szServerName, sizeof(g_szServerName), newValue);
 }
 
-public OnCvarGamemodeChange(Handle convar, char[] oldValue, char[] newValue)
+public void OnCvarGamemodeChange(ConVar convar, char[] oldValue, char[] newValue)
 {
 	Duck_UrlEncodeString(g_szL4DGameMode, sizeof(g_szL4DGameMode), newValue);
 }
 
-public OnCvarCustomChange(Handle convar, char[] oldValue, char[] newValue)
+public void OnCvarCustomChange(Handle convar, char[] oldValue, char[] newValue)
 {
 	Duck_UrlEncodeString(g_szServerCustom, sizeof(g_szServerCustom), newValue);
 }

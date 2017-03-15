@@ -1,15 +1,18 @@
+#pragma newdecls required
+#pragma semicolon 1
+
 #include <sourcemod>
 #include <tf2_stocks>
 #include <sdktools>
+#include <morecolors>
 
-public Plugin myinfo = 
-{
+public Plugin myinfo = {
 	name = "Event Manager",
-	author = "EasyE",
-	description = "Event manager made for ngs",
-	version = "1",
+	author = "EasyE / TheXeon",
+	description = "Events plugin for NGS",
+	version = "1.0.5",
 	url = "https://neogenesisnetwork.net/"
-};
+}
 /*General description on how the plugin works:
 	First, the player with admin privileges types !setlocation, the players position is then stored for later use.
 	Then !startevent (1 for spycrab, 2 for sharks and minnows) advertises in the chat to type !joinevent
@@ -27,12 +30,15 @@ float eLocation[3];
 Menu eventMenu;
 Menu startMenu;
 
+ConVar necromashEnable;
+
 public void OnPluginStart()
 {
 	RegAdminCmd("sm_startevent", Command_StartEvent, ADMFLAG_GENERIC,"Starts the event. 1 for spycrab, 2 for sharks and minnows.");
 	RegAdminCmd("sm_stopevent", Command_StopEvent, ADMFLAG_GENERIC, "Closes the joining time for the event");
 	RegAdminCmd("sm_setlocation", Command_SetLocation, ADMFLAG_GENERIC, "Set's the location where players will teleport to");
 	RegAdminCmd("sm_event", EventMenu, ADMFLAG_GENERIC, "Menu interface for event manager plugin");
+	RegAdminCmd("sm_eventmenu", EventMenu, ADMFLAG_GENERIC, "Menu interface for event manager plugin");
 	RegConsoleCmd("sm_joinevent", Command_JoinEvent, "When an event is started, use this to join it!");
 	
 	eventMenu = new Menu(EventMenuHandler);
@@ -44,7 +50,20 @@ public void OnPluginStart()
 	startMenu = new Menu(StartMenuHandler);
 	startMenu.SetTitle("=== Event Types ===");
 	startMenu.AddItem("spycrab", "Spycrab");
-	startMenu.AddItem("minnows", "Sharks and Minnowss");
+	startMenu.AddItem("minnows", "Sharks and Minnows")
+}
+
+public void OnAllPluginsLoaded()
+{
+	necromashEnable = FindConVar("sm_necromash_enable");
+	if(necromashEnable)
+	{
+		eventMenu.AddItem("stopsmash", "Turn off necrosmashing");
+	}
+	else if(!necromashEnable)
+	{
+		eventMenu.AddItem("stopsmash", "Turn on necrosmashing");
+	}
 }
 
 public Action EventMenu(int client, int args)
@@ -54,29 +73,53 @@ public Action EventMenu(int client, int args)
 	return Plugin_Handled;
 }
 
-public int EventMenuHandler(Menu menu, MenuAction action, int param1, int param2) {
-	char info[32]
-	eventMenu.GetItem(param2, info, sizeof(info));
-	if (StrEqual(info, "setlocation", false)) {
-		FakeClientCommand(param1, "sm_setlocation");
-		eventMenu.Display(param1, MENU_TIME_FOREVER);
-	}
-	else if (StrEqual(info, "startevent", false)) {
-		startMenu.Display(param1, MENU_TIME_FOREVER);
-	}
-	else if (StrEqual(info, "stopevent", false)) {
-		FakeClientCommand(param1, "sm_stopevent");
+public int EventMenuHandler(Menu menu, MenuAction action, int param1, int param2)
+{
+	if(action == MenuAction_Select)
+	{
+		char info[32];
+		eventMenu.GetItem(param2, info, sizeof(info));
+		if (StrEqual(info, "setlocation", false))
+		{
+			FakeClientCommand(param1, "sm_setlocation");
+			eventMenu.Display(param1, MENU_TIME_FOREVER);
+		}
+		else if (StrEqual(info, "startevent", false))
+		{
+			startMenu.Display(param1, MENU_TIME_FOREVER);
+		}
+		else if (StrEqual(info, "stopevent", false))
+		{
+			FakeClientCommand(param1, "sm_stopevent");
+		}
+		else if (StrEqual(info, "stopsmash", false))
+		{
+		if(necromashEnable)
+		{
+			necromashEnable.SetInt(0);
+			eventMenu.RemoveItem(3);
+			eventMenu.AddItem("stopsmash", "Turn on necrosmashing");
+			eventMenu.Display(param1, MENU_TIME_FOREVER);
+		}
+		else if(!necromashEnable)
+		{
+			necromashEnable.SetInt(1);
+			eventMenu.RemoveItem(3);
+			eventMenu.AddItem("stopsmash", "Turn off necrosmashing");
+		}
 	}
 }
 
-public int StartMenuHandler(Menu menu, MenuAction action, int param1, int param2) {
-	char info[32]
-	startMenu.GetItem(param2, info, sizeof(info));
-	if (StrEqual(info, "spycrab", false)) {
-		FakeClientCommand(param1, "sm_startevent 1");
-	}
-	else if(StrEqual(info, "minnows", false)) {
-		FakeClientCommand(param1, "sm_startevent 2");
+public int StartMenuHandler(Menu menu, MenuAction action, int param1, int param2)
+{
+	if(action == MenuAction_Select)
+	{
+		char info[32];
+		startMenu.GetItem(param2, info, sizeof(info));
+		if (StrEqual(info, "spycrab", false))
+			FakeClientCommand(param1, "sm_startevent 1");
+		else if (StrEqual(info, "minnows", false))
+			FakeClientCommand(param1, "sm_startevent 2");
 	}
 }
 /*Startevent:
@@ -86,36 +129,40 @@ public int StartMenuHandler(Menu menu, MenuAction action, int param1, int param2
 	Then, a switch case is run to advertise the correct event.
 	
 */
-public Action Command_StartEvent(int client, int args) {
-	if (eventStart == false && eLocationSet) {
-			char arg1[15];
-			GetCmdArg(1, arg1, sizeof(arg1));
-			eventType = StringToInt(arg1);
-			if(args < 1) {
-				PrintToChat(client, "\x04[Event] After !startevent, please enter 1 for spycrab, or 2 for sharks and minnows");
-				return Plugin_Handled;
+public Action Command_StartEvent(int client, int args)
+{
+	if (!eventStart && eLocationSet)
+	{
+		char arg1[15];
+		GetCmdArg(1, arg1, sizeof(arg1));
+		eventType = StringToInt(arg1);
+		if(args < 1)
+		{
+			CPrintToChat(client, "{GREEN}[Event]{DEFAULT} After !startevent, please enter 1 for spycrab, or 2 for sharks and minnows");
+			return Plugin_Handled;
+		}
+		switch(eventType)
+		{
+			case 1:
+			{
+				eventStart = true;
+				CPrintToChatAll("{GREEN}[Event]{DEFAULT} The spycrab event has been started, do !joinevent to join!");				
 			}
-			switch(eventType) {
-				case 1: {
-					eventStart = true;
-					PrintToChatAll("\x04[Event] The spycrab event has been started, do !joinevent to join!");
-					return Plugin_Handled;					
-				}
-				
-				case 2: {
-					eventStart = true;
-					PrintToChatAll("\x04[Event] The Sharks and Minnows event has been started, do !joinevent to join!");
-					return Plugin_Handled;	
-				}
+			
+			case 2:
+			{
+				eventStart = true;
+				CPrintToChatAll("{GREEN}[Event]{DEFAULT} The Sharks and Minnows event has been started, do !joinevent to join!");
 			}
+		}
 	}
-	else if (eLocationSet == false) {
-		PrintToChat(client,"\x04[Event] There is no location set.");
-		return Plugin_Handled;
+	else if (!eLocationSet)
+	{
+		CPrintToChat(client,"{GREEN}[Event]{DEFAULT} There is no location set.");
 	}	
-	 else {
-		PrintToChat(client, "\x04[Event] There's already an event running!")
-		return Plugin_Handled;
+	else
+	{
+		CPrintToChat(client, "{GREEN}[Event]{DEFAULT} There's already an event running!");
 	}
 
 	return Plugin_Handled;
@@ -123,25 +170,29 @@ public Action Command_StartEvent(int client, int args) {
 /*Stopevent:
 	Prevents players from using !joinevent, but does not do anything to the players already joined.
 */
-public Action Command_StopEvent(int client, int args) {
-	if (eventStart) {
-		PrintToChatAll("\x04[Event] The event joining time is over.");
+public Action Command_StopEvent(int client, int args)
+{
+	if (eventStart)
+	{
+		CPrintToChatAll("{GREEN}[Event]{DEFAULT} The event joining time is over.");
 		eventStart = false;
 		eventType = 0;
-		return Plugin_Handled;
-	} else {
-		PrintToChat(client, "\x04[Event] There is no event to stop.");
-		return Plugin_Handled;
+	} 
+	else
+	{
+		CPrintToChat(client, "{GREEN}[Event]{DEFAULT} There is no event to stop.");
 	}
+	return Plugin_Handled;
 }
 /*Setlocation:
 	Stores the players current location in eLocation, where the players will be teleported to.
 	Also sets eLocationSet to true allowing !startevent to be run
 */
-public Action Command_SetLocation(int client, int args) {
+public Action Command_SetLocation(int client, int args)
+{
 	GetClientAbsOrigin(client, eLocation);
 	eLocationSet = true;
-	PrintToChat(client, "\x04[Event] Location has been set.");
+	CReplyToCommand(client, "{GREEN}[Event]{DEFAULT} Location has been set.");
 	return Plugin_Handled;
 }
 /*Joinevent:
@@ -150,12 +201,17 @@ public Action Command_SetLocation(int client, int args) {
 	The function check client checks to see if they are a valid client.
 	Switch case is run to set the players class, strip the appropiate weapons, equips the right one, and teleports the player to event location.
 */
-public Action Command_JoinEvent(int client, int args) {
-	if (eventStart == true) {
-		if (TF2_GetClientTeam(client) == TFTeam_Blue) {
-			switch(eventType) {
-				case 1: {
-					CheckClient(client);
+public Action Command_JoinEvent(int client, int args)
+{
+	if (!IsValidClient(client)) return Plugin_Handled;
+	if (eventStart == true)
+	{
+		if (TF2_GetClientTeam(client) == TFTeam_Blue)
+		{
+			switch(eventType)
+			{
+				case 1:
+				{
 					TF2_RespawnPlayer(client);
 					TF2_SetPlayerClass(client, TFClass_Spy);
 					TF2_RespawnPlayer(client);
@@ -165,8 +221,8 @@ public Action Command_JoinEvent(int client, int args) {
 					return Plugin_Handled;
 				}
 				
-				case 2: {
-					CheckClient(client);
+				case 2:
+				{
 					TF2_RespawnPlayer(client);
 					TF2_SetPlayerClass(client, TFClass_Scout);
 					TF2_RespawnPlayer(client);
@@ -177,39 +233,26 @@ public Action Command_JoinEvent(int client, int args) {
 				}
 			}
 		}
-		else {
-		PrintToChat(client,"\x04[Event] Please join blue team to join the event.");
-		return Plugin_Handled;
+		else
+		{
+			CPrintToChat(client,"{GREEN}[Event]{DEFAULT} Please join blue team to join the event.");
+			return Plugin_Handled;
 		}
 	}
-	else {
-		PrintToChat(client, "\x04[Event] There is no event available to join.");
+	else
+	{
+		CPrintToChat(client, "{GREEN}[Event]{DEFAULT} There is no event available to join.");
 		return Plugin_Handled;
 	}
 	return Plugin_Handled;
 }
 
-
-public void CheckClient(int client)
+public bool IsValidClient(int client)
 {
-	if (IsValidClient(client) == false) return;
-}
-
-public bool IsValidClient (int client)
-{
-	if(client > 4096)
-	{
-		client = EntRefToEntIndex(client);
-	}
-
+	if(client > 4096) client = EntRefToEntIndex(client);
 	if(client < 1 || client > MaxClients) return false;
-
 	if(!IsClientInGame(client)) return false;
-
 	if(IsFakeClient(client)) return false;
-
 	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
-
 	return true;
-
 }

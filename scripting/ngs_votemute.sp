@@ -1,6 +1,3 @@
-//
-// SourceMod Script
-//
 // Developed by <eVa>Dog
 // June 2008
 // http://www.theville.org
@@ -50,7 +47,7 @@ public Plugin myinfo = {
 public void OnPluginStart()
 {
 	CreateConVar("sm_votemute_version", PLUGIN_VERSION, "Version of votemute/votesilence", FCVAR_SPONLY | FCVAR_REPLICATED | FCVAR_NOTIFY);
-	g_Cvar_Limits = CreateConVar("sm_votemute_limit", "0.85", "percent required for successful mute vote or mute silence.");
+	g_Cvar_Limits = CreateConVar("sm_votemute_limit", "0.70", "percent required for successful mute vote or mute silence.");
 		
 	//Allowed for ALL players
 	RegConsoleCmd("sm_votemute", Command_Votemute, "sm_votemute <player> ");

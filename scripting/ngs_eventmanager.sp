@@ -43,24 +43,24 @@ public void OnPluginStart()
 	
 	eventMenu = new Menu(EventMenuHandler);
 	eventMenu.SetTitle("=== Event Menu ===");
-	eventMenu.AddItem("setlocation", "Set event location");
-	eventMenu.AddItem("startevent", "Start an event");
-	eventMenu.AddItem("stopevent", "Stop event");
 	
 	startMenu = new Menu(StartMenuHandler);
 	startMenu.SetTitle("=== Event Types ===");
 	startMenu.AddItem("spycrab", "Spycrab");
-	startMenu.AddItem("minnows", "Sharks and Minnows")
+	startMenu.AddItem("minnows", "Sharks and Minnows");
 }
 
-public void OnAllPluginsLoaded() {
-	necromashEnable = FindConVar("sm_necromash_enable");
-	if(necromashEnable) {
-		eventMenu.AddItem("stopsmash", "Turn off necrosmashing");
-	}
-	else if(!necromashEnable) {
-		eventMenu.AddItem("stopsmash", "Turn on necrosmashing");
-	}
+void EventMenuBuilder()
+{
+	eventMenu.RemoveAllItems();
+	eventMenu.AddItem("setlocation", "Set event location");
+	eventMenu.AddItem("startevent", "Start an event");
+	eventMenu.AddItem("stopevent", "Stop event");
+}
+
+public void OnAllPluginsLoaded()
+{
+	EventMenuBuilder();
 }
 
 public Action EventMenu(int client, int args)
@@ -91,31 +91,35 @@ public int EventMenuHandler(Menu menu, MenuAction action, int param1, int param2
 		}
 		else if (StrEqual(info, "stopsmash", false))
 		{
-		if(necromashEnable)
+			if(necromashEnable)
+			{
+				necromashEnable.SetInt(0);
+				eventMenu.RemoveItem(3);
+				eventMenu.AddItem("stopsmash", "Turn on necrosmashing");
+				eventMenu.Display(param1, MENU_TIME_FOREVER);
+			}
+			else if(!necromashEnable)
+			{
+				necromashEnable.SetInt(1);
+				eventMenu.RemoveItem(3);
+				eventMenu.AddItem("stopsmash", "Turn off necrosmashing");
+			}
+		}
+		else if (StrEqual(info, "stopsmash", false))
 		{
-			necromashEnable.SetInt(0);
-			eventMenu.RemoveItem(3);
-			eventMenu.AddItem("stopsmash", "Turn on necrosmashing");
-			eventMenu.Display(param1, MENU_TIME_FOREVER);
-		}
-		else if(!necromashEnable)
-		{
-			necromashEnable.SetInt(1);
-			eventMenu.RemoveItem(3);
-			eventMenu.AddItem("stopsmash", "Turn off necrosmashing");
-		}
-	}
-	else if (StrEqual(info, "stopsmash", false)) {
-		if(necromashEnable) {
-			necromashEnable.SetInt(0);
-			eventMenu.RemoveItem(3);
-			eventMenu.AddItem("stopsmash", "Turn on necrosmashing");
-			eventMenu.Display(param1, MENU_TIME_FOREVER);
-		}
-		else if(!necromashEnable) {
-			necromashEnable.SetInt(1);
-			eventMenu.RemoveItem(3);
-			eventMenu.AddItem("stopsmash", "Turn off necrosmashing");
+			if(necromashEnable)
+			{
+				necromashEnable.SetInt(0);
+				eventMenu.RemoveItem(3);
+				eventMenu.AddItem("stopsmash", "Turn on necrosmashing");
+				eventMenu.Display(param1, MENU_TIME_FOREVER);
+			}
+			else if(!necromashEnable)
+			{
+				necromashEnable.SetInt(1);
+				eventMenu.RemoveItem(3);
+				eventMenu.AddItem("stopsmash", "Turn off necrosmashing");
+			}
 		}
 	}
 }
@@ -214,7 +218,7 @@ public Action Command_SetLocation(int client, int args)
 public Action Command_JoinEvent(int client, int args)
 {
 	if (!IsValidClient(client)) return Plugin_Handled;
-	if (eventStart == true)
+	if (eventStart)
 	{
 		if (TF2_GetClientTeam(client) == TFTeam_Blue)
 		{
@@ -246,13 +250,11 @@ public Action Command_JoinEvent(int client, int args)
 		else
 		{
 			CPrintToChat(client,"{GREEN}[Event]{DEFAULT} Please join blue team to join the event.");
-			return Plugin_Handled;
 		}
 	}
 	else
 	{
 		CPrintToChat(client, "{GREEN}[Event]{DEFAULT} There is no event available to join.");
-		return Plugin_Handled;
 	}
 	return Plugin_Handled;
 }

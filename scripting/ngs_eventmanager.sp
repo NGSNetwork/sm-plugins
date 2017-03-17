@@ -28,7 +28,7 @@ int eventType = 0;
 float eLocation[3];
 
 Menu eventMenu;
-Menu startMenu;
+Menu startEventMenu;
 Menu disableMenu;
 
 ConVar necromashEnable;
@@ -44,19 +44,20 @@ public void OnPluginStart()
 	
 	eventMenu = new Menu(EventMenuHandler);
 	eventMenu.SetTitle("=== Event Menu ===");
-	eventMenu.AddItem("setlocation", "Set event location");
 	eventMenu.AddItem("startevent", "Start an event");
 	eventMenu.AddItem("stopevent", "Stop event");
 	eventMenu.AddItem("disablestuff", "Disable stuff");
 	
-	startMenu = new Menu(StartMenuHandler);
-	startMenu.SetTitle("=== Event Types ===");
-	startMenu.AddItem("spycrab", "Spycrab");
-	startMenu.AddItem("minnows", "Sharks and Minnows");
+	startEventMenu = new Menu(StartEventMenuHandler);
+	startEventMenu.SetTitle("=== Event Types ===");
+	startEventMenu.AddItem("spycrab", "Spycrab");
+	startEventMenu.AddItem("minnows", "Sharks and Minnows");
+	SetMenuExitBackButton(startEventMenu, true);
 	
 	disableMenu = new Menu(DisableMenuHandler);
 	disableMenu.SetTitle("=== Disable Things ===");
 	disableMenu.AddItem("stopsmash", "Disable necrosmash");
+	SetMenuExitBackButton(disableMenu, true);
 }
 
 public Action EventMenu(int client, int args)
@@ -72,14 +73,9 @@ public int EventMenuHandler(Menu menu, MenuAction action, int param1, int param2
 	{
 		char info[32];
 		eventMenu.GetItem(param2, info, sizeof(info));
-		if (StrEqual(info, "setlocation", false))
+		if (StrEqual(info, "startevent", false))
 		{
-			FakeClientCommand(param1, "sm_setlocation");
-			eventMenu.Display(param1, MENU_TIME_FOREVER);
-		}
-		else if (StrEqual(info, "startevent", false))
-		{
-			startMenu.Display(param1, MENU_TIME_FOREVER);
+			startEventMenu.Display(param1, MENU_TIME_FOREVER);
 		}
 		else if (StrEqual(info, "stopevent", false))
 		{
@@ -92,12 +88,12 @@ public int EventMenuHandler(Menu menu, MenuAction action, int param1, int param2
 	}
 }
 
-public int StartMenuHandler(Menu menu, MenuAction action, int param1, int param2)
+public int StartEventMenuHandler(Menu menu, MenuAction action, int param1, int param2)
 {
 	if(action == MenuAction_Select)
 	{
 		char info[32];
-		startMenu.GetItem(param2, info, sizeof(info));
+		startEventMenu.GetItem(param2, info, sizeof(info));
 		if (StrEqual(info, "spycrab", false))
 			FakeClientCommand(param1, "sm_startevent 1");
 		else if (StrEqual(info, "minnows", false))
@@ -107,28 +103,22 @@ public int StartMenuHandler(Menu menu, MenuAction action, int param1, int param2
 
 public int DisableMenuHandler(Menu menu, MenuAction action, int param1, int param2)
 {
-	if(action == MenuAction_Select) 
+	if (action == MenuAction_Select) 
 	{
 		char info[32];
 		disableMenu.GetItem(param2, info, sizeof(info));
 		if(StrEqual(info, "stopsmash", false))
 		{
 			disableMenu.RemoveAllItems();
-			if(necromashEnable.BoolValue) 
-			{
-				necromashEnable.SetInt(0);
-				disableMenu.RemoveAllItems();
-				disableMenu.AddItem("stopsmash", "Enable necrosmash");
-				disableMenu.Display(param1, MENU_TIME_FOREVER);
-			}
-			else
-			{
-				necromashEnable.SetInt(1);
-				disableMenu.RemoveAllItems();
-				disableMenu.AddItem("stopsmash", "Disable necrosmash");
-				disableMenu.Display(param1, MENU_TIME_FOREVER);
-			}
+			if (necromashEnable.BoolValue) necromashEnable.SetInt(0);
+			else necromashEnable.SetInt(1);
+			DisableMenuBuilder();
+			disableMenu.Display(param1, MENU_TIME_FOREVER);
 		}
+	}
+	else if (action == MenuAction_Cancel && param2 == MenuCancel_ExitBack)
+	{
+		eventMenu.Display(param1, MENU_TIME_FOREVER);
 	}
 }
 /*Startevent:
@@ -138,6 +128,14 @@ public int DisableMenuHandler(Menu menu, MenuAction action, int param1, int para
 	Then, a switch case is run to advertise the correct event.
 	
 */
+public void DisableMenuBuilder()
+{
+	disableMenu.RemoveAllItems();
+	char necromashStatus[MAX_BUFFER_LENGTH];
+	Format(necromashStatus, sizeof(necromashStatus), "Necromash: %s", necromashEnable.BoolValue ? "Enabled" : "Disabled");
+	disableMenu.AddItem("stopsmash", necromashStatus);
+}
+
 public Action Command_StartEvent(int client, int args)
 {
 	if (!eventStart && eLocationSet)

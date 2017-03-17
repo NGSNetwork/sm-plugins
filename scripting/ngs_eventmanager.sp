@@ -29,6 +29,7 @@ float eLocation[3];
 
 Menu eventMenu;
 Menu startMenu;
+Menu disableMenu;
 
 ConVar necromashEnable;
 
@@ -43,24 +44,19 @@ public void OnPluginStart()
 	
 	eventMenu = new Menu(EventMenuHandler);
 	eventMenu.SetTitle("=== Event Menu ===");
+	eventMenu.AddItem("setlocation", "Set event location");
+	eventMenu.AddItem("startevent", "Start an event");
+	eventMenu.AddItem("stopevent", "Stop event");
+	eventMenu.AddItem("disablestuff", "Disable stuff");
 	
 	startMenu = new Menu(StartMenuHandler);
 	startMenu.SetTitle("=== Event Types ===");
 	startMenu.AddItem("spycrab", "Spycrab");
 	startMenu.AddItem("minnows", "Sharks and Minnows");
-}
-
-void EventMenuBuilder()
-{
-	eventMenu.RemoveAllItems();
-	eventMenu.AddItem("setlocation", "Set event location");
-	eventMenu.AddItem("startevent", "Start an event");
-	eventMenu.AddItem("stopevent", "Stop event");
-}
-
-public void OnAllPluginsLoaded()
-{
-	EventMenuBuilder();
+	
+	disableMenu = new Menu(DisableMenuHandler);
+	disableMenu.SetTitle("=== Disable Things ===");
+	disableMenu.AddItem("stopsmash", "Disable necrosmash");
 }
 
 public Action EventMenu(int client, int args)
@@ -89,37 +85,9 @@ public int EventMenuHandler(Menu menu, MenuAction action, int param1, int param2
 		{
 			FakeClientCommand(param1, "sm_stopevent");
 		}
-		else if (StrEqual(info, "stopsmash", false))
+		else if(StrEqual(info, "disablestuff", false)) 
 		{
-			if(necromashEnable)
-			{
-				necromashEnable.SetInt(0);
-				eventMenu.RemoveItem(3);
-				eventMenu.AddItem("stopsmash", "Turn on necrosmashing");
-				eventMenu.Display(param1, MENU_TIME_FOREVER);
-			}
-			else if(!necromashEnable)
-			{
-				necromashEnable.SetInt(1);
-				eventMenu.RemoveItem(3);
-				eventMenu.AddItem("stopsmash", "Turn off necrosmashing");
-			}
-		}
-		else if (StrEqual(info, "stopsmash", false))
-		{
-			if(necromashEnable)
-			{
-				necromashEnable.SetInt(0);
-				eventMenu.RemoveItem(3);
-				eventMenu.AddItem("stopsmash", "Turn on necrosmashing");
-				eventMenu.Display(param1, MENU_TIME_FOREVER);
-			}
-			else if(!necromashEnable)
-			{
-				necromashEnable.SetInt(1);
-				eventMenu.RemoveItem(3);
-				eventMenu.AddItem("stopsmash", "Turn off necrosmashing");
-			}
+			disableMenu.Display(param1, MENU_TIME_FOREVER);
 		}
 	}
 }
@@ -134,6 +102,33 @@ public int StartMenuHandler(Menu menu, MenuAction action, int param1, int param2
 			FakeClientCommand(param1, "sm_startevent 1");
 		else if (StrEqual(info, "minnows", false))
 			FakeClientCommand(param1, "sm_startevent 2");
+	}
+}
+
+public int DisableMenuHandler(Menu menu, MenuAction action, int param1, int param2)
+{
+	if(action == MenuAction_Select) 
+	{
+		char info[32];
+		disableMenu.GetItem(param2, info, sizeof(info));
+		if(StrEqual(info, "stopsmash", false))
+		{
+			disableMenu.RemoveAllItems();
+			if(necromashEnable.BoolValue) 
+			{
+				necromashEnable.SetInt(0);
+				disableMenu.RemoveAllItems();
+				disableMenu.AddItem("stopsmash", "Enable necrosmash");
+				disableMenu.Display(param1, MENU_TIME_FOREVER);
+			}
+			else
+			{
+				necromashEnable.SetInt(1);
+				disableMenu.RemoveAllItems();
+				disableMenu.AddItem("stopsmash", "Disable necrosmash");
+				disableMenu.Display(param1, MENU_TIME_FOREVER);
+			}
+		}
 	}
 }
 /*Startevent:

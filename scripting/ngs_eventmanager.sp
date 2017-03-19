@@ -16,6 +16,7 @@ Menu startEventMenu;
 Menu disableMenu;
 
 ConVar necromashEnable;
+ConVar busterEnable;
 
 public Plugin myinfo = {
 	name = "Event Manager",
@@ -51,11 +52,11 @@ public void OnPluginStart()
 	
 	disableMenu = new Menu(DisableMenuHandler);
 	disableMenu.SetTitle("=== Disable Things ===");
-	disableMenu.AddItem("stopsmash", "Disable necrosmash");
 	SetMenuExitBackButton(disableMenu, true);
 	
 	// ConVar Hooks
 	necromashEnable = FindConVar("sm_necromash_enable");
+	busterEnable = FindConVar("sm_buster_enable");
 }
 
 
@@ -220,6 +221,13 @@ public int DisableMenuHandler(Menu menu, MenuAction action, int param1, int para
 			DisableMenuBuilder();
 			disableMenu.Display(param1, MENU_TIME_FOREVER);
 		}
+		if(StrEqual(info, "stopbuster", false))
+		{
+			if (busterEnable.BoolValue) busterEnable.SetInt(0);
+			else busterEnable.SetInt(1);
+			DisableMenuBuilder();
+			disableMenu.Display(param1, MENU_TIME_FOREVER);
+		}
 	}
 	else if (action == MenuAction_Cancel && param2 == MenuCancel_ExitBack)
 	{
@@ -235,9 +243,11 @@ public int DisableMenuHandler(Menu menu, MenuAction action, int param1, int para
 public void DisableMenuBuilder()
 {
 	disableMenu.RemoveAllItems();
-	char necromashStatus[MAX_BUFFER_LENGTH];
+	char necromashStatus[24], busterStatus[24];
 	Format(necromashStatus, sizeof(necromashStatus), "Necromash: %s", necromashEnable.BoolValue ? "Enabled" : "Disabled");
+	Format(busterStatus, sizeof(busterStatus), "Buster: %s", busterEnable.BoolValue ? "Enabled" : "Disabled");
 	disableMenu.AddItem("stopsmash", necromashStatus);
+	disableMenu.AddItem("stopbuster", busterStatus);
 }
 
 public bool IsValidClient(int client)

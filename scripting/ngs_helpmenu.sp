@@ -2,15 +2,10 @@
 #pragma semicolon 1
 
 #include <sourcemod>
-#include <sdktools>
 #include <sdkhooks>
-#include <tf2_stocks>
-#include <tf2>
-#include <advanced_motd>
 #include <morecolors>
 
 #define PLUGIN_VERSION "1.0.0"
-#define STEAMCOMMUNITY_PROFILESURL "https://steamcommunity.com/profiles/"
 
 bool showRulesMenu[MAXPLAYERS + 1];
 
@@ -30,6 +25,7 @@ public Plugin myinfo = {
 public void OnPluginStart()
 {
 	RegConsoleCmd("sm_helpmenu", CommandHelpMenu, "Usage: sm_helpmenu");
+	RegConsoleCmd("sm_vip", CommandVIP, "Usage: sm_vip");
 	LoadTranslations("common.phrases");
 	
 	HookEvent("post_inventory_application", OnPlayerFirstSpawn, EventHookMode_Post);
@@ -112,8 +108,6 @@ public int ServerRulesMenuHandler(Menu menu, MenuAction action, int param1, int 
 			FakeClientCommand(param1, "say /donorperks");
 		else if (StrEqual(info, "playerrulelink", false))
 			FakeClientCommand(param1, "say /rules");
-		else 
-			serverRulesMenu.Display(param1, MENU_TIME_FOREVER);
 	}
 }
 

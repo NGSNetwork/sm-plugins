@@ -59,7 +59,10 @@ public void OnPluginStart()
 	busterEnable = FindConVar("sm_buster_enable");
 }
 
-
+public void OnAllPluginsLoaded()
+{
+	DisableMenuBuilder();
+}
 /********************************************
 			Command Callbacks
 ********************************************/
@@ -221,7 +224,7 @@ public int DisableMenuHandler(Menu menu, MenuAction action, int param1, int para
 			DisableMenuBuilder();
 			disableMenu.Display(param1, MENU_TIME_FOREVER);
 		}
-		if(StrEqual(info, "stopbuster", false))
+		if(StrEqual(info, "stopbust", false))
 		{
 			if (busterEnable.BoolValue) busterEnable.SetInt(0);
 			else busterEnable.SetInt(1);
@@ -247,7 +250,7 @@ public void DisableMenuBuilder()
 	Format(necromashStatus, sizeof(necromashStatus), "Necromash: %s", necromashEnable.BoolValue ? "Enabled" : "Disabled");
 	Format(busterStatus, sizeof(busterStatus), "Buster: %s", busterEnable.BoolValue ? "Enabled" : "Disabled");
 	disableMenu.AddItem("stopsmash", necromashStatus);
-	disableMenu.AddItem("stopbuster", busterStatus);
+	disableMenu.AddItem("stopbust", busterStatus);
 }
 
 public bool IsValidClient(int client)

@@ -46,10 +46,7 @@ public void OnLibraryAdded(const char[] name)
 	if (StrEqual(name, "basecomm"))
 		basecommExists = true;
 	if (StrEqual(name, "sourcecomms"))
-	{
-		PrintToChatAll("Sourcecomms exists!");
 		sourcecommsExists = true;
-	}
 }
 
 public void OnLibraryRemoved(const char[] name)
@@ -57,10 +54,7 @@ public void OnLibraryRemoved(const char[] name)
 	if (StrEqual(name, "basecomm"))
 		basecommExists = false;
 	if (StrEqual(name, "sourcecomms"))
-	{
-		PrintToChatAll("Sourcecomms no longer exists!");
 		sourcecommsExists = false;
-	}
 }
 
 public void OnClientPostAdminCheck(int client)
@@ -284,6 +278,8 @@ public Action CommandMuteNonAdmins(int client, int args)
 			SetClientListeningFlags(i, VOICE_MUTED);
 		}
 	}
+	CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "Muted all nonadmins!");
+	LogAction(client, -1, "Muted all nonadmins!");
 	muteNonAdminsEnabled = true;
 	return Plugin_Handled;
 }
@@ -302,6 +298,8 @@ public Action CommandUnmuteNonAdmins(int client, int args)
 			SetClientListeningFlags(i, VOICE_NORMAL);
 		}
 	}
+	CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "Unmuted all nonadmins!");
+	LogAction(client, -1, "Unmuted all nonadmins!");
 	muteNonAdminsEnabled = false;
 	return Plugin_Handled;
 }

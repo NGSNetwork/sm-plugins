@@ -7,9 +7,15 @@
 #include <tf2_stocks>
 #include <tf2>
 #include <morecolors>
-#define PLUGIN_VERSION "1.2.2"
+#undef REQUIRE_PLUGIN
+#include <basecomm>
+#include <sourcecomms>
 
-ConVar cvarPluginVersion;
+#define PLUGIN_VERSION "1.2.5"
+
+bool basecommExists = false;
+bool sourcecommsExists = false;
+bool muteNonAdminsEnabled = false;
 
 //--------------------//
 
@@ -18,19 +24,49 @@ public Plugin myinfo = {
 	author = "TheXeon",
 	description = "Admin commands for NGS people.",
 	version = PLUGIN_VERSION,
-	url = "https://matespastdates.servegame.com"
+	url = "https://neogenesisnetwork.net"
 }
 
 public void OnPluginStart()
 {
 	RegAdminCmd("sm_forcerespawn", CommandForceRespawn, ADMFLAG_GENERIC, "Usage: sm_forcerespawn <#userid|name>");
 	RegAdminCmd("sm_changeteam", CommandChangeTeam, ADMFLAG_GENERIC, "Usage: sm_changeteam <#userid|name> <team> (1 = Spec / 2 = Red / 3 = Blue)");
-	RegAdminCmd("sm_sethealth", CommandSetHealth, ADMFLAG_GENERIC, " Usage: sm_sethealth <#userid|name> <amount>");
-	RegAdminCmd("sm_bamall", CommandBamboozleAll, ADMFLAG_GENERIC, " Usage: sm_bamall <#userid|name>");
+	RegAdminCmd("sm_sethealth", CommandSetHealth, ADMFLAG_GENERIC, "Usage: sm_sethealth <#userid|name> <amount>");
+	RegAdminCmd("sm_bamall", CommandBamboozleAll, ADMFLAG_GENERIC, "Usage: sm_bamall <#userid|name>");
+	RegAdminCmd("sm_mutenonadmins", CommandMuteNonAdmins, ADMFLAG_GENERIC, "Usage: sm_mutenonadmins");
+	RegAdminCmd("sm_unmutenonadmins", CommandUnmuteNonAdmins, ADMFLAG_GENERIC, "Usage: sm_unmutenonadmins");
 	
-	cvarPluginVersion = CreateConVar("tf_ngsadmintoolkit_version", PLUGIN_VERSION, "Version of [NGS] Admin Toolkit");
+	CreateConVar("tf_ngsadmintoolkit_version", PLUGIN_VERSION, "Version of [NGS] Admin Toolkit");
 	
 	LoadTranslations("common.phrases");
+}
+
+public void OnLibraryAdded(const char[] name)
+{
+	if (StrEqual(name, "basecomm"))
+		basecommExists = true;
+	if (StrEqual(name, "sourcecomms"))
+	{
+		PrintToChatAll("Sourcecomms exists!");
+		sourcecommsExists = true;
+	}
+}
+
+public void OnLibraryRemoved(const char[] name)
+{
+	if (StrEqual(name, "basecomm"))
+		basecommExists = false;
+	if (StrEqual(name, "sourcecomms"))
+	{
+		PrintToChatAll("Sourcecomms no longer exists!");
+		sourcecommsExists = false;
+	}
+}
+
+public void OnClientPostAdminCheck(int client)
+{
+	if (muteNonAdminsEnabled && !CheckCommandAccess(client, "sm_admin", ADMFLAG_GENERIC)) 
+		SetClientListeningFlags(client, VOICE_MUTED);
 }
 
 public Action CommandForceRespawn(int client, int args)
@@ -234,7 +270,43 @@ public Action CommandBamboozleAll(int client, int args)
 	return Plugin_Handled;
 }
 
-public bool IsValidClient (int client)
+public Action CommandMuteNonAdmins(int client, int args)
+{
+	if (muteNonAdminsEnabled)
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Nonadmins are already muted. Use sm_unmutenonadmins to unmute.");
+		return Plugin_Handled;
+	}
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsValidClient(i) && !CheckCommandAccess(i, "sm_admin", ADMFLAG_GENERIC))
+		{
+			SetClientListeningFlags(i, VOICE_MUTED);
+		}
+	}
+	muteNonAdminsEnabled = true;
+	return Plugin_Handled;
+}
+
+public Action CommandUnmuteNonAdmins(int client, int args)
+{
+	if (!muteNonAdminsEnabled)
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Nonadmins aren''t muted. Use sm_mutenonadmins to mute.");
+		return Plugin_Handled;
+	}
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsValidClient(i) && ((sourcecommsExists && SourceComms_GetClientMuteType(i) != bNot) || (basecommExists && !BaseComm_IsClientMuted(i))))
+		{
+			SetClientListeningFlags(i, VOICE_NORMAL);
+		}
+	}
+	muteNonAdminsEnabled = false;
+	return Plugin_Handled;
+}
+
+public bool IsValidClient(int client)
 {
 	if(client > 4096) client = EntRefToEntIndex(client);
 	if(client < 1 || client > MaxClients) return false;

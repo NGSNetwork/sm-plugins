@@ -293,7 +293,7 @@ public Action CommandUnmuteNonAdmins(int client, int args)
 	}
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		if (IsValidClient(i) && ((sourcecommsExists && SourceComms_GetClientMuteType(i) != bNot) || (basecommExists && !BaseComm_IsClientMuted(i))))
+		if (IsValidClient(i) && ((sourcecommsExists && SourceComms_GetClientMuteType(i) == bNot) || (basecommExists && !BaseComm_IsClientMuted(i))))
 		{
 			SetClientListeningFlags(i, VOICE_NORMAL);
 		}

@@ -14,6 +14,10 @@ Menu serverRulesMenu;
 Menu serverCommandsMainMenu;
 Menu serverCommandsSubMenu;
 
+ConVar cvHostport;
+
+int port;
+
 public Plugin myinfo = {
 	name = "[NGS] Help Menu",
 	author = "TheXeon",
@@ -28,6 +32,8 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_vip", CommandVIP, "Usage: sm_vip");
 	LoadTranslations("common.phrases");
 	
+	Server_GetPort();
+	
 	HookEvent("post_inventory_application", OnPlayerFirstSpawn, EventHookMode_Post);
 	
 	helpMenu = new Menu(HelpMenuHandler);
@@ -38,16 +44,6 @@ public void OnPluginStart()
 	
 	serverRulesMenu = new Menu(ServerRulesMenuHandler);
 	serverRulesMenu.SetTitle("=== NGS Server Rules ===");
-	serverRulesMenu.AddItem("rule1", "No hacks or glitches!");
-	serverRulesMenu.AddItem("rule2", "No scamming!");
-	serverRulesMenu.AddItem("rule3", "No running from spycrabs!");
-	serverRulesMenu.AddItem("rule4", "Don\'t spam binds!");
-	serverRulesMenu.AddItem("rule5", "Avoid politics, religion, and race in conversation!");
-	serverRulesMenu.AddItem("rule6", "Don\'t impersonate staff!");
-	serverRulesMenu.AddItem("rule7", "Don\'t kill friendlies during events or otherwise!");
-	serverRulesMenu.AddItem("rule8", "Don\'t beg for items or ask for donations!");
-	serverRulesMenu.AddItem("playerrulelink", "Select me to go to regular rules.");
-	serverRulesMenu.AddItem("donorrulelink", "Select me to go to donor rules.");
 	SetMenuExitBackButton(serverRulesMenu, true);
 	
 	serverCommandsMainMenu = new Menu(ServerCommandsMenuHandler);
@@ -57,6 +53,10 @@ public void OnPluginStart()
 	SetMenuExitBackButton(serverCommandsMainMenu, true);
 	
 	serverCommandsSubMenu = new Menu(ServerCommandsSubMenuHandler);
+}
+public void OnAllPluginsLoaded()
+{
+	RuleMenuBuilder();
 }
 
 public void OnClientConnected(int client)
@@ -191,6 +191,49 @@ public void OnPlayerFirstSpawn(Event event, const char[] name, bool dontBroadcas
 		serverRulesMenu.Display(client, MENU_TIME_FOREVER);
 		showRulesMenu[client] = false;
 	}
+}
+public void RuleMenuBuilder()
+{
+	
+	if(port == 27015) 
+	{
+		serverRulesMenu.AddItem("rule1", "No hacks or glitches!");
+		serverRulesMenu.AddItem("rule2", "No scamming/running from agreed gambles!");
+		serverRulesMenu.AddItem("rule3", "Don\'t spam chat/binds/earrape mic spam!");
+		serverRulesMenu.AddItem("rule4", "Avoid politics, religion, and race in conversation!");
+		serverRulesMenu.AddItem("rule5", "Don\'t impersonate staff!");
+		serverRulesMenu.AddItem("rule6", "Don\'t beg for items or ask for donations!");
+		serverRulesMenu.AddItem("playerrulelink", "Select me to go to regular rules.");
+		serverRulesMenu.AddItem("donorrulelink", "Select me to go to donor rules.");
+	}
+	else
+	{
+		serverRulesMenu.AddItem("rule1", "No hacks or glitches!");
+		serverRulesMenu.AddItem("rule2", "No scamming/running from agreed gambles!");
+		serverRulesMenu.AddItem("rule3", "Don\'t spam chat/binds/micspam!");
+		serverRulesMenu.AddItem("rule4", "Make room on the mic for advertisments");
+		serverRulesMenu.AddItem("rule5", "No false advertisements(fake QS/Discount)!");
+		serverRulesMenu.AddItem("rule6", "Avoid politics, religion, and race in conversation!");
+		serverRulesMenu.AddItem("rule7", "Don\'t impersonate staff!");
+		serverRulesMenu.AddItem("rule8", "Don\'t beg for items or ask for donations!");
+		serverRulesMenu.AddItem("playerrulelink", "Select me to go to regular rules.");
+		serverRulesMenu.AddItem("donorrulelink", "Select me to go to donor rules.");
+	}
+}
+
+public int Server_GetPort()
+{
+	if (cvHostport == INVALID_HANDLE) {
+		cvHostport = FindConVar("hostport");
+	}
+
+	if (cvHostport == INVALID_HANDLE) {
+		return 0;
+	}
+
+	port = GetConVarInt(cvHostport);
+
+	return port;	
 }
 
 public bool IsValidClient(int client)

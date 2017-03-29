@@ -6,6 +6,7 @@
 #include <tf2_stocks>
 #include <sdkhooks>
 #include <morecolors>
+#include <friendly>
 
 #define PLUGIN_VERSION		"1.7"
 
@@ -119,7 +120,7 @@ public Action Command_Kartify(int client, int args) {
 	for(int i = 0; i < result; i++) {
 		LogAction(client, targets[i], "\"%L\" kartified \"%L\"", client, targets[i]);
 		g_KartSpawn[targets[i]] = true;
-		Kartify(targets[i]);
+		Kartify(targets[i], true);
 	}
 	
 	return Plugin_Handled;
@@ -160,19 +161,22 @@ public Action Command_KartifyMe(int client, int args) {
 		Command_UnkartifyMe(client, 0);
 		return Plugin_Handled;
 	}
-	
-	CShowActivity2(client, "{GREEN}[SM]{LIGHTGREEN} ", "{DEFAULT}Put self into a kart.");
-	LogAction(client, client, "\"%L\" put themselves into a kart", client);
 	g_KartSpawn[client] = true;
-	Kartify(client);
+	if (Kartify(client))
+	{
+		CShowActivity2(client, "{GREEN}[SM]{LIGHTGREEN} ", "{DEFAULT}Put self into a kart.");
+		LogAction(client, client, "\"%L\" put themselves into a kart", client);
+	}
 	return Plugin_Handled;
 }
 
 public Action Command_UnkartifyMe(int client, int args) {
-	CShowActivity2(client, "{GREEN}[SM]{LIGHTGREEN} ", "{DEFAULT}Removed self from a kart.");
-	LogAction(client, client, "\"%L\" removed themselves from a kart", client);
 	g_KartSpawn[client] = false;
-	Unkartify(client);
+	if (Unkartify(client))
+	{
+		CShowActivity2(client, "{GREEN}[SM]{LIGHTGREEN} ", "{DEFAULT}Removed self from a kart.");
+		LogAction(client, client, "\"%L\" removed themselves from a kart", client);
+	}
 	return Plugin_Handled;
 }
 
@@ -197,13 +201,32 @@ public void Event_PlayerTeam(Handle event, const char[] name, bool dontBroadcast
 	}
 }
 
-void Kartify(int client) {
+bool Kartify(int client, bool triggerAdmin=false) {
+	if (TF2Friendly_IsLocked(client) && !triggerAdmin && !TF2Friendly_IsFriendly(client))
+	{
+		CPrintToChat(client, "{GREEN}[SM]{LIGHTGREEN} Please get an admin to remove your friendly lock.");
+		return false;
+	}
+	TF2Friendly_SetFriendly(client, 1, -1);
+	TF2_RespawnPlayer(client);
 	TF2_AddCondition(client, view_as<TFCond>(82), TFCondDuration_Infinite);
 	SetEntProp(client, Prop_Send, "m_iKartHealth", GetConVarInt(g_cvarStartPercentage));
+	return true;
 }
 
-void Unkartify(int client) {
-	TF2_RemoveCondition(client, view_as<TFCond>(82));
+bool Unkartify(int client)
+{
+	if (TF2_IsPlayerInCondition(client, view_as<TFCond>(82)))
+	{
+		TF2_RemoveCondition(client, view_as<TFCond>(82));
+		if (!TF2Friendly_IsLocked(client))
+		{
+			TF2Friendly_SetFriendly(client, 0, -1);
+			TF2_RespawnPlayer(client);
+		}
+		return true;
+	}
+	return false;
 }
 
 public void OnGameFrame() {

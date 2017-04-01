@@ -1,62 +1,48 @@
-#pragma newdecls required
-#pragma semicolon 1
-
 #include <sourcemod>
 #include <sdktools>
-#include <sdkhooks>
-#include <tf2_stocks>
-#include <tf2>
+#include <adminmenu>
 #include <morecolors>
-#define PLUGIN_VERSION "1.0"
-
-//-------------------------------------------------------------------------------------------------
-public Plugin myinfo = {
-	name = "[NGS] Spy Crab Event Creator",
-	author = "caty / TheXeon",
-	description = "Start spycrab events!",
-	version = PLUGIN_VERSION,
-	url = "https://matespastdates.servegame.com"
-}
 
 public void OnPluginStart()
 {
-	RegConsoleCmd("sm_spycrab", CommandSpycrab, "Starts and ends a spycrab");
+	RegConsoleCmd("sm_spycrab", Cmd_Crab, "Displays spycrab target menu.");
+	RegConsoleCmd("sm_crab", Cmd_Crab, "Displays spycrab target menu.");
 }
 
-public Action CommandSpycrab(int client, int args)
+public Action Cmd_Crab(int client, int args)
 {
-	if(!IsValidClient(client) || !IsPlayerAlive(client))
-	{
-		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Event: You must be alive to start this event.");
-		return Plugin_Handled;
-	}
-	
-	int clientTeam = GetClientTeam(client);
-	if(clientTeam > 1 && clientTeam < 4)
-	{
-		float spy_redorigin[3];
-		float spy_blueorigin[3];
-		spy_redorigin[0] = 3096.031250;
-		spy_redorigin[1] = 1970.062744;
-		spy_redorigin[2] = 651.031311;
-		spy_blueorigin[0] = 3099.921143;
-		spy_blueorigin[1] = 1179.364258;
-		spy_blueorigin[2] = 651.031311;
-		
-		if (clientTeam == 2) TeleportEntity(client, spy_redorigin, NULL_VECTOR, NULL_VECTOR);
-		if (clientTeam == 3) TeleportEntity(client, spy_blueorigin, NULL_VECTOR, NULL_VECTOR);
-		
-		return Plugin_Handled;
-	}
-	return Plugin_Handled;
+	if (!IsValidClient(client)) return Plugin_Handled;
+	Menu spycrabMenu = new Menu(SpycrabMenuHandler);
+	spycrabMenu.SetTitle("Select a player:");
+	AddTargetsToMenu(spycrabMenu, 0);
+	spycrabMenu.Display(client, MENU_TIME_FOREVER);
 }
 
-public bool IsValidClient(int client)
+public int SpycrabMenuHandler(Menu menu, MenuAction action, int param1, int param2)
 {
-	if(client > 4096) client = EntRefToEntIndex(client);
-	if(client < 1 || client > MaxClients) return false;
-	if(!IsClientInGame(client)) return false;
-	if(IsFakeClient(client)) return false;
-	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
+	if (action == MenuAction_Select)
+	{
+		char target[16];
+		int iTarget;
+		menu.GetItem(param2, target, sizeof(target));
+		iTarget = GetClientOfUserId(StringToInt(target));
+		if (param1 == iTarget)
+		{
+			CPrintToChat(param1, "{LIGHTGREEN}[Crab]{DEFAULT} You may not target yourself!");
+			return;
+		}
+		CPrintToChatAll("{LIGHTGREEN}[CRAB]{DEFAULT }%N has challenged %N to a spycrab showdown!", param1, iTarget);
+	}
+}
+
+stock bool IsValidClient(int client, bool aliveTest=false, bool botTest=true, bool rangeTest=true, 
+	bool ingameTest=true)
+{
+	if (client > 4096) client = EntRefToEntIndex(client);
+	if (rangeTest && (client < 1 || client > MaxClients)) return false;
+	if (ingameTest && !IsClientInGame(client)) return false;
+	if (botTest && IsFakeClient(client)) return false;
+	if (GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
+	if (aliveTest && !IsPlayerAlive(client)) return false;
 	return true;
 }

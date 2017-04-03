@@ -79,8 +79,8 @@ public int AcceptMenuHandler(Menu menu, MenuAction action, int param1, int param
 		if (StrEqual(answer, "yes"))
 		{
 			CPrintToChatAll("{LIGHTGREEN}[Crab]{DEFAULT} %N accepted %N\'s spycrab!", param1, firstClient);
-			LogAction(secondClient, firstClient, "%N has accepted %N\'s spycrab.", secondClient, firstClient);
 			secondClient = param1;
+			LogAction(secondClient, firstClient, "%N has accepted %N\'s spycrab.", secondClient, firstClient);
 			StartSpyCrab();
 		}
 		else

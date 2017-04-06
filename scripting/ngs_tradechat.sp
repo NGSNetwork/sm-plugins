@@ -11,11 +11,11 @@
 #define PLUGIN_VERSION "1.5.1"
 
 public Plugin myinfo = {
-	name = "Trade Chat",
-	author = "Luki",
+	name = "[NGS] Trade Chat",
+	author = "Luki / TheXeon",
 	description = "This plugin adds a special trade chat, players can hide it.",
 	version = PLUGIN_VERSION,
-	url = "http://neogenesisnetwork.net/"
+	url = "https://neogenesisnetwork.net/"
 }
 
 ConVar hAntiSpamDelay;
@@ -139,7 +139,7 @@ public Action Command_Say(int client, int args)
 
 public bool checkForTriggers(char[] text)
 {
-	if (!(FindCharInString(text, '/') == 1 || FindCharInString(text, '!') == 1))
+	if (!(FindCharInString(text, '/') == 1 || FindCharInString(text, '!') == 1 || FindCharInString(text, '@') == 1))
 	{
 		for (int i = 0; i < triggersAmount; i++)
 		{

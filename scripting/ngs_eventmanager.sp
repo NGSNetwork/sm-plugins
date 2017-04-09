@@ -8,15 +8,20 @@
 
 bool eLocationSet = false;
 bool eventStart = false;
-int eventType = 0;
+bool s1 = false;
+bool s2 = false;
+bool s3 = false;
+bool s4 = false;
+bool s5 = false;
+int eventClass = 1;
 float eLocation[3];
 
 Menu eventMenu;
-Menu startEventMenu;
+Menu configureEventMenu;
+Menu stripMenu;
 Menu disableMenu;
 
-ConVar necromashEnable;
-ConVar busterEnable;
+ConVar funstuffEnable;
 
 public Plugin myinfo = {
 	name = "Event Manager",
@@ -30,7 +35,6 @@ public Plugin myinfo = {
 public void OnPluginStart()
 {
 	// Commands
-	RegAdminCmd("sm_startevent", Command_StartEvent, ADMFLAG_GENERIC,"Starts the event. 1 for spycrab, 2 for sharks and minnows.");
 	RegAdminCmd("sm_stopevent", Command_StopEvent, ADMFLAG_GENERIC, "Closes the joining time for the event");
 	RegAdminCmd("sm_setlocation", Command_SetLocation, ADMFLAG_GENERIC, "Set's the location where players will teleport to");
 	RegAdminCmd("sm_event", Command_EventMenu, ADMFLAG_GENERIC, "Menu interface for event manager plugin");
@@ -41,22 +45,26 @@ public void OnPluginStart()
 	eventMenu = new Menu(EventMenuHandler);
 	eventMenu.SetTitle("=== Event Menu ===");
 	eventMenu.AddItem("startevent", "Start an event");
+	eventMenu.AddItem("configureevent", "Congifure event settings");
 	eventMenu.AddItem("stopevent", "Stop event");
 	eventMenu.AddItem("disablestuff", "Disable stuff");
 	
-	startEventMenu = new Menu(StartEventMenuHandler);
-	startEventMenu.SetTitle("=== Event Types ===");
-	startEventMenu.AddItem("spycrab", "Spycrab");
-	startEventMenu.AddItem("minnows", "Sharks and Minnows");
-	SetMenuExitBackButton(startEventMenu, true);
+	configureEventMenu = new Menu(ConfigureMenuHandler);
+	configureEventMenu.SetTitle("=== Event Types ===");
+	ConfigureMenuBuilder();
+	SetMenuExitBackButton(configureEventMenu, true);
+	
+	stripMenu = new Menu(StripMenuHandler);
+	stripMenu.SetTitle("=== Strip Weapons ===");
+	StripMenuBuilder();
+	SetMenuExitBackButton(stripMenu, true);
 	
 	disableMenu = new Menu(DisableMenuHandler);
 	disableMenu.SetTitle("=== Disable Things ===");
 	SetMenuExitBackButton(disableMenu, true);
 	
-	// ConVar Hooks
-	necromashEnable = FindConVar("sm_necromash_enable");
-	busterEnable = FindConVar("sm_buster_enable");
+	// ConVars
+	funstuffEnable = CreateConVar("sm_funstuff_enable", "1", "Disables/enables interupting fun stuff items");
 }
 
 public void OnAllPluginsLoaded()
@@ -74,52 +82,12 @@ public Action Command_EventMenu(int client, int args)
 	return Plugin_Handled;
 }
 
-public Action Command_StartEvent(int client, int args)
-{
-	if (!eventStart && eLocationSet)
-	{
-		char arg1[15];
-		GetCmdArg(1, arg1, sizeof(arg1));
-		eventType = StringToInt(arg1);
-		if(args < 1)
-		{
-			CPrintToChat(client, "{GREEN}[Event]{DEFAULT} After !startevent, please enter 1 for spycrab, or 2 for sharks and minnows");
-			return Plugin_Handled;
-		}
-		switch(eventType)
-		{
-			case 1:
-			{
-				eventStart = true;
-				CPrintToChatAll("{GREEN}[Event]{DEFAULT} The Spycrab event has been started, do !joinevent to join!");				
-			}
-			
-			case 2:
-			{
-				eventStart = true;
-				CPrintToChatAll("{GREEN}[Event]{DEFAULT} The Sharks and Minnows event has been started, do !joinevent to join!");
-			}
-		}
-	}
-	else if (!eLocationSet)
-	{
-		CPrintToChat(client,"{GREEN}[Event]{DEFAULT} There is no location set.");
-	}	
-	else
-	{
-		CPrintToChat(client, "{GREEN}[Event]{DEFAULT} There's already an event running!");
-	}
-
-	return Plugin_Handled;
-}
-
 public Action Command_StopEvent(int client, int args)
 {
 	if (eventStart)
 	{
 		CPrintToChatAll("{GREEN}[Event]{DEFAULT} The event joining time is over.");
 		eventStart = false;
-		eventType = 0;
 	} 
 	else
 	{
@@ -130,6 +98,10 @@ public Action Command_StopEvent(int client, int args)
 
 public Action Command_SetLocation(int client, int args)
 {
+	if(eventStart) {
+		CPrintToChatAll("{GREEN}[Event]{Default} You can not modify event parameters while an event is running");
+		return Plugin_Handled;
+	}
 	GetClientAbsOrigin(client, eLocation);
 	eLocationSet = true;
 	CReplyToCommand(client, "{GREEN}[Event]{DEFAULT} Location has been set.");
@@ -143,32 +115,13 @@ public Action Command_JoinEvent(int client, int args)
 	{
 		if (TF2_GetClientTeam(client) == TFTeam_Blue)
 		{
-			switch(eventType)
-			{
-				case 1:
-				{
-					TF2_RespawnPlayer(client);
-					TF2_SetPlayerClass(client, TFClass_Spy, true, true);
-					TF2_RespawnPlayer(client);
-					TF2_RemoveWeaponSlot(client, 0);
-					TF2_RemoveWeaponSlot(client, 1);
-					TeleportEntity(client, eLocation, NULL_VECTOR, NULL_VECTOR);
-				}
-				
-				case 2:
-				{
-					TF2_RespawnPlayer(client);
-					TF2_SetPlayerClass(client, TFClass_Scout, true, true);
-					TF2_RespawnPlayer(client);
-					TF2_RemoveWeaponSlot(client, 0);
-					TF2_RemoveWeaponSlot(client, 1);
-					TeleportEntity(client, eLocation, NULL_VECTOR, NULL_VECTOR);
-				}
-			}
+			SetEventClass(client);
+			WeaponStripper(client);
+			TeleportEntity(client, eLocation, NULL_VECTOR, NULL_VECTOR);
 		}
 		else
 		{
-			CPrintToChat(client,"{GREEN}[Event]{DEFAULT} Please join blue team to join the event.");
+			CPrintToChat(client,"{GREEN}[Event]{DEFAULT} Please join blu team to join the event.");
 		}
 	}
 	else
@@ -190,7 +143,20 @@ public int EventMenuHandler(Menu menu, MenuAction action, int param1, int param2
 		char info[32];
 		eventMenu.GetItem(param2, info, sizeof(info));
 		if (StrEqual(info, "startevent", false))
-			startEventMenu.Display(param1, MENU_TIME_FOREVER);
+		{
+			if (eventStart == true) 
+				CPrintToChat(param1, "{GREEN}[Event]{Default} There is already an event running.");
+			else if(eLocationSet == false) 
+				CPrintToChat(param1, "{GREEN}[Event]{Default} Event location has not been set.");
+			else
+			{
+				CPrintToChatAll("{GREEN}[Event]{Default} An event has been started, do !joinevent to join!");
+				eventStart = true;
+			}
+		}
+			
+		if (StrEqual(info, "configureevent", false))
+			configureEventMenu.Display(param1, MENU_TIME_FOREVER);
 		else if (StrEqual(info, "stopevent", false))
 			FakeClientCommand(param1, "sm_stopevent");
 		else if(StrEqual(info, "disablestuff", false)) 
@@ -198,36 +164,93 @@ public int EventMenuHandler(Menu menu, MenuAction action, int param1, int param2
 	}
 }
 
-public int StartEventMenuHandler(Menu menu, MenuAction action, int param1, int param2)
+public int ConfigureMenuHandler(Menu menu, MenuAction action, int param1, int param2)
 {
 	if(action == MenuAction_Select)
 	{
 		char info[32];
-		startEventMenu.GetItem(param2, info, sizeof(info));
-		if (StrEqual(info, "spycrab", false))
-			FakeClientCommand(param1, "sm_startevent 1");
-		else if (StrEqual(info, "minnows", false))
-			FakeClientCommand(param1, "sm_startevent 2");
+		configureEventMenu.GetItem(param2, info, sizeof(info));
+		if (StrEqual(info, "setlocation", false))
+		{
+			FakeClientCommand(param1, "sm_setlocation");
+			configureEventMenu.Display(param1, MENU_TIME_FOREVER);	
+		}
+		if (StrEqual(info, "class", false))
+		{
+			if(eventStart == false)
+			{			
+				if (eventClass < 9)eventClass = eventClass + 1;
+				else eventClass = 1;
+				ConfigureMenuBuilder();
+				configureEventMenu.Display(param1, MENU_TIME_FOREVER);
+			}
+			else
+			{
+				CPrintToChat(param1, "{GREEN}[Event]{Default} You can not modify event parameters while an event is running.");
+				configureEventMenu.Display(param1, MENU_TIME_FOREVER);
+			}
+		}
+		if (StrEqual(info, "stripmenu", false))stripMenu.Display(param1, MENU_TIME_FOREVER);
+		if (StrEqual(info, "startevent", false))
+		{
+			if (eventStart == true) 
+				CPrintToChat(param1, "{GREEN}[Event]{Default} There is already an event running.");
+			else if(eLocationSet == false) 
+				CPrintToChat(param1, "{GREEN}[Event]{Default} Event location has not been set.");
+			else
+			{
+				CPrintToChatAll("{GREEN}[Event]{Default} An event has been started, do !joinevent to join!");
+				eventStart = true;
+			}
+		}
 	}
 }
 
+public int StripMenuHandler(Menu menu, MenuAction action, int param1, int param2)
+{
+	if(action == MenuAction_Select)
+	{
+		char info[32];
+		stripMenu.GetItem(param2, info, sizeof(info));
+		if (StrEqual(info, "strip1", false))
+		{
+			if (s1)s1 = false;
+			else s1 = true;
+		}
+		if (StrEqual(info, "strip2", false))
+		{
+			if (s2)s2 = false;
+			else s2 = true;
+		}
+		if (StrEqual(info, "strip3", false))
+		{
+			if (s3)s3 = false;
+			else s3 = true;
+		}
+		if (StrEqual(info, "strip4", false))
+		{
+			if (s4)s4 = false;
+			else s4 = true;
+		}
+		if (StrEqual(info, "strip5", false))
+		{
+			if (s5)s5 = false;
+			else s5 = true;
+		}
+		StripMenuBuilder();
+		stripMenu.Display(param1, MENU_TIME_FOREVER);
+	}
+}
 public int DisableMenuHandler(Menu menu, MenuAction action, int param1, int param2)
 {
 	if (action == MenuAction_Select) 
 	{
 		char info[32];
 		disableMenu.GetItem(param2, info, sizeof(info));
-		if(StrEqual(info, "stopsmash", false))
+		if(StrEqual(info, "stopfun", false))
 		{
-			if (necromashEnable.BoolValue) necromashEnable.SetInt(0);
-			else necromashEnable.SetInt(1);
-			DisableMenuBuilder();
-			disableMenu.Display(param1, MENU_TIME_FOREVER);
-		}
-		if(StrEqual(info, "stopbust", false))
-		{
-			if (busterEnable.BoolValue) busterEnable.SetInt(0);
-			else busterEnable.SetInt(1);
+			if (funstuffEnable.BoolValue) funstuffEnable.SetInt(0);
+			else funstuffEnable.SetInt(1);
 			DisableMenuBuilder();
 			disableMenu.Display(param1, MENU_TIME_FOREVER);
 		}
@@ -243,14 +266,111 @@ public int DisableMenuHandler(Menu menu, MenuAction action, int param1, int para
 				Extras
 ********************************************/
 
+
+public void SetEventClass(int client)
+{
+	TF2_RespawnPlayer(client);
+	switch(eventClass) {
+		case 1: {
+			TF2_SetPlayerClass(client, TFClass_Scout);
+		}
+		case 2: {
+			TF2_SetPlayerClass(client, TFClass_Soldier);
+		}
+		case 3: {
+			TF2_SetPlayerClass(client, TFClass_Pyro);
+		}
+		case 4: {
+			TF2_SetPlayerClass(client, TFClass_DemoMan);
+		}
+		case 5: {
+			TF2_SetPlayerClass(client, TFClass_Heavy);
+		}
+		case 6: {
+			TF2_SetPlayerClass(client, TFClass_Engineer);
+		}
+		case 7: {
+			TF2_SetPlayerClass(client, TFClass_Medic);
+		}
+		case 8: {
+			TF2_SetPlayerClass(client, TFClass_Sniper);
+		}
+		case 9: {
+			TF2_SetPlayerClass(client, TFClass_Spy);
+		}
+	}
+	TF2_RespawnPlayer(client);
+}
+
+public void WeaponStripper(int client)
+{
+	if (s1)TF2_RemoveWeaponSlot(client, 0);
+	if (s2)TF2_RemoveWeaponSlot(client, 1);
+	if (s3)TF2_RemoveWeaponSlot(client, 2);
+	if (s4)TF2_RemoveWeaponSlot(client, 3);
+	if (s5)TF2_RemoveWeaponSlot(client, 4);
+}
+
 public void DisableMenuBuilder()
 {
 	disableMenu.RemoveAllItems();
-	char necromashStatus[24], busterStatus[24];
-	Format(necromashStatus, sizeof(necromashStatus), "Necromash: %s", necromashEnable.BoolValue ? "Enabled" : "Disabled");
-	Format(busterStatus, sizeof(busterStatus), "Buster: %s", busterEnable.BoolValue ? "Enabled" : "Disabled");
-	disableMenu.AddItem("stopsmash", necromashStatus);
-	disableMenu.AddItem("stopbust", busterStatus);
+	char funstuffStatus[24];
+	Format(funstuffStatus, sizeof(funstuffStatus), "funstuff: %s", funstuffEnable.BoolValue ? "Enabled" : "Disabled");
+	disableMenu.AddItem("stopfun", funstuffStatus);
+}
+
+public void ConfigureMenuBuilder()
+{
+	configureEventMenu.RemoveAllItems();
+	configureEventMenu.AddItem("setlocation", "Set event location");
+	switch(eventClass) {
+		case 1:	{
+			configureEventMenu.AddItem("class", "Select class: Scout");
+		}
+		case 2: {
+			configureEventMenu.AddItem("class", "Select class: Soldier");
+		}
+		case 3:	{
+			configureEventMenu.AddItem("class", "Select class: Pyro");
+		}
+		case 4:	{
+			configureEventMenu.AddItem("class", "Select class: Demo");
+		}
+		case 5:	{
+			configureEventMenu.AddItem("class", "Select class: Heavy");
+		}
+		case 6:	{
+			configureEventMenu.AddItem("class", "Select class: Engineer");
+		}
+		case 7:	{
+			configureEventMenu.AddItem("class", "Select class: Medic");
+		}
+		case 8:	{
+			configureEventMenu.AddItem("class", "Select class: Sniper");
+		}
+		case 9:	{
+			configureEventMenu.AddItem("class", "Select class: Spy");
+		}
+	}
+	configureEventMenu.AddItem("stripmenu", "Strip weapons");
+	configureEventMenu.AddItem("startevent", "Start an event");
+}
+
+public void StripMenuBuilder()
+{
+	stripMenu.RemoveAllItems();
+	char strip1Status[32], strip2Status[32], strip3Status[32], strip4Status[32], strip5Status[32];
+	Format(strip1Status, sizeof(strip1Status), "Strip primary: %s", s1 ? "Enabled" : "Disabled");
+	Format(strip2Status, sizeof(strip2Status), "Strip secondary: %s", s2 ? "Enabled" : "Disabled");
+	Format(strip3Status, sizeof(strip3Status), "Strip melee: %s", s3 ? "Enabled" : "Disabled");
+	Format(strip4Status, sizeof(strip4Status), "Strip PDA1: %s", s4 ? "Enabled" : "Disabled");
+	Format(strip5Status, sizeof(strip5Status), "Strip PDA2: %s", s5 ? "Enabled" : "Disabled");
+	
+	stripMenu.AddItem("strip1", strip1Status);
+	stripMenu.AddItem("strip2", strip2Status);
+	stripMenu.AddItem("strip3", strip3Status);
+	stripMenu.AddItem("strip4", strip4Status);
+	stripMenu.AddItem("strip5", strip5Status);
 }
 
 public bool IsValidClient(int client)

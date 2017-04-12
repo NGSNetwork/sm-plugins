@@ -59,7 +59,7 @@ public Action timer_PlayerProtect(Handle timer, any client)
 	clientProtected[client] = false;
 	hSpawnTimer[client] = null;
 
-	if (cvarAnnounce.BoolValue)
+	if (cvarAnnounce.BoolValue && IsValidClient(client))
 		CPrintToChat(client, "{LIGHTGREEN}[SpawnProtect] {DEFAULT}Your Spawn Protection is now Disabled!");
 }
 

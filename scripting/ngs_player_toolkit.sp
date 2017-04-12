@@ -43,7 +43,7 @@ public void OnMapStart()
 {
 	PrecacheSound("ambient/bumper_car_quack11.wav", false);
 	PrecacheSound("vo/demoman_specialcompleted11.mp3", false);
-	PrecacheSound("ambient/train.wav", false);
+	PrecacheSound("coach/coach_attack_here.wav", false);
 	PrecacheSound("misc/happy_birthday_tf_08.wav", false);
 }
 
@@ -172,7 +172,7 @@ public Action CommandChowMane(int client, int args)
 	if (!IsValidClient) return Plugin_Handled;
 	
 	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} APPLY CHOW MANE LIBERALLY TO EAR CANALS!!ONE!11!ONE");
-	EmitSoundToClient(client, "ambient/train.wav");
+	EmitSoundToClient(client, "coach/coach_attack_here.wav");
 	return Plugin_Handled;
 }
 

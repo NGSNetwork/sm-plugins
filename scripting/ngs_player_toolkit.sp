@@ -22,7 +22,7 @@ public Plugin myinfo = {
 	author = "TheXeon",
 	description = "Player commands for NGS people.",
 	version = PLUGIN_VERSION,
-	url = "https://neogenesisnetwork.servegame.com"
+	url = "https://neogenesisnetwork.net"
 }
 
 public void OnPluginStart()
@@ -35,6 +35,7 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_dontbamboozleme", CommandDontBamboozle, "Usage: sm_dontbamboozleme");
 	RegConsoleCmd("sm_administration", CommandAdministration, "Usage: sm_administration");
 	RegConsoleCmd("sm_chowmane", CommandChowMane, "Usage: sm_chowmane");
+	RegConsoleCmd("sm_dazhlove", CommandDazhLove, "Usage: sm_dazhlove <#userid|name>");
 	LoadTranslations("common.phrases");
 }
 
@@ -43,7 +44,7 @@ public void OnMapStart()
 	PrecacheSound("ambient/bumper_car_quack11.wav", false);
 	PrecacheSound("vo/demoman_specialcompleted11.mp3", false);
 	PrecacheSound("ambient/train.wav", false);
-	PrecacheBirthdaySounds();
+	PrecacheSound("misc/happy_birthday_tf_08.wav", false);
 }
 
 public void OnClientPutInServer(int client)
@@ -171,25 +172,27 @@ public Action CommandChowMane(int client, int args)
 	if (!IsValidClient) return Plugin_Handled;
 	
 	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} APPLY CHOW MANE LIBERALLY TO EAR CANALS!!ONE!11!ONE");
-	EmitGameSoundToClient(client, "ambient\train.wav");
+	EmitSoundToClient(client, "ambient/train.wav");
 	return Plugin_Handled;
 }
 
 public Action CommandAdministration(int client, int args)
 {
 	if (!IsValidClient) return Plugin_Handled;
-	
+	/*
 	char playerName[MAX_NAME_LENGTH];
 	GetClientName(client, playerName, sizeof(playerName));
-	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Happy birthday, {LIGHTGREEN}%s{DEFAULT}!", playerName);
+	*/
+	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Happy birthday, {LIGHTGREEN}%N{DEFAULT}!", client);
 	EmitSoundToClient(client, "misc/happy_birthday_tf_08.wav");
 	return Plugin_Handled;
 }
 
-
-public void PrecacheBirthdaySounds()
+public Action CommandDazhLove(int client, int args)
 {
-	PrecacheSound("misc/happy_birthday_tf_08.wav", false);
+	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Do {LIGHTGREEN}Dazh{DEFAULT}\'s parents love him?");
+	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} While the answer to this question might be unsure to him, we are definitely certain that we love {LIGHTGREEN}Dazh{DEFAULT}! We hope the best for you buddy, good luck in everything you ever do!");
+	return Plugin_Handled;
 }
 
 public bool IsValidClient(int client)

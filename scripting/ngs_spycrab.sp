@@ -56,7 +56,7 @@ public int SpycrabMenuHandler(Menu menu, MenuAction action, int param1, int para
 			CPrintToChat(param1, "{LIGHTGREEN}[Crab]{DEFAULT} You may not target yourself!");
 			return;
 		}
-		CPrintToChatAll("{LIGHTGREEN}[CRAB]{DEFAULT} %N has challenged %N to a spycrab showdown!", param1, iTarget);
+		CPrintToChatAll("{LIGHTGREEN}[Crab]{DEFAULT} %N has challenged %N to a spycrab showdown!", param1, iTarget);
 		Menu acceptMenu = new Menu(AcceptMenuHandler);
 		acceptMenu.SetTitle("Do you accept?");
 		acceptMenu.AddItem("yes", "Yes!");
@@ -76,7 +76,7 @@ public int AcceptMenuHandler(Menu menu, MenuAction action, int param1, int param
 	{
 		char answer[4];
 		menu.GetItem(param2, answer, sizeof(answer));
-		if (StrEqual(answer, "yes"))
+		if (StrEqual(answer, "yes", false))
 		{
 			CPrintToChatAll("{LIGHTGREEN}[Crab]{DEFAULT} %N accepted %N\'s spycrab!", param1, firstClient);
 			secondClient = param1;
@@ -100,7 +100,7 @@ public void StartSpyCrab()
 {
 	spycrabInProgress = true;
 	SetHudTextParams(0.1, 0.5, 20.0, 102, 51, 153, 255);
-	hudTextChannel = ShowHudText(firstClient, -1, "");
+	hudTextChannel = ShowHudText(firstClient, -1, "\n");
 	
 	// Have to double each command, bleh
 	TF2_SetPlayerClass(firstClient, TFClass_Spy);

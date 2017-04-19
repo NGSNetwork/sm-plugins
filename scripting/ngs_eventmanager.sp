@@ -7,14 +7,18 @@
 #include <morecolors>
 
 bool eLocationSet = false;
+bool sLocationSet = false;
 bool eventStart = false;
 bool s1 = false;
 bool s2 = false;
 bool s3 = false;
 bool s4 = false;
 bool s5 = false;
+
 int eventClass = 1;
+
 float eLocation[3];
+float sLocation[3];
 
 Menu eventMenu;
 Menu configureEventMenu;
@@ -35,17 +39,20 @@ public Plugin myinfo = {
 public void OnPluginStart()
 {
 	// Commands
+	RegAdminCmd("sm_startevent", Command_StartEvent, ADMFLAG_GENERIC, "Start's an event");
 	RegAdminCmd("sm_stopevent", Command_StopEvent, ADMFLAG_GENERIC, "Closes the joining time for the event");
 	RegAdminCmd("sm_setlocation", Command_SetLocation, ADMFLAG_GENERIC, "Set's the location where players will teleport to");
 	RegAdminCmd("sm_event", Command_EventMenu, ADMFLAG_GENERIC, "Menu interface for event manager plugin");
 	RegAdminCmd("sm_eventmenu", Command_EventMenu, ADMFLAG_GENERIC, "Menu interface for event manager plugin");
+	
 	RegConsoleCmd("sm_joinevent", Command_JoinEvent, "When an event is started, use this to join it!");
+	RegConsoleCmd("sm_spectate", Command_Spectate, "Spectate an event");
 	
 	// Menus
 	eventMenu = new Menu(EventMenuHandler);
 	eventMenu.SetTitle("=== Event Menu ===");
 	eventMenu.AddItem("startevent", "Start an event");
-	eventMenu.AddItem("configureevent", "Congifure event settings");
+	eventMenu.AddItem("configureevent", "Configure event settings");
 	eventMenu.AddItem("stopevent", "Stop event");
 	eventMenu.AddItem("disablestuff", "Disable stuff");
 	
@@ -82,12 +89,39 @@ public Action Command_EventMenu(int client, int args)
 	return Plugin_Handled;
 }
 
+public Action Command_StartEvent(int client, int args)
+{
+	if (eventStart)
+	{
+		CPrintToChat(client, "{GREEN}[Event]{Default} There is already an event running.");
+		return Plugin_Handled;
+	}
+	else if(!eLocationSet)
+	{
+		CPrintToChat(client, "{GREEN}[Event]{Default} Event location has not been set.");
+		return Plugin_Handled;
+	}
+	else if(sLocationSet)
+	{
+		CPrintToChatAll("{GREEN}[Event]{Default} An event has been started, do !joinevent to join, or !spectate to spectate.");
+		eventStart = true;
+		return Plugin_Handled;
+	}
+	else
+	{
+		CPrintToChatAll("{GREEN}[Event]{Default} An event has been started, do !joinevent to join.");
+		eventStart = true;
+		return Plugin_Handled;
+	}
+}
+
 public Action Command_StopEvent(int client, int args)
 {
 	if (eventStart)
 	{
 		CPrintToChatAll("{GREEN}[Event]{DEFAULT} The event joining time is over.");
 		eventStart = false;
+		sLocationSet = false;
 	} 
 	else
 	{
@@ -98,6 +132,7 @@ public Action Command_StopEvent(int client, int args)
 
 public Action Command_SetLocation(int client, int args)
 {
+	if (!IsValidClient(client))return Plugin_Handled;
 	if(eventStart) {
 		CPrintToChatAll("{GREEN}[Event]{Default} You can not modify event parameters while an event is running");
 		return Plugin_Handled;
@@ -131,6 +166,25 @@ public Action Command_JoinEvent(int client, int args)
 	return Plugin_Handled;
 }
 
+public Action Command_Spectate(int client, int args)
+{
+	if (!IsValidClient(client))return Plugin_Handled;
+	if(!eventStart)
+	{
+		CPrintToChat(client, "{GREEN}[Event]{Default} There is no event to spectate.");
+		return Plugin_Handled;
+	}
+	else if(!sLocationSet)
+	{
+		CPrintToChat(client, "{GREEN}[Event]{Default} Spectating is disabled.");
+		return Plugin_Handled;
+	}
+	else
+	{
+		TeleportEntity(client, sLocation, NULL_VECTOR, NULL_VECTOR);
+		return Plugin_Handled;
+	}
+}
 
 /********************************************
 			Menu Handlers
@@ -144,15 +198,7 @@ public int EventMenuHandler(Menu menu, MenuAction action, int param1, int param2
 		eventMenu.GetItem(param2, info, sizeof(info));
 		if (StrEqual(info, "startevent", false))
 		{
-			if (eventStart == true) 
-				CPrintToChat(param1, "{GREEN}[Event]{Default} There is already an event running.");
-			else if(eLocationSet == false) 
-				CPrintToChat(param1, "{GREEN}[Event]{Default} Event location has not been set.");
-			else
-			{
-				CPrintToChatAll("{GREEN}[Event]{Default} An event has been started, do !joinevent to join!");
-				eventStart = true;
-			}
+			FakeClientCommand(param1, "sm_startevent");
 		}
 			
 		if (StrEqual(info, "configureevent", false))
@@ -175,6 +221,13 @@ public int ConfigureMenuHandler(Menu menu, MenuAction action, int param1, int pa
 			FakeClientCommand(param1, "sm_setlocation");
 			configureEventMenu.Display(param1, MENU_TIME_FOREVER);	
 		}
+		if (StrEqual(info, "setspectate", false))
+		{
+				GetClientAbsOrigin(param1, sLocation);
+				CPrintToChat(param1, "{GREEN}[Event]{Default} Spectate location set.");
+				configureEventMenu.Display(param1, MENU_TIME_FOREVER);
+				sLocationSet = true;
+		}
 		if (StrEqual(info, "class", false))
 		{
 			if(eventStart == false)
@@ -193,15 +246,7 @@ public int ConfigureMenuHandler(Menu menu, MenuAction action, int param1, int pa
 		if (StrEqual(info, "stripmenu", false))stripMenu.Display(param1, MENU_TIME_FOREVER);
 		if (StrEqual(info, "startevent", false))
 		{
-			if (eventStart == true) 
-				CPrintToChat(param1, "{GREEN}[Event]{Default} There is already an event running.");
-			else if(eLocationSet == false) 
-				CPrintToChat(param1, "{GREEN}[Event]{Default} Event location has not been set.");
-			else
-			{
-				CPrintToChatAll("{GREEN}[Event]{Default} An event has been started, do !joinevent to join!");
-				eventStart = true;
-			}
+			FakeClientCommand(param1, "sm_startevent");
 		}
 	}
 }
@@ -323,6 +368,7 @@ public void ConfigureMenuBuilder()
 {
 	configureEventMenu.RemoveAllItems();
 	configureEventMenu.AddItem("setlocation", "Set event location");
+	configureEventMenu.AddItem("setspectate", "Set spectate location");
 	switch(eventClass) {
 		case 1:	{
 			configureEventMenu.AddItem("class", "Select class: Scout");

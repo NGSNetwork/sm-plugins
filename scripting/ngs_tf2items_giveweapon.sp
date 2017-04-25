@@ -65,9 +65,8 @@ public void OnPluginStart()
 	RegAdminCmd("sm_giveweapon_ex", Command_WeaponEx, ADMFLAG_CHEATS, "Give Permanent Weapon sm_giveweapon_ex <player> <itemindex>");
 	RegAdminCmd("sm_ludmila", Command_GiveLudmila, ADMFLAG_GENERIC, "Give Ludmila to yourself using sm_ludmila");
 	RegAdminCmd("sm_glovesofrunning", Command_GiveGlovesofRunning, ADMFLAG_GENERIC, "Give the Gloves of Running Urgently to yourself using sm_gloves or sm_glovesofrunning");
-	RegAdminCmd("sm_spycrabpda", Command_GiveSpycrabPDA, ADMFLAG_CHEATS, "Give the Spycrab PDA to yourself with sm_spycrabpda or sm_spycrab");
+	RegAdminCmd("sm_spycrabpda", Command_GiveSpycrabPDA, ADMFLAG_CHEATS, "Give the Spycrab PDA to yourself with sm_spycrabpda");
 	RegAdminCmd("sm_gloves", Command_GiveGlovesofRunning, ADMFLAG_GENERIC, "Give the Gloves of Running Urgently to yourself using sm_gloves or sm_glovesofrunning");
-	RegAdminCmd("sm_spycrab", Command_GiveSpycrabPDA, ADMFLAG_CHEATS, "Give the Spycrab PDA to yourself with sm_spycrabpda or sm_spycrab");
 	RegAdminCmd("sm_givew", Command_Weapon, ADMFLAG_CHEATS, "sm_givew <player> <itemindex>");
 	RegAdminCmd("sm_givew_ex", Command_WeaponEx, ADMFLAG_CHEATS, "Give Permanent Weapon sm_givew_ex <player> <itemindex>");
 	RegAdminCmd("sm_addwearable", Command_AddWearable, ADMFLAG_CHEATS, "Add a wearable weapon to a player sm_addwearable <player> <itemindex>");
@@ -1513,6 +1512,24 @@ public Action Command_GiveSpycrabPDA(int client, int args)
 		{
 			ReplyToCommand(client, "[TF2Items] Cannot give Spycrab PDA right now.");
 			return Plugin_Handled;
+		}
+	}
+	else
+	{
+		char arg1[MAX_NAME_LENGTH];
+		GetCmdArg(1, arg1, sizeof(arg1));
+		int target = FindTarget(client, arg1, true, false);
+		if (target == -1) return Plugin_Handled;
+		if(IsClientInGame(target) && IsPlayerAlive(target) && iCvarValveWeapons)
+		{
+			int weaponSlot;
+			char formatBuffer[32];
+			Format(formatBuffer, 32, "%d_%s", 9027, "slot");
+			bool isValidItem = GetTrieValue(hItemInfoTrie, formatBuffer, weaponSlot);
+			if (isValidItem)
+			{
+				GiveWeaponOfIndex(target, 9027, weaponSlot);
+			}
 		}
 	}
 	return Plugin_Handled;
@@ -4126,7 +4143,7 @@ stock void AddCustomHardcodedToTrie(Handle trie)
 	SetTrieValue(trie, "9027_slot", 3);
 	SetTrieValue(trie, "9027_quality", 2);
 	SetTrieValue(trie, "9027_level", 100);
-	SetTrieString(trie, "9027_attribs", "128 ; 1.0 ; 412 ; 0.0 ; 70 ; 2.0 ; 53 ; 1.0 ; 68 ; -3.0 ; 400 ; 1.0 ; 134 ; 9.0");
+	SetTrieString(trie, "9027_attribs", "128 ; 1.0 ; 412 ; 0.0 ; 70 ; 2.0 ; 53 ; 1.0 ; 68 ; -3.0 ; 400 ; 1.0 ; 134 ; 9.0 ; 155 ; 1.0");
 	SetTrieValue(trie, "9027_ammo", -1);
 
 //fire retardant suit (revolver does no damage)

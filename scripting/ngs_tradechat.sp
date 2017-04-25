@@ -62,7 +62,7 @@ public void OnPluginStart()
 	hAntiSpamShowInterval = CreateConVar("sm_trade_antispam_showinterval", "0", "Show the remaining time player has to wait before sending another offer", FCVAR_REPLICATED, true, 0.0, true, 1.0);
 	hChatCheck = CreateConVar("sm_trade_chatcheck", "1", "Check for triggers in chat.", FCVAR_REPLICATED, true, 0.0, true, 1.0);
 	hChatTag = CreateConVar("sm_trade_chattag", "Trade Chat", "Tag used to specify trade chat.", FCVAR_REPLICATED);
-	hChatTriggers = CreateConVar("sm_trade_chattriggers", "trade, sell, buy, trading, S>, B>", "Chat triggers that move a message to trade chat.", FCVAR_REPLICATED);
+	hChatTriggers = CreateConVar("sm_trade_chattriggers", "trade, sell, buy, trading, S>, B>, [S], [B]", "Chat triggers that move a message to trade chat.", FCVAR_REPLICATED);
 
 	
 	if (hAntiSpamDelay != null)

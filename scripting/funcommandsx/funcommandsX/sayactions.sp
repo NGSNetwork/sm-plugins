@@ -6,9 +6,9 @@
 
 
 *****************************************************************/
-new Handle:g_Cvar_SayAction_Me = INVALID_HANDLE;
+ConVar g_Cvar_SayAction_Me;
 
-
+#include <sourcecomms>
 /*****************************************************************
 
 
@@ -16,7 +16,7 @@ new Handle:g_Cvar_SayAction_Me = INVALID_HANDLE;
 
 
 *****************************************************************/
-public SetupSayActions()
+public void SetupSayActions()
 {
 	g_Cvar_SayAction_Me  = CreateConVar("sm_sa_me", "1", "Allows use of FuncommandsX 'me' action");
 	
@@ -31,13 +31,11 @@ public SetupSayActions()
 
 ****************************************************************/
 
-public Action:Command_Me(client, args)
+public Action Command_Me(int client, int args)
 {
-	decl String:actionStr[129];
-	decl String:playerName[65];
-	decl String:action[194];
+	char actionStr[129], playerName[65], action[194];
 
-	if( !GetConVarInt(g_Cvar_SayAction_Me) )
+	if(!g_Cvar_SayAction_Me.BoolValue)
 	{
 		return Plugin_Handled;
 	}
@@ -54,7 +52,7 @@ public Action:Command_Me(client, args)
 	{
 		playerName = "Console";
 	}
-	else if( !BaseComm_IsClientGagged( client ) )
+	else if (!BaseComm_IsClientGagged(client) || SourceComms_GetClientGagType(client) == bNot)
 	{
 		GetClientName(client,playerName,sizeof(playerName));
 	}
@@ -65,9 +63,9 @@ public Action:Command_Me(client, args)
 	
 	Format( action, sizeof(action), "%c%s %s", 3, playerName, actionStr );
 	
-	for (new i = 1, iClients = GetClientCount(); i <= iClients; i++) 
+	for (int i = 1; i <= MaxClients; i++) 
 	{
-		if (IsClientInGame(i) && !IsFakeClient(i) ) 
+		if (IsClientInGame(i) && !IsFakeClient(i)) 
 		{
 			SayText2(i, action);
 		}

@@ -5,7 +5,7 @@
 #include <sdkhooks>
 #include <morecolors>
 
-#define PLUGIN_VERSION "1.0.0"
+#define PLUGIN_VERSION "1.1.0"
 
 bool showRulesMenu[MAXPLAYERS + 1];
 
@@ -44,13 +44,13 @@ public void OnPluginStart()
 	
 	serverRulesMenu = new Menu(ServerRulesMenuHandler);
 	serverRulesMenu.SetTitle("=== NGS Server Rules ===");
-	SetMenuExitBackButton(serverRulesMenu, true);
+	serverRulesMenu.ExitBackButton = true;
 	
 	serverCommandsMainMenu = new Menu(ServerCommandsMenuHandler);
 	serverCommandsMainMenu.SetTitle("=== NGS Server Commands ===");
 	serverCommandsMainMenu.AddItem("players", "Player Commands!");
 	serverCommandsMainMenu.AddItem("donors", "Donor Commands!");
-	SetMenuExitBackButton(serverCommandsMainMenu, true);
+	serverCommandsMainMenu.ExitBackButton = true;
 	
 	serverCommandsSubMenu = new Menu(ServerCommandsSubMenuHandler);
 }

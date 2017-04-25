@@ -4,7 +4,7 @@
 #include <sourcemod>
 #include <morecolors>
 
-#define PLUGIN_VERSION "1.3"
+#define PLUGIN_VERSION "1.5"
 
 ConVar AdminListEnabled;
 
@@ -28,91 +28,151 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_listdonors", CommandListDonors, "List donors to chat.");
 	RegConsoleCmd("sm_donators", CommandListDonors, "List donors to chat.");
 	RegConsoleCmd("sm_djs", CommandListDJs, "List DJs in chat.");
+	RegConsoleCmd("sm_staff", CommandListStaff, "List all staff in chat.");
+	RegConsoleCmd("sm_liststaff", CommandListStaff, "List all staff in chat.");
+	RegConsoleCmd("sm_stafflist", CommandListStaff, "List all staff in chat.");
 }
 
 public Action CommandListAdmins(int client, int args)
 {
-	if(GetConVarInt(AdminListEnabled) == 1)
+	if (AdminListEnabled.BoolValue)
 	{   
-		char AdminNames[MAXPLAYERS + 1][MAX_NAME_LENGTH + 1];
+		char adminNames[MAXPLAYERS + 1][MAX_NAME_LENGTH + 1];
 		int count = 0;
 		for(int i = 1 ; i <= MaxClients; i++)
 		{
-			if(IsClientInGame(i))
+			if (IsValidClient(i) && CheckCommandAccess(i, "sm_admin", ADMFLAG_GENERIC))
 			{
-				AdminId adminid = GetUserAdmin(i);
-				if(GetAdminFlag(adminid, Admin_Generic))
-				{
-					GetClientName(i, AdminNames[count], sizeof(AdminNames[]));
-					count++;
-				}
+				GetClientName(i, adminNames[count], sizeof(adminNames[]));
+				count++;
 			} 
 		}
 		if (count > 0)
 		{
 			char buffer[1024];
-			ImplodeStrings(AdminNames, count, ", ", buffer, sizeof(buffer));
-			CReplyToCommand(client, "{GREEN}Admins online are: {CYAN}%s.", buffer);
+			ImplodeStrings(adminNames, count, ", ", buffer, sizeof(buffer));
+			CReplyToCommand(client, "{GREEN}[SM] Administrators online: {CYAN}%s.", buffer);
 		}
-		else CReplyToCommand(client, "{GREEN}[SM] There are no admins online. Use !calladmin to call an admin over.");
+		else CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} There are no admins online. Use !calladmin to call an admin over.");
 	}
 	return Plugin_Handled;
 }
 
 public Action CommandListDonors(int client, int args)
 {
-	if(GetConVarInt(AdminListEnabled) == 1)
+	if (AdminListEnabled.BoolValue)
 	{   
 		char DonorNames[MAXPLAYERS + 1][MAX_NAME_LENGTH + 1];
 		int count = 0;
 		for(int i = 1 ; i <= MaxClients; i++)
 		{
-			if(IsValidClient(i))
+			if (IsValidClient(i) && CheckCommandAccess(i, "sm_donorlist_override", ADMFLAG_RESERVATION) && !CheckCommandAccess(i, "sm_admin", ADMFLAG_GENERIC))
 			{
-				AdminId AdminID = GetUserAdmin(i);
-				if(GetAdminFlag(AdminID, Admin_Reservation) && !GetAdminFlag(AdminID, Admin_Generic))
-				{
-					GetClientName(i, DonorNames[count], sizeof(DonorNames[]));
-					count++;
-				}
+				GetClientName(i, DonorNames[count], sizeof(DonorNames[]));
+				count++;
 			} 
 		}
 		if (count > 0)
 		{
 			char buffer[1024];
 			ImplodeStrings(DonorNames, count, ", ", buffer, sizeof(buffer));
-			CReplyToCommand(client, "{GREEN}[SM] Donors online are: {ORANGE}%s.", buffer);
+			CReplyToCommand(client, "{GREEN}[SM] Donors online: {ORANGE}%s.", buffer);
 		}
-		else CReplyToCommand(client, "{GREEN}[SM] There are no donors online.");
+		else CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} There are no donors online.");
 	}
 	return Plugin_Handled;
 }
 
 public Action CommandListDJs(int client, int args)
 {
-	if(GetConVarInt(AdminListEnabled) == 1)
+	if (AdminListEnabled.BoolValue)
 	{   
 		char DJNames[MAXPLAYERS + 1][MAX_NAME_LENGTH + 1];
 		int count = 0;
 		for(int i = 1 ; i <= MaxClients; i++)
 		{
-			if(IsValidClient(i))
+			if(IsValidClient(i) && CheckCommandAccess(i, "sm_djlist_override", ADMFLAG_CUSTOM2) && !CheckCommandAccess(i, "sm_admin", ADMFLAG_GENERIC))
 			{
-				AdminId AdminID = GetUserAdmin(i);
-				if(GetAdminFlag(AdminID, Admin_Custom2) && !GetAdminFlag(AdminID, Admin_Generic))
-				{
-					GetClientName(i, DJNames[count], sizeof(DJNames[]));
-					count++;
-				}
+				GetClientName(i, DJNames[count], sizeof(DJNames[]));
+				count++;
 			} 
 		}
 		if (count > 0)
 		{
 			char buffer[1024];
 			ImplodeStrings(DJNames, count, ", ", buffer, sizeof(buffer));
-			CReplyToCommand(client, "{GREEN}[SM] DJs online are: {PURPLE}%s.", buffer);
+			CReplyToCommand(client, "{GREEN}[SM] DJs online: {PURPLE}%s.", buffer);
 		}
-		else CReplyToCommand(client, "{GREEN}[SM] There are no DJs online.");
+		else CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} There are no DJs online.");
+	}
+	return Plugin_Handled;
+}
+
+public Action CommandListStaff(int client, int args)
+{
+	if (AdminListEnabled.BoolValue)
+	{   
+		char adminNames[MAXPLAYERS + 1][MAX_NAME_LENGTH + 1], communityAdvisorNames[MAXPLAYERS + 1][MAX_NAME_LENGTH + 1], 
+			communityManagerNames[MAXPLAYERS + 1][MAX_NAME_LENGTH + 1], developerNames[MAXPLAYERS + 1][MAX_NAME_LENGTH + 1];
+		int adminListCount = 0, commAdvCount = 0, commManCount = 0, devCount = 0;
+		for(int i = 1 ; i <= MaxClients; i++)
+		{
+			if (IsValidClient(i))
+			{
+				if (CheckCommandAccess(i, "sm_admin", ADMFLAG_GENERIC) && !CheckCommandAccess(i, "sm_devlist_override", ADMFLAG_CUSTOM5))
+				{
+					GetClientName(i, adminNames[adminListCount], sizeof(adminNames[]));
+					adminListCount++;
+					continue;
+				}
+				else if (CheckCommandAccess(i, "sm_devlist_override", ADMFLAG_CUSTOM5))
+				{
+					GetClientName(i, developerNames[devCount], sizeof(developerNames[]));
+					devCount++;
+					continue;
+				}
+				else if (CheckCommandAccess(i, "sm_commadvlist_override", ADMFLAG_CUSTOM3) && !CheckCommandAccess(i, "sm_devlist_override", ADMFLAG_CUSTOM5))
+				{
+					GetClientName(i, communityAdvisorNames[commAdvCount], sizeof(communityAdvisorNames[]));
+					commAdvCount++;
+					continue;
+				}
+				else if (CheckCommandAccess(i, "sm_commmanlist_override", ADMFLAG_CUSTOM4) &&  !CheckCommandAccess(i, "sm_devlist_override", ADMFLAG_CUSTOM5))
+				{
+					GetClientName(i, communityManagerNames[commManCount], sizeof(communityManagerNames[]));
+					commManCount++;
+					continue;
+				}
+			}
+		}
+		if (adminListCount > 0 || commAdvCount > 0 || commManCount > 0 || devCount > 0)
+		{
+			if (adminListCount > 0)
+			{
+				char buffer[1024];
+				ImplodeStrings(adminNames, adminListCount, ", ", buffer, sizeof(buffer));
+				CReplyToCommand(client, "{GREEN}[SM] Administration online: {CYAN}%s.", buffer);
+			}
+			if (commAdvCount > 0)
+			{
+				char buffer[1024];
+				ImplodeStrings(communityAdvisorNames, commAdvCount, ", ", buffer, sizeof(buffer));
+				CReplyToCommand(client, "{GREEN}[SM] Community Advisors online: {CORNFLOWERBLUE}%s.", buffer);
+			}
+			if (commManCount > 0)
+			{
+				char buffer[1024];
+				ImplodeStrings(communityManagerNames, commManCount, ", ", buffer, sizeof(buffer));
+				CReplyToCommand(client, "{GREEN}[SM] Community Managers online: {CRIMSON}%s.", buffer);
+			}
+			if (devCount > 0)
+			{
+				char buffer[1024];
+				ImplodeStrings(developerNames, devCount, ", ", buffer, sizeof(buffer));
+				CReplyToCommand(client, "{GREEN}[SM] Developers online: {MAGENTA}%s.", buffer);
+			}
+		}
+		else CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} There are no staff online. If you need an admin, call one with !calladmin.");
 	}
 	return Plugin_Handled;
 }

@@ -21,11 +21,11 @@
 #define PLUGIN_VERSION "1.1.4"
 
 public Plugin myinfo = {
-	name = "Hook Grab Rope / TheXeon",
-	author = "Sheepdude, SumGuy14",
+	name = "[NGS] Hook Grab Rope",
+	author = "Sheepdude, SumGuy14 / TheXeon",
 	description = "Allows admins (or all players) to hook on to walls, grab other players, or swing on a rope",
 	version = PLUGIN_VERSION,
-	url = "http://www.clan-psycho.com"
+	url = "https://neogenesisnetwork.net"
 }
 
 // General handles
@@ -91,58 +91,58 @@ Handle FwdClientGrab;
 Handle FwdClientRope;
 
 // HGR variables
-new g_cvarSoundAmplify;
-new bool:g_cvarAnnounce;
-new bool:g_cvarOverrideMode;
-new bool:g_cvarRopeOldMode;
-new bool:g_cvarFreeze[3];
-new bool:g_cvarSlide[3];
-new bool:g_cvarEnable[3];
-new bool:g_cvarAdminOnly[3];
-new Float:g_cvarSpeed[3];
-new Float:g_cvarInitWidth[3];
-new Float:g_cvarEndWidth[3];
-new Float:g_cvarAmplitude[3];
-new g_cvarBeamColor[3];
-new g_cvarBeamRed[3];
-new g_cvarBeamGreen[3];
-new g_cvarBeamBlue[3];
-new g_cvarBeamAlpha[3];
-new String:g_cvarSound[3][64];
+int g_cvarSoundAmplify;
+bool g_cvarAnnounce;
+bool g_cvarOverrideMode;
+bool g_cvarRopeOldMode;
+bool g_cvarFreeze[3];
+bool g_cvarSlide[3];
+bool g_cvarEnable[3];
+bool g_cvarAdminOnly[3];
+float g_cvarSpeed[3];
+float g_cvarInitWidth[3];
+float g_cvarEndWidth[3];
+float g_cvarAmplitude[3];
+int g_cvarBeamColor[3];
+int g_cvarBeamRed[3];
+int g_cvarBeamGreen[3];
+int g_cvarBeamBlue[3];
+int g_cvarBeamAlpha[3];
+char g_cvarSound[3][64];
 
 // Client status arrays
-new bool:g_Status[MAXPLAYERS+1][3]; // Is client using hook, grab, or rope
-new bool:g_AllowedClients[MAXPLAYERS+1][3]; // Does client have hook, grab, or rope access
-new bool:g_Grabbed[MAXPLAYERS+1]; // Is client being grabbed
-new bool:g_Backward[MAXPLAYERS+1]; // Is client hooking backward or forward
-new bool:g_Attracting[MAXPLAYERS+1][2]; // Is client pushing or pulling grab target
-new bool:g_Climbing[MAXPLAYERS+1][2]; // Is client ascending or descending rope
-new bool:g_TRIgnore[MAXPLAYERS+1]; // Used to ignore traceray collisions with originating player
-new Float:g_Gravity[MAXPLAYERS+1]; // Used to reset client gravity to previous value
-new Float:g_MaxSpeed[MAXPLAYERS+1]; // Used to reset grab target speed after being slowed
+bool g_Status[MAXPLAYERS+1][3]; // Is client using hook, grab, or rope
+bool g_AllowedClients[MAXPLAYERS+1][3]; // Does client have hook, grab, or rope access
+bool g_Grabbed[MAXPLAYERS+1]; // Is client being grabbed
+bool g_Backward[MAXPLAYERS+1]; // Is client hooking backward or forward
+bool g_Attracting[MAXPLAYERS+1][2]; // Is client pushing or pulling grab target
+bool g_Climbing[MAXPLAYERS+1][2]; // Is client ascending or descending rope
+bool g_TRIgnore[MAXPLAYERS+1]; // Used to ignore traceray collisions with originating player
+float g_Gravity[MAXPLAYERS+1]; // Used to reset client gravity to previous value
+float g_MaxSpeed[MAXPLAYERS+1]; // Used to reset grab target speed after being slowed
 
 // HGR Arrays
-new g_Targetindex[MAXPLAYERS+1][4];
-new Float:g_Location[MAXPLAYERS+1][4][3];
-new Float:g_Distance[MAXPLAYERS+1][4];
+int g_Targetindex[MAXPLAYERS+1][4];
+float g_Location[MAXPLAYERS+1][4][3];
+float g_Distance[MAXPLAYERS+1][4];
 
 // Button bitstrings
-new g_cvarUpButton;
-new g_cvarDownButton;
+int g_cvarUpButton;
+int g_cvarDownButton;
 
 // Freezetime variables
-new bool:g_HookedFreeze;
-new bool:g_HookedRoundStart;
-new bool:g_Frozen[3];
+bool g_HookedFreeze;
+bool g_HookedRoundStart;
+bool g_Frozen[3];
 
 // Offset variables
-new OriginOffset;
-new GetVelocityOffset_x;
-new GetVelocityOffset_y;
-new GetVelocityOffset_z;
+int OriginOffset;
+int GetVelocityOffset_x;
+int GetVelocityOffset_y;
+int GetVelocityOffset_z;
 
 // Precache variables
-new precache_laser;
+int precache_laser;
 
 enum HGRAction
 {
@@ -157,7 +157,7 @@ enum HGRAccess
 	Take = 1, /** Takes access from user */
 };
 
-public OnPluginStart()
+public void OnPluginStart()
 {
 	// Load Translation Files
 	LoadTranslations("common.phrases");
@@ -172,9 +172,9 @@ public OnPluginStart()
 	FwdClientRope = CreateGlobalForward("HGR_OnClientRope", ET_Hook, Param_Cell);
 	
 	// Hook events
-	HookEventEx("player_spawn", PlayerSpawnEvent);
-	g_HookedFreeze = HookEventEx("round_freeze_end", RoundFreezeEndEvent);
-	g_HookedRoundStart = HookEventEx("round_start", RoundStartEvent);
+	HookEvent("player_spawn", PlayerSpawnEvent);
+	g_HookedFreeze = HookEventEx("round_freeze_end", RoundFreezeEndEvent, EventHookMode_PostNoCopy);
+	g_HookedRoundStart = HookEventEx("round_start", RoundStartEvent, EventHookMode_PostNoCopy);
 
 	// Register client commands
 	RegConsoleCmd("+hook", HookCmd);
@@ -204,24 +204,24 @@ public OnPluginStart()
 	RegAdminCmd("sm_hgr_takerope", TakeRope, ADMFLAG_GENERIC);
 
 	// Find offsets
-	OriginOffset = FindSendPropOffs("CBaseEntity", "m_vecOrigin");
+	OriginOffset = FindSendPropInfo("CBaseEntity", "m_vecOrigin");
 	if(OriginOffset == -1)
 		SetFailState("[HGR] Error: Failed to find the origin offset, aborting");
 
-	GetVelocityOffset_x = FindSendPropOffs("CBasePlayer", "m_vecVelocity[0]");
+	GetVelocityOffset_x = FindSendPropInfo("CBasePlayer", "m_vecVelocity[0]");
 	if(GetVelocityOffset_x == -1)
 		SetFailState("[HGR] Error: Failed to find the velocity_x offset, aborting");
 
-	GetVelocityOffset_y = FindSendPropOffs("CBasePlayer", "m_vecVelocity[1]");
+	GetVelocityOffset_y = FindSendPropInfo("CBasePlayer", "m_vecVelocity[1]");
 	if(GetVelocityOffset_y == -1)
 		SetFailState("[HGR] Error: Failed to find the velocity_y offset, aborting");
 
-	GetVelocityOffset_z = FindSendPropOffs("CBasePlayer", "m_vecVelocity[2]");
+	GetVelocityOffset_z = FindSendPropInfo("CBasePlayer", "m_vecVelocity[2]");
 	if(GetVelocityOffset_z == -1)
 		SetFailState("[HGR] Error: Failed to find the velocity_z offset, aborting");
 
 	// Public convar
-	CreateConVar("sm_hgr_version", PLUGIN_VERSION, "[HGR] Plugin version", FCVAR_DONTRECORD|FCVAR_NOTIFY|FCVAR_PLUGIN|FCVAR_REPLICATED|FCVAR_SPONLY);
+	CreateConVar("sm_hgr_version", PLUGIN_VERSION, "[HGR] Plugin version", FCVAR_DONTRECORD|FCVAR_NOTIFY|FCVAR_REPLICATED|FCVAR_SPONLY);
 
 	// General convars
 	h_cvarAnnounce      = CreateConVar("sm_hgr_announce", "1", "Enable plugin announcements, 1 - enable, 0 - disable", 0, true, 0.0, true, 1.0);
@@ -280,60 +280,60 @@ public OnPluginStart()
 	h_cvarRopeSound     = CreateConVar("sm_hgr_rope_sound", "hgr/hookhit.mp3", "Location of rope sound effect relative to /sound/music/");
 	
 	// General convar changes
-	HookConVarChange(h_cvarAnnounce, ConvarChanged);
-	HookConVarChange(h_cvarSoundAmplify, ConvarChanged);
-	HookConVarChange(h_cvarOverrideMode, ConvarChanged);
-	HookConVarChange(h_cvarRopeOldMode, ConvarChanged);
-	HookConVarChange(h_cvarUpButton, ConvarChanged);
-	HookConVarChange(h_cvarDownButton, ConvarChanged);
+	h_cvarAnnounce.AddChangeHook(ConvarChanged);
+	h_cvarSoundAmplify.AddChangeHook(ConvarChanged);
+	h_cvarOverrideMode.AddChangeHook(ConvarChanged);
+	h_cvarRopeOldMode.AddChangeHook(ConvarChanged);
+	h_cvarUpButton.AddChangeHook(ConvarChanged);
+	h_cvarDownButton.AddChangeHook(ConvarChanged);
 	
 	// Hook convar changes
-	HookConVarChange(h_cvarHookEnable, ConvarChanged);
-	HookConVarChange(h_cvarHookAdminOnly, ConvarChanged);
-	HookConVarChange(h_cvarHookFreeze, ConvarChanged);
-	HookConVarChange(h_cvarHookSlide, ConvarChanged);
-	HookConVarChange(h_cvarHookSpeed, ConvarChanged);
-	HookConVarChange(h_cvarHookInitWidth, ConvarChanged);
-	HookConVarChange(h_cvarHookEndWidth, ConvarChanged);
-	HookConVarChange(h_cvarHookAmplitude, ConvarChanged);
-	HookConVarChange(h_cvarHookBeamColor, ConvarChanged);
-	HookConVarChange(h_cvarHookRed, ConvarChanged);
-	HookConVarChange(h_cvarHookGreen, ConvarChanged);
-	HookConVarChange(h_cvarHookBlue, ConvarChanged);
-	HookConVarChange(h_cvarHookAlpha, ConvarChanged);
-	HookConVarChange(h_cvarHookSound, ConvarChanged);
+	h_cvarHookEnable.AddChangeHook(ConvarChanged);
+	h_cvarHookAdminOnly.AddChangeHook(ConvarChanged);
+	h_cvarHookFreeze.AddChangeHook(ConvarChanged);
+	h_cvarHookSlide.AddChangeHook(ConvarChanged);
+	h_cvarHookSpeed.AddChangeHook(ConvarChanged);
+	h_cvarHookInitWidth.AddChangeHook(ConvarChanged);
+	h_cvarHookEndWidth.AddChangeHook(ConvarChanged);
+	h_cvarHookAmplitude.AddChangeHook(ConvarChanged);
+	h_cvarHookBeamColor.AddChangeHook(ConvarChanged);
+	h_cvarHookRed.AddChangeHook(ConvarChanged);
+	h_cvarHookGreen.AddChangeHook(ConvarChanged);
+	h_cvarHookBlue.AddChangeHook(ConvarChanged);
+	h_cvarHookAlpha.AddChangeHook(ConvarChanged);
+	h_cvarHookSound.AddChangeHook(ConvarChanged);
 	
 	// Grab convar changes
-	HookConVarChange(h_cvarGrabEnable, ConvarChanged);
-	HookConVarChange(h_cvarGrabAdminOnly, ConvarChanged);
-	HookConVarChange(h_cvarGrabFreeze, ConvarChanged);
-	HookConVarChange(h_cvarGrabSlide, ConvarChanged);
-	HookConVarChange(h_cvarGrabSpeed, ConvarChanged);
-	HookConVarChange(h_cvarGrabInitWidth, ConvarChanged);
-	HookConVarChange(h_cvarGrabEndWidth, ConvarChanged);
-	HookConVarChange(h_cvarGrabAmplitude, ConvarChanged);
-	HookConVarChange(h_cvarGrabBeamColor, ConvarChanged);
-	HookConVarChange(h_cvarGrabRed, ConvarChanged);
-	HookConVarChange(h_cvarGrabGreen, ConvarChanged);
-	HookConVarChange(h_cvarGrabBlue, ConvarChanged);
-	HookConVarChange(h_cvarGrabAlpha, ConvarChanged);
-	HookConVarChange(h_cvarGrabSound, ConvarChanged);
+	h_cvarGrabEnable.AddChangeHook(ConvarChanged);
+	h_cvarGrabAdminOnly.AddChangeHook(ConvarChanged);
+	h_cvarGrabFreeze.AddChangeHook(ConvarChanged);
+	h_cvarGrabSlide.AddChangeHook(ConvarChanged);
+	h_cvarGrabSpeed.AddChangeHook(ConvarChanged);
+	h_cvarGrabInitWidth.AddChangeHook(ConvarChanged);
+	h_cvarGrabEndWidth.AddChangeHook(ConvarChanged);
+	h_cvarGrabAmplitude.AddChangeHook(ConvarChanged);
+	h_cvarGrabBeamColor.AddChangeHook(ConvarChanged);
+	h_cvarGrabRed.AddChangeHook(ConvarChanged);
+	h_cvarGrabGreen.AddChangeHook(ConvarChanged);
+	h_cvarGrabBlue.AddChangeHook(ConvarChanged);
+	h_cvarGrabAlpha.AddChangeHook(ConvarChanged);
+	h_cvarGrabSound.AddChangeHook(ConvarChanged);
 	
 	// Rope convar changes
-	HookConVarChange(h_cvarRopeEnable, ConvarChanged);
-	HookConVarChange(h_cvarRopeAdminOnly, ConvarChanged);
-	HookConVarChange(h_cvarRopeFreeze, ConvarChanged);
-	HookConVarChange(h_cvarRopeSlide, ConvarChanged);
-	HookConVarChange(h_cvarRopeSpeed, ConvarChanged);
-	HookConVarChange(h_cvarRopeInitWidth, ConvarChanged);
-	HookConVarChange(h_cvarRopeEndWidth, ConvarChanged);
-	HookConVarChange(h_cvarRopeAmplitude, ConvarChanged);
-	HookConVarChange(h_cvarRopeBeamColor, ConvarChanged);
-	HookConVarChange(h_cvarRopeRed, ConvarChanged);
-	HookConVarChange(h_cvarRopeGreen, ConvarChanged);
-	HookConVarChange(h_cvarRopeBlue, ConvarChanged);
-	HookConVarChange(h_cvarRopeAlpha, ConvarChanged);
-	HookConVarChange(h_cvarRopeSound, ConvarChanged);
+	h_cvarRopeEnable.AddChangeHook(ConvarChanged);
+	h_cvarRopeAdminOnly.AddChangeHook(ConvarChanged);
+	h_cvarRopeFreeze.AddChangeHook(ConvarChanged);
+	h_cvarRopeSlide.AddChangeHook(ConvarChanged);
+	h_cvarRopeSpeed.AddChangeHook(ConvarChanged);
+	h_cvarRopeInitWidth.AddChangeHook(ConvarChanged);
+	h_cvarRopeEndWidth.AddChangeHook(ConvarChanged);
+	h_cvarRopeAmplitude.AddChangeHook(ConvarChanged);
+	h_cvarRopeBeamColor.AddChangeHook(ConvarChanged);
+	h_cvarRopeRed.AddChangeHook(ConvarChanged);
+	h_cvarRopeGreen.AddChangeHook(ConvarChanged);
+	h_cvarRopeBlue.AddChangeHook(ConvarChanged);
+	h_cvarRopeAlpha.AddChangeHook(ConvarChanged);
+	h_cvarRopeSound.AddChangeHook(ConvarChanged);
   
 	// Auto-generate configuration file
 	AutoExecConfig(true, "hookgrabrope");
@@ -341,9 +341,9 @@ public OnPluginStart()
 	PrintToServer("----------------|         [HGR] %t         |---------------", "Loaded");
 }
 
-public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
-	decl String:file[PLATFORM_MAX_PATH];
+	char file[PLATFORM_MAX_PATH];
 	BuildPath(Path_SM, file, sizeof(file), "plugins/hookgrabrope.smx");
 	if(!FileExists(file))
 	{
@@ -397,7 +397,7 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
  *Forwards*
 ***********/
 
-public OnConfigsExecuted()
+public void OnConfigsExecuted()
 {
 	UpdateAllConvars();
 	// Precache models
@@ -406,10 +406,10 @@ public OnConfigsExecuted()
 	// Precache sounds
 	if(g_cvarSoundAmplify > 0) // Don't download sounds if sound is disabled
 	{
-		for(new HGRAction:i = Hook; i <= Rope; i++)
+		for(HGRAction i = Hook; i <= Rope; i++)
 		{
 			Format(g_cvarSound[i], sizeof(g_cvarSound[]), "music/%s", g_cvarSound[i]);
-			decl String:path[64];
+			char path[64];
 			Format(path, sizeof(path), "sound/%s", g_cvarSound[i]);
 			AddFileToDownloadsTable(path);
 			PrecacheSound(g_cvarSound[i], true);
@@ -417,14 +417,13 @@ public OnConfigsExecuted()
 	}
 }
 
-public bool:OnClientConnect(client, String:rejectmsg[], maxlen)
+public void OnClientConnected(int client)
 {
 	// Initialize variables for special plugin access when clients connect
 	ResetAccess(client);
-	return true;
 }
 
-public OnClientDisconnect(client)
+public void OnClientDisconnect(int client)
 {
 	// Disable special plugin access for client when they disconnect
 	ResetAccess(client);
@@ -434,20 +433,20 @@ public OnClientDisconnect(client)
  *Natives*
 **********/
 
-public __Access(Handle:plugin, numParams)
+public int __Access(Handle plugin, int numParams)
 {
-	decl String:client[64];
+	char client[64];
 	GetNativeString(1, client, sizeof(client));
-	new HGRAccess:access = GetNativeCell(2);
-	new HGRAction:action = GetNativeCell(3);
+	HGRAccess access = GetNativeCell(2);
+	HGRAction action = GetNativeCell(3);
 	return Access(client, access, action);
 }
 
-public __ClientAccess(Handle:plugin, numParams)
+public int __ClientAccess(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
-	new HGRAccess:access = GetNativeCell(2);
-	new HGRAction:action = GetNativeCell(3);
+	int client = GetNativeCell(1);
+	HGRAccess access = GetNativeCell(2);
+	HGRAction action = GetNativeCell(3);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
@@ -455,9 +454,9 @@ public __ClientAccess(Handle:plugin, numParams)
 	return ClientAccess(client, access, action) == 1;
 }
 
-public __IsHooking(Handle:plugin, numParams)
+public int __IsHooking(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
@@ -465,9 +464,9 @@ public __IsHooking(Handle:plugin, numParams)
 	return g_Status[client][Hook];
 }
 
-public __IsGrabbing(Handle:plugin, numParams)
+public int __IsGrabbing(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
@@ -475,9 +474,9 @@ public __IsGrabbing(Handle:plugin, numParams)
 	return g_Status[client][Grab];
 }
 
-public __IsBeingGrabbed(Handle:plugin, numParams)
+public int __IsBeingGrabbed(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
@@ -485,9 +484,9 @@ public __IsBeingGrabbed(Handle:plugin, numParams)
 	return g_Grabbed[client];
 }
 
-public __IsRoping(Handle:plugin, numParams)
+public int __IsRoping(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
@@ -495,9 +494,9 @@ public __IsRoping(Handle:plugin, numParams)
 	return g_Status[client][Rope];
 }
 
-public __IsPushing(Handle:plugin, numParams)
+public int __IsPushing(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
@@ -507,9 +506,9 @@ public __IsPushing(Handle:plugin, numParams)
 	return false;
 }
 
-public __IsAttracting(Handle:plugin, numParams)
+public int __IsAttracting(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
@@ -519,9 +518,9 @@ public __IsAttracting(Handle:plugin, numParams)
 	return false;
 }
 
-public __IsRepelling(Handle:plugin, numParams)
+public int __IsRepelling(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
@@ -531,9 +530,9 @@ public __IsRepelling(Handle:plugin, numParams)
 	return false;
 }
 
-public __IsAscending(Handle:plugin, numParams)
+public int __IsAscending(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
@@ -543,9 +542,9 @@ public __IsAscending(Handle:plugin, numParams)
 	return false;
 }
 
-public __IsDescending(Handle:plugin, numParams)
+public int __IsDescending(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
@@ -555,9 +554,9 @@ public __IsDescending(Handle:plugin, numParams)
 	return false;
 }
 
-public __GetHookLocation(Handle:plugin, numParams)
+public int __GetHookLocation(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
@@ -570,16 +569,16 @@ public __GetHookLocation(Handle:plugin, numParams)
 	return false;
 }
 
-public __GetGrabLocation(Handle:plugin, numParams)
+public int __GetGrabLocation(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
         return ThrowNativeError(SP_ERROR_NATIVE, "Client is not currently ingame [%d]", client);
 	if(g_Status[client][Grab])
 	{
-		new Float:buffer[3];
+		float buffer[3];
 		GetEntityOrigin(g_Targetindex[client][Grab], buffer);
 		SetNativeArray(2, buffer, 3);
 		return true;
@@ -588,9 +587,9 @@ public __GetGrabLocation(Handle:plugin, numParams)
 		return false;
 }
 
-public __GetRopeLocation(Handle:plugin, numParams)
+public int __GetRopeLocation(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
@@ -604,9 +603,9 @@ public __GetRopeLocation(Handle:plugin, numParams)
 		return false;
 }
 
-public __GetPushLocation(Handle:plugin, numParams)
+public int __GetPushLocation(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
@@ -620,61 +619,61 @@ public __GetPushLocation(Handle:plugin, numParams)
 		return false;
 }
 
-public __GetHookDistance(Handle:plugin, numParams)
+public int __GetHookDistance(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
         return ThrowNativeError(SP_ERROR_NATIVE, "Client is not currently ingame [%d]", client);
 	if(g_Status[client][Hook])
-		return _:g_Distance[client][0];
+		return view_as<int>(g_Distance[client][0]);
 	else
 		return -1;
 }
 
-public __GetGrabDistance(Handle:plugin, numParams)
+public int __GetGrabDistance(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
         return ThrowNativeError(SP_ERROR_NATIVE, "Client is not currently ingame [%d]", client);
 	if(g_Status[client][Grab])
-		return _:g_Distance[client][1];
+		return view_as<int>(g_Distance[client][1]);
 	else
 		return -1;
 }
 
-public __GetRopeDistance(Handle:plugin, numParams)
+public int __GetRopeDistance(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
         return ThrowNativeError(SP_ERROR_NATIVE, "Client is not currently ingame [%d]", client);
 	if(g_Status[client][Rope])
-		return _:g_Distance[client][2];
+		return view_as<int>(g_Distance[client][2]);
 	else
 		return -1;
 }
 
-public __GetPushDistance(Handle:plugin, numParams)
+public int __GetPushDistance(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
         return ThrowNativeError(SP_ERROR_NATIVE, "Client is not currently ingame [%d]", client);
 	if(g_Status[client][Hook])
-		return _:g_Distance[client][3];
+		return view_as<int>(g_Distance[client][3]);
 	else
 		return -1;
 }
 
-public __GetHookTarget(Handle:plugin, numParams)
+public int __GetHookTarget(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
@@ -685,9 +684,9 @@ public __GetHookTarget(Handle:plugin, numParams)
 		return -1;
 }
 
-public __GetGrabTarget(Handle:plugin, numParams)
+public int __GetGrabTarget(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
@@ -698,9 +697,9 @@ public __GetGrabTarget(Handle:plugin, numParams)
 		return -1;
 }
 
-public __GetRopeTarget(Handle:plugin, numParams)
+public int __GetRopeTarget(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
@@ -711,9 +710,9 @@ public __GetRopeTarget(Handle:plugin, numParams)
 		return -1;
 }
 
-public __GetPushTarget(Handle:plugin, numParams)
+public int __GetPushTarget(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
@@ -724,9 +723,9 @@ public __GetPushTarget(Handle:plugin, numParams)
 		return -1;
 }
 
-public __ForceHook(Handle:plugin, numParams)
+public int __ForceHook(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
@@ -739,9 +738,9 @@ public __ForceHook(Handle:plugin, numParams)
 	return false;
 }
 
-public __ForceGrab(Handle:plugin, numParams)
+public int __ForceGrab(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
@@ -754,9 +753,9 @@ public __ForceGrab(Handle:plugin, numParams)
 	return false;
 }
 
-public __ForceRope(Handle:plugin, numParams)
+public int __ForceRope(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
@@ -769,9 +768,9 @@ public __ForceRope(Handle:plugin, numParams)
 	return false;
 }
 
-public __ForcePush(Handle:plugin, numParams)
+public int __ForcePush(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
@@ -784,9 +783,9 @@ public __ForcePush(Handle:plugin, numParams)
 	return false;
 }
 
-public __StopHook(Handle:plugin, numParams)
+public int __StopHook(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
@@ -799,9 +798,9 @@ public __StopHook(Handle:plugin, numParams)
 	return false;
 }
 
-public __StopGrab(Handle:plugin, numParams)
+public int __StopGrab(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
@@ -814,9 +813,9 @@ public __StopGrab(Handle:plugin, numParams)
 	return false;
 }
 
-public __StopRope(Handle:plugin, numParams)
+public int __StopRope(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
@@ -829,9 +828,9 @@ public __StopRope(Handle:plugin, numParams)
 	return false;
 }
 
-public __StopPush(Handle:plugin, numParams)
+public int __StopPush(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1);
+	int client = GetNativeCell(1);
 	if(client < 1 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index [%d]", client);
 	else if(!IsClientInGame(client))
@@ -848,13 +847,13 @@ public __StopPush(Handle:plugin, numParams)
  *Events*
 *********/
 
-public OnGameFrame()
+public void OnGameFrame()
 {
-	for (new i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsClientInGame(i) && IsPlayerAlive(i))
 		{
-			new cl_buttons = GetClientButtons(i);
+			int cl_buttons = GetClientButtons(i);
 			if(g_Status[i][Hook] && g_cvarSlide[Hook])
 			{
 				if(cl_buttons & g_cvarUpButton && g_Backward[i])
@@ -918,9 +917,9 @@ public OnGameFrame()
 	}
 }
 
-public PlayerSpawnEvent(Handle:event, const String:name[], bool:dontBroadcast)
+public void PlayerSpawnEvent(Event event, const char[] name, bool dontBroadcast)
 {
-	new client = GetClientOfUserId(GetEventInt(event,"userid"));
+	int client = GetClientOfUserId(event.GetInt("userid"));
 	if(IsFakeClient(client))
 		return;
 	
@@ -940,7 +939,7 @@ public PlayerSpawnEvent(Handle:event, const String:name[], bool:dontBroadcast)
 	g_Targetindex[client][3] = -1;
 	if(g_cvarAnnounce)
 	{	
-		decl String:buffer[128];
+		char buffer[128];
 		Format(buffer, sizeof(buffer), "\x01\x0B\x04[HGR]\x01 %t\x04 ", "Enabled");
 		if(HasAccess(client, Hook))
 			Format(buffer, sizeof(buffer), "%s[+Hook] ", buffer);
@@ -952,25 +951,25 @@ public PlayerSpawnEvent(Handle:event, const String:name[], bool:dontBroadcast)
 	}
 }
 
-public RoundStartEvent(Handle:event, const String:name[], bool:dontBroadcast)
+public void RoundStartEvent(Event event, const char[] name, bool dontBroadcast)
 {
 	// Tell plugin whether players can use hook grab rope during freezetime
 	if(g_HookedFreeze)
 	{
-		for(new HGRAction:i = Hook; i <= Rope; i++)
+		for(HGRAction i = Hook; i <= Rope; i++)
 			g_Frozen[i] = g_cvarFreeze[i];
 	}
 	else
 	{
-		for(new HGRAction:k = Hook; k <= Rope; k++)
+		for(HGRAction k = Hook; k <= Rope; k++)
 			g_Frozen[k] = true;
 	}
 }
 
-public RoundFreezeEndEvent(Handle:event, const String:name[], bool:dontBroadcast)
+public void RoundFreezeEndEvent(Event event, const char[] name, bool dontBroadcast)
 {
 	// Freezetime has ended
-	for(new HGRAction:i = Hook; i <= Rope; i++)
+	for(HGRAction i = Hook; i <= Rope; i++)
 		g_Frozen[i] = true;
 }
 
@@ -978,21 +977,21 @@ public RoundFreezeEndEvent(Handle:event, const String:name[], bool:dontBroadcast
  *Console Commands*
 *******************/
 
-public Action:HookCmd(client, args)
+public Action HookCmd(int client, int args)
 {
 	g_Backward[client] = false;
 	Action_Hook(client);
 	return Plugin_Handled;
 }
 
-public Action:UnHookCmd(client, args)
+public Action UnHookCmd(int client, int args)
 {
 	if(IsPlayerAlive(client))
 		Action_UnHook(client);
 	return Plugin_Handled;
 }
 
-public Action:HookToggle(client, args)
+public Action HookToggle(int client, int args)
 {
 	if(g_Status[client][Hook])
 		g_Status[client][Hook] = false;
@@ -1004,20 +1003,20 @@ public Action:HookToggle(client, args)
 	return Plugin_Handled;
 }
     
-public Action:GrabCmd(client, args)
+public Action GrabCmd(int client, int args)
 {
 	Action_Grab(client);
 	return Plugin_Handled;
 }
 
-public Action:DropCmd(client, args)
+public Action DropCmd(int client, int args)
 {
 	if(IsPlayerAlive(client))
 		Action_Drop(client);
 	return Plugin_Handled;
 }
 
-public Action:GrabToggle(client, args)
+public Action GrabToggle(int client, int args)
 {
 	if(g_Status[client][Grab])
 		g_Status[client][Grab] = false;
@@ -1026,20 +1025,20 @@ public Action:GrabToggle(client, args)
 	return Plugin_Handled;
 }
 
-public Action:RopeCmd(client, args)
+public Action RopeCmd(int client, int args)
 {
 	Action_Rope(client); 
 	return Plugin_Handled;
 }
 
-public Action:DetachCmd(client, args)
+public Action DetachCmd(int client, int args)
 {
 	if(IsPlayerAlive(client))
 		Action_Detach(client);
 	return Plugin_Handled;
 }
 
-public Action:RopeToggle(client, args)
+public Action RopeToggle(int client, int args)
 {
 	if(g_Status[client][Rope])
 		g_Status[client][Rope] = false;
@@ -1048,14 +1047,14 @@ public Action:RopeToggle(client, args)
 	return Plugin_Handled;
 }
 
-public Action:PushCmd(client, args)
+public Action PushCmd(int client, int args)
 {
 	g_Backward[client] = true;
 	Action_Hook(client);
 	return Plugin_Handled;
 }
 
-public Action:UnPushCmd(client, args)
+public Action UnPushCmd(int client, int args)
 {
 	if(IsPlayerAlive(client))
 	{
@@ -1065,7 +1064,7 @@ public Action:UnPushCmd(client, args)
 	return Plugin_Handled;
 }
 
-public Action:PushToggle(client, args)
+public Action PushToggle(int client, int args)
 {
 	if(g_Status[client][Hook])
 	{
@@ -1084,15 +1083,15 @@ public Action:PushToggle(client, args)
  *Admin Commands*
 *****************/
 
-public Action:GiveHook(client, args)
+public Action GiveHook(int client, int args)
 {
 	if(args > 0)
 	{
-		decl String:target[64];
+		char target[64];
 		GetCmdArg(1, target, sizeof(target));
 		if(Access(target, Give, Hook) == 0)
 		{
-			new targetindex = FindTarget(client, target);
+			int targetindex = FindTarget(client, target);
 			if(targetindex > 0)
 			{
 				ClientAccess(targetindex, Give, Hook);
@@ -1107,15 +1106,15 @@ public Action:GiveHook(client, args)
 	return Plugin_Handled;
 }
 
-public Action:TakeHook(client, args)
+public Action TakeHook(int client, int args)
 {
 	if(args > 0)
 	{
-		decl String:target[64];
+		char target[64];
 		GetCmdArg(1, target, sizeof(target));
 		if(Access(target, Take, Hook) == 0)
 		{
-			new targetindex = FindTarget(client, target);
+			int targetindex = FindTarget(client, target);
 			if(targetindex > 0)
 			{
 				ClientAccess(targetindex, Take, Hook);
@@ -1130,15 +1129,15 @@ public Action:TakeHook(client, args)
 	return Plugin_Handled;
 }
 
-public Action:GiveGrab(client, args)
+public Action GiveGrab(int client, int args)
 {
 	if(args > 0)
 	{
-		decl String:target[64];
+		char target[64];
 		GetCmdArg(1, target, sizeof(target));
 		if(Access(target, Give, Grab) == 0)
 		{
-			new targetindex = FindTarget(client, target);
+			int targetindex = FindTarget(client, target);
 			if(targetindex > 0)
 			{
 				ClientAccess(targetindex, Give, Grab);
@@ -1153,15 +1152,15 @@ public Action:GiveGrab(client, args)
 	return Plugin_Handled;
 }
 
-public Action:TakeGrab(client, args)
+public Action TakeGrab(int client, int args)
 {
 	if(args > 0)
 	{
-		decl String:target[64];
+		char target[64];
 		GetCmdArg(1, target, sizeof(target));
 		if(Access(target, Take, Grab) == 0)
 		{
-			new targetindex = FindTarget(client, target);
+			int targetindex = FindTarget(client, target);
 			if(targetindex > 0)
 			{
 				ClientAccess(targetindex, Take, Grab);
@@ -1176,15 +1175,15 @@ public Action:TakeGrab(client, args)
 	return Plugin_Handled;
 }
 
-public Action:GiveRope(client, args)
+public Action GiveRope(int client, int args)
 {
 	if(args > 0)
 	{
-		decl String:target[64];
+		char target[64];
 		GetCmdArg(1, target, sizeof(target));
 		if(Access(target, Give, Rope) == 0)
 		{
-			new targetindex = FindTarget(client, target);
+			int targetindex = FindTarget(client, target);
 			if(targetindex > 0)
 			{
 				ClientAccess(targetindex, Give, Rope);
@@ -1199,15 +1198,15 @@ public Action:GiveRope(client, args)
 	return Plugin_Handled;
 }
 
-public Action:TakeRope(client, args)
+public Action TakeRope(int client, int args)
 {
 	if(args > 0)
 	{
-		decl String:target[64];
+		char target[64];
 		GetCmdArg(1, target, sizeof(target));
 		if(Access(target, Take, Rope) == 0)
 		{
-			new targetindex = FindTarget(client, target);
+			int targetindex = FindTarget(client, target);
 			if(targetindex > 0)
 			{
 				ClientAccess(targetindex, Take, Rope);
@@ -1226,22 +1225,22 @@ public Action:TakeRope(client, args)
  *Access*
 *********/
 
-public Access(const String:target[], HGRAccess:access, HGRAction:action)
+public int Access(const char[] target, HGRAccess access, HGRAction action)
 {
-	new clients[MAXPLAYERS];
-	new count = FindMatchingPlayers(target, clients);
+	int clients[MAXPLAYERS];
+	int count = FindMatchingPlayers(target, clients);
 	if(count == 0)
 		return 0;
-	for(new x = 0; x < count; x++)
+	for(int x = 0; x < count; x++)
 		ClientAccess(clients[x], access, action);
 	return count;
 }
 
-public ClientAccess(client, HGRAccess:access, HGRAction:action)
+public int ClientAccess(int client, HGRAccess access, HGRAction action)
 {
 	if(IsFakeClient(client))
 		return 0;
-	decl String:actionName[64];
+	char actionName[64];
 	if(action == Hook)
 		actionName = "Hook";
 	else if(action == Grab)
@@ -1263,7 +1262,7 @@ public ClientAccess(client, HGRAccess:access, HGRAction:action)
 	return 1;
 }
 
-public bool:HasAccess(client, HGRAction:action)
+public bool HasAccess(int client, HGRAction action)
 {
 	// Hook, Grab, or Rope is disabled
 	if(!g_cvarEnable[action])
@@ -1274,7 +1273,7 @@ public bool:HasAccess(client, HGRAction:action)
 	// Check for admin flags if selected HGR action is admin only
 	if(g_cvarAdminOnly[action])
 	{
-		decl String:actionName[24];
+		char actionName[24];
 		if(action == Hook)
 			actionName = "+hook";
 		else if(action == Grab)
@@ -1295,7 +1294,7 @@ public bool:HasAccess(client, HGRAction:action)
  *Convars*
 **********/
 
-public ConvarChanged(Handle:cvar, const String:oldVal[], const String:newVal[])
+public void ConvarChanged(ConVar cvar, const char[] oldVal, const char[] newVal)
 {
 	// General convars
 	if(cvar == h_cvarAnnounce)
@@ -1402,17 +1401,17 @@ public ConvarChanged(Handle:cvar, const String:oldVal[], const String:newVal[])
 		GetConVarString(h_cvarRopeSound, g_cvarSound[Rope], sizeof(g_cvarSound[]));
 }
 
-public UpdateAllConvars()
+public void UpdateAllConvars()
 {
 	// General convars
 	g_cvarAnnounce        = GetConVarBool(h_cvarAnnounce);
 	g_cvarSoundAmplify    = GetConVarInt(h_cvarSoundAmplify);
 	g_cvarOverrideMode    = GetConVarBool(h_cvarOverrideMode);
 	g_cvarRopeOldMode     = GetConVarBool(h_cvarRopeOldMode);
-	decl String:UpButton[24];
+	char UpButton[24];
 	GetConVarString(h_cvarUpButton, UpButton, sizeof(UpButton));
 	g_cvarUpButton = GetButtonBitString(UpButton, 1 << 1);
-	decl String:DownButton[24];
+	char DownButton[24];
 	GetConVarString(h_cvarDownButton, DownButton, sizeof(DownButton));
 	g_cvarDownButton = GetButtonBitString(DownButton, 1 << 2);
 
@@ -1465,7 +1464,7 @@ public UpdateAllConvars()
 	GetConVarString(h_cvarRopeSound, g_cvarSound[Rope], sizeof(g_cvarSound[]));
 	
 	// Freezetime variables
-	for(new HGRAction:i = Hook; i <= Rope; i++)
+	for(HGRAction i = Hook; i <= Rope; i++)
 	{
 		if(!g_HookedRoundStart || !g_HookedFreeze)
 			g_Frozen[i] = true;
@@ -1474,7 +1473,7 @@ public UpdateAllConvars()
 	}
 }
 
-public GetBeamColor(client, HGRAction:action, color[4])
+public void GetBeamColor(int client, HGRAction action, int color[4])
 {
 	// Custom beam color
     if(g_cvarBeamColor[action] == 2)
@@ -1519,7 +1518,7 @@ public GetBeamColor(client, HGRAction:action, color[4])
  *Hook*
 *******/
 
-public Action_Hook(client)
+public void Action_Hook(int client)
 {
 	if(g_cvarEnable[Hook] && g_Frozen[Hook])
 	{
@@ -1533,7 +1532,7 @@ public Action_Hook(client)
 			if(HasAccess(client, Hook))
 			{
 				// Init variables
-				new Float:clientloc[3], Float:clientang[3];
+				float clientloc[3], clientang[3];
 				GetClientEyePosition(client, clientloc);
 				GetClientEyeAngles(client, clientang);
 				
@@ -1544,7 +1543,7 @@ public Action_Hook(client)
 				g_Distance[client][0] = GetVectorDistance(clientloc, g_Location[client][0]); // Get hook distance
 				
 				// Push traceray
-				decl Float:temp[3];
+				float temp[3];
 				GetAngleVectors(clientang, temp, NULL_VECTOR, NULL_VECTOR);
 				NegateVector(temp);
 				GetVectorAngles(temp, clientang);
@@ -1558,7 +1557,7 @@ public Action_Hook(client)
 				g_Status[client][Hook] = true; // Tell plugin the player has landed hook
 				
 				// Call hook forward
-				new ret;
+				int ret;
 				Call_StartForward(FwdClientHook);
 				Call_PushCell(client);
 				Call_Finish(ret);
@@ -1584,10 +1583,10 @@ public Action_Hook(client)
 		PrintToChat(client,"\x01\x0B\x04[HGR] Hook\x01 %t", "Disabled");
 }
 
-public Hook_Push(client)
+public void Hook_Push(int client)
 {
 	// Init variables
-	new Float:clientloc[3], Float:velocity[3];
+	float clientloc[3], velocity[3];
 	GetClientEyePosition(client, clientloc); // Get the xyz coordinate of the player
 	
 	// Calculate velocity vector
@@ -1599,7 +1598,7 @@ public Hook_Push(client)
 	ScaleVector(velocity, g_cvarSpeed[0] * 140.0);
 	
 	// Create beam effect
-	new color[4];
+	int color[4];
 	clientloc[2] -= 18.0;
 	GetBeamColor(client, Hook, color);
 	BeamEffect(clientloc, g_Location[client][0], 0.2, g_cvarInitWidth[0], g_cvarEndWidth[0], color, g_cvarAmplitude[0], 0);
@@ -1616,7 +1615,7 @@ public Hook_Push(client)
 	}
 	
 	// If client has reached the end of the push
-	new Float:pdistance = GetVectorDistance(clientloc, g_Location[client][3]);
+	float pdistance = GetVectorDistance(clientloc, g_Location[client][3]);
 	if(pdistance < 40.0 && g_Backward[client])
 	{
 		SetEntityMoveType(client, MOVETYPE_NONE); // Freeze client
@@ -1624,7 +1623,7 @@ public Hook_Push(client)
 	}
 }
 
-public Action:Hooking(Handle:timer, any:client)
+public Action Hooking(Handle timer, any client)
 {
 	if( IsClientInGame(client) &&
 		IsPlayerAlive(client) &&
@@ -1641,7 +1640,7 @@ public Action:Hooking(Handle:timer, any:client)
 	}
 }
 
-public Action_UnHook(client)
+public void Action_UnHook(int client)
 {
 	if( IsClientInGame(client) &&
 		IsPlayerAlive(client) &&
@@ -1658,7 +1657,7 @@ public Action_UnHook(client)
  *Grab*
 *******/
 
-public Action_Grab(client)
+public void Action_Grab(int client)
 {
 	if(g_cvarEnable[Grab] && g_Frozen[Grab])
 	{
@@ -1673,7 +1672,7 @@ public Action_Grab(client)
 				g_Status[client][Grab] = true; // Tell plugin the seeker is grabbing a player
 				
 				// Call grab search forward
-				new ret;
+				int ret;
 				Call_StartForward(FwdClientGrabSearch);
 				Call_PushCell(client);
 				Call_Finish(ret);
@@ -1696,7 +1695,7 @@ public Action_Grab(client)
 		PrintToChat(client, "\x01\x0B\x04[HGR] Grab\x01 %t", "Disabled");
 }
 
-public Action:GrabSearch(Handle:timer, any:client)
+public Action GrabSearch(Handle timer, any client)
 {
 	PrintCenterText(client, "%t", "Searching"); // Tell client the plugin is searching for a target
 	if( client > 0 &&
@@ -1706,7 +1705,7 @@ public Action:GrabSearch(Handle:timer, any:client)
 		!g_Grabbed[client])
 	{
 		// Init variables
-		new Float:clientloc[3], Float:clientang[3];
+		float clientloc[3], clientang[3];
 		GetClientEyePosition(client, clientloc);
 		GetClientEyeAngles(client, clientang);
 		
@@ -1718,7 +1717,7 @@ public Action:GrabSearch(Handle:timer, any:client)
 		if(g_Targetindex[client][Grab] > 0 && IsValidEntity(g_Targetindex[client][Grab]))
 		{
 			// Init variables
-			new Float:targetloc[3];
+			float targetloc[3];
 			GetEntityOrigin(g_Targetindex[client][Grab], targetloc); // Find the target's xyz coordinate
 			g_Distance[client][1] = GetVectorDistance(targetloc, clientloc); // Tell plugin the distance between the two to maintain
 			if( g_Targetindex[client][Grab] > 0 &&
@@ -1731,7 +1730,7 @@ public Action:GrabSearch(Handle:timer, any:client)
 			}
 			
 			// Call grab forward
-			new ret;
+			int ret;
 			Call_StartForward(FwdClientGrab);
 			Call_PushCell(client);
 			Call_Finish(ret);
@@ -1755,7 +1754,7 @@ public Action:GrabSearch(Handle:timer, any:client)
 	return Plugin_Continue;
 }
 
-public Action:Grabbing(Handle:timer, any:client)
+public Action Grabbing(Handle timer, any client)
 {
 	PrintCenterText(client, "%t", "Found");
 	if( IsClientInGame(client) &&
@@ -1771,7 +1770,7 @@ public Action:Grabbing(Handle:timer, any:client)
 			IsPlayerAlive(g_Targetindex[client][Grab]))
 		{
 			// Init variables
-			new Float:clientloc[3], Float:clientang[3], Float:targetloc[3], Float:velocity[3];
+			float clientloc[3], clientang[3], targetloc[3], velocity[3];
 			GetClientEyePosition(client, clientloc);
 			GetClientEyeAngles(client, clientang);
 			GetEntityOrigin(g_Targetindex[client][Grab], targetloc);
@@ -1802,7 +1801,7 @@ public Action:Grabbing(Handle:timer, any:client)
 			TeleportEntity(g_Targetindex[client][Grab], NULL_VECTOR, NULL_VECTOR, velocity);
 			
 			// Make a beam from grabber to grabbed
-			new color[4];
+			int color[4];
 			if(g_Targetindex[client][Grab] <= MaxClients)
 				targetloc[2] += 45;
 			clientloc[2] -= 5;
@@ -1823,7 +1822,7 @@ public Action:Grabbing(Handle:timer, any:client)
 	return Plugin_Continue;
 }
 
-public Action_Drop(client)
+public void Action_Drop(int client)
 {
 	if( IsClientInGame(client) &&
 		IsPlayerAlive(client) &&
@@ -1851,7 +1850,7 @@ public Action_Drop(client)
  *Rope*
 *******/
 
-public Action_Rope(client)
+public void Action_Rope(int client)
 {
 	if(g_cvarEnable[Rope] && g_Frozen[Rope])
 	{
@@ -1865,7 +1864,7 @@ public Action_Rope(client)
 		if(HasAccess(client,Rope))
 		{
 			// Init variables
-			new Float:clientloc[3], Float:clientang[3];
+			float clientloc[3], clientang[3];
 			GetClientEyePosition(client, clientloc); // Get the position of the player's eyes
 			GetClientEyeAngles(client, clientang); // Get the angle the player is looking
 			
@@ -1879,7 +1878,7 @@ public Action_Rope(client)
 			g_Distance[client][2] = GetVectorDistance(clientloc, g_Location[client][2]);
 			
 			// Call rope forward
-			new ret;
+			int ret;
 			Call_StartForward(FwdClientRope);
 			Call_PushCell(client);
 			Call_Finish(ret);
@@ -1903,7 +1902,7 @@ public Action_Rope(client)
 		PrintToChat(client,"\x01\x0B\x04[HGR] Rope\x01 %t", "Disabled");
 }
 
-public Action:Roping(Handle:timer,any:client)
+public Action Roping(Handle timer, any client)
 {
 	if( IsClientInGame(client) &&
 		g_Status[client][Rope] &&
@@ -1911,7 +1910,7 @@ public Action:Roping(Handle:timer,any:client)
 		!g_Grabbed[client])
 	{
 		// Init variables
-		new Float:clientloc[3], Float:velocity[3], Float:direction[3], Float:ascension[3], Float:climb = 3.0;
+		float clientloc[3], velocity[3], direction[3], ascension[3], climb = 3.0;
 		GetClientEyePosition(client, clientloc);
 		SubtractVectors(g_Location[client][2], clientloc, direction);
 		if(g_Climbing[client][0])
@@ -1949,7 +1948,7 @@ public Action:Roping(Handle:timer,any:client)
 		}
 		
 		// Create beam effect
-		new color[4];
+		int color[4];
 		clientloc[2] -= 10;
 		GetBeamColor(client, Rope, color);
 		BeamEffect(clientloc, g_Location[client][2], 0.2, g_cvarInitWidth[2], g_cvarEndWidth[2], color, g_cvarAmplitude[2], 0);
@@ -1962,7 +1961,7 @@ public Action:Roping(Handle:timer,any:client)
 	return Plugin_Continue;
 }
 
-public Action_Detach(client)
+public void Action_Detach(int client)
 {
 	if( IsClientInGame(client) &&
 		IsPlayerAlive(client) &&
@@ -1977,7 +1976,7 @@ public Action_Detach(client)
  *Trace Filters*
 ****************/
 
-public bool:TraceRayTryToHit(entity, mask)
+public bool TraceRayTryToHit(int entity, int mask)
 {
 	// Check if the beam hit a player and tell it to keep tracing if it did
 	if(entity > 0 && entity <= MaxClients)
@@ -1985,7 +1984,7 @@ public bool:TraceRayTryToHit(entity, mask)
 	return true;
 }
 
-public bool:TraceRayGrabEnt(entity, mask)
+public bool TraceRayGrabEnt(int entity, int mask)
 {
 	// Check if the beam hit an entity other than the grabber, and stop if it does
 	if(entity > 0)
@@ -2002,38 +2001,38 @@ public bool:TraceRayGrabEnt(entity, mask)
  *Helpers*
 **********/
 
-public EmitSoundFromOrigin(const String:sound[], const Float:orig[3])
+public void EmitSoundFromOrigin(const char[] sound, const float orig[3])
 {
 	// Amplify sound
-	for(new i = 0; i < g_cvarSoundAmplify; i++)
+	for(int i = 0; i < g_cvarSoundAmplify; i++)
 		EmitSoundToAll(sound, SOUND_FROM_WORLD, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, SNDPITCH_NORMAL, -1, orig, NULL_VECTOR, true, 0.0);
 }
 
-public GetEntityOrigin(entity, Float:output[3])
+public void GetEntityOrigin(int entity, float output[3])
 {
 	GetEntDataVector(entity, OriginOffset, output);
 }
 
-public GetVelocity(client, Float:output[3])
+public void GetVelocity(int client, float output[3])
 {
 	output[0] = GetEntDataFloat(client, GetVelocityOffset_x);
 	output[1] = GetEntDataFloat(client, GetVelocityOffset_y);
 	output[2] = GetEntDataFloat(client, GetVelocityOffset_z);
 }
 
-public ResetAccess(client)
+public void ResetAccess(int client)
 {
 	g_AllowedClients[client][0] = false;
 	g_AllowedClients[client][1] = false;
 	g_AllowedClients[client][2] = false;
 }
 
-public FindMatchingPlayers(const String:matchstr[], clients[])
+public int FindMatchingPlayers(const char[] matchstr, int[] clients)
 {
-	new k = 0;
+	int k = 0;
 	if(StrEqual(matchstr, "@all", false))
 	{
-		for(new x = 1; x <= MaxClients; x++)
+		for(int x = 1; x <= MaxClients; x++)
 		{
 			if(IsClientInGame(x))
 			{
@@ -2044,7 +2043,7 @@ public FindMatchingPlayers(const String:matchstr[], clients[])
 	}
 	else if(StrEqual(matchstr, "@t", false))
 	{
-		for(new x = 1; x <= MaxClients; x++)
+		for(int x = 1; x <= MaxClients; x++)
 		{
 			if(IsClientInGame(x) && GetClientTeam(x) == 2)
 			{
@@ -2055,7 +2054,7 @@ public FindMatchingPlayers(const String:matchstr[], clients[])
 	}
 	else if(StrEqual(matchstr, "@ct", false))
 	{
-		for(new x = 1; x <= MaxClients; x++)
+		for(int x = 1; x <= MaxClients; x++)
 		{
 			if(IsClientInGame(x) && GetClientTeam(x) == 3)
 			{
@@ -2067,7 +2066,7 @@ public FindMatchingPlayers(const String:matchstr[], clients[])
 	return k;
 }
 
-public GetButtonBitString(const String:matchstr[], def)
+public int GetButtonBitString(const char[] matchstr, int def)
 {
 	if(StrEqual(matchstr, "IN_ATTACK"))
 		return 1 << 0;
@@ -2126,7 +2125,7 @@ public GetButtonBitString(const String:matchstr[], def)
  *Effects*
 **********/
 
-public BeamEffect(Float:startvec[3], Float:endvec[3], Float:life, Float:width, Float:endwidth, const color[4], Float:amplitude,speed)
+public void BeamEffect(float startvec[3], float endvec[3], float life, float width, float endwidth, const int color[4], float amplitude, int speed)
 {
 	TE_SetupBeamPoints(startvec, endvec, precache_laser, 0, 0, 66, life, width, endwidth, 0, amplitude, color, speed);
 	TE_SendToAll();

@@ -105,7 +105,7 @@ public void OnPluginStart()
 	c_HeadShotFlag		= CreateConVar("duel_headshot_flag", 	"a", 	"Flag needed to create head shot duel : a or b or o or p or q or r or s or t or z, 0 = no flag");	
 	
 	
-	if(GetConVarBool(cvarEnabled))
+	if(cvarEnabled.BoolValue)
 	{
 		LogMessage("[0/5] Loading : Enabled");
 		RegConsoleCmd("sm_duel", loadDuel, "Challenge player");
@@ -1291,18 +1291,27 @@ void LoadDuel(int Player2)
 //------------------------------------------------------------------------------------------------------------------------
 
 
-void SetGodModColor(int iClient)
+void SetGodModColor(int client)
 {
-	if(GetCommandFlags("sm_colorize") != INVALID_FCVAR_FLAGS)
+	int userid = GetClientUserId(client);
+	if (CommandExists("sm_colorize"))
 	{
-	    ServerCommand("sm_colorize #%d normal", GetClientUserId(iClient));
+	    ServerCommand("sm_colorize #%d normal", userid);
 	}  
-	else SetEntityRenderColor(iClient, 255, 255, 255, 255);
+	else SetEntityRenderColor(client, 255, 255, 255, 255);
 	
-	if(GetClientTeam(iClient) == 2)
-		SetEntityRenderColor(iClient, 200, 0, 0, 255);
+	CreateTimer(0.4, OnSetGodModeColor, userid);
+}
+
+public Action OnSetGodModeColor(Handle timer, any userid)
+{
+	int client = GetClientOfUserId(userid);
+	if (!IsValidClient(client) || !IsPlayerAlive(client) || !g_Duel[client][Enabled]) return Plugin_Stop;
+	if (TF2_GetClientTeam(client) == TFTeam_Red)
+		SetEntityRenderColor(client, 200, 0, 0, 255);
 	else
-		SetEntityRenderColor(iClient, 0, 0, 200, 255);
+		SetEntityRenderColor(client, 0, 0, 200, 255);
+	return Plugin_Continue;
 }
 
 
@@ -1859,8 +1868,8 @@ public void T_UpdateClient(Handle owner, Handle hndl, const char[] error, any iC
 
 void ResetPlayer(int iClient)
 {
-	/*
-	if(IsValidClient(iClient) && g_Duel[iClient][GodMod])
+	g_Duel[iClient][Enabled] 		= false;
+	if(IsValidClient(iClient) && g_Duel[iClient][GodMod] && !g_Duel[iClient][Enabled])
 	{
 		if(GetCommandFlags("sm_colorize") != INVALID_FCVAR_FLAGS)
 		{
@@ -1868,8 +1877,6 @@ void ResetPlayer(int iClient)
 		}  
 		else SetEntityRenderColor(iClient, 255, 255, 255, 255);
 	}
-	*/
-	g_Duel[iClient][Enabled] 		= false;
 	g_Duel[iClient][HeadShot]		= false;
 	g_Duel[iClient][ClassRestrict] 	= 0;
 	g_Duel[iClient][kills]			= 0;

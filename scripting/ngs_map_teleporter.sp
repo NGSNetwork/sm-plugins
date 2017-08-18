@@ -12,10 +12,10 @@
 
 Handle teleportTimersSkybox[MAXPLAYERS + 1];
 
-float skyboxredorigin[3] = {-984.273560, 26.774399, 2971.031250};
-float skyboxbluorigin[3] =  {64.983459, 1319.008545, 3020.925537};
+float skyboxredorigin[3];
+float skyboxbluorigin[3];
 
-float adminroomorigin[3] = {-756.318359, -3720.868408, 5419.031250};
+float adminroomorigin[3];
 
 ConVar cvarSkyboxTagEnabled;
 ConVar cvarSkyboxTag;
@@ -24,9 +24,9 @@ ConVar cvarSkyboxTagCaseSensitive;
 public Plugin myinfo = {
 	name = "[NGS] Per Map Teleport",
 	author = "TheXeon",
-	description = "A quick way to teleport players to the trade_rawr_club_day_v3 areas.",
+	description = "A quick way to teleport players to map areas.",
 	version = PLUGIN_VERSION,
-	url = "neogenesisnetwork.servegame.com"
+	url = "https://neogenesisnetwork.net"
 }
 
 public void OnPluginStart()
@@ -40,6 +40,42 @@ public void OnPluginStart()
 	
 	HookEvent("player_hurt", Event_PlayerHurt);
 	HookEvent("player_death", Event_PlayerDeath);
+}
+
+public void OnMapStart()
+{
+	char mapName[MAX_BUFFER_LENGTH];
+	GetCurrentMap(mapName, sizeof(mapName));
+	if (StrContains(mapName, "trade_rawr_club_day_v3", false) != -1)
+	{
+		skyboxredorigin[0] = -984.273560;
+		skyboxredorigin[1] = 26.774399;
+		skyboxredorigin[2] = 2971.031250;
+		skyboxbluorigin[0] = 64.983459;
+		skyboxbluorigin[1] = 1319.008545;
+		skyboxbluorigin[2] = 3020.925537;
+		adminroomorigin[0] = -756.318359;
+		adminroomorigin[1] = -3720.868408;
+		adminroomorigin[2] = 5419.031250;
+	}
+	else if (StrContains(mapName, "trade_ngs_evening", false) != -1)
+	{
+		skyboxredorigin[0] = 6940.978516;
+		skyboxredorigin[1] = -261.385651;
+		skyboxredorigin[2] = 1855.671631;
+		skyboxbluorigin[0] = 9880.611328;
+		skyboxbluorigin[1] = 1609.373901;
+		skyboxbluorigin[2] = 1832.255493;
+		adminroomorigin[0] = 596.420349;
+		adminroomorigin[1] = 93.558075;
+		adminroomorigin[2] = -36.611389;
+	}
+	else
+	{
+		char filename[256];
+		GetPluginFilename(INVALID_HANDLE, filename, sizeof(filename));
+		ServerCommand("sm plugins unload %s", filename);
+	}
 }
 
 public Action CommandSkybox(int client, int args)

@@ -163,7 +163,7 @@ public Action CommandListStaff(int client, int args)
 			{
 				char buffer[1024];
 				ImplodeStrings(communityManagerNames, commManCount, ", ", buffer, sizeof(buffer));
-				CReplyToCommand(client, "{GREEN}[SM] Community Managers online: {CRIMSON}%s.", buffer);
+				CReplyToCommand(client, "{GREEN}[SM] Marketers online: {CRIMSON}%s.", buffer);
 			}
 			if (devCount > 0)
 			{

@@ -1295,8 +1295,8 @@ void ReapplyFriendly(const int client) {
 		ApplyNoblock(client, false);
 	}
 	if (cvar_alpha_p.IntValue > -1) {
-		SetEntityRenderMode(client, RENDER_TRANSALPHA);
-		SetEntityRenderColor(client, _, _, _, cvar_alpha_p.IntValue);
+		SetEntityRenderMode(client, RENDER_TRANSCOLOR);
+		SetEntityRenderColor(client, 255, 0, 255, _);
 	}
 	if (cvar_alpha_w.IntValue > -1) {
 		SetWearableInvis(client);
@@ -1458,8 +1458,8 @@ void MakeStickiesFriendly(const int client) {
 	while ((sticky = FindEntityByClassname(sticky, "tf_projectile_pipe_remote"))!=INVALID_ENT_REFERENCE) {
 		if (IsValidEntity(sticky) && (GetEntPropEnt(sticky, Prop_Send, "m_hThrower") == client)) {
 			if (cvar_alpha_proj.IntValue >= 0 && cvar_alpha_proj.IntValue <= 255) {	
-				SetEntityRenderMode(sticky, RENDER_TRANSALPHA);
-				SetEntityRenderColor(sticky, _, _, _, cvar_alpha_proj.IntValue);
+				SetEntityRenderMode(sticky, RENDER_TRANSCOLOR);
+				SetEntityRenderColor(sticky, 255, 0, 255, _);
 			}
 		}
 	}
@@ -1662,8 +1662,8 @@ public void OnProjectileSpawned(int projectile) {
 		return;
 	}
 	if (IsFriendly[client]) {
-		SetEntityRenderMode(projectile, RENDER_TRANSALPHA);
-		SetEntityRenderColor(projectile, _, _, _, cvar_alpha_proj.IntValue);
+		SetEntityRenderMode(projectile, RENDER_TRANSCOLOR);
+		SetEntityRenderColor(projectile, 255, 0, 255, _);
 	}
 }
 
@@ -1915,8 +1915,8 @@ public Action Object_Built(Handle event, const char[] name, bool dontBroadcast) 
 					SetNotarget(building, true);
 				}
 				if (cvar_alpha_s.IntValue > -1) {
-					SetEntityRenderMode(building, RENDER_TRANSALPHA);
-					SetEntityRenderColor(building, _, _, _, cvar_alpha_s.IntValue);
+					SetEntityRenderMode(building, RENDER_TRANSCOLOR);
+					SetEntityRenderColor(building, 255, 0, 255, _);
 				}
 			}
 		}
@@ -1936,8 +1936,8 @@ public Action Object_Built(Handle event, const char[] name, bool dontBroadcast) 
 					SetNotarget(building, true);
 				}
 				if (cvar_alpha_d.IntValue > -1) {	
-					SetEntityRenderMode(building, RENDER_TRANSALPHA);
-					SetEntityRenderColor(building, _, _, _, cvar_alpha_d.IntValue);
+					SetEntityRenderMode(building, RENDER_TRANSCOLOR);
+					SetEntityRenderColor(building, 255, 0, 255, _);
 				}
 			}
 		}
@@ -1957,8 +1957,8 @@ public Action Object_Built(Handle event, const char[] name, bool dontBroadcast) 
 					SetNotarget(building, true);
 				}
 				if (cvar_alpha_t.IntValue > -1) {	
-					SetEntityRenderMode(building, RENDER_TRANSALPHA);
-					SetEntityRenderColor(building, _, _, _, cvar_alpha_t.IntValue);
+					SetEntityRenderMode(building, RENDER_TRANSCOLOR);
+					SetEntityRenderColor(building, 255, 0, 255, _);
 				}
 			}
 		}
@@ -1990,8 +1990,8 @@ void MakeBuildingsFriendly(const int client) {
 					SetNotarget(sentrygun, true);
 				}
 				if (cvar_alpha_s.IntValue > -1) {	
-					SetEntityRenderMode(sentrygun, RENDER_TRANSALPHA);
-					SetEntityRenderColor(sentrygun, _, _, _, cvar_alpha_s.IntValue);
+					SetEntityRenderMode(sentrygun, RENDER_TRANSCOLOR);
+					SetEntityRenderColor(sentrygun, 255, 0, 255, _);
 				}
 			}
 		}
@@ -2016,8 +2016,8 @@ void MakeBuildingsFriendly(const int client) {
 					SetNotarget(dispenser, true);
 				}
 				if (cvar_alpha_d.IntValue > -1) {	
-					SetEntityRenderMode(dispenser, RENDER_TRANSALPHA);
-					SetEntityRenderColor(dispenser, _, _, _, cvar_alpha_d.IntValue);
+					SetEntityRenderMode(dispenser, RENDER_TRANSCOLOR);
+					SetEntityRenderColor(dispenser, 255, 0, 255, _);
 				}
 			}
 		}
@@ -2042,8 +2042,8 @@ void MakeBuildingsFriendly(const int client) {
 					SetNotarget(teleporter, true);
 				}
 				if (cvar_alpha_t.IntValue > -1) {	
-					SetEntityRenderMode(teleporter, RENDER_TRANSALPHA);
-					SetEntityRenderColor(teleporter, _, _, _, cvar_alpha_t.IntValue);
+					SetEntityRenderMode(teleporter, RENDER_TRANSCOLOR);
+					SetEntityRenderColor(teleporter, 255, 0, 255, _);
 				}
 			}
 		}
@@ -2253,20 +2253,20 @@ stock void SetWearableInvis(int client, bool set = true) {
 	while ((i = FindEntityByClassname(i, "tf_wearable")) != -1) {
 		if (GetEntPropEnt(i, Prop_Send, "m_hOwnerEntity") == client && !GetEntProp(i, Prop_Send, "m_bDisguiseWearable")) {
 			SetEntityRenderMode(i, set ? RENDER_TRANSCOLOR : RENDER_NORMAL);
-			SetEntityRenderColor(i, _, _, _, set ? cvar_alpha_w.IntValue : 255);
+			SetEntityRenderColor(i, 255, 0, 255, _);
 		}
 	}
 	i = -1;
 	while ((i = FindEntityByClassname(i, "tf_wearable_demoshield")) != -1) {
 		if (GetEntPropEnt(i, Prop_Send, "m_hOwnerEntity") == client && !GetEntProp(i, Prop_Send, "m_bDisguiseWearable")) {
 			SetEntityRenderMode(i, set ? RENDER_TRANSCOLOR : RENDER_NORMAL);
-			SetEntityRenderColor(i, _, _, _, set ? cvar_alpha_w.IntValue : 255);
+			SetEntityRenderColor(i, 255, 0, 255, _);
 		}
 	}
 	while ((i = FindEntityByClassname(i, "tf_powerup_bottle")) != -1) {
 		if (GetEntPropEnt(i, Prop_Send, "m_hOwnerEntity") == client && !GetEntProp(i, Prop_Send, "m_bDisguiseWearable")) {
 			SetEntityRenderMode(i, set ? RENDER_TRANSCOLOR : RENDER_NORMAL);
-			SetEntityRenderColor(i, _, _, _, set ? cvar_alpha_w.IntValue : 255);
+			SetEntityRenderColor(i, 255, 0, 255, _);
 		}
 	}
 }
@@ -2277,7 +2277,7 @@ stock void SetWeaponInvis(int client, bool set = true) {
 		int entity = GetPlayerWeaponSlot(client, i);
 		if (entity != -1) {
 			SetEntityRenderMode(entity, RENDER_TRANSCOLOR);
-			SetEntityRenderColor(entity, _, _, _, set ? cvar_alpha_wep.IntValue : 255);
+			SetEntityRenderColor(entity, 255, 0, 255, _);
 		}
 	}
 }
@@ -3130,8 +3130,8 @@ public void cvarChange(Handle hHandle, const char[] strOldValue, const char[] st
 		for (int client = 1; client <= MaxClients; client++) {
 			if (IsClientInGame(client) && IsFriendly[client]) {
 				if (cvar_alpha_p.IntValue >= 0 && cvar_alpha_p.IntValue <= 255) {
-					SetEntityRenderMode(client, RENDER_TRANSALPHA);
-					SetEntityRenderColor(client, _, _, _, cvar_alpha_p.IntValue);
+					SetEntityRenderMode(client, RENDER_TRANSCOLOR);
+					SetEntityRenderColor(client, 255, 0, 255, _);
 				}
 				else {
 					SetEntityRenderMode(client, RENDER_NORMAL);
@@ -3165,8 +3165,8 @@ public void cvarChange(Handle hHandle, const char[] strOldValue, const char[] st
 				int engie = GetEntPropEnt(sentry, Prop_Send, "m_hBuilder");
 				if (IsValidClient(engie) && IsFriendly[engie]) {
 					if (cvar_alpha_s.IntValue >= 0) {
-						SetEntityRenderMode(sentry, RENDER_TRANSALPHA);
-						SetEntityRenderColor(sentry, _, _, _, cvar_alpha_s.IntValue);
+						SetEntityRenderMode(sentry, RENDER_TRANSCOLOR);
+						SetEntityRenderColor(sentry, 255, 0, 255, _);
 					}
 					else {
 						SetEntityRenderMode(sentry, RENDER_NORMAL);
@@ -3183,8 +3183,8 @@ public void cvarChange(Handle hHandle, const char[] strOldValue, const char[] st
 				int engie = GetEntPropEnt(dispenser, Prop_Send, "m_hBuilder");
 				if (IsValidClient(engie) && IsFriendly[engie]) {
 					if (cvar_alpha_d.IntValue >= 0) {
-						SetEntityRenderMode(dispenser, RENDER_TRANSALPHA);
-						SetEntityRenderColor(dispenser, _, _, _, cvar_alpha_d.IntValue);
+						SetEntityRenderMode(dispenser, RENDER_TRANSCOLOR);
+						SetEntityRenderColor(dispenser, 255, 0, 255, _);
 					}
 					else {
 						SetEntityRenderMode(dispenser, RENDER_NORMAL);
@@ -3201,8 +3201,8 @@ public void cvarChange(Handle hHandle, const char[] strOldValue, const char[] st
 				int engie = GetEntPropEnt(teleporter, Prop_Send, "m_hBuilder");
 				if (IsValidClient(engie) && IsFriendly[engie]) {
 					if (cvar_alpha_t.IntValue >= 0) {
-						SetEntityRenderMode(teleporter, RENDER_TRANSALPHA);
-						SetEntityRenderColor(teleporter, _, _, _, cvar_alpha_t.IntValue);
+						SetEntityRenderMode(teleporter, RENDER_TRANSCOLOR);
+						SetEntityRenderColor(teleporter, 255, 0, 255, _);
 					}
 					else {
 						SetEntityRenderMode(teleporter, RENDER_NORMAL);

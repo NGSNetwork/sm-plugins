@@ -36,6 +36,8 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_administration", CommandAdministration, "Usage: sm_administration");
 	RegConsoleCmd("sm_chowmane", CommandChowMane, "Usage: sm_chowmane");
 	RegConsoleCmd("sm_dazhlove", CommandDazhLove, "Usage: sm_dazhlove <#userid|name>");
+	RegConsoleCmd("sm_rr", CommandRussianRoulette, "Usage: sm_rr <numofbullets>");
+	RegConsoleCmd("sm_russianroulette", CommandRussianRoulette, "Usage: sm_russianroulette <numofbullets>");
 	LoadTranslations("common.phrases");
 }
 
@@ -45,6 +47,9 @@ public void OnMapStart()
 	PrecacheSound("vo/demoman_specialcompleted11.mp3", false);
 	PrecacheSound("coach/coach_attack_here.wav", false);
 	PrecacheSound("misc/happy_birthday_tf_08.wav", false);
+	PrecacheSound("weapons/ambassador_shoot.wav", false);
+	PrecacheSound("weapons/sentry_empty.wav", false);
+	PrecacheSound("weapons/diamond_back_01.wav", false);
 }
 
 public void OnClientPutInServer(int client)
@@ -84,7 +89,7 @@ public Action CommandYum(int client, int args)
 	if (!IsValidClient) return Plugin_Handled;
 	
 	FakeClientCommand(client, "explode");
-	CPrintToChat(client, "{GREEN}[SM]{DEFAULT} That's {LIGHTGREEN}Andy's{DEFAULT} thing, stahp.");
+	CPrintToChat(client, "{GREEN}[SM]{DEFAULT} That's {LIGHTGREEN}Andy{DEFAULT}'s thing, stahp.");
 	return Plugin_Handled;
 }
 
@@ -100,6 +105,47 @@ public Action CommandDoQuack(int client, int args)
 	ShowSyncHudText(client, hHudText, "._o< *quack* >o_.");
 	CloseHandle(hHudText);
 	return Plugin_Handled;
+}
+
+public Action CommandRussianRoulette(int client, int args)
+{
+	if (!IsValidClient(client)) return Plugin_Handled;
+	if (!IsPlayerAlive(client))
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You must be alive to use this!");
+		return Plugin_Handled;
+	}
+	
+	int numOfBullets = 1;
+	if (args > 0)
+	{
+		char arg1[MAX_BUFFER_LENGTH];
+		GetCmdArg(1, arg1, sizeof(arg1));
+		numOfBullets = StringToInt(arg1);
+		if (numOfBullets < 1 || numOfBullets > 6)
+		{
+			CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You can only load in up to 6 bullets!");
+			return Plugin_Handled;
+		}
+	}
+	
+	int randomInt = GetRandomInt(1, 6);
+	if (numOfBullets < randomInt)
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You are safe!");
+		EmitSoundToClient(client, "weapons/sentry_empty.wav");
+		return Plugin_Handled;
+	}
+	else
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You lost!");
+		FakeClientCommand(client, "kill");
+		if (view_as<bool>(GetRandomInt(0, 1)))
+			EmitSoundToClient(client, "weapons/ambassador_shoot.wav");
+		else
+			EmitSoundToClient(client, "weapons/diamond_back_01.wav");
+		return Plugin_Handled;
+	}
 }
 
 public Action CommandBamboozle(int client, int args)

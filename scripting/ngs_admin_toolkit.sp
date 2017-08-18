@@ -7,6 +7,7 @@
 #include <tf2_stocks>
 #include <tf2>
 #include <morecolors>
+#include <clientprefs>
 #undef REQUIRE_PLUGIN
 #include <basecomm>
 #include <sourcecomms>
@@ -16,6 +17,9 @@
 bool basecommExists = false;
 bool sourcecommsExists = false;
 bool muteNonAdminsEnabled = false;
+bool isPlayerNameBanned[MAXPLAYERS + 1];
+
+Handle nameBannedCookie = INVALID_HANDLE;
 
 //--------------------//
 
@@ -35,10 +39,23 @@ public void OnPluginStart()
 	RegAdminCmd("sm_bamall", CommandBamboozleAll, ADMFLAG_GENERIC, "Usage: sm_bamall <#userid|name>");
 	RegAdminCmd("sm_mutenonadmins", CommandMuteNonAdmins, ADMFLAG_GENERIC, "Usage: sm_mutenonadmins");
 	RegAdminCmd("sm_unmutenonadmins", CommandUnmuteNonAdmins, ADMFLAG_GENERIC, "Usage: sm_unmutenonadmins");
+	RegAdminCmd("sm_nameban", CommandNameBan, ADMFLAG_GENERIC, "Usage: sm_nameban <#userid|name>");
+	RegAdminCmd("sm_nameunban", CommandNameUnban, ADMFLAG_GENERIC, "Usage: sm_nameunban <#userid|name>");
 	
 	CreateConVar("tf_ngsadmintoolkit_version", PLUGIN_VERSION, "Version of [NGS] Admin Toolkit");
 	
 	LoadTranslations("common.phrases");
+	
+	nameBannedCookie = RegClientCookie("NameBanned", "Is the player name-banned?", CookieAccess_Private);
+	
+	for (int i = MaxClients; i > 0; --i)
+	{
+		if (!AreClientCookiesCached(i))
+		{
+			continue;
+		}
+		OnClientCookiesCached(i);
+	}
 }
 
 public void OnLibraryAdded(const char[] name)
@@ -57,10 +74,91 @@ public void OnLibraryRemoved(const char[] name)
 		sourcecommsExists = false;
 }
 
+public void OnClientCookiesCached(int client)
+{
+    char sValue[8];
+    GetClientCookie(client, nameBannedCookie, sValue, sizeof(sValue));
+    
+    isPlayerNameBanned[client] = (sValue[0] != '\0' && StringToInt(sValue));
+}  
+
 public void OnClientPostAdminCheck(int client)
 {
 	if (muteNonAdminsEnabled && !CheckCommandAccess(client, "sm_admin", ADMFLAG_GENERIC)) 
 		SetClientListeningFlags(client, VOICE_MUTED);
+	
+	if (AreClientCookiesCached(client) && isPlayerNameBanned[client] && CommandExists("sm_rename"))
+	{
+		int userid = GetClientUserId(client);
+		ServerCommand("sm_rename #%d IHaveANameNow#%d", userid, userid);
+		if (CommandExists("sm_namelock"))
+			ServerCommand("sm_namelock #%d 1", userid);
+  	}
+}
+
+public Action CommandNameBan(int client, int args)
+{
+	if (args < 1)
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_nameban <#userid|name>");
+		return Plugin_Handled;
+	}
+	
+	char arg1[MAX_BUFFER_LENGTH];
+	GetCmdArg(1, arg1, sizeof(arg1));
+	
+	int target = FindTarget(client, arg1, false, false);
+	if (target == -1) return Plugin_Handled;
+	
+	if (isPlayerNameBanned[target])
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} That player has already been name banned. Use sm_nameunban to unban them.");
+		return Plugin_Handled;
+	}
+	
+	if (CommandExists("sm_rename"))
+	{
+		int userid = GetClientUserId(target);
+		ServerCommand("sm_rename #%d IHaveANameNow#%d", userid, userid);
+		if (CommandExists("sm_namelock"))
+			ServerCommand("sm_namelock #%d 1", userid);
+		SetClientCookie(target, nameBannedCookie, "1");
+  	}
+  	
+  	LogAction(client, target, "%N banned %N's name!", client, target);
+  	return Plugin_Handled;
+}
+
+public Action CommandNameUnban(int client, int args)
+{
+	if (args < 1)
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_nameunban <#userid|name>");
+		return Plugin_Handled;
+	}
+	
+	char arg1[MAX_BUFFER_LENGTH];
+	GetCmdArg(1, arg1, sizeof(arg1));
+	
+	int target = FindTarget(client, arg1, false, false);
+	if (target == -1) return Plugin_Handled;
+	
+	if (!isPlayerNameBanned[target])
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} That player has not been name banned. Use sm_nameban to ban them.");
+		return Plugin_Handled;
+	}
+	
+	if (CommandExists("sm_namelock"))
+    {
+		int userid = GetClientUserId(target);
+		ServerCommand("sm_namelock #%d 0", userid);
+		SetClientCookie(target, nameBannedCookie, "0");
+		CPrintToChat(client, "{GREEN}[SM]{DEFAULT} Your name has been unlocked, feel free to change it.");
+  	}
+  	
+  	LogAction(client, target, "%N unbanned %N's name!", client, target);
+  	return Plugin_Handled;
 }
 
 public Action CommandForceRespawn(int client, int args)

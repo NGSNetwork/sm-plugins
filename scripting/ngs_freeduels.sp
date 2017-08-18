@@ -51,6 +51,7 @@ bool Abandon[MAXPLAYERS+1]		= {false, ...};
 bool Equality[MAXPLAYERS+1]		= {false, ...};
 bool Winner[MAXPLAYERS+1]		= {false, ...};
 bool SQLite 					= false;
+bool disableDuel[MAXPLAYERS + 1] =  { false, ... };
 
 ConVar c_EnableType[4];
 ConVar cvarEnabled;
@@ -112,6 +113,8 @@ public void OnPluginStart()
 		RegConsoleCmd("sm_abort", AbortDuel, "Stop duel");
 		RegConsoleCmd("sm_myduels", MyDuelStats, "Show your duels stats");
 		RegConsoleCmd("sm_topduel", TopDuel, "Show top dueler");
+		RegConsoleCmd("sm_noduelme", NoDuelMe, "Disables duel requests.");
+		RegConsoleCmd("sm_dontduelme", NoDuelMe, "Disables duel requests.");
 
 		LogMessage("[1/5] Loading : Initialisation");
 		Initialisation();
@@ -157,6 +160,10 @@ void Initialisation()
 	}
 }
 
+public void OnClientConnected(int client)
+{
+	disableDuel[client] = false;
+}
 
 public void OnConfigsExecuted()
 {
@@ -288,13 +295,26 @@ public void SQLErrorCheckCallback(Handle owner, Handle hndl, const char[] error,
 	}
 }
 
+public Action NoDuelMe(int client, int args)
+{
+	if (!IsValidClient(client)) return Plugin_Handled;
+	disableDuel[client] = !disableDuel[client];
+	CReplyToCommand(client, "{CYAN}[Duel]{DEFAULT} You have %s duel requests.", (disableDuel[client]) ? "disabled" : "enabled");
+	return Plugin_Handled;
+}
+
 public Action loadDuel(int iClient, int Args)
-{	
+{
+	if (disableDuel[iClient])
+	{
+		CReplyToCommand(iClient, "{CYAN}[Duel]{DEFAULT} You cannot send duel requests if you have disabled duel requests.");
+		return Plugin_Handled;
+	}
 	char FlagNeeded[2];
 	GetConVarString(c_Immunity, FlagNeeded, sizeof(FlagNeeded));
 	
 	if(!isAdmin(iClient, FlagNeeded))
-		return;
+		return Plugin_Handled;
 	
 	char Argument1[256];
 	GetCmdArgString(Argument1, sizeof(Argument1));
@@ -318,13 +338,18 @@ public Action loadDuel(int iClient, int Args)
 			{
 				ReplyToTargetError(iClient, target_count);
 				CallPanel(iClient);
-				return;
+				return Plugin_Handled;
 			}
 				
 		for (int i = 0; i < target_count; i++)
 		{	
 			if(isGoodSituation(iClient, target_list[i]))
 			{
+				if (disableDuel[target_list[i]])
+				{
+					CReplyToCommand(iClient, "{CYAN}[Duel]{DEFAULT} That person has disabled duel requests!");
+					return Plugin_Handled;
+				}
 				if(!g_Duel[iClient][Type])
 				{
 					LogAction(iClient, target_list[i], "%L challenged %L", iClient, target_list[i]);
@@ -334,7 +359,8 @@ public Action loadDuel(int iClient, int Args)
 					CPrintToChat(iClient,"%t", "WaitAnwser");
 			}
 		}
-	}	
+	}
+	return Plugin_Handled;
 }
 
 public bool isAdmin(int iClient, char FlagNeeded[2])

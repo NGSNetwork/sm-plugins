@@ -4,6 +4,7 @@
 #include <sdkhooks>
 #include <tf2items>
 #include <betherobot>
+#include <tf2attributes>
 
 #define PLUGIN_VERSION "1.3"
 
@@ -26,7 +27,7 @@ new BusterStatus:Status[MAXPLAYERS + 1];
 new bool:AboutToExplode[MAXPLAYERS + 1];
 new Float:LastBusterTime; // Not for each player.
 
-new Handle:cvarFootsteps, Handle:cvarWearables, Handle:cvarBusterJump, Handle:cvarBusterAnnounce, Handle:cvarWearablesKill;
+ConVar cvarFootsteps, cvarWearables, cvarBusterJump, cvarBusterAnnounce, cvarWearablesKill;
 new Handle:cvarFF, Handle:cvarBossScale;
 
 public OnPluginStart()
@@ -53,6 +54,7 @@ public OnPluginStart()
 	{
 		if (!IsClientInGame(i)) continue;
 		SDKHook(i, SDKHook_OnTakeDamage, OnTakeDamage);
+		SDKHook(i, SDKHook_WeaponCanUse, OnWeaponCanUse);
 	}
 	for (new i = MaxClients + 1; i <= 2048; i++)
 	{
@@ -84,8 +86,11 @@ public OnConfigsExecuted()
 	cvarBossScale = FindConVar("tf_mvm_miniboss_scale");
 }
 
-public OnClientPutInServer(client) SDKHook(client, SDKHook_OnTakeDamage, OnTakeDamage);
-
+public OnClientPutInServer(client)
+{
+	SDKHook(client, SDKHook_OnTakeDamage, OnTakeDamage);
+	SDKHook(client, SDKHook_WeaponCanUse, OnWeaponCanUse); 
+}
 public OnClientDisconnect(client)
 {
 	Status[client] = BusterStatus_Human;
@@ -154,9 +159,11 @@ stock bool:ToggleBuster(client, bool:toggle = bool:2, bool wasBuster = false)
 	if (toggle == true || (toggle == bool:2 && Status[client] == BusterStatus_Human))
 	{
 		TF2_RemovePlayerDisguise(client);
+		TF2_RemoveAllWeapons(client);
 		TF2_SetPlayerClass(client, TFClass_DemoMan);
 		TF2_RemoveAllWeapons(client);
-		new String:atts[128];
+		char atts[128];
+		/*
 		Format(atts, sizeof(atts), "26 ; 2325 ; "); // +2325 max HP (2500)
 		Format(atts, sizeof(atts), "%s107 ; 2.0 ; ", atts); // +100% move speed (520 Hammer units/second, as fast as possible; actual Buster is 560)
 		Format(atts, sizeof(atts), "%s252 ; 0.5 ; ", atts); // -50% damage force to user
@@ -165,10 +172,11 @@ stock bool:ToggleBuster(client, bool:toggle = bool:2, bool wasBuster = false)
 			Format(atts, sizeof(atts), "%s330 ; 7 ; ", atts); // Override footstep sound set
 		Format(atts, sizeof(atts), "%s402 ; 1 ; ", atts); // Cannot be backstabbed
 		Format(atts, sizeof(atts), "%s326 ; %f ; ", atts, GetConVarFloat(cvarBusterJump)); // +-100% jump height (jumping disabled)
-		Format(atts, sizeof(atts), "%s138 ; 0 ; ", atts); // -100% damage to players (0)
-		Format(atts, sizeof(atts), "%s137 ; 38.461540 ; ", atts); // +3746% damage to buildings (2500)
-		Format(atts, sizeof(atts), "%s275 ; 1", atts); // User never takes fall damage
-		new wepEnt = SpawnWeapon(client, "tf_weapon_stickbomb", 307, 10, 6, atts);
+		*/
+		Format(atts, sizeof(atts), "138 ; 0.0 ; "); // -100% damage to players (0)
+		Format(atts, sizeof(atts), "%s137 ; 38.461540", atts); // +3746% damage to buildings (2500)
+		// Format(atts, sizeof(atts), "%s275 ; 1", atts); // User never takes fall damage
+		int wepEnt = SpawnWeapon(client, "tf_weapon_stickbomb", 307, 10, 6, atts);
 		if (IsValidEntity(wepEnt)) SetEntPropEnt(client, Prop_Send, "m_hActiveWeapon", wepEnt);
 		SetEntProp(wepEnt, Prop_Send, "m_iDetonated", 1);
 		SetEntityHealth(client, 2500);
@@ -206,6 +214,15 @@ stock bool:ToggleBuster(client, bool:toggle = bool:2, bool wasBuster = false)
 		
 		Status[client] = BusterStatus_Buster;
 		SetWearableAlpha(client, 0);
+		
+		TF2Attrib_SetByDefIndex(client, 26, 2325.0);
+		TF2Attrib_SetByDefIndex(client, 107, 2.0);
+		TF2Attrib_SetByDefIndex(client, 252, 0.5);
+		TF2Attrib_SetByDefIndex(client, 329, 0.5);
+		TF2Attrib_SetByDefIndex(client, 402, 1.0);
+		TF2Attrib_SetByDefIndex(client, 326, cvarBusterJump.FloatValue);
+		TF2Attrib_SetByDefIndex(client, 275, 1.0);
+		if (cvarFootsteps.BoolValue) TF2Attrib_SetByDefIndex(client, 330, 7.0);
 	}
 	else if (!wasBuster && (!toggle || (toggle == bool:2 && Status[client] == BusterStatus_Buster)))
 	{
@@ -217,6 +234,15 @@ stock bool:ToggleBuster(client, bool:toggle = bool:2, bool wasBuster = false)
 		SetEntPropFloat(client, Prop_Send, "m_flModelScale", 1.0);
 		AboutToExplode[client] = false;
 		SetWearableAlpha(client, 255);
+		
+		TF2Attrib_RemoveByDefIndex(client, 26);
+		TF2Attrib_RemoveByDefIndex(client, 107);
+		TF2Attrib_RemoveByDefIndex(client, 252);
+		TF2Attrib_RemoveByDefIndex(client, 329);
+		TF2Attrib_RemoveByDefIndex(client, 402);
+		TF2Attrib_RemoveByDefIndex(client, 326);
+		TF2Attrib_RemoveByDefIndex(client, 275);
+		if (cvarFootsteps.BoolValue) TF2Attrib_RemoveByDefIndex(client, 330);
 	}
 	return true;
 }
@@ -346,6 +372,15 @@ public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damage
 	return Plugin_Continue;
 }
 
+public Action OnWeaponCanUse(int client, int weapon)  
+{
+	if (Status[client] == BusterStatus_Buster)
+	{
+		return Plugin_Handled;
+	}
+	return Plugin_Continue;
+}  
+
 public OnEntityCreated(Ent, const String:cls[])
 {
 	if (GetGameTime() < 0.5) return;
@@ -424,27 +459,27 @@ stock bool:IsValidClient(client)
 	return true;
 }
 
-stock SpawnWeapon(client, String:name[], itemIndex, level, qual, String:att[]) // from VS Saxton Hale Mode.
+stock int SpawnWeapon(int client, char[] name, int itemIndex, int level, int qual, char[] att) // from VS Saxton Hale Mode.
 {
-	new Handle:hWeapon = TF2Items_CreateItem(OVERRIDE_ALL|FORCE_GENERATION);
+	Handle hWeapon = TF2Items_CreateItem(OVERRIDE_ALL|FORCE_GENERATION);
 	TF2Items_SetClassname(hWeapon, name);
 	TF2Items_SetItemIndex(hWeapon, itemIndex);
 	TF2Items_SetLevel(hWeapon, level);
 	TF2Items_SetQuality(hWeapon, qual);
-	new String:atts[32][32];
-	new count = ExplodeString(att, " ; ", atts, 32, 32);
+	char atts[32][32];
+	int count = ExplodeString(att, " ; ", atts, 32, 32);
 	if (count > 0)
 	{
 		TF2Items_SetNumAttributes(hWeapon, count/2);
-		new i2 = 0;
-		for (new i = 0; i < count; i += 2)
+		int j = 0;
+		for (int i = 0; i < count; i += 2)
 		{
-			TF2Items_SetAttribute(hWeapon, i2, StringToInt(atts[i]), StringToFloat(atts[i+1]));
-			i2++;
+			TF2Items_SetAttribute(hWeapon, j, StringToInt(atts[i]), StringToFloat(atts[i + 1]));
+			j++;
 		}
 	}
 	else
-	TF2Items_SetNumAttributes(hWeapon, 0);
+		TF2Items_SetNumAttributes(hWeapon, 0);
 	if (hWeapon == INVALID_HANDLE)
 	return -1;
 	new entity = TF2Items_GiveNamedItem(client, hWeapon);

@@ -27,4 +27,4 @@
 *.out
 *.app
 compile.dat
-scripting/ngs_admin_toolkit.smx
+smac/

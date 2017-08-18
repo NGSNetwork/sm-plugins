@@ -1,0 +1,187 @@
+"Phrases"
+{
+	"status being checked"
+	{
+		"en"			"Your marital status is being checked, try again later."
+	}
+
+	"no singles on server"
+	{
+		"en"			"There are currently no singles on the server."
+	}
+	
+	"already proposed"
+	{	
+		"#format"		"{1:s}"
+		"en"  			"You have already proposed to {green}{1}{default}!"
+	}
+	
+	"already married"
+	{	
+		"#format"		"{1:s}"
+		"en"  			"You are already married to {green}{1}{default}!"
+	}
+	
+	"revoke info"
+	{	
+		"en"  			"Type !revoke to revoke your proposal."
+	}
+	
+	"divorce info"
+	{	
+		"en"  			"Type !divorce for a divorce."
+	}
+	
+	"proposal revoked"
+	{	
+		"#format"		"{1:s}"
+		"en"  			"You have revoked your proposal to {green}{1}{default}!"
+	}
+	
+	"not proposed"
+	{	
+		"en"  			"You have not proposed to anyone."
+	}
+	
+	"not married"
+	{	
+		"en"  			"You are not married."
+	}
+	
+	"marriage info"
+	{	
+		"en"  			"Type !marry to browse all connected singles."
+	}
+	
+	"marriage revoked days"
+	{	
+		"#format"		"{1:s},{2:s},{3:i}"
+		"en"  			"{green}{1}{default} has divorced {green}{2}{default} after {green}{3} day(s){default} of marriage!"
+	}
+	
+	"marriage revoked months"
+	{	
+		"#format"		"{1:s},{2:s},{3:i}"
+		"en"  			"{green}{1}{default} has divorced {green}{2}{default} after {green}{3} month(s){default} of marriage!"
+	}
+	
+	"marriage revoked years"
+	{	
+		"#format"		"{1:s},{2:s},{3:i}"
+		"en"  			"{green}{1}{default} has divorced {green}{2}{default} after {green}{3} year(s){default} of marriage!"
+	}
+	
+	"divorce notification"
+	{	
+		"en"  			"They are both on offer again!"
+	}
+	
+	"no proposals"
+	{	
+		"en"  			"No one has currently proposed to you."
+	}
+	
+	"proposal notification"
+	{	
+		"#format"		"{1:s}"
+		"en"  			"You have received a marriage proposal from {green}{1}{default}!"
+	}
+	
+	"proposal info"
+	{	
+		"en"  			"Type !proposals to view all players who have proposed to you."
+	}
+
+	"submission info"
+	{	
+		"en"  			"Your proposal has been submitted. Good luck!"
+	}
+	
+	"bidirectional proposal"
+	{
+		"#format"		"{1:s}"
+		"en"			"{green}{1}{default} has already proposed to you!"
+	}
+	
+	"target not on server"
+	{	
+		"en"  			"Your heart throb has already left the server."
+	}
+	
+	"got married"
+	{	
+		"#format"		"{1:s}"
+		"en"  			"You have married {green}{1}{default}!"
+	}
+	
+	"proposal accepted"
+	{	
+		"#format"		"{1:s}"
+		"en"  			"{green}{1}{default} has accepted your marriage proposal!"
+	}
+	
+	"marriage notification"
+	{	
+		"#format"		"{1:s},{2:s}"
+		"en"  			"{green}{1}{default} and {green}{2}{default} are now married! Congratulations!"
+	}
+	
+	"proposer not on server"
+	{	
+		"en"  			"Your love is currently not on the server, you must wait."
+	}
+	
+	"love already married"
+	{	
+		"en"  			"Your love has already married someone else."
+	}
+		
+	"!marry menu title"
+	{	
+		"en"  			"Connected singles:"
+	}
+	
+	"!proposals menu title"
+	{	
+		"en"  			"Accept proposal from:"
+	}
+	
+	"!couples menu title"
+	{	
+		"#format"		"{1:i}"
+		"en"  			"Top {1} couples:"
+	}
+	
+	"!couples menu entry"
+	{	
+		"#format"		"{1:s},{2:s},{3:s},{4:i}"
+		"en"  			"{1} & {2} - {3} - {4} points"
+	}
+	
+	"no couples"
+	{	
+		"en"  			"There are no married couples registered on the server."
+	}
+	
+	"reset proposals"
+	{	
+		"en"  			"The weddings_proposals table has been successfully cleared."
+	}
+	
+	"reset marriages"
+	{	
+		"en"  			"The weddings_marriages table has been successfully cleared."
+	}
+	
+	"spam"
+	{	
+		"en"  			"Respect marriage, don't abuse commands!"
+	}
+	
+	"delay info"
+	{	
+		"#format"		"{1:.2f}"
+		"en"  			"The command delay is {green}{1} minute(s){default}."
+	}
+
+}

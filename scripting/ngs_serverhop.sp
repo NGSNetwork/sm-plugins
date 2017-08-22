@@ -3,7 +3,7 @@
 
 #include <sourcemod>
 #include <socket>
-#include <morecolors>
+#include <multicolors>
 
 #define PLUGIN_VERSION "0.8.1"
 #define MAX_SERVERS 10
@@ -132,6 +132,7 @@ public int MenuHandler(Handle menu, MenuAction action, int param1, int param2)
 		{
 			Format(address, MAX_STR_LEN, "%s:%i", serverAddress[serverNum], serverPort[serverNum]);
 			ClientCommand(param1, "redirect %s", address);
+			DisplayAskConnectBox(param1, 45.0, address);
 		}
 		else
 		{
@@ -172,12 +173,12 @@ public Action CleanUp(Handle timer)
 	{
 		if (strlen(serverInfo[i]) == 0 && !socketError[i])
 		{
-			if(GetConVarBool(cv_log_errors)) LogError("Server %s:%i is down: no timely reply received", serverAddress[i], serverPort[i]);
+			if(cv_log_errors.BoolValue) LogError("Server %s:%i is down: no timely reply received", serverAddress[i], serverPort[i]);
 			CloseHandle(socket[i]);
 		}
 	}
 	// all server info is up to date: advertise
-	if (GetConVarBool(cv_advert))
+	if (cv_advert.BoolValue)
 	{
 		if (advertInterval == GetConVarFloat(cv_advert_interval))
 		{	

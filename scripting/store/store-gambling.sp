@@ -61,15 +61,14 @@ public Action CommandBet(int client, int args)
    		return Plugin_Handled;
   	}
 	BetCooldown[client] = currentTime;
-	char sCreditsBet[MAX_BUFFER_LENGTH], playerName[MAX_NAME_LENGTH];
+	char sCreditsBet[MAX_BUFFER_LENGTH];
 	int accountid = GetSteamAccountID(client);
 	int clientcredits = Store_GetCreditsEx(accountid);
 	GetCmdArg(1, sCreditsBet, sizeof(sCreditsBet));
-	GetClientName(client, playerName, sizeof(playerName));
 	int iCreditsBet = StringToInt(sCreditsBet);
 	if (iCreditsBet < 1 || iCreditsBet > 250)
 	{
-		CReplyToCommand(client, "%tSorry, but you may only bet between 0 and 251 credits.", "Store Tag Colored");
+		CReplyToCommand(client, "%tSorry, but you may only bet up to 250 credits.", "Store Tag Colored");
 		return Plugin_Handled;
 	}
 	if (iCreditsBet > clientcredits)
@@ -82,20 +81,20 @@ public Action CommandBet(int client, int args)
 	if (chance <= 0.02)
 	{
 		Store_GiveCredits(accountid, (iCreditsBet * 5));
-		CPrintToChatAll("%tJACKPOT! %s gained %d %s!", "Store Tag Colored", playerName, iCreditsBet * 5, g_currencyName);
+		CPrintToChatAll("%tJACKPOT! %N gained %d %s!", "Store Tag Colored", client, iCreditsBet * 5, g_currencyName);
 		return Plugin_Handled;
 	}
 	else if (chance <= 0.3)
 	{
 		Store_GiveCredits(accountid, (iCreditsBet * 2));
-		CPrintToChatAll("%tCongrats! %s gained %d %s!", "Store Tag Colored", playerName, iCreditsBet * 2, g_currencyName);
+		CPrintToChatAll("%tCongrats! %N gained %d %s!", "Store Tag Colored", client, iCreditsBet * 2, g_currencyName);
 		return Plugin_Handled;
 	}
 	else if (GetClientCount() > 1)
 	{
 		creditPot += iCreditsBet;
 		CReplyToCommand(client, "%tSorry, you did not get any %s this time! Your betted amount has been added to the pot.", "Store Tag Colored", g_currencyName);
-		if ((creditPot / 25) >= GetClientCount(true))
+		if ((creditPot / 25) >= GetClientCount())
 		{
 			int randPlayer;
 			char randPlayerName[MAX_NAME_LENGTH];

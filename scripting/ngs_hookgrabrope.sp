@@ -25,7 +25,7 @@ public Plugin myinfo = {
 	author = "Sheepdude, SumGuy14 / TheXeon",
 	description = "Allows admins (or all players) to hook on to walls, grab other players, or swing on a rope",
 	version = PLUGIN_VERSION,
-	url = "https://neogenesisnetwork.net"
+	url = "https://www.neogenesisnetwork.net"
 }
 
 // General handles
@@ -177,21 +177,21 @@ public void OnPluginStart()
 	g_HookedRoundStart = HookEventEx("round_start", RoundStartEvent, EventHookMode_PostNoCopy);
 
 	// Register client commands
-	RegConsoleCmd("+hook", HookCmd);
+	RegAdminCmd("+hook", HookCmd, ADMFLAG_RESERVATION);
 	RegConsoleCmd("-hook", UnHookCmd);
-	RegConsoleCmd("hook_toggle", HookToggle);
+	RegAdminCmd("hook_toggle", HookToggle, ADMFLAG_RESERVATION);
 
-	RegConsoleCmd("+grab", GrabCmd);
+	RegAdminCmd("+grab", GrabCmd, ADMFLAG_GENERIC);
 	RegConsoleCmd("-grab", DropCmd);
-	RegConsoleCmd("grab_toggle", GrabToggle);
+	RegAdminCmd("grab_toggle", GrabToggle, ADMFLAG_GENERIC);
 
-	RegConsoleCmd("+rope", RopeCmd);
+	RegAdminCmd("+rope", RopeCmd, ADMFLAG_GENERIC);
 	RegConsoleCmd("-rope", DetachCmd);
-	RegConsoleCmd("rope_toggle", RopeToggle);
+	RegAdminCmd("rope_toggle", RopeToggle, ADMFLAG_GENERIC);
 	
-	RegConsoleCmd("+push", PushCmd);
+	RegAdminCmd("+push", PushCmd, ADMFLAG_GENERIC);
 	RegConsoleCmd("-push", UnPushCmd);
-	RegConsoleCmd("push_toggle", HookToggle);
+	RegAdminCmd("push_toggle", HookToggle, ADMFLAG_GENERIC);
 
 	// Register admin cmds
 	RegAdminCmd("sm_hgr_givehook", GiveHook, ADMFLAG_GENERIC);

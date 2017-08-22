@@ -1,3 +1,4 @@
+#pragma newdecls required
 #pragma semicolon 1
 
 #include <sourcemod>
@@ -144,8 +145,7 @@ public void OnClientPostAdminCheck(int client)
 	}
 	// check the Steam ID first
 	char auth[32];
-	GetClientAuthId(client, AuthId_Engine, auth, sizeof(auth));
-	// GetClientAuthString(client, auth, sizeof(auth));
+	GetClientAuthId(client, AuthId_Steam2, auth, sizeof(auth));
 	KvRewind(configFile);
 	if (!KvJumpToKey(configFile, auth))
 	{
@@ -155,21 +155,23 @@ public void OnClientPostAdminCheck(int client)
 		AdminFlag flag;
 		char configFlag[2];
 		char section[32];
+		char override[256];
 		bool found = false;
 		do
 		{
 			KvGetSectionName(configFile, section, sizeof(section));
 			KvGetString(configFile, "flag", configFlag, sizeof(configFlag));
+			KvGetString(configFile, "override", override, sizeof(override));
 			if (strlen(configFlag) > 1)
 			{
 				LogError("Multiple flags given in section \"%s\", which is not allowed. Using first character.", section);
 			}
-			if (strlen(configFlag) == 0 && StrContains(section, "STEAM_", false) == -1 && StrContains(section, "[U:1:", false) == -1)
+			if (strlen(configFlag) == 0 && strlen(override) == 0 && StrContains(section, "STEAM_", false) == -1 && StrContains(section, "[U:1:", false) == -1)
 			{
 				found = true;
 				break;
 			}
-			if (!FindFlagByChar(configFlag[0], flag))
+			if (!FindFlagByChar(configFlag[0], flag)) 
 			{
 				if (strlen(configFlag) > 0)
 				{
@@ -177,7 +179,7 @@ public void OnClientPostAdminCheck(int client)
 				}
 				continue;
 			}
-			if (GetAdminFlag(admin, flag))
+			if (GetAdminFlag(admin, flag) || CheckCommandAccess(client, override, ADMFLAG_ROOT))
 			{
 				found = true;
 				break;

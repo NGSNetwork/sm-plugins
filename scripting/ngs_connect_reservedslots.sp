@@ -32,7 +32,7 @@ public void OnPluginStart()
 
 public bool OnClientPreConnectEx(const char[] name, char password[255], const char[] ip, const char[] steamID, char rejectReason[255])
 {
-	if (!g_hcvarEnabled.BoolValue || GetClientCount(false) < MaxClients)
+	if (!g_hcvarEnabled.BoolValue || GetClientCount() < MaxClients)
 	{
 		return true;
 	}
@@ -72,48 +72,38 @@ int SelectKickClient()
 	float value;
 	
 	for (int i = 1; i <= MaxClients; i++)
-	{	
-		if (!IsClientConnected(i))
-		{
-			continue;
-		}
-	
-		int flags = GetUserFlagBits(i);
-		
-		if (IsFakeClient(i) || flags & ADMFLAG_ROOT || flags & ADMFLAG_RESERVATION || CheckCommandAccess(i, "sm_reskick_immunity", ADMFLAG_RESERVATION, false))
+	{
+		if (!IsValidClient(i) || CheckCommandAccess(i, "sm_reskick_immunity", ADMFLAG_RESERVATION))
 		{
 			continue;
 		}
 		
 		value = 0.0;
-			
-		if (IsClientInGame(i))
+	
+		switch (g_hcvarKickType.IntValue)
 		{
-			switch (g_hcvarKickType.IntValue)
+			case 1:
 			{
-				case 1:
-				{
-					value = GetClientAvgLatency(i, NetFlow_Outgoing);
-				}
-				case 2:
-				{
-					value = GetClientTime(i);
-				}
-				default:
-				{
-					value = GetRandomFloat(0.0, 100.0);
-				}
+				value = GetClientAvgLatency(i, NetFlow_Outgoing);
 			}
+			case 2:
+			{
+				value = GetClientTime(i);
+			}
+			default:
+			{
+				value = GetRandomFloat(0.0, 100.0);
+			}
+		}
 
-			if (IsClientObserver(i))
-			{			
-				specFound = true;
-				
-				if (value > highestSpecValue)
-				{
-					highestSpecValue = value;
-					highestSpecValueId = i;
-				}
+		if (IsClientObserver(i))
+		{			
+			specFound = true;
+			
+			if (value > highestSpecValue)
+			{
+				highestSpecValue = value;
+				highestSpecValueId = i;
 			}
 		}
 		
@@ -130,4 +120,14 @@ int SelectKickClient()
 	}
 	
 	return highestValueId;
+}
+
+public bool IsValidClient(int client)
+{
+	if(client > 4096) client = EntRefToEntIndex(client);
+	if(client < 1 || client > MaxClients) return false;
+	if(!IsClientInGame(client)) return false;
+	if(IsFakeClient(client)) return false;
+	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
+	return true;
 }

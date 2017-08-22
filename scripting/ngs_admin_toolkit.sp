@@ -18,6 +18,7 @@ bool basecommExists = false;
 bool sourcecommsExists = false;
 bool muteNonAdminsEnabled = false;
 bool isPlayerNameBanned[MAXPLAYERS + 1];
+int playerSpecingID[MAXPLAYERS + 1];
 
 Handle nameBannedCookie = INVALID_HANDLE;
 
@@ -41,12 +42,18 @@ public void OnPluginStart()
 	RegAdminCmd("sm_unmutenonadmins", CommandUnmuteNonAdmins, ADMFLAG_GENERIC, "Usage: sm_unmutenonadmins");
 	RegAdminCmd("sm_nameban", CommandNameBan, ADMFLAG_GENERIC, "Usage: sm_nameban <#userid|name>");
 	RegAdminCmd("sm_nameunban", CommandNameUnban, ADMFLAG_GENERIC, "Usage: sm_nameunban <#userid|name>");
+	// TODO: Uncomment everything in this area.
+	//RegAdminCmd("sm_specplayer", CommandSpecPlayer, ADMFLAG_GENERIC, "Usage: sm_specplayer <#userid|name>");
+	RegAdminCmd("sm_getlookingpos", CommandGetLookingPosition, ADMFLAG_GENERIC, "Usage: sm_getlookingpos");
 	
 	CreateConVar("tf_ngsadmintoolkit_version", PLUGIN_VERSION, "Version of [NGS] Admin Toolkit");
 	
 	LoadTranslations("common.phrases");
 	
 	nameBannedCookie = RegClientCookie("NameBanned", "Is the player name-banned?", CookieAccess_Private);
+	
+	//HookEvent("player_spawn", OnPlayerSpawn);
+	//HookEvent("player_team", OnPlayerTeam);
 	
 	for (int i = MaxClients; i > 0; --i)
 	{
@@ -204,6 +211,28 @@ public Action CommandForceRespawn(int client, int args)
 		CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "Respawned %s!", target_name);
 	}
 	return Plugin_Handled;
+}
+
+public Action CommandGetLookingPosition(int client, int args)
+{
+	if (!IsValidClient(client) || !IsPlayerAlive(client)) return Plugin_Handled;
+	
+	float start[3], angle[3], end[3]; 
+	GetClientEyePosition(client, start); 
+	GetClientEyeAngles(client, angle); 
+	TR_TraceRayFilter(start, angle, MASK_SOLID, RayType_Infinite, TraceEntityFilterPlayer, client); 
+	if (TR_DidHit()) 
+	{ 
+		TR_GetEndPosition(end); 
+	}
+	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Position you are looking at is x = %f, y = %f, z = %f.", end[0], end[1], end[2]);
+	return Plugin_Handled;
+}
+
+
+public bool TraceEntityFilterPlayer(int entity, int contentsMask, any data)  
+{ 
+	return entity > MaxClients; 
 }
 
 public Action CommandChangeTeam(int client, int args)

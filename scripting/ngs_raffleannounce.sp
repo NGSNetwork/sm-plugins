@@ -23,15 +23,15 @@ public Plugin myinfo = {
 	author = "TheXeon",
 	description = "Announces NGS group raffles!",
 	version = PLUGIN_VERSION,
-	url = "https://matespastdates.servegame.com"
+	url = "https://neogenesisnetwork.net"
 }
 
 public void OnPluginStart()
 {
-	RegAdminCmd("sm_setraffle", CommandSetRaffle, ADMFLAG_GENERIC, "Usage: sm_setraffle <raffle announcement id> <0 = free, 1 = invite, 2 = paid, 3 = donor-only, 4 = member-only> <featured item(s)>");
-	RegAdminCmd("sm_announceraffle", CommandAnnounceRaffle, ADMFLAG_GENERIC, "Usage: sm_announceraffle");
-	RegAdminCmd("sm_canclethefuckignraffle", CommandCancelRaffle, ADMFLAG_GENERIC, "Usage: sm_cancelraffle");
-	RegAdminCmd("sm_cancelraffle", CommandCancelRaffle, ADMFLAG_GENERIC, "Usage: sm_cancelraffle");
+	RegConsoleCmd("sm_setraffle", CommandSetRaffle, "Usage: sm_setraffle <raffle announcement id> <0 = free, 1 = invite, 2 = paid, 3 = donor-only, 4 = member-only> <featured item(s)>");
+	RegConsoleCmd("sm_announceraffle", CommandAnnounceRaffle, "Usage: sm_announceraffle");
+	RegConsoleCmd("sm_canclethefuckignraffle", CommandCancelRaffle, "Usage: sm_cancelraffle");
+	RegConsoleCmd("sm_cancelraffle", CommandCancelRaffle, "Usage: sm_cancelraffle");
 	RegConsoleCmd("sm_joinraffle", CommandJoinRaffle, "Opens raffle in MOTD page.");
 	RegConsoleCmd("sm_hideraffle", CommandHideRaffle, "Hides the current raffle.");
 	LoadTranslations("common.phrases");
@@ -39,11 +39,14 @@ public void OnPluginStart()
 
 public Action CommandSetRaffle(int client, int args)
 {
+	if (!CheckCommandAccess(client, "sm_raffleadmin_override", ADMFLAG_GENERIC)) return Plugin_Handled;
+	
 	if (args < 1)
 	{
 		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_setraffle <raffle announcement id> <0 = free, 1 = invite, 2 = paid, 3 = donor-only, 4 = member-only> <featured item(s)>");
 		return Plugin_Handled;
 	}
+	
 	
 	char arg2[MAX_BUFFER_LENGTH];
 	
@@ -66,35 +69,37 @@ public Action CommandSetRaffle(int client, int args)
 
 public Action CommandAnnounceRaffle(int client, int args)
 {
+	if (!CheckCommandAccess(client, "sm_raffleadmin_override", ADMFLAG_GENERIC)) return Plugin_Handled;
+	
 	if (StrEqual(raffleID, "", false))
 	{
 		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} There is currently no raffle going on.");
 		return Plugin_Handled;
 	}
-	
 	AnnounceRaffle();
 	return Plugin_Handled;
 }
 
 public Action CommandHideRaffle(int client, int args)
 {
-	if (IsValidClient(client))
+	if (IsValidClient(client) && hHudText != null)
 	{
-		if (hHudText != null) 
-		{
-			ClearSyncHud(client, hHudText);
-			ShowSyncHudText(client, hHudText, "Hidden.");
-			CloseHandle(hHudText);
-		}
+		ClearSyncHud(client, hHudText);
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Raffle message has been hidden.");
 	}
 	return Plugin_Handled;
 }
 
 public Action CommandCancelRaffle(int client, int args)
 {
+	if (!CheckCommandAccess(client, "sm_raffleadmin_override", ADMFLAG_GENERIC)) return Plugin_Handled;
 	raffleID = NULL_STRING;
 	raffleItem = NULL_STRING;
-	if (hHudText != null) ClearSyncHud(i, hHudText);
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (hHudText != null) ClearSyncHud(i, hHudText);
+	}
+	
 	if (hHudText == null) hHudText = CreateHudSynchronizer();
 	
 	SetHudTextParams(-1.0, 0.1, 5.0, 255, 0, 0, 255, 1, 1.0, 1.0, 1.0);
@@ -121,7 +126,6 @@ public Action CommandJoinRaffle(int client, int args)
 	char raffleLink[MAX_BUFFER_LENGTH];
 	Format(raffleLink, sizeof(raffleLink), "%s%s", NGSRAFFLEURL, raffleID);
 	AdvMOTD_ShowMOTDPanel(client, "NGS Raffle", raffleLink, MOTDPANEL_TYPE_URL, true, true, true, OnMOTDFailure);
-	
 	return Plugin_Handled;
 }
 
@@ -169,10 +173,11 @@ public void AnnounceRaffle()
 		}
 	}
 	
-	CloseHandle(hHudText);
+	delete hHudText;
+	hHudText = null;
 }
 
-public void OnMOTDFailure(int client, MOTDFailureReason reason) 
+public int OnMOTDFailure(int client, MOTDFailureReason reason) 
 {
 	switch(reason) 
 	{

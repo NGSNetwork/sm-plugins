@@ -288,6 +288,7 @@ public void OnPluginStart()
 	cvar_nobuild_t = CreateConVar("sm_friendly_nobuild_t", "0", "(0/1) a Friendly engineer will not be able to build teleporters.", _, true, 0.0, true, 1.0);
 	
 	RegAdminCmd("sm_friendly", UseFriendlyCmd, 0, "Toggles Friendly Mode");
+	RegAdminCmd("sm_unfriendly", UseFriendlyCmd, 0, "Toggles Friendly Mode, made for the confused");
 	RegAdminCmd("sm_friendly_admin", UseAdminCmd, ADMFLAG_BAN, "Toggles Friendly Admin Mode");
 	RegAdminCmd("sm_friendly_a", UseAdminCmd2, 0, _);
 	RegAdminCmd("sm_friendly_lock", UseLockCmd, ADMFLAG_BAN, "Blocks a player from using sm_friendly (with no arguments).");

@@ -17,7 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma newdecls required
 #pragma semicolon 1
 
 /* SM Includes */
@@ -29,11 +28,10 @@
 #tryinclude <updater>
 
 /* Plugin Info */
-public Plugin myinfo =
+public Plugin:myinfo =
 {
-	name = "SMAC Eye Angle Test",
+	name = "UKEAT",
 	author = SMAC_AUTHOR,
-	description = "Detects eye angle violations used in cheats",
 	version = SMAC_VERSION,
 	url = SMAC_URL
 };
@@ -49,20 +47,20 @@ enum ResetStatus {
 
 new GameType:g_Game = Game_Unknown;
 
-Handle g_hCvarBan = INVALID_HANDLE;
-Handle g_hCvarCompat = INVALID_HANDLE;
-float  g_fDetectedTime[MAXPLAYERS+1];
+new Handle:g_hCvarBan = INVALID_HANDLE;
+new Handle:g_hCvarCompat = INVALID_HANDLE;
+new Float:g_fDetectedTime[MAXPLAYERS+1];
 
-bool g_bInMinigun[MAXPLAYERS+1];
+new bool:g_bInMinigun[MAXPLAYERS+1];
 
-bool g_bPrevAlive[MAXPLAYERS+1];
+new bool:g_bPrevAlive[MAXPLAYERS+1];
 new g_iPrevButtons[MAXPLAYERS+1] = {-1, ...};
 new g_iPrevCmdNum[MAXPLAYERS+1] = {-1, ...};
 new g_iPrevTickCount[MAXPLAYERS+1] = {-1, ...};
 new g_iCmdNumOffset[MAXPLAYERS+1] = {1, ...};
 
-int ResetStatus:g_TickStatus[MAXPLAYERS+1];
-bool g_bLateLoad = false;
+new ResetStatus:g_TickStatus[MAXPLAYERS+1];
+new bool:g_bLateLoad = false;
 
 // Arbitrary group names for the purpose of differentiating eye angle detections.
 enum EngineGroup {
@@ -76,7 +74,7 @@ new EngineVersion:g_EngineVersion = Engine_Unknown;
 new EngineGroup:g_EngineGroup = Group_Ignore;
 
 /* Plugin Functions */
-public APLRes AskPluginLoad2(Handle myself, bool late, char error[], err_max)
+public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 {
 	g_bLateLoad = late;
 	return APLRes_Success;
@@ -95,7 +93,7 @@ public OnPluginStart()
 	
 	if (g_EngineVersion == Engine_Unknown)
 	{
-		char sGame[64];
+		decl String:sGame[64];
 		GetGameFolderName(sGame, sizeof(sGame));
 		SetFailState("Engine Version could not be determined for game: %s", sGame);
 	}
@@ -123,8 +121,8 @@ public OnPluginStart()
 	// Check for existing minigun entities on late-load.
 	if (g_bLateLoad && (g_Game == Game_L4D || g_Game == Game_L4D2))
 	{
-		char sClassname[32];
-		int maxEdicts = GetEntityCount();
+		decl String:sClassname[32];
+		new maxEdicts = GetEntityCount();
 		for (new i = MaxClients + 1; i < maxEdicts; i++)
 		{
 			if (IsValidEdict(i) && GetEdictClassname(i, sClassname, sizeof(sClassname)))
@@ -150,7 +148,7 @@ public OnPluginStart()
 #endif
 }
 
-public OnLibraryAdded(const char name[])
+public OnLibraryAdded(const String:name[])
 {
 #if defined _updater_included
 	if (StrEqual(name, "updater"))
@@ -177,7 +175,7 @@ public OnClientDisconnect_Post(client)
 	g_fDetectedTime[client] = 0.0;
 }
 
-public Action OnPlayerRunCmd(client, &buttons, &impulse, float :vel[3], float :angles[3], &weapon, &subtype, &cmdnum, &tickcount, &seed, mouse[2])
+public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:angles[3], &weapon, &subtype, &cmdnum, &tickcount, &seed, mouse[2])
 {
 	// Ignore bots
 	if (IsFakeClient(client))
@@ -192,7 +190,7 @@ public Action OnPlayerRunCmd(client, &buttons, &impulse, float :vel[3], float :a
 		g_TickStatus[client] = State_Resetting;
 	
 	// Fixes issues caused by client timeouts.
-	bool bAlive = IsPlayerAlive(client);
+	new bool:bAlive = IsPlayerAlive(client);
 	if (!bAlive || !g_bPrevAlive[client] || GetGameTime() <= g_fDetectedTime[client])
 	{
 		g_bPrevAlive[client] = bAlive;
@@ -230,7 +228,7 @@ public Action OnPlayerRunCmd(client, &buttons, &impulse, float :vel[3], float :a
 	
 		g_fDetectedTime[client] = GetGameTime() + 30.0;
 		
-		Handle info = CreateKeyValues("");
+		new Handle:info = CreateKeyValues("");
 		KvSetNum(info, "cmdnum", cmdnum);
 		KvSetNum(info, "prevcmdnum", g_iPrevCmdNum[client]);
 		KvSetNum(info, "tickcount", tickcount);
@@ -271,7 +269,7 @@ public Action OnPlayerRunCmd(client, &buttons, &impulse, float :vel[3], float :a
 		{
 			g_fDetectedTime[client] = GetGameTime() + 30.0;
 			
-			Handle info = CreateKeyValues("");
+			new Handle:info = CreateKeyValues("");
 			KvSetNum(info, "cmdnum", cmdnum);
 			KvSetNum(info, "tickcount", tickcount);
 			KvSetNum(info, "prevtickcount", g_iPrevTickCount[client]);
@@ -301,7 +299,7 @@ public Action OnPlayerRunCmd(client, &buttons, &impulse, float :vel[3], float :a
 		{
 			g_fDetectedTime[client] = GetGameTime() + 30.0;
 			
-			Handle info = CreateKeyValues("");
+			new Handle:info = CreateKeyValues("");
 			KvSetNum(info, "cmdnum", cmdnum);
 			KvSetNum(info, "prevbuttons", g_iPrevButtons[client]);
 			KvSetNum(info, "buttons", buttons);
@@ -373,7 +371,7 @@ public Action OnPlayerRunCmd(client, &buttons, &impulse, float :vel[3], float :a
 		case Group_EP1:
 		{
 			// Older engine support.
-			float  :vTemp[3];
+			decl Float:vTemp[3];
 			vTemp = angles;
 			
 			if (vTemp[0] > 180.0)
@@ -421,7 +419,7 @@ public Action OnPlayerRunCmd(client, &buttons, &impulse, float :vel[3], float :a
 	}
 	
 	// Ignore clients that are interacting with the map.
-	int flags = GetEntityFlags(client);
+	new flags = GetEntityFlags(client);
 	
 	if (flags & FL_FROZEN || flags & FL_ATCONTROLS)
 		return Plugin_Continue;
@@ -430,9 +428,9 @@ public Action OnPlayerRunCmd(client, &buttons, &impulse, float :vel[3], float :a
 	g_fDetectedTime[client] = GetGameTime() + 30.0;
 	
 	// Strict bot checking - https://bugs.alliedmods.net/show_bug.cgi?id=5294
-	char sAuthID[MAX_AUTHID_LENGTH];
+	decl String:sAuthID[MAX_AUTHID_LENGTH];
 	
-	Handle info = CreateKeyValues("");
+	new Handle:info = CreateKeyValues("");
 	KvSetVector(info, "angles", angles);
 	
 	if (GetClientAuthId(client, AuthId_Steam2, sAuthID, sizeof(sAuthID), false) && !StrEqual(sAuthID, "BOT") && SMAC_CheatDetected(client, Detection_Eyeangles, info) == Plugin_Continue)
@@ -454,7 +452,7 @@ public Action OnPlayerRunCmd(client, &buttons, &impulse, float :vel[3], float :a
 	return Plugin_Continue;
 }
 
-public OnEntityCreated(entity, const char classname[])
+public OnEntityCreated(entity, const String:classname[])
 {
 	if (g_Game != Game_L4D && g_Game != Game_L4D2)
 		return;
@@ -467,7 +465,7 @@ public OnEntityCreated(entity, const char classname[])
 	}
 }
 
-public Action Hook_MinigunUse(entity, activator, caller, UseType:type, float :value)
+public Action:Hook_MinigunUse(entity, activator, caller, UseType:type, Float:value)
 {
 	// This will forward Use_Set on each tick, and then Use_Off when released.
 	if (IS_CLIENT(activator) && type == Use_Set)

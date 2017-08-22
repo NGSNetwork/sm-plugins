@@ -27,11 +27,10 @@
 #tryinclude <updater>
 
 /* Plugin Info */
-public Plugin myinfo =
+public Plugin:myinfo =
 {
-	name = "SMAC Anti-Speedhack",
+	name = "UKAS",
 	author = SMAC_AUTHOR,
-	description = "Prevents speedhack cheats from working",
 	version = SMAC_VERSION,
 	url = SMAC_URL
 };
@@ -44,8 +43,8 @@ new g_iMaxTicks;
 
 #define MAX_DETECTIONS 30
 new g_iDetections[MAXPLAYERS+1];
-float g_fDetectedTime[MAXPLAYERS+1];
-float g_fPrevLatency[MAXPLAYERS+1];
+new Float:g_fDetectedTime[MAXPLAYERS+1];
+new Float:g_fPrevLatency[MAXPLAYERS+1];
 
 /* Plugin Functions */
 public OnPluginStart()
@@ -70,7 +69,7 @@ public OnPluginStart()
 #endif
 }
 
-public OnLibraryAdded(const char name[])
+public OnLibraryAdded(const String:name[])
 {
 #if defined _updater_included
 	if (StrEqual(name, "updater"))
@@ -88,10 +87,10 @@ public OnClientConnected(client)
 	g_fPrevLatency[client] = 0.0;
 }
 
-public Action Timer_AddTicks(Handle timer)
+public Action:Timer_AddTicks(Handle:timer)
 {
-	static float fLastProcessed;
-	int iNewTicks = RoundToCeil((GetEngineTime() - fLastProcessed) / GetTickInterval());
+	static Float:fLastProcessed;
+	new iNewTicks = RoundToCeil((GetEngineTime() - fLastProcessed) / GetTickInterval());
 	
 	for (new i = 1; i <= MaxClients; i++)
 	{
@@ -99,7 +98,7 @@ public Action Timer_AddTicks(Handle timer)
 		{
 			// Make sure latency didn't spike more than 5ms.
 			// We want to avoid writing a lagging client to logs.
-			float fLatency = GetClientLatency(i, NetFlow_Outgoing);
+			new Float:fLatency = GetClientLatency(i, NetFlow_Outgoing);
 			
 			if (!g_iTicksLeft[i] && FloatAbs(g_fPrevLatency[i] - fLatency) <= 0.005)
 			{
@@ -137,7 +136,7 @@ public Action Timer_AddTicks(Handle timer)
 	return Plugin_Continue;
 }
 
-public Action OnPlayerRunCmd(client, &buttons, &impulse, float vel[3], float angles[3], &weapon)
+public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:angles[3], &weapon)
 {
 	if (!g_iTicksLeft[client])
 		return Plugin_Handled;

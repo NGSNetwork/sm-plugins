@@ -17,7 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma newdecls required
 #pragma semicolon 1
 
 /* SM Includes */
@@ -28,11 +27,10 @@
 #tryinclude <updater>
 
 /* Plugin Info */
-public Plugin myinfo =
+public Plugin:myinfo =
 {
-	name = "SMAC AutoTrigger Detector",
+	name = "UKAD",
 	author = SMAC_AUTHOR,
-	description = "Detects cheats that automatically press buttons for players",
 	version = SMAC_VERSION,
 	url = SMAC_URL
 };
@@ -48,9 +46,9 @@ public Plugin myinfo =
 #define METHOD_AUTOFIRE		1
 #define METHOD_MAX			2
 
-Handle g_hCvarBan = INVALID_HANDLE;
-int g_iDetections[METHOD_MAX][MAXPLAYERS+1];
-int g_iAttackMax = 66;
+new Handle:g_hCvarBan = INVALID_HANDLE;
+new g_iDetections[METHOD_MAX][MAXPLAYERS+1];
+new g_iAttackMax = 66;
 
 /* Plugin Functions */
 public OnPluginStart()
@@ -72,7 +70,7 @@ public OnPluginStart()
 #endif
 }
 
-public OnLibraryAdded(const char name[])
+public OnLibraryAdded(const String:name[])
 {
 #if defined _updater_included
 	if (StrEqual(name, "updater"))
@@ -90,7 +88,7 @@ public OnClientDisconnect_Post(client)
 	}
 }
 
-public Action Timer_DecreaseCount(Handle timer)
+public Action:Timer_DecreaseCount(Handle:timer)
 {
 	for (new i = 0; i < METHOD_MAX; i++)
 	{
@@ -106,12 +104,12 @@ public Action Timer_DecreaseCount(Handle timer)
 	return Plugin_Continue;
 }
 
-public Action OnPlayerRunCmd(client, &buttons, &impulse, float vel[3], float angles[3], &weapon)
+public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:angles[3], &weapon)
 {
 	static iPrevButtons[MAXPLAYERS+1];
 	
 	/* BunnyHop */
-	static float fCheckTime[MAXPLAYERS+1];
+	static Float:fCheckTime[MAXPLAYERS+1];
 
 	// Player didn't jump immediately after the last jump.
 	if (!(buttons & IN_JUMP) && (GetEntityFlags(client) & FL_ONGROUND) && fCheckTime[client] > 0.0)
@@ -125,7 +123,7 @@ public Action OnPlayerRunCmd(client, &buttons, &impulse, float vel[3], float ang
 		// Player is on the ground and about to trigger a jump.
 		if (GetEntityFlags(client) & FL_ONGROUND)
 		{
-			float fGameTime = GetGameTime();
+			new Float:fGameTime = GetGameTime();
 			
 			// Player jumped on the exact frame that allowed it.
 			if (fCheckTime[client] > 0.0 && fGameTime > fCheckTime[client])
@@ -145,7 +143,7 @@ public Action OnPlayerRunCmd(client, &buttons, &impulse, float vel[3], float ang
 	
 	/* Auto-Fire */
 	static iAttackAmt[MAXPLAYERS+1];
-	static bool bResetNext[MAXPLAYERS+1];
+	static bool:bResetNext[MAXPLAYERS+1];
 	
 	if (((buttons & IN_ATTACK) && !(iPrevButtons[client] & IN_ATTACK)) || 
 		(!(buttons & IN_ATTACK) && (iPrevButtons[client] & IN_ATTACK)))
@@ -177,7 +175,7 @@ AutoTrigger_Detected(client, method)
 {
 	if (!IsFakeClient(client) && IsPlayerAlive(client) && ++g_iDetections[method][client] >= TRIGGER_DETECTIONS)
 	{
-		char sMethod[32];
+		decl String:sMethod[32];
 
 		switch (method)
 		{
@@ -191,7 +189,7 @@ AutoTrigger_Detected(client, method)
 			}
 		}
 		
-		Handle info = CreateKeyValues("");
+		new Handle:info = CreateKeyValues("");
 		KvSetString(info, "method", sMethod);
 		
 		if (SMAC_CheatDetected(client, Detection_AutoTrigger, info) == Plugin_Continue)

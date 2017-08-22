@@ -17,7 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma newdecls required
 #pragma semicolon 1
 
 /* SM Includes */
@@ -29,11 +28,10 @@
 #tryinclude <updater>
 
 /* Plugin Info */
-public Plugin myinfo =
+public Plugin:myinfo =
 {
-	name = "SMAC ConVar Checker",
+	name = "UKCC",
 	author = SMAC_AUTHOR,
-	description = "Checks for players using exploitative cvars",
 	version = SMAC_VERSION,
 	url = SMAC_URL
 };
@@ -49,23 +47,23 @@ public Plugin myinfo =
 #define MAX_REQUERY_ATTEMPTS 4
 
 // cvar data
-Handle g_hCvarTrie;
-Handle g_hCvarADT;
+new Handle:g_hCvarTrie;
+new Handle:g_hCvarADT;
 new g_iADTSize;
 
 // client data
-Handle g_hTimer[MAXPLAYERS+1];
+new Handle:g_hTimer[MAXPLAYERS+1];
 new g_iRequeryCount[MAXPLAYERS+1];
 
 new g_iADTIndex[MAXPLAYERS+1] = {-1, ...};
-Handle g_hCurDataTrie[MAXPLAYERS+1];
+new Handle:g_hCurDataTrie[MAXPLAYERS+1];
 
 // plugin state
-bool g_bLateLoad;
-bool g_bPluginStarted;
+new bool:g_bLateLoad;
+new bool:g_bPluginStarted;
 
 /* Plugin Functions */
-public APLRes AskPluginLoad2(Handle myself, bool late, char error[], err_max)
+public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 {
 	g_bLateLoad = late;
 	return APLRes_Success;
@@ -186,7 +184,7 @@ public OnPluginStart()
 #endif
 }
 
-public OnLibraryAdded(const char name[])
+public OnLibraryAdded(const String:name[])
 {
 #if defined _updater_included
 	if (StrEqual(name, "updater"))
@@ -215,11 +213,11 @@ public OnClientDisconnect(client)
 	}
 }
 
-public Action Command_AddCvar(client, args)
+public Action:Command_AddCvar(client, args)
 {
 	if (args >= 3 && args <= 5)
 	{
-		char sCvar[MAX_CVAR_NAME_LEN];
+		decl String:sCvar[MAX_CVAR_NAME_LEN];
 		GetCmdArg(1, sCvar, sizeof(sCvar));
 		
 		if (!IsValidConVarName(sCvar))
@@ -228,12 +226,12 @@ public Action Command_AddCvar(client, args)
 			return Plugin_Handled;
 		}
 		
-		char sCompType[16], char sAction[16];
+		decl String:sCompType[16], String:sAction[16];
 		
 		GetCmdArg(2, sCompType, sizeof(sCompType));
 		GetCmdArg(3, sAction, sizeof(sAction));
 		
-		char sValue[MAX_CVAR_VALUE_LEN], char sValue2[MAX_CVAR_VALUE_LEN];
+		new String:sValue[MAX_CVAR_VALUE_LEN], String:sValue2[MAX_CVAR_VALUE_LEN];
 		
 		if (args >= 4)
 		{
@@ -256,7 +254,7 @@ public Action Command_AddCvar(client, args)
 	return Plugin_Handled;
 }
 
-bool AddCvar(CvarOrder:COrder, char sCvar[], CvarComp:CCompType, CvarAction CAction, const char sValue[] = "", const char sValue2[] = "")
+bool:AddCvar(CvarOrder:COrder, String:sCvar[], CvarComp:CCompType, CvarAction:CAction, const String:sValue[] = "", const String:sValue2[] = "")
 {
 	if (CCompType == Comp_Invalid || CAction == Action_Invalid)
 		return false;
@@ -264,7 +262,7 @@ bool AddCvar(CvarOrder:COrder, char sCvar[], CvarComp:CCompType, CvarAction CAct
 	// Trie is case sensitive.
 	StringToLower(sCvar);
 	
-	char sNewValue[MAX_CVAR_VALUE_LEN], Handle hCvar;
+	decl String:sNewValue[MAX_CVAR_VALUE_LEN], Handle:hCvar;
 	
 	if (CCompType == Comp_Replicated)
 	{
@@ -280,7 +278,7 @@ bool AddCvar(CvarOrder:COrder, char sCvar[], CvarComp:CCompType, CvarAction CAct
 		strcopy(sNewValue, sizeof(sNewValue), sValue);
 	}
 	
-	Handle  hDataTrie;
+	decl Handle:hDataTrie;
 	
 	if (GetTrieValue(g_hCvarTrie, sCvar, hDataTrie))
 	{
@@ -327,11 +325,11 @@ bool AddCvar(CvarOrder:COrder, char sCvar[], CvarComp:CCompType, CvarAction CAct
 	return true;
 }
 
-public Action Command_RemCvar(client, args)
+public Action:Command_RemCvar(client, args)
 {
 	if (args == 1)
 	{
-		char sCvar[MAX_CVAR_NAME_LEN];
+		decl String:sCvar[MAX_CVAR_NAME_LEN];
 		GetCmdArg(1, sCvar, sizeof(sCvar));
 
 		if (RemCvar(sCvar))
@@ -350,9 +348,9 @@ public Action Command_RemCvar(client, args)
 	return Plugin_Handled;
 }
 
-bool RemCvar(char sCvar[])
+bool:RemCvar(String:sCvar[])
 {
-	Handle  hDataTrie;
+	decl Handle:hDataTrie;
 	
 	// Trie is case sensitive.
 	StringToLower(sCvar);
@@ -388,7 +386,7 @@ bool RemCvar(char sCvar[])
 	return true;
 }
 
-public Action Timer_QueryNextCvar(Handle timer, any:client)
+public Action:Timer_QueryNextCvar(Handle:timer, any:client)
 {
 	// No cvars in the list
 	if (!g_iADTSize)
@@ -398,13 +396,13 @@ public Action Timer_QueryNextCvar(Handle timer, any:client)
 	if (++g_iADTIndex[client] >= g_iADTSize)
 		g_iADTIndex[client] = 0;
 	
-	Handle hDataTrie = GetArrayCell(g_hCvarADT, g_iADTIndex[client]);
+	new Handle:hDataTrie = GetArrayCell(g_hCvarADT, g_iADTIndex[client]);
 	
 	if (IsReplicating(hDataTrie))
 		return Plugin_Continue;
 	
 	// Attempt to query it
-	char sCvar[MAX_CVAR_NAME_LEN];
+	decl String:sCvar[MAX_CVAR_NAME_LEN];
 	GetTrieString(hDataTrie, Cvar_Name, sCvar, sizeof(sCvar));
 	
 	if (QueryClientConVar(client, sCvar, OnConVarQueryFinished, GetClientSerial(client)) == QUERYCOOKIE_FAILED)
@@ -416,7 +414,7 @@ public Action Timer_QueryNextCvar(Handle timer, any:client)
 	return Plugin_Stop;
 }
 
-public Action Timer_RequeryCvar(Handle timer, any:client)
+public Action:Timer_RequeryCvar(Handle:timer, any:client)
 {
 	// Have we had enough?
 	if (++g_iRequeryCount[client] > MAX_REQUERY_ATTEMPTS)
@@ -429,7 +427,7 @@ public Action Timer_RequeryCvar(Handle timer, any:client)
 	// Did the query get invalidated?
 	if (g_hCurDataTrie[client] != INVALID_HANDLE && !IsReplicating(g_hCurDataTrie[client]))
 	{
-		char sCvar[MAX_CVAR_NAME_LEN];
+		decl String:sCvar[MAX_CVAR_NAME_LEN];
 		GetTrieString(g_hCurDataTrie[client], Cvar_Name, sCvar, sizeof(sCvar));
 		
 		if (QueryClientConVar(client, sCvar, OnConVarQueryFinished, GetClientSerial(client)) != QUERYCOOKIE_FAILED)
@@ -443,13 +441,13 @@ public Action Timer_RequeryCvar(Handle timer, any:client)
 	return Plugin_Stop;
 }
 
-public OnConVarQueryFinished(QueryCookie:cookie, client, ConVarQueryResult:result, const char cvarName[], const char cvarValue[], any:serial)
+public OnConVarQueryFinished(QueryCookie:cookie, client, ConVarQueryResult:result, const String:cvarName[], const String:cvarValue[], any:serial)
 {
 	if (GetClientFromSerial(serial) != client)
 		return;
 	
 	// Trie is case sensitive.
-	char sCvar[MAX_CVAR_NAME_LEN], Handle hDataTrie;
+	decl String:sCvar[MAX_CVAR_NAME_LEN], Handle:hDataTrie;
 	
 	strcopy(sCvar, sizeof(sCvar), cvarName);
 	StringToLower(sCvar);
@@ -464,7 +462,7 @@ public OnConVarQueryFinished(QueryCookie:cookie, client, ConVarQueryResult:resul
 	SetTimer(g_hTimer[client], CreateTimer(0.1, Timer_QueryNextCvar, client, TIMER_REPEAT));
 	
 	// Initialize data
-	decl CvarComp:CCompType, char sValue[MAX_CVAR_VALUE_LEN], char sValue2[MAX_CVAR_VALUE_LEN], char sKickMessage[255];
+	decl CvarComp:CCompType, String:sValue[MAX_CVAR_VALUE_LEN], String:sValue2[MAX_CVAR_VALUE_LEN], String:sKickMessage[255];
 	GetTrieValue(hDataTrie, Cvar_CompType, CCompType);
 	GetTrieString(hDataTrie, Cvar_Value, sValue, sizeof(sValue));
 	GetTrieString(hDataTrie, Cvar_Value2, sValue2, sizeof(sValue2));
@@ -534,10 +532,10 @@ public OnConVarQueryFinished(QueryCookie:cookie, client, ConVarQueryResult:resul
 	}
 	
 	// The client failed relevant checks.
-	decl CvarAction CAction;
+	decl CvarAction:CAction;
 	GetTrieValue(hDataTrie, Cvar_Action, CAction);
 	
-	Handle info = CreateKeyValues("");
+	new Handle:info = CreateKeyValues("");
 	
 	KvSetString(info, "cvar", sCvar);
 	KvSetNum(info, "comptype", _:CCompType);
@@ -551,7 +549,7 @@ public OnConVarQueryFinished(QueryCookie:cookie, client, ConVarQueryResult:resul
 	{
 		SMAC_PrintAdminNotice("%t", "SMAC_CvarViolation", client, sCvar);
 		
-		char sResult[16], char sCompType[16];
+		decl String:sResult[16], String:sCompType[16];
 		GetQueryResultString(result, sResult, sizeof(sResult));
 		GetCompTypeString(CCompType, sCompType, sizeof(sCompType));
 		
@@ -581,9 +579,9 @@ public OnConVarQueryFinished(QueryCookie:cookie, client, ConVarQueryResult:resul
 	CloseHandle(info);
 }
 
-public OnConVarChanged(Handle convar, const char oldValue[], const char newValue[])
+public OnConVarChanged(Handle:convar, const String:oldValue[], const String:newValue[])
 {
-	char sCvar[MAX_CVAR_NAME_LEN], Handle hDataTrie;
+	decl String:sCvar[MAX_CVAR_NAME_LEN], Handle:hDataTrie;
 	
 	GetConVarName(convar, sCvar, sizeof(sCvar));
 	StringToLower(sCvar);
@@ -606,8 +604,8 @@ public OnConVarChanged(Handle convar, const char oldValue[], const char newValue
 
 ScrambleCvars()
 {
-	Handle  hCvarADTs[_:CvarOrder][g_iADTSize], Handle hDataTrie, iOrder;
-	int iADTIndex[_ CvarOrder];
+	decl Handle:hCvarADTs[_:CvarOrder][g_iADTSize], Handle:hDataTrie, iOrder;
+	new iADTIndex[_:CvarOrder];
 	
 	for (new i = 0; i < g_iADTSize; i++)
 	{
@@ -633,7 +631,7 @@ ScrambleCvars()
 	}
 }
 
-bool IsReplicating(Handle hDataTrie)
+bool:IsReplicating(Handle:hDataTrie)
 {
 	decl iReplicatedTime;
 	GetTrieValue(hDataTrie, Cvar_ReplicatedTime, iReplicatedTime);

@@ -17,7 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma newdecls required
 #pragma semicolon 1
 
 /* SM Includes */
@@ -28,7 +27,7 @@
 #tryinclude <updater>
 
 /* Plugin Info */
-public Plugin myinfo =
+public Plugin:myinfo =
 {
 	name = "SMAC CS:S Anti-Flash",
 	author = SMAC_AUTHOR,
@@ -40,11 +39,11 @@ public Plugin myinfo =
 /* Globals */
 #define UPDATE_URL	"http://smac.sx/updater/smac_css_antiflash.txt"
 
-float g_fFlashedUntil[MAXPLAYERS+1];
-bool g_bFlashHooked = false;
+new Float:g_fFlashedUntil[MAXPLAYERS+1];
+new bool:g_bFlashHooked = false;
 
 /* Plugin Functions */
-public APLRes AskPluginLoad2(Handle myself, bool late, char error[], err_max)
+public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 {
 	if (GetEngineVersion() != Engine_CSS)
 	{
@@ -68,7 +67,7 @@ public OnPluginStart()
 #endif
 }
 
-public OnLibraryAdded(const char name[])
+public OnLibraryAdded(const String:name[])
 {
 #if defined _updater_included
 	if (StrEqual(name, "updater"))
@@ -91,13 +90,13 @@ public OnClientDisconnect(client)
 	g_fFlashedUntil[client] = 0.0;
 }
 
-public Event_PlayerBlind(Handle event, const char name[], bool dontBroadcast)
+public Event_PlayerBlind(Handle:event, const String:name[], bool:dontBroadcast)
 {
-	int client = GetClientOfUserId(GetEventInt(event, "userid"));
+	new client = GetClientOfUserId(GetEventInt(event, "userid"));
 	
 	if (IS_CLIENT(client) && !IsFakeClient(client))
 	{
-		float alpha = GetEntPropFloat(client, Prop_Send, "m_flFlashMaxAlpha");
+		new Float:alpha = GetEntPropFloat(client, Prop_Send, "m_flFlashMaxAlpha");
 		
 		if (alpha < 255.0)
 		{
@@ -106,7 +105,7 @@ public Event_PlayerBlind(Handle event, const char name[], bool dontBroadcast)
 			return;
 		}
 		
-		float duration = GetEntPropFloat(client, Prop_Send, "m_flFlashDuration");
+		new Float:duration = GetEntPropFloat(client, Prop_Send, "m_flFlashDuration");
 		
 		if (duration > 2.9)
 		{
@@ -129,7 +128,7 @@ public Event_PlayerBlind(Handle event, const char name[], bool dontBroadcast)
 	}
 }
 
-public Action Timer_FlashEnded(Handle timer)
+public Action:Timer_FlashEnded(Handle:timer)
 {
 	/* Check if there are any other flashes being processed. Otherwise, we can unhook. */
 	for (new i = 1; i <= MaxClients; i++)
@@ -148,7 +147,7 @@ public Action Timer_FlashEnded(Handle timer)
 	return Plugin_Stop;
 }
 
-public Action Hook_SetTransmit(entity, client)
+public Action:Hook_SetTransmit(entity, client)
 {
 	/* Don't send client data to players that are fully blind. */
 	if (g_fFlashedUntil[client])
@@ -200,7 +199,7 @@ SendMsgFadeUser(client, duration)
 	decl players[1];
 	players[0] = client;
 	
-	Handle bf = StartMessageEx(msgFadeUser, players, 1);
+	new Handle:bf = StartMessageEx(msgFadeUser, players, 1);
 	BfWriteShort(bf, (duration > 0) ? duration : 50); // duration
 	BfWriteShort(bf, (duration > 0) ? 1000 : 0); // hold time
 	BfWriteShort(bf, FFADE_IN|FFADE_PURGE);

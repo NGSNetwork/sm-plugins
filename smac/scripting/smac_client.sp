@@ -17,7 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma newdecls required
 #pragma semicolon 1
 
 /* SM Includes */
@@ -30,11 +29,10 @@
 #tryinclude <updater>
 
 /* Plugin Info */
-public Plugin myinfo =
+public Plugin:myinfo =
 {
-	name = "SMAC Client Protection",
+	name = "UKCP",
 	author = SMAC_AUTHOR,
-	description = "Blocks general client exploits",
 	version = SMAC_VERSION,
 	url = SMAC_URL
 };
@@ -42,17 +40,17 @@ public Plugin myinfo =
 /* Globals */
 #define UPDATE_URL	"http://smac.sx/updater/smac_client.txt"
 
-Handle g_hCvarConnectSpam = INVALID_HANDLE;
-Handle g_hCvarValidateAuth = INVALID_HANDLE;
-Handle g_hClientConnections = INVALID_HANDLE;
-float g_fTeamJoinTime[MAXPLAYERS+1][6];
-int g_iNameChanges[MAXPLAYERS+1];
-int g_iAchievements[MAXPLAYERS+1];
-bool g_bMapStarted = false;
-bool g_bConnectExt = false;
+new Handle:g_hCvarConnectSpam = INVALID_HANDLE;
+new Handle:g_hCvarValidateAuth = INVALID_HANDLE;
+new Handle:g_hClientConnections = INVALID_HANDLE;
+new Float:g_fTeamJoinTime[MAXPLAYERS+1][6];
+new g_iNameChanges[MAXPLAYERS+1];
+new g_iAchievements[MAXPLAYERS+1];
+new bool:g_bMapStarted = false;
+new bool:g_bConnectExt = false;
 
 /* Plugin Functions */
-public APLRes AskPluginLoad2(Handle myself, bool late, char error[], err_max)
+public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 {
 	g_bMapStarted = late;
 	return APLRes_Success;
@@ -81,7 +79,7 @@ public OnPluginStart()
 	// Check all clients.
 	if (g_bMapStarted)
 	{
-		char sReason[256];
+		decl String:sReason[256];
 
 		for (new i = 1; i <= MaxClients; i++)
 		{
@@ -100,7 +98,7 @@ public OnPluginStart()
 #endif
 }
 
-public OnLibraryAdded(const char name[])
+public OnLibraryAdded(const String:name[])
 {
 #if defined _updater_included
 	if (StrEqual(name, "updater"))
@@ -116,7 +114,7 @@ public OnMapStart()
 	CreateTimer(20.0, Timer_MapStarted, _, TIMER_FLAG_NO_MAPCHANGE);
 }
 
-public Action Timer_MapStarted(Handle timer)
+public Action:Timer_MapStarted(Handle:timer)
 {
 	g_bMapStarted = true;
 	return Plugin_Stop;
@@ -128,7 +126,7 @@ public OnMapEnd()
 	ClearTrie(g_hClientConnections);
 }
 
-public bool OnClientPreConnectEx(const char name[], char password[255], const char ip[], const char steamID[], char rejectReason[255])
+public bool:OnClientPreConnectEx(const String:name[], String:password[255], const String:ip[], const String:steamID[], String:rejectReason[255])
 {
 	g_bConnectExt = true;
 	
@@ -147,7 +145,7 @@ public bool OnClientPreConnectEx(const char name[], char password[255], const ch
 	return true;
 }
 
-public bool OnClientConnect(client, char rejectmsg[], size)
+public bool:OnClientConnect(client, String:rejectmsg[], size)
 {
 	if (IsFakeClient(client))
 	{
@@ -156,7 +154,7 @@ public bool OnClientConnect(client, char rejectmsg[], size)
 	
 	if (!g_bConnectExt)
 	{
-		char sIP[17];
+		decl String:sIP[17];
 		GetClientIP(client, sIP, sizeof(sIP));
 		
 		if (IsConnectSpamming(sIP))
@@ -196,9 +194,9 @@ public OnClientPutInServer(client)
 	}
 }
 
-public Action Timer_ValidateAuth(Handle timer, any:serial)
+public Action:Timer_ValidateAuth(Handle:timer, any:serial)
 {
-	int client = GetClientFromSerial(serial);
+	new client = GetClientFromSerial(serial);
 	
 	if (IS_CLIENT(client) && !IsClientAuthorized(client))
 	{
@@ -224,24 +222,24 @@ public OnClientDisconnect_Post(client)
 	}
 }
 
-public Action Hook_TextMsg(UserMsg:msg_id, Handle bf, const players[], playersNum, bool reliable, bool init)
+public Action:Hook_TextMsg(UserMsg:msg_id, Handle:bf, const players[], playersNum, bool:reliable, bool:init)
 {
 	// Name spam notices will only be sent to the offending client.
 	if (!reliable || playersNum != 1)
 		return Plugin_Continue;
 	
 	// The message we are looking for is sent to chat.
-	int destination = BfReadByte(bf);
+	new destination = BfReadByte(bf);
 	
 	if (destination != 3)
 		return Plugin_Continue;
 	
-	char sBuffer[64];
+	decl String:sBuffer[64];
 	BfReadString(bf, sBuffer, sizeof(sBuffer));
 	
 	if (StrEqual(sBuffer, "#Name_change_limit_exceeded"))
 	{
-		int client = players[0];
+		new client = players[0];
 		
 		if (!IsFakeClient(client) && SMAC_CheatDetected(client, Detection_NameChangeSpam, INVALID_HANDLE) == Plugin_Continue)
 		{
@@ -253,18 +251,18 @@ public Action Hook_TextMsg(UserMsg:msg_id, Handle bf, const players[], playersNu
 	return Plugin_Continue;
 }
 
-public Action Event_PlayerTeam(Handle event, const char name[], bool dontBroadcast)
+public Action:Event_PlayerTeam(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	if (dontBroadcast)
 		return Plugin_Continue;
 	
 	// Don't broadcast team changes if they're being spammed.
-	int client = GetClientOfUserId(GetEventInt(event, "userid"));
+	new client = GetClientOfUserId(GetEventInt(event, "userid"));
 	
 	if (IS_CLIENT(client))
 	{
-		float fGameTime = GetGameTime();
-		int team = GetEventInt(event, "team");
+		new Float:fGameTime = GetGameTime();
+		new team = GetEventInt(event, "team");
 		
 		if (team < 0 || team >= sizeof(g_fTeamJoinTime[]))
 			team = 0;
@@ -280,9 +278,9 @@ public Action Event_PlayerTeam(Handle event, const char name[], bool dontBroadca
 	return Plugin_Continue;
 }
 
-public Event_PlayerChangeName(Handle event, const char name[], bool dontBroadcast)
+public Event_PlayerChangeName(Handle:event, const String:name[], bool:dontBroadcast)
 {
-	int client = GetClientOfUserId(GetEventInt(event, "userid"));
+	new client = GetClientOfUserId(GetEventInt(event, "userid"));
 	
 	if (IS_CLIENT(client) && IsClientInGame(client) && !IsFakeClient(client) && ++g_iNameChanges[client] >= 5)
 	{
@@ -296,9 +294,9 @@ public Event_PlayerChangeName(Handle event, const char name[], bool dontBroadcas
 	}
 }
 
-public Action Event_AchievementEarned(Handle event, const char name[], bool dontBroadcast)
+public Action:Event_AchievementEarned(Handle:event, const String:name[], bool:dontBroadcast)
 {
-	int client = GetEventInt(event, "player");
+	new client = GetEventInt(event, "player");
 	
 	if (IS_CLIENT(client) && ++g_iAchievements[client] >= 5)
 	{
@@ -308,7 +306,7 @@ public Action Event_AchievementEarned(Handle event, const char name[], bool dont
 	return Plugin_Continue;
 }
 
-public Action Timer_DecreaseCount(Handle timer)
+public Action:Timer_DecreaseCount(Handle:timer)
 {
 	for (new i = 1; i <= MaxClients; i++)
 	{
@@ -326,12 +324,12 @@ public Action Timer_DecreaseCount(Handle timer)
 	return Plugin_Continue;
 }
 
-bool IsClientNameValid(client)
+bool:IsClientNameValid(client)
 {
-	char sName[MAX_NAME_LENGTH], char sChar;
+	decl String:sName[MAX_NAME_LENGTH], String:sChar;
 
 	GetClientName(client, sName, sizeof(sName));
-	int iSize = strlen(sName);
+	new iSize = strlen(sName);
 
 	if (iSize < 2 || sName[0] == '&' || IsCharSpace(sName[0]) || IsCharSpace(sName[iSize-1]))
 	{
@@ -343,7 +341,7 @@ bool IsClientNameValid(client)
 		sChar = sName[i];
 		
 		// Check unicode characters.
-		bytes = IsCharMB(sChar);
+		new bytes = IsCharMB(sChar);
 		
 		if (bytes > 1)
 		{
@@ -363,13 +361,13 @@ bool IsClientNameValid(client)
 	return true;
 }
 
-bool IsMBCharValid(const char mbchar[], numbytes)
+bool:IsMBCharValid(const String:mbchar[], numbytes)
 {
 	/*
 	* A blacklist of unicode characters.
 	* Mostly a variation of zero-width and spaces.
 	*/
-	int wchar = UTF8ToWChar(mbchar, numbytes);
+	new wchar = UTF8ToWChar(mbchar, numbytes);
 	
 	if (wchar == -1)
 		return false;
@@ -442,7 +440,7 @@ bool IsMBCharValid(const char mbchar[], numbytes)
 	return true;
 }
 
-UTF8ToWChar(const char mbchar[], numbytes)
+UTF8ToWChar(const String:mbchar[], numbytes)
 {
 	static const mask[] = { 0, 0x7F, 0x1F, 0x0F, 0x07, 0x03, 0x01 };
 	
@@ -450,7 +448,7 @@ UTF8ToWChar(const char mbchar[], numbytes)
 		return -1;
 	
 	// First byte minus length tag
-	int wchar = (mbchar[0] & mask[numbytes]);
+	new wchar = (mbchar[0] & mask[numbytes]);
 	
 	for (new i = 1; i < numbytes; i++)
 	{
@@ -465,23 +463,23 @@ UTF8ToWChar(const char mbchar[], numbytes)
 	return wchar;
 }
 
-bool IsConnectSpamming(const char ip[])
+bool:IsConnectSpamming(const String:ip[])
 {
 	if (!g_bMapStarted || !IsServerProcessing())
 		return false;
 	
-	static Handle hIgnoreList = INVALID_HANDLE;
+	static Handle:hIgnoreList = INVALID_HANDLE;
 	
 	if (hIgnoreList == INVALID_HANDLE)
 	{
 		hIgnoreList = CreateTrie();
 	}
 	
-	float fSpamTime = GetConVarFloat(g_hCvarConnectSpam);
+	new Float:fSpamTime = GetConVarFloat(g_hCvarConnectSpam);
 	
 	if (fSpamTime > 0.0)
 	{
-		char sTempIP[17], dummy;
+		decl String:sTempIP[17], dummy;
 		
 		// Add any LAN IPs to the ignore list.
 		for (new i = 1; i <= MaxClients; i++)
@@ -509,17 +507,17 @@ bool IsConnectSpamming(const char ip[])
 	return false;
 }
 
-bool ShouldLogIP(const char ip[])
+bool:ShouldLogIP(const String:ip[])
 {
 	/* Only log each IP once to prevent log spam. */
-	static Handle hLogList = INVALID_HANDLE;
+	static Handle:hLogList = INVALID_HANDLE;
 	
 	if (hLogList == INVALID_HANDLE)
 	{
 		hLogList = CreateTrie();
 	}
 	
-	int dummy;
+	decl dummy;
 	
 	if (GetTrieValue(hLogList, ip, dummy))
 	{
@@ -530,9 +528,9 @@ bool ShouldLogIP(const char ip[])
 	return true;
 }
 
-public Action Timer_AntiSpamConnect(Handle timer, any:ip)
+public Action:Timer_AntiSpamConnect(Handle:timer, any:ip)
 {
-	char sIP[17];
+	decl String:sIP[17];
 	LongToIP(ip, sIP, sizeof(sIP));
 	RemoveFromTrie(g_hClientConnections, sIP);
 

@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma newdecls required
+
 #pragma semicolon 1
 
 /* SM Includes */
@@ -27,11 +27,10 @@
 #tryinclude <updater>
 
 /* Plugin Info */
-public Plugin myinfo =
+public Plugin:myinfo =
 {
-	name = "SMAC Aimbot Detector",
+	name = "UKAD",
 	author = SMAC_AUTHOR,
-	description = "Analyzes clients to detect aimbots",
 	version = SMAC_VERSION,
 	url = SMAC_URL
 };
@@ -43,15 +42,15 @@ public Plugin myinfo =
 #define AIM_BAN_MIN			4		// Minimum number of detections before an auto-ban is allowed
 #define AIM_MIN_DISTANCE	200.0	// Minimum distance acceptable for a detection.
 
-Handle g_hCvarAimbotBan = INVALID_HANDLE;
-Handle g_IgnoreWeapons = INVALID_HANDLE;
+new Handle:g_hCvarAimbotBan = INVALID_HANDLE;
+new Handle:g_IgnoreWeapons = INVALID_HANDLE;
 
-float g_fEyeAngles[MAXPLAYERS+1][64][3];
-int g_iEyeIndex[MAXPLAYERS+1];
+new Float:g_fEyeAngles[MAXPLAYERS+1][64][3];
+new g_iEyeIndex[MAXPLAYERS+1];
 
-int g_iAimDetections[MAXPLAYERS+1];
-int g_iAimbotBan = 0;
-int g_iMaxAngleHistory;
+new g_iAimDetections[MAXPLAYERS+1];
+new g_iAimbotBan = 0;
+new g_iMaxAngleHistory;
 
 /* Plugin Functions */
 public OnPluginStart()
@@ -135,7 +134,7 @@ public OnPluginStart()
 #endif
 }
 
-public OnLibraryAdded(const char name[])
+public OnLibraryAdded(const String:name[])
 {
 #if defined _updater_included
 	if (StrEqual(name, "updater"))
@@ -154,9 +153,9 @@ public OnClientPutInServer(client)
 	}
 }
 
-public OnSettingsChanged(Handle convar, const char oldValue[], const char newValue[])
+public OnSettingsChanged(Handle:convar, const String:oldValue[], const String:newValue[])
 {
-	int iNewValue = GetConVarInt(convar);
+	new iNewValue = GetConVarInt(convar);
 	
 	if (iNewValue > 0 && iNewValue < AIM_BAN_MIN)
 	{
@@ -167,7 +166,7 @@ public OnSettingsChanged(Handle convar, const char oldValue[], const char newVal
 	g_iAimbotBan = iNewValue;
 }
 
-public Teleport_OnEndTouch(const char output[], caller, activator, float delay)
+public Teleport_OnEndTouch(const String:output[], caller, activator, Float:delay)
 {
 	/* A client is being teleported in the map. */
 	if (IS_CLIENT(activator) && IsClientConnected(activator))
@@ -177,10 +176,10 @@ public Teleport_OnEndTouch(const char output[], caller, activator, float delay)
 	}
 }
 
-public Event_PlayerSpawn(Handle event, const char name[], bool dontBroadcast)
+public Event_PlayerSpawn(Handle:event, const String:name[], bool:dontBroadcast)
 {
-	int userid = GetEventInt(event, "userid");
-	int client = GetClientOfUserId(userid);
+	new userid = GetEventInt(event, "userid");
+	new client = GetClientOfUserId(userid);
 	
 	if (IS_CLIENT(client))
 	{
@@ -189,20 +188,20 @@ public Event_PlayerSpawn(Handle event, const char name[], bool dontBroadcast)
 	}
 }
 
-public Event_PlayerDeath(Handle event, const char name[], bool dontBroadcast)
+public Event_PlayerDeath(Handle:event, const String:name[], bool:dontBroadcast)
 {
-	char sWeapon[32], dummy;
+	decl String:sWeapon[32], dummy;
 	GetEventString(event, "weapon", sWeapon, sizeof(sWeapon));
 	
 	if (GetTrieValue(g_IgnoreWeapons, sWeapon, dummy))
 		return;
 		
-	int victim = GetClientOfUserId(GetEventInt(event, "userid"));
-	int attacker = GetClientOfUserId(GetEventInt(event, "attacker"));
+	new victim = GetClientOfUserId(GetEventInt(event, "userid"));
+	new attacker = GetClientOfUserId(GetEventInt(event, "attacker"));
 	
 	if (IS_CLIENT(victim) && IS_CLIENT(attacker) && victim != attacker && IsClientInGame(victim) && IsClientInGame(attacker))
 	{
-		float vVictim[3], float vAttacker[3];
+		decl Float:vVictim[3], Float:vAttacker[3];
 		GetClientAbsOrigin(victim, vVictim);
 		GetClientAbsOrigin(attacker, vAttacker);
 		
@@ -213,22 +212,22 @@ public Event_PlayerDeath(Handle event, const char name[], bool dontBroadcast)
 	}
 }
 
-public Event_EntityKilled(Handle event, const char name[], bool dontBroadcast)
+public Event_EntityKilled(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	/* (OB Only) Inflictor support lets us ignore non-bullet weapons. */
-	int victim = GetEventInt(event, "entindex_killed");
-	int attacker = GetEventInt(event, "entindex_attacker");
-	int inflictor = GetEventInt(event, "entindex_inflictor");
+	new victim = GetEventInt(event, "entindex_killed");
+	new attacker = GetEventInt(event, "entindex_attacker");
+	new inflictor = GetEventInt(event, "entindex_inflictor");
 	
 	if (IS_CLIENT(victim) && IS_CLIENT(attacker) && victim != attacker && attacker == inflictor && IsClientInGame(victim) && IsClientInGame(attacker))
 	{
-		char sWeapon[32], dummy;
+		decl String:sWeapon[32], dummy;
 		GetClientWeapon(attacker, sWeapon, sizeof(sWeapon));
 		
 		if (GetTrieValue(g_IgnoreWeapons, sWeapon, dummy))
 			return;
 		
-		float vVictim[3], float vAttacker[3];
+		decl Float:vVictim[3], Float:vAttacker[3];
 		GetClientAbsOrigin(victim, vVictim);
 		GetClientAbsOrigin(attacker, vAttacker);
 		
@@ -239,22 +238,22 @@ public Event_EntityKilled(Handle event, const char name[], bool dontBroadcast)
 	}
 }
 
-public TF2_Event_PlayerDeath(Handle event, const char name[], bool dontBroadcast)
+public TF2_Event_PlayerDeath(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	/* TF2 custom death event */
-	int victim = GetClientOfUserId(GetEventInt(event, "userid"));
-	int attacker = GetClientOfUserId(GetEventInt(event, "attacker"));
-	int inflictor = GetEventInt(event, "inflictor_entindex");
+	new victim = GetClientOfUserId(GetEventInt(event, "userid"));
+	new attacker = GetClientOfUserId(GetEventInt(event, "attacker"));
+	new inflictor = GetEventInt(event, "inflictor_entindex");
 	
 	if (IS_CLIENT(victim) && IS_CLIENT(attacker) && victim != attacker && attacker == inflictor && IsClientInGame(victim) && IsClientInGame(attacker))
 	{
-		char sWeapon[32], dummy;
+		decl String:sWeapon[32], dummy;
 		GetClientWeapon(attacker, sWeapon, sizeof(sWeapon));
 		
 		if (GetTrieValue(g_IgnoreWeapons, sWeapon, dummy))
 			return;
 		
-		float vVictim[3], float vAttacker[3];
+		decl Float:vVictim[3], Float:vAttacker[3];
 		GetClientAbsOrigin(victim, vVictim);
 		GetClientAbsOrigin(attacker, vAttacker);
 		
@@ -265,10 +264,10 @@ public TF2_Event_PlayerDeath(Handle event, const char name[], bool dontBroadcast
 	}
 }
 
-public Action Timer_ClearAngles(Handle timer, any:userid)
+public Action:Timer_ClearAngles(Handle:timer, any:userid)
 {
 	/* Delayed because the client's angles can sometimes "spin" after being teleported. */
-	int client = GetClientOfUserId(userid);
+	new client = GetClientOfUserId(userid);
 	
 	if (IS_CLIENT(client))
 	{
@@ -278,10 +277,10 @@ public Action Timer_ClearAngles(Handle timer, any:userid)
 	return Plugin_Stop;
 }
 
-public Action Timer_DecreaseCount(Handle timer, any:userid)
+public Action:Timer_DecreaseCount(Handle:timer, any:userid)
 {
 	/* Decrease the detection count by 1. */
-	int client = GetClientOfUserId(userid);
+	new client = GetClientOfUserId(userid);
 	
 	if (IS_CLIENT(client) && g_iAimDetections[client])
 	{
@@ -291,7 +290,7 @@ public Action Timer_DecreaseCount(Handle timer, any:userid)
 	return Plugin_Stop;
 }
 
-public Action OnPlayerRunCmd(client, &buttons, &impulse, float vel[3], float angles[3], &weapon)
+public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:angles[3], &weapon)
 {
 	g_fEyeAngles[client][g_iEyeIndex[client]] = angles;
 
@@ -306,8 +305,8 @@ public Action OnPlayerRunCmd(client, &buttons, &impulse, float vel[3], float ang
 Aimbot_AnalyzeAngles(client)
 {
 	/* Analyze the client to see if their angles snapped. */
-	float vLastAngles[3], float vAngles[3], float fAngleDiff;
-	int idx = g_iEyeIndex[client];
+	decl Float:vLastAngles[3], Float:vAngles[3], Float:fAngleDiff;
+	new idx = g_iEyeIndex[client];
 	
 	for (new i = 0; i < g_iMaxAngleHistory; i++)
 	{
@@ -349,7 +348,7 @@ Aimbot_AnalyzeAngles(client)
 	}
 }
 
-Aimbot_Detected(client, const float deviation)
+Aimbot_Detected(client, const Float:deviation)
 {
 	// Extra checks must be done here because of data coming from two events.
 	if (IsFakeClient(client) || !IsPlayerAlive(client))
@@ -374,10 +373,10 @@ Aimbot_Detected(client, const float deviation)
 		}
 	}
 	
-	char sWeapon[32];
+	decl String:sWeapon[32];
 	GetClientWeapon(client, sWeapon, sizeof(sWeapon));
 	
-	Handle info = CreateKeyValues("");
+	new Handle:info = CreateKeyValues("");
 	KvSetNum(info, "detection", g_iAimDetections[client]);
 	KvSetFloat(info, "deviation", deviation);
 	KvSetString(info, "weapon", sWeapon);

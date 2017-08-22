@@ -17,7 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma newdecls required
 #pragma semicolon 1
 
 /* SM Includes */
@@ -28,7 +27,7 @@
 #tryinclude <updater>
 
 /* Plugin Info */
-public Plugin myinfo =
+public Plugin:myinfo =
 {
 	name = "SMAC EAC Global Banlist",
 	author = SMAC_AUTHOR,
@@ -49,13 +48,13 @@ enum BanType {
 	Ban_VAC
 };
 
-Handle g_hCvarKick = INVALID_HANDLE;
-Handle g_hCvarVAC = INVALID_HANDLE;
-Handle g_hBanlist = INVALID_HANDLE;
-bool g_bLateLoad = false;
+new Handle:g_hCvarKick = INVALID_HANDLE;
+new Handle:g_hCvarVAC = INVALID_HANDLE;
+new Handle:g_hBanlist = INVALID_HANDLE;
+new bool:g_bLateLoad = false;
 
 /* Plugin Functions */
-public APLRes AskPluginLoad2(Handle myself, bool late, char error[], err_max)
+public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 {
 	g_bLateLoad = late;
 	return APLRes_Success;
@@ -74,7 +73,7 @@ public OnPluginStart()
 	
 	if (g_bLateLoad)
 	{
-		char sAuthID[MAX_AUTHID_LENGTH];
+		decl String:sAuthID[MAX_AUTHID_LENGTH];
 		
 		for (new i = 1; i <= MaxClients; i++)
 		{
@@ -93,7 +92,7 @@ public OnPluginStart()
 #endif
 }
 
-public OnLibraryAdded(const char name[])
+public OnLibraryAdded(const String:name[])
 {
 #if defined _updater_included
 	if (StrEqual(name, "updater"))
@@ -103,13 +102,13 @@ public OnLibraryAdded(const char name[])
 #endif
 }
 
-public OnClientAuthorized(client, const char auth[])
+public OnClientAuthorized(client, const String:auth[])
 {
 	if (IsFakeClient(client))
 		return;
 	
 	// Workaround for universe digit change on L4D+ engines.
-	char sAuthID[MAX_AUTHID_LENGTH];
+	decl String:sAuthID[MAX_AUTHID_LENGTH];
 	FormatEx(sAuthID, sizeof(sAuthID), "STEAM_0:%s", auth[8]);
 	
 	// Check the cache first.
@@ -133,19 +132,19 @@ public OnClientAuthorized(client, const char auth[])
 		ClearTrie(g_hBanlist);
 	
 	// Check the banlist.
-	Handle hPack = CreateDataPack();
+	new Handle:hPack = CreateDataPack();
 	WritePackCell(hPack, GetClientUserId(client));
 	WritePackString(hPack, sAuthID);
 	
-	Handle socket = SocketCreate(SOCKET_TCP, OnSocketError);
+	new Handle:socket = SocketCreate(SOCKET_TCP, OnSocketError);
 	SocketSetArg(socket, hPack);
 	SocketSetOption(socket, ConcatenateCallbacks, 4096);
 	SocketConnect(socket, OnSocketConnected, OnSocketReceive, OnSocketDisconnected, EAC_HOSTNAME, 80);
 }
 
-public OnSocketConnected(Handle socket, any:hPack)
+public OnSocketConnected(Handle:socket, any:hPack)
 {
-	char  sAuthID[MAX_AUTHID_LENGTH], char sRequest[256];
+	decl String:sAuthID[MAX_AUTHID_LENGTH], String:sRequest[256];
 	ResetPack(hPack);
 	ReadPackCell(hPack);
 	ReadPackString(hPack, sAuthID, sizeof(sAuthID));
@@ -153,9 +152,9 @@ public OnSocketConnected(Handle socket, any:hPack)
 	SocketSend(socket, sRequest);
 }
 
-public OnSocketReceive(Handle socket, char data[], const size, any:hPack)
+public OnSocketReceive(Handle:socket, String:data[], const size, any:hPack)
 {
-	char  sAuthID[MAX_AUTHID_LENGTH], idx;
+	decl String:sAuthID[MAX_AUTHID_LENGTH], idx;
 	ResetPack(hPack);
 	ReadPackCell(hPack);
 	ReadPackString(hPack, sAuthID, sizeof(sAuthID));
@@ -169,7 +168,7 @@ public OnSocketReceive(Handle socket, char data[], const size, any:hPack)
 		return;
 	
 	// Look for the SteamID.
-	int offset = StrContains(data[idx], sAuthID);
+	new offset = StrContains(data[idx], sAuthID);
 	
 	if (offset == -1)
 	{
@@ -181,16 +180,16 @@ public OnSocketReceive(Handle socket, char data[], const size, any:hPack)
 	idx += offset;
 	
 	// Get ban info string.
-	int length = FindCharInString(data[idx], '\n') + 1;
+	new length = FindCharInString(data[idx], '\n') + 1;
 	
-	char  sBanInfo[length];
+	decl String:sBanInfo[length];
 	strcopy(sBanInfo, length, data[idx]);
 	
 	// 0 - SteamID
 	// 1 - Ban reason
 	// 2 - Ban date
 	// 3 - Expiration date
-	char  sBanChunks[4][64];
+	decl String:sBanChunks[4][64];
 	if (ExplodeString(sBanInfo, "|", sBanChunks, sizeof(sBanChunks), sizeof(sBanChunks[])) != 4)
 		return;
 	
@@ -210,7 +209,7 @@ public OnSocketReceive(Handle socket, char data[], const size, any:hPack)
 	// Notify and log.
 	ResetPack(hPack);
 	
-	int client = GetClientOfUserId(ReadPackCell(hPack));
+	new client = GetClientOfUserId(ReadPackCell(hPack));
 	
 	if (!IS_CLIENT(client) || SMAC_CheatDetected(client, Detection_GlobalBanned_EAC, INVALID_HANDLE) != Plugin_Continue)
 		return;
@@ -228,13 +227,13 @@ public OnSocketReceive(Handle socket, char data[], const size, any:hPack)
 	}
 }
 
-public OnSocketDisconnected(Handle socket, any:hPack)
+public OnSocketDisconnected(Handle:socket, any:hPack)
 {
 	CloseHandle(hPack);
 	CloseHandle(socket);
 }
 
-public OnSocketError(Handle socket, const errorType, const errorNum, any:hPack)
+public OnSocketError(Handle:socket, const errorType, const errorNum, any:hPack)
 {
 	CloseHandle(hPack);
 	CloseHandle(socket);

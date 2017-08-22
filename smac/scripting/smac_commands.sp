@@ -17,7 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma newdecls required
 #pragma semicolon 1
 
 /* SM Includes */
@@ -27,11 +26,10 @@
 #tryinclude <updater>
 
 /* Plugin Info */
-public Plugin myinfo =
+public Plugin:myinfo =
 {
-	name = "SMAC Command Monitor",
+	name = "UKCM",
 	author = SMAC_AUTHOR,
-	description = "Blocks general command exploits",
 	version = SMAC_VERSION,
 	url = SMAC_URL
 };
@@ -47,11 +45,11 @@ enum ActionType {
 	Action_Kick
 };
 
-Handle g_hBlockedCmds = INVALID_HANDLE;
-Handle g_hIgnoredCmds = INVALID_HANDLE;
-int g_iCmdSpamLimit = 30;
-int g_iCmdCount[MAXPLAYERS+1] = {0, ...};
-Handle g_hCvarCmdSpam = INVALID_HANDLE;
+new Handle:g_hBlockedCmds = INVALID_HANDLE;
+new Handle:g_hIgnoredCmds = INVALID_HANDLE;
+new g_iCmdSpamLimit = 30;
+new g_iCmdCount[MAXPLAYERS+1] = {0, ...};
+new Handle:g_hCvarCmdSpam = INVALID_HANDLE;
 
 /* Plugin Functions */
 public OnPluginStart()
@@ -198,7 +196,7 @@ public OnPluginStart()
 #endif
 }
 
-public OnLibraryAdded(const char name[])
+public OnLibraryAdded(const String:name[])
 {
 #if defined _updater_included
 	if (StrEqual(name, "updater"))
@@ -208,18 +206,18 @@ public OnLibraryAdded(const char name[])
 #endif
 }
 
-public Action Command_AddCmd(client, args)
+public Action:Command_AddCmd(client, args)
 {
 	if (args == 2)
 	{
-		char sCommand[MAX_CMD_NAME_LEN], char sAction[8];
+		decl String:sCommand[MAX_CMD_NAME_LEN], String:sAction[8];
 		
 		GetCmdArg(1, sCommand, sizeof(sCommand));
 		StringToLower(sCommand);
 		
 		GetCmdArg(2, sAction, sizeof(sAction));
 		
-		ActionType cAction = Action_Block;
+		new ActionType:cAction = Action_Block;
 		
 		switch (StringToInt(sAction))
 		{
@@ -243,11 +241,11 @@ public Action Command_AddCmd(client, args)
 	return Plugin_Handled;
 }
 
-public Action Command_AddIgnoreCmd(client, args)
+public Action:Command_AddIgnoreCmd(client, args)
 {
 	if (args == 1)
 	{
-		char sCommand[MAX_CMD_NAME_LEN];
+		decl String:sCommand[MAX_CMD_NAME_LEN];
 		
 		GetCmdArg(1, sCommand, sizeof(sCommand));
 		StringToLower(sCommand);
@@ -262,11 +260,11 @@ public Action Command_AddIgnoreCmd(client, args)
 	return Plugin_Handled;
 }
 
-public Action Command_RemoveCmd(client, args)
+public Action:Command_RemoveCmd(client, args)
 {
 	if (args == 1)
 	{
-		char sCommand[MAX_CMD_NAME_LEN];
+		decl String:sCommand[MAX_CMD_NAME_LEN];
 		
 		GetCmdArg(1, sCommand, sizeof(sCommand));
 		StringToLower(sCommand);
@@ -287,11 +285,11 @@ public Action Command_RemoveCmd(client, args)
 	return Plugin_Handled;
 }
 
-public Action Command_RemoveIgnoreCmd(client, args)
+public Action:Command_RemoveIgnoreCmd(client, args)
 {
 	if (args == 1)
 	{
-		char sCommand[MAX_CMD_NAME_LEN];
+		decl String:sCommand[MAX_CMD_NAME_LEN];
 		
 		GetCmdArg(1, sCommand, sizeof(sCommand));
 		StringToLower(sCommand);
@@ -312,14 +310,14 @@ public Action Command_RemoveIgnoreCmd(client, args)
 	return Plugin_Handled;
 }
 
-public Action Command_Say(client, const char command[], args)
+public Action:Command_Say(client, const String:command[], args)
 {
 	if (!IS_CLIENT(client))
 		return Plugin_Continue;
 
-	int iSpaceNum;
-	char sMsg[256], char sChar;
-	int iLen = GetCmdArgString(sMsg, sizeof(sMsg));
+	new iSpaceNum;
+	decl String:sMsg[256], String:sChar;
+	new iLen = GetCmdArgString(sMsg, sizeof(sMsg));
 	
 	for (new i = 0; i < iLen; i++)
 	{
@@ -344,7 +342,7 @@ public Action Command_Say(client, const char command[], args)
 	return Plugin_Continue;
 }
 
-public Action Command_BlockEntExploit(client, const char command[], args)
+public Action:Command_BlockEntExploit(client, const String:command[], args)
 {
 	if (!IS_CLIENT(client))
 		return Plugin_Continue;
@@ -352,7 +350,7 @@ public Action Command_BlockEntExploit(client, const char command[], args)
 	if (!IsClientInGame(client))
 		return Plugin_Stop;
 	
-	char sArgString[512];
+	decl String:sArgString[512];
 	
 	if (GetCmdArgString(sArgString, sizeof(sArgString)) > 500)
 		return Plugin_Stop;
@@ -390,7 +388,7 @@ public Action Command_BlockEntExploit(client, const char command[], args)
 	return Plugin_Continue;
 }
 
-public Action Command_CommandListener(client, const char command[], argc)
+public Action:Command_CommandListener(client, const String:command[], argc)
 {
 	if (!IS_CLIENT(client) || (IsClientConnected(client) && IsFakeClient(client)))
 		return Plugin_Continue;
@@ -399,16 +397,16 @@ public Action Command_CommandListener(client, const char command[], argc)
 		return Plugin_Stop;
 
 	// NOTE: InternalDispatch automatically lower cases "command".
-	ActionType cAction = Action_Block;
+	new ActionType:cAction = Action_Block;
 	
 	if (GetTrieValue(g_hBlockedCmds, command, cAction))
 	{
 		if (cAction != Action_Block)
 		{
-			char sArgString[192];
+			decl String:sArgString[192];
 			GetCmdArgString(sArgString, sizeof(sArgString));
 			
-			Handle info = CreateKeyValues("");
+			new Handle:info = CreateKeyValues("");
 			KvSetString(info, "command", command);
 			KvSetString(info, "argstring", sArgString);
 			KvSetNum(info, "action", _:cAction);
@@ -437,10 +435,10 @@ public Action Command_CommandListener(client, const char command[], argc)
 	
 	if (g_iCmdSpamLimit && !GetTrieValue(g_hIgnoredCmds, command, cAction) && ++g_iCmdCount[client] > g_iCmdSpamLimit)
 	{
-		char sArgString[192];
+		decl String:sArgString[192];
 		GetCmdArgString(sArgString, sizeof(sArgString));
 		
-		Handle info = CreateKeyValues("");
+		new Handle:info = CreateKeyValues("");
 		KvSetString(info, "command", command);
 		KvSetString(info, "argstring", sArgString);
 		
@@ -459,7 +457,7 @@ public Action Command_CommandListener(client, const char command[], argc)
 	return Plugin_Continue;
 }
 
-public Action Timer_ResetCmdCount(Handle timer)
+public Action:Timer_ResetCmdCount(Handle:timer)
 {
 	for (new i = 1; i <= MaxClients; i++)
 	{
@@ -469,7 +467,7 @@ public Action Timer_ResetCmdCount(Handle timer)
 	return Plugin_Continue;
 }
 
-public OnSettingsChanged(Handle convar, const char oldValue[], const char newValue[])
+public OnSettingsChanged(Handle:convar, const String:oldValue[], const String:newValue[])
 {
 	g_iCmdSpamLimit = GetConVarInt(convar);
 }

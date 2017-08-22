@@ -17,7 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma newdecls required
 #pragma semicolon 1
 
 /* SM Includes */
@@ -28,7 +27,7 @@
 #tryinclude <updater>
 
 /* Plugin Info */
-public Plugin myinfo =
+public Plugin:myinfo =
 {
 	name = "SMAC ESEA Global Banlist",
 	author = SMAC_AUTHOR,
@@ -43,8 +42,8 @@ public Plugin myinfo =
 #define ESEA_HOSTNAME	"play.esea.net"
 #define ESEA_QUERY		"index.php?s=support&d=ban_list&type=1&format=csv"
 
-Handle g_hCvarKick = INVALID_HANDLE;
-Handle g_hBanlist = INVALID_HANDLE;
+new Handle:g_hCvarKick = INVALID_HANDLE;
+new Handle:g_hBanlist = INVALID_HANDLE;
 
 /* Plugin Functions */
 public OnPluginStart()
@@ -67,7 +66,7 @@ public OnPluginStart()
 #endif
 }
 
-public OnLibraryAdded(const char name[])
+public OnLibraryAdded(const String:name[])
 {
 #if defined _updater_included
 	if (StrEqual(name, "updater"))
@@ -77,16 +76,16 @@ public OnLibraryAdded(const char name[])
 #endif
 }
 
-public OnClientAuthorized(client, const char auth[])
+public OnClientAuthorized(client, const String:auth[])
 {
 	if (IsFakeClient(client))
 		return;
 	
 	// Workaround for universe digit change on L4D+ engines.
-	char  sAuthID[MAX_AUTHID_LENGTH];
+	decl String:sAuthID[MAX_AUTHID_LENGTH];
 	FormatEx(sAuthID, sizeof(sAuthID), "STEAM_0:%s", auth[8]);
 	
-	bool bShouldLog;
+	decl bool:bShouldLog;
 	
 	if (GetTrieValue(g_hBanlist, sAuthID, bShouldLog) && SMAC_CheatDetected(client, Detection_GlobalBanned_ESEA, INVALID_HANDLE) == Plugin_Continue)
 	{
@@ -115,28 +114,28 @@ public OnClientAuthorized(client, const char auth[])
 ESEA_DownloadBanlist()
 {
 	// Begin downloading the banlist in memory.
-	Handle socket = SocketCreate(SOCKET_TCP, OnSocketError);
+	new Handle:socket = SocketCreate(SOCKET_TCP, OnSocketError);
 	SocketSetOption(socket, ConcatenateCallbacks, 8192);
 	SocketConnect(socket, OnSocketConnected, OnSocketReceive, OnSocketDisconnected, ESEA_HOSTNAME, 80);
 }
 
-ESEA_ParseBan(char baninfo[])
+ESEA_ParseBan(String:baninfo[])
 {
 	if (baninfo[0] != '"')
 		return;
 	
 	// Parse one line of the CSV banlist.
-	char  sAuthID[MAX_AUTHID_LENGTH];
+	decl String:sAuthID[MAX_AUTHID_LENGTH];
 	
-	int length = FindCharInString(baninfo[3], '"') + 9;
+	new length = FindCharInString(baninfo[3], '"') + 9;
 	FormatEx(sAuthID, length, "STEAM_0:%s", baninfo[3]);
 	
 	SetTrieValue(g_hBanlist, sAuthID, 1);
 }
 
-public OnSocketConnected(Handle socket, any:arg)
+public OnSocketConnected(Handle:socket, any:arg)
 {
-	char  sRequest[256];
+	decl String:sRequest[256];
 	
 	FormatEx(sRequest,
 		sizeof(sRequest),
@@ -147,11 +146,11 @@ public OnSocketConnected(Handle socket, any:arg)
 	SocketSend(socket, sRequest);
 }
 
-public OnSocketReceive(Handle socket, char data[], const size, any:arg)
+public OnSocketReceive(Handle:socket, String:data[], const size, any:arg)
 {
 	// Parse raw data as it's received.
-	static bool bParsedHeader, bool bSplitData, char sBuffer[256];
-	int idx, length;
+	static bool:bParsedHeader, bool:bSplitData, String:sBuffer[256];
+	new idx, length;
 	
 	if (!bParsedHeader)
 	{
@@ -162,7 +161,7 @@ public OnSocketReceive(Handle socket, char data[], const size, any:arg)
 		idx += 4;
 		
 		// Skip the first line as well (column names).
-		int offset = FindCharInString(data[idx], '\n');
+		new offset = FindCharInString(data[idx], '\n');
 		
 		if (offset == -1)
 			return;
@@ -180,7 +179,7 @@ public OnSocketReceive(Handle socket, char data[], const size, any:arg)
 			return;
 		
 		length += 1;
-		int maxsize = strlen(sBuffer) + length;
+		new maxsize = strlen(sBuffer) + length;
 		
 		if (maxsize <= sizeof(sBuffer))
 		{
@@ -216,12 +215,12 @@ public OnSocketReceive(Handle socket, char data[], const size, any:arg)
 	}
 }
 
-public OnSocketDisconnected(Handle socket, any:arg)
+public OnSocketDisconnected(Handle:socket, any:arg)
 {
 	CloseHandle(socket);
 	
 	// Check all players against the new list.
-	char  sAuthID[MAX_AUTHID_LENGTH];
+	decl String:sAuthID[MAX_AUTHID_LENGTH];
 	
 	for (new i = 1; i <= MaxClients; i++)
 	{
@@ -232,7 +231,7 @@ public OnSocketDisconnected(Handle socket, any:arg)
 	}
 }
 
-public OnSocketError(Handle socket, const errorType, const errorNum, any:arg)
+public OnSocketError(Handle:socket, const errorType, const errorNum, any:arg)
 {
 	CloseHandle(socket);
 }

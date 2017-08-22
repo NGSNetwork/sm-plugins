@@ -27,11 +27,10 @@
 #tryinclude <updater>
 
 /* Plugin Info */
-public Plugin myinfo =
+public Plugin:myinfo =
 {
-	name = "SMAC Spinhack Detector",
+	name = "UKSD",
 	author = SMAC_AUTHOR,
-	description = "Monitors players to detect the use of spinhacks",
 	version = SMAC_VERSION,
 	url = SMAC_URL
 };
@@ -43,12 +42,12 @@ public Plugin myinfo =
 #define SPIN_ANGLE_CHANGE	1440.0	// Max angle deviation over one second before being flagged
 #define SPIN_SENSITIVITY	6		// Ignore players with a higher mouse sensitivity than this
 
-float g_fPrevAngle[MAXPLAYERS+1];
-float g_fAngleDiff[MAXPLAYERS+1];
-float g_fAngleBuffer;
-float g_fSensitivity[MAXPLAYERS+1];
+new Float:g_fPrevAngle[MAXPLAYERS+1];
+new Float:g_fAngleDiff[MAXPLAYERS+1];
+new Float:g_fAngleBuffer;
+new Float:g_fSensitivity[MAXPLAYERS+1];
 
-int g_iSpinCount[MAXPLAYERS+1];
+new g_iSpinCount[MAXPLAYERS+1];
 
 /* Plugin Functions */
 public OnPluginStart()
@@ -65,7 +64,7 @@ public OnPluginStart()
 #endif
 }
 
-public OnLibraryAdded(const char name[])
+public OnLibraryAdded(const String:name[])
 {
 #if defined _updater_included
 	if (StrEqual(name, "updater"))
@@ -81,7 +80,7 @@ public OnClientDisconnect(client)
 	g_fSensitivity[client] = 0.0;
 }
 
-public Action Timer_CheckSpins(Handle timer)
+public Action:Timer_CheckSpins(Handle:timer)
 {
 	for (new i = 1; i <= MaxClients; i++)
 	{
@@ -115,7 +114,7 @@ public Action Timer_CheckSpins(Handle timer)
 	return Plugin_Continue;
 }
 
-public Query_MouseCheck(QueryCookie:cookie, client, ConVarQueryResult:result, const char cvarName[], const char cvarValue[], any:serial)
+public Query_MouseCheck(QueryCookie:cookie, client, ConVarQueryResult:result, const String:cvarName[], const String:cvarValue[], any:serial)
 {
 	if (result == ConVarQuery_Okay && GetClientFromSerial(serial) == client)
 	{
@@ -123,7 +122,7 @@ public Query_MouseCheck(QueryCookie:cookie, client, ConVarQueryResult:result, co
 	}
 }
 
-public Action OnPlayerRunCmd(client, &buttons, &impulse, float vel[3], float angles[3], &weapon)
+public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:angles[3], &weapon)
 {
 	if (!(buttons & IN_LEFT || buttons & IN_RIGHT))
 	{

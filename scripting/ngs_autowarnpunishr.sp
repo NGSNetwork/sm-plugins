@@ -11,7 +11,8 @@
 
 ConVar cvarAWPVersion;
 Menu menuHome, menuPunishments, menuSpecificPunishments, menuTips;
-int[] chatsSpamEscalation =  { 20, 30, 60, 1440, 10080, 0 };
+int chatsPunishEscalation[5] =  { 20, 30, 60, 1440, 0 };
+int banPunishEscalation[2] =  { 10080, 0 };
 
 //--------------------//
 
@@ -133,6 +134,9 @@ public int PunishmentsMenuHandler(Menu menu, MenuAction action, int param1, int 
 			menuSpecificPunishments.AddItem("mapexploit", "Map Exploit!");
 		}
 		else if (StrEqual("hackingcheating", info))
+		{
+			
+		}
 		menuSpecificPunishments.Display(param1, MENU_TIME_FOREVER);
 	}
 	// no delete because reuse of handle

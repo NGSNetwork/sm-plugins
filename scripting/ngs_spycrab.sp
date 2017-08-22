@@ -8,9 +8,10 @@
 
 #define PLUGIN_VERSION "1.0.0"
 
-bool spycrabInProgress, giveWeaponExists, spycrabMenuInUse;
+bool spycrabInProgress, spycrabMenuInUse;
 int firstClient = -1, secondClient = -1, firstClientScore = 0, secondClientScore = 0, firstClientTimesTaunted, secondClientTimesTaunted, hudTextChannel;
 float firstClientOrigin[3] =  {-5092.628906, -864.530823, -161.218689}, secondClientOrigin[3] = {-4915.655273, -865.145020, -154.218689};
+TFTeam firstClientTeam, secondClientTeam;
 
 Handle firstClientMovement = null, secondClientMovement = null;
 
@@ -28,24 +29,63 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_crab", CommandCrab, "Displays spycrab target menu.");
 	RegAdminCmd("sm_cancelcrab", CommandCancelCrab, ADMFLAG_GENERIC, "Cancels the spycrab.");
 	HookEvent("player_death", OnPlayerDeath);
+	
+	char mapName[MAX_BUFFER_LENGTH];
+	GetCurrentMap(mapName, sizeof(mapName));
+	if (StrContains(mapName, "unusual_trade_pyro_v5c", false) != -1)
+	{
+		firstClientOrigin[0] = -279.927246;
+		firstClientOrigin[1] = -6192.194336;
+		firstClientOrigin[2] = 382.031311;
+		secondClientOrigin[0] = -290.248535;
+		secondClientOrigin[1] = -6044.537109;
+		secondClientOrigin[2] = 382.031311;
+	}
+	else if (StrContains(mapName, "trade_museum_final", false) != -1)
+	{
+		firstClientOrigin[0] = -5092.628906;
+		firstClientOrigin[1] = -864.530823;
+		firstClientOrigin[2] = -161.218689;
+		secondClientOrigin[0] = -4915.655273;
+		secondClientOrigin[1] = -865.145020;
+		secondClientOrigin[2] = -154.218689;
+	}
 }
 
 public void OnMapStart()
 {
 	char mapName[MAX_BUFFER_LENGTH];
 	GetCurrentMap(mapName, sizeof(mapName));
-	if (StrContains(mapName, "trade_museum_final", false) == -1)
+	if (StrContains(mapName, "trade_museum_final", false) == -1 && StrContains(mapName, "unusual_trade_pyro_v5", false) == -1)
 	{
-		LogMessage("This is not the right map to run this on. This plugin currently only works on trade_museum_final.");
+		LogMessage("This is not the right map to run this on. This plugin currently only works on trade_museum_final or unusual_trade_pyro_v5.");
 		char filename[256];
 		GetPluginFilename(INVALID_HANDLE, filename, sizeof(filename));
 		ServerCommand("sm plugins unload %s", filename);
+	}
+	if (StrContains(mapName, "unusual_trade_pyro_v5c", false) != -1)
+	{
+		firstClientOrigin[0] = -279.927246;
+		firstClientOrigin[1] = -6192.194336;
+		firstClientOrigin[2] = 382.031311;
+		secondClientOrigin[0] = -290.248535;
+		secondClientOrigin[1] = -6044.537109;
+		secondClientOrigin[2] = 382.031311;
+	}
+	else if (StrContains(mapName, "trade_museum_final", false) != -1)
+	{
+		firstClientOrigin[0] = -5092.628906;
+		firstClientOrigin[1] = -864.530823;
+		firstClientOrigin[2] = -161.218689;
+		secondClientOrigin[0] = -4915.655273;
+		secondClientOrigin[1] = -865.145020;
+		secondClientOrigin[2] = -154.218689;
 	}
 }
 
 public Action CommandCrab(int client, int args)
 {
-	if (!IsValidClient(client)) return Plugin_Handled;
+	if (!IsValidClient(client) || !IsPlayerAlive(client)) return Plugin_Handled;
 	if (spycrabInProgress)
 	{
 		CReplyToCommand(client, "{LIGHTGREEN}[Crab]{DEFAULT} There is currently another spycrab happening.");
@@ -88,6 +128,7 @@ public int SpycrabMenuHandler(Menu menu, MenuAction action, int param1, int para
 		if (param1 == iTarget)
 		{
 			CPrintToChat(param1, "{LIGHTGREEN}[Crab]{DEFAULT} You may not target yourself!");
+			spycrabMenuInUse = false;
 			return;
 		}
 		CPrintToChatAll("{LIGHTGREEN}[Crab]{DEFAULT} %N has challenged %N to a spycrab showdown!", param1, iTarget);
@@ -143,9 +184,7 @@ public int AcceptMenuHandler(Menu menu, MenuAction action, int param1, int param
 
 public void StartSpyCrab()
 {
-	CPrintToChatAll("Starting spycrab!");
 	spycrabInProgress = true;
-	CPrintToChatAll("spycrabInProgress is %s", spycrabInProgress ? "true" : "false");
 	// SetHudTextParams(0.1, 0.5, 22.0, 102, 51, 153, 255);
 	SetHudTextParams(0.1, 0.5, 22.0, 0, 255, 0, 255);
 	hudTextChannel = ShowHudText(firstClient, -1, "Starting spycrab...");
@@ -154,7 +193,6 @@ public void StartSpyCrab()
 	TF2_SetPlayerClass(secondClient, TFClass_Spy);
 	TF2_RemovePlayerDisguise(firstClient);
 	TF2_RemovePlayerDisguise(secondClient);
-	CPrintToChatAll("Firstclient = %N, secondclient = %N", firstClient, secondClient);
 	TF2_RegeneratePlayer(firstClient);
 	TF2_RegeneratePlayer(secondClient);
 	StripToPDA(firstClient);
@@ -163,10 +201,10 @@ public void StartSpyCrab()
 	TeleportEntity(secondClient, secondClientOrigin, NULL_VECTOR, NULL_VECTOR);
 	firstClientMovement = CreateTimer(0.5, testFirstClientMov, INVALID_HANDLE, TIMER_REPEAT);
 	secondClientMovement = CreateTimer(0.5, testSecondClientMov, INVALID_HANDLE, TIMER_REPEAT);
+	firstClientTeam = TF2_GetClientTeam(firstClient);
+	secondClientTeam = TF2_GetClientTeam(secondClient);
 	if (CommandExists("sm_tauntspeed")) ServerCommand("sm_tauntspeed #%d 1.3", GetClientUserId(firstClient));
 	if (CommandExists("sm_tauntspeed")) ServerCommand("sm_tauntspeed #%d 1.3", GetClientUserId(secondClient));
-	if (firstClientMovement == null) CPrintToChatAll("FirstClientMovement is still null!");
-	if (secondClientMovement == null) CPrintToChatAll("SecondClientMovement is still null!");
 }
 
 public void StripToPDA(int client)
@@ -175,13 +213,11 @@ public void StripToPDA(int client)
 	{
 		TF2_RemoveAllWeapons(client);
 		ServerCommand("sm_spycrabpda #%d", GetClientUserId(client));
-		CPrintToChatAll("%N has been stripped to PDA.", client);
 	}
 }
 
 void ResetSpycrabClients(bool endOfCrab = false)
 {
-	CPrintToChatAll("Resetting spycrab clients!");
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsValidClient(i)) ShowHudText(i, hudTextChannel, "");
@@ -333,6 +369,14 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 public Action OnPlayerDeathTimer(Handle timer, any client)
 {
 	float noMovement[3] = {0.0, 0.0, 0.0};
+	if (client == firstClient && TF2_GetClientTeam(client) != firstClientTeam)
+	{
+		TF2_ChangeClientTeam(client, firstClientTeam);
+	}
+	else if (client == secondClient && TF2_GetClientTeam(client) != secondClientTeam)
+	{
+		TF2_ChangeClientTeam(client, secondClientTeam);
+	}
 	TF2_SetPlayerClass(client, TFClass_Spy, false);
 	TF2_RespawnPlayer(client);
 	StripToPDA(client);

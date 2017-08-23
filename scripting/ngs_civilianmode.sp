@@ -66,12 +66,10 @@ public Action CommandCivilian(int client, int args)
 	CivilianCooldown[client] = currentTime;
 	
 	InCivilianMode[client] = !InCivilianMode[client];
-	if(InCivilianMode[client]) TF2_RemoveAllWeapons(client);
+	if (InCivilianMode[client])
+		TF2_RemoveAllWeapons(client);
 	else
-	{
-		ForcePlayerSuicide(client);
-		TF2_RespawnPlayer(client);
-	}
+		FakeClientCommand(client, "explode");
 	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You have %s civilian mode!", InCivilianMode[client] ? "enabled" : "disabled");
 	return Plugin_Handled;
 }

@@ -37,6 +37,13 @@ public OnPluginStart()
 	
 	AddCommandListener(Listener_taunt, "taunt");
 	AddCommandListener(Listener_taunt, "+taunt");
+	if (CommandExists("sm_giveweapon"))
+	{
+		AddCommandListener(Listener_giveweapon, "sm_giveweapon");
+		AddCommandListener(Listener_giveweapon, "sm_givew");
+		AddCommandListener(Listener_giveweapon, "sm_giveweapon_ex");
+		AddCommandListener(Listener_giveweapon, "sm_givew_ex");
+	}
 	
 	AddNormalSoundHook(SoundHook);
 	HookEvent("post_inventory_application", Event_Inventory, EventHookMode_Post);
@@ -147,7 +154,7 @@ stock bool:ToggleBuster(client, bool:toggle = bool:2, bool wasBuster = false)
 	if (toggle) BeTheRobot_SetRobot(client, false);
 	if (Status[client] == BusterStatus_WantsToBeBuster && toggle != false && toggle != true) return true;
 	if (!Status[client] && !toggle) return true;
-	if (Status[client] == BusterStatus_Buster && toggle == true && BeTheRobot_CheckRules(client) && !wasBuster) return true;
+	if (Status[client] == BusterStatus_Buster && toggle && BeTheRobot_CheckRules(client) && !wasBuster) return true;
 	if (Status[client] != BusterStatus_Buster)
 	{
 		if (!BeTheRobot_CheckRules(client))
@@ -156,7 +163,7 @@ stock bool:ToggleBuster(client, bool:toggle = bool:2, bool wasBuster = false)
 			return false;
 		}
 	}
-	if (toggle == true || (toggle == bool:2 && Status[client] == BusterStatus_Human))
+	if (toggle || (toggle == bool:2 && Status[client] == BusterStatus_Human))
 	{
 		TF2_RemovePlayerDisguise(client);
 		TF2_RemoveAllWeapons(client);
@@ -254,6 +261,17 @@ public Action:Listener_taunt(client, const String:command[], args)
 		if (AboutToExplode[client]) return Plugin_Continue;
 		if (GetEntProp(client, Prop_Send, "m_hGroundEntity") == -1) return Plugin_Continue;
 		GetReadyToExplode(client);
+	}
+	return Plugin_Continue;
+}
+
+public Action Listener_giveweapon(int client, char[] command, int args)
+{
+	if (Status[client] == BusterStatus_Buster)
+	{
+		ToggleBuster(client, false);
+		SetEntityHealth(client, 150);
+		return Plugin_Handled;
 	}
 	return Plugin_Continue;
 }
@@ -376,6 +394,8 @@ public Action OnWeaponCanUse(int client, int weapon)
 {
 	if (Status[client] == BusterStatus_Buster)
 	{
+		ToggleBuster(client, false);
+		SetEntityHealth(client, 150);
 		return Plugin_Handled;
 	}
 	return Plugin_Continue;

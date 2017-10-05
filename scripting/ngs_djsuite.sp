@@ -64,7 +64,7 @@ public void OnDJDisableChange(ConVar convar, char[] oldValue, char[] newValue)
 	{
 		for (int i = 1; i <= MaxClients; i++)
 		{
-			if (!CheckCommandAccess(i, "sm_djsuite_allowaudio_override", ADMFLAG_CUSTOM2) && !CheckCommandAccess(i, "sm_djsuite_allowaudio_override", ADMFLAG_GENERIC))
+			if (IsValidClient(i) && !CheckCommandAccess(i, "sm_djsuite_allowaudio_override", ADMFLAG_GENERIC))
 				SendConVarValue(i, FindConVar("sv_allow_voice_from_file"), "0");
 		}
 	}

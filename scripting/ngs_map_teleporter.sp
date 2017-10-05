@@ -35,7 +35,7 @@ public void OnPluginStart()
 	RegAdminCmd("sm_adminroom", CommandAdminRoom, ADMFLAG_GENERIC, "Teleports you to the admin room!");
 	
 	cvarSkyboxTagEnabled = CreateConVar("sm_skybox_tag_enabled", "1", "If allowing tag to skybox.");
-	cvarSkyboxTag = CreateConVar("sm_skybox_tag", "NGS |", "Tag to use if tag to skybox is enabled.");
+	cvarSkyboxTag = CreateConVar("sm_skybox_tag", "NGS | ", "Tag to use if tag to skybox is enabled.");
 	cvarSkyboxTagCaseSensitive = CreateConVar("sm_skybox_tag_case_sensitive", "1", "If tag to skybox is case sensitive.");
 	
 	HookEvent("player_hurt", Event_PlayerHurt);
@@ -92,13 +92,13 @@ public Action CommandSkybox(int client, int args)
 		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You have already requested a teleport!");
 		return Plugin_Handled;
 	}
-	if (GetConVarBool(cvarSkyboxTagEnabled))
+	if (cvarSkyboxTagEnabled.BoolValue)
 	{
 		char clientName[MAX_NAME_LENGTH];
 		char tag[MAX_BUFFER_LENGTH];
 		GetClientName(client, clientName, sizeof(clientName));
-		GetConVarString(cvarSkyboxTag, tag, sizeof(tag));
-		if (StrContains(clientName, tag, GetConVarBool(cvarSkyboxTagCaseSensitive)) != -1 || CheckCommandAccess(client, "sm_skybox_override", ADMFLAG_RESERVATION))
+		cvarSkyboxTag.GetString(tag, sizeof(tag));
+		if (StrContains(clientName, tag, cvarSkyboxTagCaseSensitive.BoolValue) != -1 || CheckCommandAccess(client, "sm_skybox_override", ADMFLAG_RESERVATION))
 		{
 			teleportTimersSkybox[client] = CreateTimer(7.0, TeleportPlayerSkybox, client);
 			CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Teleporting to the skybox in {PURPLE}7{DEFAULT} seconds!");
@@ -106,7 +106,8 @@ public Action CommandSkybox(int client, int args)
 		}
 		else
 		{
-			CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Sorry, please add \"%s\" to your name to access this.", tag);
+			CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Go ahead and add \"%s\" to your name to access this.", tag);
+			CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Here\'s our best guess for something you can paste in: %s %N", tag, client);
 			return Plugin_Handled;
 		}
 	}

@@ -28,6 +28,9 @@ ConVar sm_timewarp_cooldown;
 
 Handle dailyTradeTimeCookie;
 Handle dailyLoginTimeCookie;
+Handle killMerasmusTimer;
+
+float merasmusLocation[3];
 
 int g_spawn_count;
 float g_player_spawns[100][3];
@@ -51,6 +54,7 @@ int jNecromashCooldown;
 public void OnPluginStart()
 {
 	RegAdminCmd("sm_spawnmonoculuscenter", CommandSpawnMonoculusCenter, ADMFLAG_SLAY, "Spawns a monoculus in the center of the pokeball!");
+	RegAdminCmd("sm_spawnmerasmuscenter", CommandSpawnMerasmusCenter, ADMFLAG_SLAY, "Spawns a merasmus in the center of the pokeball!");
 	RegAdminCmd("sm_spawnspectralmonoculus", CommandTeamMonoculus, ADMFLAG_SLAY, "Spawns a spectral monoculus where the arg is looking!");
 	RegAdminCmd("sm_ultimatenecromash", CommandUltimateNecromash, ADMFLAG_SLAY, "Spawns the ultimate necromash.");
 	RegAdminCmd("sm_judgingnecromash", CommandJudgingNecromash, ADMFLAG_SLAY, "Judges a random person with the blessed hammer!");
@@ -58,7 +62,7 @@ public void OnPluginStart()
 	current_timescale = 1.0;
 	
 	RegAdminCmd("sm_warptime", Command_warpTime, ADMFLAG_RCON);
-	sm_timewarp_cooldown = CreateConVar( "sm_timewarp_cooldown", "180", "The serverwide cooldown for the timewarp item.");
+	sm_timewarp_cooldown = CreateConVar("sm_timewarp_cooldown", "180", "The serverwide cooldown for the timewarp item.");
 	
 	dailyLoginTimeCookie = RegClientCookie("dailycreditloginreward", "Timestamp to check credit reward against.", CookieAccess_Private);
 	dailyTradeTimeCookie = RegClientCookie("dailytradereward", "Timestamp to check trade reward against.", CookieAccess_Private);
@@ -69,6 +73,8 @@ public void OnPluginStart()
 	findSpawnPoints();
 	HookEvent("post_inventory_application", OnPostInventoryApplication);
 	HookEvent("item_found", EventItemFound);
+	HookEvent("merasmus_killed", OnMerasmusKilled);
+	HookEvent("merasmus_escape_warning", OnMerasmusEscapeWarning);
 }
 
 public void OnMapStart()
@@ -83,6 +89,9 @@ public void OnMapStart()
 	}
 	else if (StrContains(mapName, "trade_rawr_club_day_v3", false) != -1)
 	{
+		merasmusLocation[0] = -761.948303;
+		merasmusLocation[1] = -1175.529785;
+		merasmusLocation[2] = 276.141998;
 		monoculusLocation[0] = -769.465576;
 		monoculusLocation[1] = -1130.268311;
 		monoculusLocation[2] = 646.594238;
@@ -100,6 +109,7 @@ public void OnMapStart()
 		ServerCommand("sm plugins unload %s", filename);
 	}
 	PrecacheMonoculus();
+	PrecacheMerasmus();
 	findSpawnPoints();
 	SetConVarFloat( host_timescale, 1.0 );
 	g_lastwarp = -c_timewarp_cooldown;
@@ -143,20 +153,16 @@ public void OnClientPostAdminCheck(int client)
 			IntToString(GetTime(), sNewTCV, sizeof(sNewTCV));
 			SetClientCookie(client, dailyTradeTimeCookie, sNewTCV);
 			loginCookiesJustMade[client] = true;
-			LogMessage("%N's trade cookie contained %s!", client, sTradeCookieValue);
 		}
 		if (sLoginCookieValue[0] == '\0')
 		{
 			IntToString(GetTime(), sNewLCV, sizeof(sNewLCV));
 			SetClientCookie(client, dailyTradeTimeCookie, sNewLCV);
-			LogMessage("%N's login cookie contained %s!", client, sLoginCookieValue);
 			tradeCookiesJustMade[client] = true;
 		}
 	}
 	else
-	{
 		LogMessage("Client Cookies are not cached yet, for some reason.");
-	}
 }
 
 public void OnPostInventoryApplication(Event hEvent, const char[] szName, bool bDontBroadcast)
@@ -169,7 +175,6 @@ public void OnPostInventoryApplication(Event hEvent, const char[] szName, bool b
 			int accountID = GetSteamAccountID(client);
 			char sCookieValue[64];
 			GetClientCookie(client, dailyLoginTimeCookie, sCookieValue, sizeof(sCookieValue));
-			LogMessage("%N's login cookie contained %s!", client, sCookieValue);
 			int cookieValue = StringToInt(sCookieValue);
 			int currentTime = GetTime();
 			char newCookieValue[MAX_BUFFER_LENGTH];
@@ -184,6 +189,42 @@ public void OnPostInventoryApplication(Event hEvent, const char[] szName, bool b
 		}
 		firstLogin[client] = true;
 	}
+}
+
+public Action CommandSpawnMerasmusCenter(int client, int args)
+{
+	if (args > 0)
+	{
+		char arg1[32];
+		GetCmdArg(1, arg1, sizeof(arg1));
+		
+		int target = FindTarget(client, arg1, false, false);
+		if (target == -1) return Plugin_Handled;
+		if (TF2Friendly_IsFriendly(target))
+		{
+			CPrintToChat(target, "%tYou may not use the item because you are friendly.", "Store Tag Colored");
+			return Plugin_Handled;
+		}
+		int currentTime = GetTime();
+		if (currentTime - SpawnCooldown < 900)
+	    {
+	   		CPrintToChat(target, "%tYou must wait {PURPLE}%d{DEFAULT} seconds to spawn this.", "Store Tag Colored", 900 - (currentTime - SpawnCooldown));
+	   		Store_GiveItem(GetSteamAccountID(target), 485);
+	   		return Plugin_Handled;
+	  	}
+	
+		SpawnCooldown = currentTime;
+		CPrintToChatAll("%t{OLIVE}%N{DEFAULT} spawned in {GREY}MERASMUS{DEFAULT}!", "Store Tag Colored", target);
+	}
+	
+	int BaseHealth = GetConVarInt(cvarHealth), HealthPerPlayer = GetConVarInt(cvarHealthPerPlayer), HealthPerLevel = GetConVarInt(cvarHealthPerLevel);
+	SetConVarInt(cvarHealth, 4200), SetConVarInt(cvarHealthPerPlayer, 300), SetConVarInt(cvarHealthPerLevel, 2000);
+	int ent = CreateEntityByName("merasmus");
+	SetEntProp(ent, Prop_Send, "m_CollisionGroup", 2);
+	TeleportEntity(ent, merasmusLocation, NULL_VECTOR, NULL_VECTOR);
+	DispatchSpawn(ent);
+	SetConVarInt(cvarHealth, BaseHealth), SetConVarInt(cvarHealthPerPlayer, HealthPerPlayer), SetConVarInt(cvarHealthPerLevel, HealthPerLevel);
+	return Plugin_Handled;
 }
 
 public Action CommandSpawnMonoculusCenter(int client, int args)
@@ -311,7 +352,7 @@ public Action TimerSmashAll(Handle timer)
 {
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		if (IsValidClient(i) && IsPlayerAlive(i) && AFKM_IsClientAFK(i))
+		if (IsValidClient(i) && IsPlayerAlive(i) && !AFKM_IsClientAFK(i))
 		{
 			int userid = GetClientUserId(i);
 			ServerCommand("sm_smash #%d", userid);
@@ -338,7 +379,7 @@ public Action CommandJudgingNecromash(int client, int args)
 		int currentTime = GetTime();
 		if (currentTime - jNecromashCooldown < 60)
 	    {
-	   		CReplyToCommand(target, "%tYou must wait {PURPLE}%d{DEFAULT} seconds to use this.", "Store Tag Colored", 60 - (currentTime - jNecromashCooldown));
+	   		CPrintToChat(target, "%tYou must wait {PURPLE}%d{DEFAULT} seconds to use this.", "Store Tag Colored", 60 - (currentTime - jNecromashCooldown));
 	   		Store_GiveItem(GetSteamAccountID(target), 369);
 	   		return Plugin_Handled;
 	  	}
@@ -375,7 +416,6 @@ public void EventItemFound(Event event, const char[] name, bool dontBroadcast)
 		char sCookieValue[64];
 		char newCookieValue[MAX_BUFFER_LENGTH];
 		GetClientCookie(client, dailyTradeTimeCookie, sCookieValue, sizeof(sCookieValue));
-		LogMessage("%N's trade cookie contained %s!", client, sCookieValue);
 		int cookieValue = StringToInt(sCookieValue);
 		int currentTime = GetTime();
  		if (tradeCookiesJustMade[client] || currentTime > (cookieValue + 86400))
@@ -492,6 +532,45 @@ public Action Timer_unWarpTime( Handle timer ) {
 	CreateTimer( 0.1, Timer_unWarpTimeInc, _, TIMER_REPEAT );
 }
 
+public void OnMerasmusKilled(Event event, const char[] name, bool dontBroadcast)
+{
+	int ent = -1;
+	while((ent = FindEntityByClassname(ent, "merasmus")) != -1) {
+		if(!IsValidEntity(ent)) return;
+		AcceptEntityInput(ent, "Kill");
+	}
+	KillMerasmusKillTimer();
+}
+
+public void OnMerasmusEscapeWarning(Event event, const char[] name, bool dontBroadcast)
+{
+	if (killMerasmusTimer != null)
+	{
+		int timeremaining = event.GetInt("time_remaining");
+		LogMessage("Escape warning timer is at %d.", timeremaining);
+		killMerasmusTimer = CreateTimer(float(timeremaining), OnKillMerasmusTimer);
+	}
+}
+
+public Action OnKillMerasmusTimer(Handle timer, any data)
+{
+	int ent = -1;
+	while((ent = FindEntityByClassname(ent, "merasmus")) != -1) {
+		if(!IsValidEntity(ent)) return;
+		AcceptEntityInput(ent, "Kill");
+	}
+	KillMerasmusKillTimer();
+}
+
+stock void KillMerasmusKillTimer()
+{
+	if (killMerasmusTimer != null)
+	{
+		KillTimer(killMerasmusTimer);
+		killMerasmusTimer = null;
+	}
+}
+
 public Action Timer_unWarpTimeInc( Handle timer ) {
 
 	current_timescale += 0.03;
@@ -549,6 +628,160 @@ void PrecacheMonoculus()
 	PrecacheSound( "ui/halloween_boss_escape_sixty.wav", true );
 	PrecacheSound( "ui/halloween_boss_escape_ten.wav", true );
 	PrecacheSound( "ui/halloween_boss_tagged_other_it.wav", true );
+}
+
+void PrecacheMerasmus()
+{
+	PrecacheModel("models/bots/merasmus/merasmus.mdl", true);
+	PrecacheModel("models/prop_lakeside_event/bomb_temp.mdl", true);
+	PrecacheModel("models/prop_lakeside_event/bomb_temp_hat.mdl", true);
+	
+	for(int i = 1; i <= 17; i++) {
+		char iString[PLATFORM_MAX_PATH];
+		if(i < 10) Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_appears0%d.wav", i);
+		else Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_appears%d.wav", i);
+		if(FileExists(iString)) {
+			PrecacheSound(iString, true);
+		}
+	}
+	
+	for(int i = 1; i <= 11; i++) {
+		char iString[PLATFORM_MAX_PATH];
+		if(i < 10) Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_attacks0%d.wav", i);
+		else Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_attacks%d.wav", i);
+		if(FileExists(iString)) {
+			PrecacheSound(iString, true);
+		}
+	}
+	
+	for(int i = 1; i <= 54; i++) {
+		char iString[PLATFORM_MAX_PATH];
+		if(i < 10) Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_bcon_headbomb0%d.wav", i);
+		else Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_bcon_headbomb%d.wav", i);
+		if(FileExists(iString)) {
+			PrecacheSound(iString, true);
+		}
+	}
+	
+	for(int i = 1; i <= 33; i++) {
+		char iString[PLATFORM_MAX_PATH];
+		if(i < 10) Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_bcon_held_up0%d.wav", i);
+		else Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_bcon_held_up%d.wav", i);
+		if(FileExists(iString)) {
+			PrecacheSound(iString, true);
+		}
+	}
+	
+	for(int i = 2; i <= 4; i++) {
+		char iString[PLATFORM_MAX_PATH];
+		Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_bcon_island0%d.wav", i);
+		PrecacheSound(iString, true);
+	}
+	
+	for(int i = 1; i <= 3; i++) {
+		char iString[PLATFORM_MAX_PATH];
+		Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_bcon_skullhat0%d.wav", i);
+		PrecacheSound(iString, true);
+	}
+
+	for(int i = 1; i <= 2; i++) {
+		char iString[PLATFORM_MAX_PATH];
+		Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_combat_idle0%d.wav", i);
+		PrecacheSound(iString, true);
+	}
+	
+	for(int i = 1; i <= 12; i++) {
+		char iString[PLATFORM_MAX_PATH];
+		if(i < 10) Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_defeated0%d.wav", i);
+		else Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_defeated%d.wav", i);
+		if(FileExists(iString)) {
+			PrecacheSound(iString, true);
+		}
+	}
+	
+	for(int i = 1; i <= 9; i++) {
+		char iString[PLATFORM_MAX_PATH];
+		Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_found0%d.wav", i);
+		PrecacheSound(iString, true);
+	}
+
+	for(int i = 3; i <= 6; i++) {
+		char iString[PLATFORM_MAX_PATH];
+		Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_grenades0%d.wav", i);
+		PrecacheSound(iString, true);
+	}
+	
+	for(int i = 1; i <= 26; i++) {
+		char iString[PLATFORM_MAX_PATH];
+		if(i < 10) Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_headbomb_hit0%d.wav", i);
+		else Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_headbomb_hit%d.wav", i);
+		if(FileExists(iString)) {
+			PrecacheSound(iString, true);
+		}
+	}
+	
+	for(int i = 1; i <= 19; i++) {
+		char iString[PLATFORM_MAX_PATH];
+		if(i < 10) Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_hide_heal10%d.wav", i);
+		else Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_hide_heal1%d.wav", i);
+		if(FileExists(iString)) {
+			PrecacheSound(iString, true);
+		}
+	}
+	
+	for(int i = 1; i <= 49; i++) {
+		char iString[PLATFORM_MAX_PATH];
+		if(i < 10) Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_hide_idles0%d.wav", i);
+		else Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_hide_idles%d.wav", i);
+		if(FileExists(iString)) {
+			PrecacheSound(iString, true);
+		}
+	}
+	
+	for(int i = 1; i <= 16; i++) {
+		char iString[PLATFORM_MAX_PATH];
+		if(i < 10) Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_leaving0%d.wav", i);
+		else Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_leaving%d.wav", i);
+		if(FileExists(iString)) {
+			PrecacheSound(iString, true);
+		}
+	}
+	
+	for(int i = 1; i <= 5; i++) {
+		char iString[PLATFORM_MAX_PATH];
+		Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_pain0%d.wav", i);
+		PrecacheSound(iString, true);
+	}
+	
+	for(int i = 4; i <= 8; i++) {
+		char iString[PLATFORM_MAX_PATH];
+		Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_ranged_attack0%d.wav", i);
+		PrecacheSound(iString, true);
+	}
+	
+	for(int i = 2; i <= 13; i++) {
+		char iString[PLATFORM_MAX_PATH];
+		if(i < 10) Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_staff_magic0%d.wav", i);
+		else Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_staff_magic%d.wav", i);
+		if(FileExists(iString)) {
+			PrecacheSound(iString, true);
+		}
+	}
+	
+	PrecacheSound("vo/halloween_merasmus/sf12_hide_idles_demo01.wav", true);
+	PrecacheSound("vo/halloween_merasmus/sf12_magic_backfire06.wav", true);
+	PrecacheSound("vo/halloween_merasmus/sf12_magic_backfire07.wav", true);
+	PrecacheSound("vo/halloween_merasmus/sf12_magic_backfire23.wav", true);
+	PrecacheSound("vo/halloween_merasmus/sf12_magic_backfire29.wav", true);
+	PrecacheSound("vo/halloween_merasmus/sf12_magicwords11.wav", true);
+	
+	PrecacheSound("misc/halloween/merasmus_appear.wav", true);
+	PrecacheSound("misc/halloween/merasmus_death.wav", true);
+	PrecacheSound("misc/halloween/merasmus_disappear.wav", true);
+	PrecacheSound("misc/halloween/merasmus_float.wav", true);
+	PrecacheSound("misc/halloween/merasmus_hiding_explode.wav", true);
+	PrecacheSound("misc/halloween/merasmus_spell.wav", true);
+	PrecacheSound("misc/halloween/merasmus_stun.wav", true);
 }
 
 public bool IsValidClient (int client)

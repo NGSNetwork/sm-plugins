@@ -2,7 +2,7 @@
 #pragma semicolon 1
 
 #include <sourcemod>
-#include <morecolors>
+#include <multicolors>
 
 #define PLUGIN_VERSION "1.5"
 
@@ -41,11 +41,11 @@ public Action CommandListAdmins(int client, int args)
 		int count = 0;
 		for(int i = 1 ; i <= MaxClients; i++)
 		{
-			if (IsValidClient(i) && CheckCommandAccess(i, "sm_admin", ADMFLAG_GENERIC))
+			if (IsValidClient(i) && CheckCommandAccess(i, "sm_ngsstaff_administra_override", ADMFLAG_ROOT))
 			{
 				GetClientName(i, adminNames[count], sizeof(adminNames[]));
 				count++;
-			} 
+			}
 		}
 		if (count > 0)
 		{
@@ -66,7 +66,7 @@ public Action CommandListDonors(int client, int args)
 		int count = 0;
 		for(int i = 1 ; i <= MaxClients; i++)
 		{
-			if (IsValidClient(i) && CheckCommandAccess(i, "sm_donorlist_override", ADMFLAG_RESERVATION) && !CheckCommandAccess(i, "sm_admin", ADMFLAG_GENERIC))
+			if (IsValidClient(i) && CheckCommandAccess(i, "sm_ngsextra_donor_override", ADMFLAG_ROOT) && !CheckCommandAccess(i, "sm_ngsstaff_override", ADMFLAG_ROOT))
 			{
 				GetClientName(i, DonorNames[count], sizeof(DonorNames[]));
 				count++;
@@ -91,7 +91,7 @@ public Action CommandListDJs(int client, int args)
 		int count = 0;
 		for(int i = 1 ; i <= MaxClients; i++)
 		{
-			if(IsValidClient(i) && CheckCommandAccess(i, "sm_djlist_override", ADMFLAG_CUSTOM2) && !CheckCommandAccess(i, "sm_admin", ADMFLAG_GENERIC))
+			if (IsValidClient(i) && CheckCommandAccess(i, "sm_ngsother_dj_override", ADMFLAG_ROOT) && !CheckCommandAccess(i, "sm_ngsstaff_override", ADMFLAG_ROOT))
 			{
 				GetClientName(i, DJNames[count], sizeof(DJNames[]));
 				count++;
@@ -112,35 +112,29 @@ public Action CommandListStaff(int client, int args)
 {
 	if (AdminListEnabled.BoolValue)
 	{   
-		char adminNames[MAXPLAYERS + 1][MAX_NAME_LENGTH + 1], communityAdvisorNames[MAXPLAYERS + 1][MAX_NAME_LENGTH + 1], 
-			communityManagerNames[MAXPLAYERS + 1][MAX_NAME_LENGTH + 1], developerNames[MAXPLAYERS + 1][MAX_NAME_LENGTH + 1];
+		char adminNames[MAXPLAYERS + 1][MAX_NAME_LENGTH + 1], marketerNames[MAXPLAYERS + 1][MAX_NAME_LENGTH + 1], 
+			developerNames[MAXPLAYERS + 1][MAX_NAME_LENGTH + 1];
 		int adminListCount = 0, commAdvCount = 0, commManCount = 0, devCount = 0;
 		for(int i = 1 ; i <= MaxClients; i++)
 		{
 			if (IsValidClient(i))
 			{
-				if (CheckCommandAccess(i, "sm_admin", ADMFLAG_GENERIC) && !CheckCommandAccess(i, "sm_devlist_override", ADMFLAG_CUSTOM5))
-				{
-					GetClientName(i, adminNames[adminListCount], sizeof(adminNames[]));
-					adminListCount++;
-					continue;
-				}
-				else if (CheckCommandAccess(i, "sm_devlist_override", ADMFLAG_CUSTOM5))
+				if (CheckCommandAccess(i, "sm_ngsstaff_dev_override", ADMFLAG_ROOT))
 				{
 					GetClientName(i, developerNames[devCount], sizeof(developerNames[]));
 					devCount++;
 					continue;
 				}
-				else if (CheckCommandAccess(i, "sm_commadvlist_override", ADMFLAG_CUSTOM3) && !CheckCommandAccess(i, "sm_devlist_override", ADMFLAG_CUSTOM5))
+				else if (CheckCommandAccess(i, "sm_ngsstaff_administra_override", ADMFLAG_ROOT))
 				{
-					GetClientName(i, communityAdvisorNames[commAdvCount], sizeof(communityAdvisorNames[]));
-					commAdvCount++;
+					GetClientName(i, adminNames[adminListCount], sizeof(adminNames[]));
+					adminListCount++;
 					continue;
 				}
-				else if (CheckCommandAccess(i, "sm_commmanlist_override", ADMFLAG_CUSTOM4) &&  !CheckCommandAccess(i, "sm_devlist_override", ADMFLAG_CUSTOM5))
+				else if (CheckCommandAccess(i, "sm_ngsstaff_marketer_override", ADMFLAG_ROOT))
 				{
-					GetClientName(i, communityManagerNames[commManCount], sizeof(communityManagerNames[]));
-					commManCount++;
+					GetClientName(i, marketerNames[commAdvCount], sizeof(marketerNames[]));
+					commAdvCount++;
 					continue;
 				}
 			}
@@ -153,16 +147,10 @@ public Action CommandListStaff(int client, int args)
 				ImplodeStrings(adminNames, adminListCount, ", ", buffer, sizeof(buffer));
 				CReplyToCommand(client, "{GREEN}[SM] Administration online: {CYAN}%s.", buffer);
 			}
-			if (commAdvCount > 0)
-			{
-				char buffer[1024];
-				ImplodeStrings(communityAdvisorNames, commAdvCount, ", ", buffer, sizeof(buffer));
-				CReplyToCommand(client, "{GREEN}[SM] Community Advisors online: {CORNFLOWERBLUE}%s.", buffer);
-			}
 			if (commManCount > 0)
 			{
 				char buffer[1024];
-				ImplodeStrings(communityManagerNames, commManCount, ", ", buffer, sizeof(buffer));
+				ImplodeStrings(marketerNames, commManCount, ", ", buffer, sizeof(buffer));
 				CReplyToCommand(client, "{GREEN}[SM] Marketers online: {CRIMSON}%s.", buffer);
 			}
 			if (devCount > 0)

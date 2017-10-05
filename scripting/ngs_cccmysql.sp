@@ -47,7 +47,7 @@ public OnDatabaseConnected(Handle:owner, Handle:hndl, const String:error[], any:
 		}
 	}
 	if(kv == INVALID_HANDLE) {
-		SQL_TQuery(hndl, OnTableCreated, "CREATE TABLE IF NOT EXISTS `custom_chatcolors` (`index` int(11) NOT NULL, `identity` varchar(32) NOT NULL, `override` varchar(48) DEFAULT NULL, `flag` char(1) DEFAULT NULL, `tag` varchar(32) DEFAULT NULL, `tagcolor` varchar(8) DEFAULT NULL, `namecolor` varchar(8) DEFAULT NULL, `textcolor` varchar(8) DEFAULT NULL, PRIMARY KEY (`index`), UNIQUE KEY `identity` (`identity`)) ENGINE=MyISAM DEFAULT CHARSET=latin1", hndl);
+		SQL_TQuery(hndl, OnTableCreated, "CREATE TABLE IF NOT EXISTS `custom_chatcolors` (`index` int(11) NOT NULL, `identity` varchar(32) NOT NULL, `override` varchar(32) DEFAULT NULL, `flag` char(1) DEFAULT NULL, `tag` varchar(32) DEFAULT NULL, `tagcolor` varchar(8) DEFAULT NULL, `namecolor` varchar(8) DEFAULT NULL, `textcolor` varchar(8) DEFAULT NULL, PRIMARY KEY (`index`), UNIQUE KEY `identity` (`identity`)) ENGINE=MyISAM DEFAULT CHARSET=latin1", hndl);
 	} else {
 		SQL_TQuery(hndl, OnDataReceived, "SELECT * FROM `custom_chatcolors` ORDER BY `index` ASC", hndl);
 	}
@@ -76,7 +76,7 @@ public OnDataReceived(Handle:owner, Handle:hndl, const String:error[], any:db) {
 		CloseHandle(kv);
 	}
 	kv = CreateKeyValues("admin_colors");
-	decl String:identity[33], String:override[48], String:flag[2], String:tag[33], String:tagcolor[12], String:namecolor[12], String:textcolor[12];
+	decl String:identity[33], String:override[33], String:flag[2], String:tag[33], String:tagcolor[12], String:namecolor[12], String:textcolor[12];
 	while(SQL_FetchRow(hndl)) {
 		// index	identity	override	flag	tag		tagcolor	namecolor	textcolor
 		// 0		1			2			3		4		5			6			7
@@ -148,7 +148,7 @@ public CCC_OnUserConfigLoaded(client) {
 		new AdminFlag:flag;
 		decl String:configFlag[2];
 		decl String:section[32];
-		char override[48];
+		char override[32];
 		new bool:found = false;
 		do {
 			KvGetSectionName(kv, section, sizeof(section));

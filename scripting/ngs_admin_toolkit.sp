@@ -42,6 +42,7 @@ public void OnPluginStart()
 	RegAdminCmd("sm_unmutenonadmins", CommandUnmuteNonAdmins, ADMFLAG_GENERIC, "Usage: sm_unmutenonadmins");
 	RegAdminCmd("sm_nameban", CommandNameBan, ADMFLAG_GENERIC, "Usage: sm_nameban <#userid|name>");
 	RegAdminCmd("sm_nameunban", CommandNameUnban, ADMFLAG_GENERIC, "Usage: sm_nameunban <#userid|name>");
+	RegAdminCmd("sm_checkcommandaccess", CommandCheckCommandAccess, ADMFLAG_GENERIC, "Usage: sm_checkcommandaccess <#userid|name> <cmdstring>");
 	// TODO: Uncomment everything in this area.
 	//RegAdminCmd("sm_specplayer", CommandSpecPlayer, ADMFLAG_GENERIC, "Usage: sm_specplayer <#userid|name>");
 	RegAdminCmd("sm_getlookingpos", CommandGetLookingPosition, ADMFLAG_GENERIC, "Usage: sm_getlookingpos");
@@ -428,6 +429,32 @@ public Action CommandUnmuteNonAdmins(int client, int args)
 	CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "Unmuted all nonadmins!");
 	LogAction(client, -1, "Unmuted all nonadmins!");
 	muteNonAdminsEnabled = false;
+	return Plugin_Handled;
+}
+
+public Action CommandCheckCommandAccess(int client, int args)
+{
+	if (args < 1)
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_checkcommandaccess <#userid|name> <cmdstring>");
+		return Plugin_Handled;
+	}
+		
+	char arg1[MAX_BUFFER_LENGTH], arg2[MAX_BUFFER_LENGTH];
+	GetCmdArg(1, arg1, sizeof(arg1));
+	GetCmdArg(2, arg2, sizeof(arg2));
+	int target = FindTarget(client, arg1, true);
+	if (!IsValidClient(target)) return Plugin_Handled;
+	
+	AdminId admin = GetUserAdmin(target);
+	if (CheckCommandAccess(target, arg2, ADMFLAG_ROOT))
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} {LIGHTGREEN}%N{DEFAULT} has CheckCommandAccess access to {OLIVE}%s{DEFAULT}!", target, arg2);
+	else
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} {LIGHTGREEN}%N{DEFAULT} doesn\'t have CheckCommandAccess access to {OLIVE}%s{DEFAULT}!", target, arg2);
+	if (CheckAccess(admin, arg2, ADMFLAG_ROOT))
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} {LIGHTGREEN}%N{DEFAULT} has CheckAccess access to {OLIVE}%s{DEFAULT}!", target, arg2);
+	else
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} {LIGHTGREEN}%N{DEFAULT} doesn\'t have CheckAccess access to {OLIVE}%s{DEFAULT}!", target, arg2);
 	return Plugin_Handled;
 }
 

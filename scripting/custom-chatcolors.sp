@@ -140,7 +140,7 @@ public OnClientPostAdminCheck(client) {
 		new AdminFlag:flag;
 		decl String:configFlag[2];
 		decl String:section[32];
-		char override[48];
+		char override[32];
 		new bool:found = false;
 		do {
 			KvGetSectionName(configFile, section, sizeof(section));

@@ -4,16 +4,22 @@
 #include <sourcemod>
 #include <sdktools>
 #include <sdkhooks>
+#include <clientprefs>
 #include <tf2_stocks>
 #include <tf2>
 #include <advanced_motd>
-#include <morecolors>
+#include <multicolors>
 
 #define PLUGIN_VERSION "1.0.0"
 #define STEAMCOMMUNITY_PROFILESURL "https://steamcommunity.com/profiles/"
 
 int BAMCooldown[MAXPLAYERS + 1];
 bool BAMOptOut[MAXPLAYERS + 1];
+bool isPlayerAutoTagEnabled[MAXPLAYERS + 1];
+
+ConVar cvarAutoTag;
+
+Handle autoTagEnabledCookie = INVALID_HANDLE;
 
 //--------------------//
 
@@ -38,7 +44,21 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_dazhlove", CommandDazhLove, "Usage: sm_dazhlove <#userid|name>");
 	RegConsoleCmd("sm_rr", CommandRussianRoulette, "Usage: sm_rr <numofbullets>");
 	RegConsoleCmd("sm_russianroulette", CommandRussianRoulette, "Usage: sm_russianroulette <numofbullets>");
+	RegConsoleCmd("sm_autotag", CommandAutoTag, "Usage: sm_autotag to toggle");
 	LoadTranslations("common.phrases");
+	
+	cvarAutoTag = CreateConVar("sm_ngsplayertoolkit_autotag", "NGS", "Tag to give players, leave blank to disable.");
+	
+	autoTagEnabledCookie = RegClientCookie("AutoTagEnabled", "Is autotag enabled?", CookieAccess_Public);
+	
+	for (int i = MaxClients; i > 0; --i)
+	{
+		if (!AreClientCookiesCached(i))
+		{
+			continue;
+		}
+		OnClientCookiesCached(i);
+	}
 }
 
 public void OnMapStart()
@@ -52,20 +72,44 @@ public void OnMapStart()
 	PrecacheSound("weapons/diamond_back_01.wav", false);
 }
 
+public void OnClientCookiesCached(int client)
+{
+	char sValue[8];
+	GetClientCookie(client, autoTagEnabledCookie, sValue, sizeof(sValue));
+	
+	isPlayerAutoTagEnabled[client] = (sValue[0] != '\0' && StringToInt(sValue));
+}
+
+public void OnClientPostAdminCheck(int client)
+{
+	char tagvalue[24], namevalue[MAX_NAME_LENGTH];
+	cvarAutoTag.GetString(tagvalue, sizeof(tagvalue));
+	if (strlen(tagvalue) < 1) return;
+	GetClientName(client, namevalue, sizeof(namevalue));
+	if (AreClientCookiesCached(client) && isPlayerAutoTagEnabled[client] && CommandExists("sm_rename") && StrContains(namevalue, tagvalue, false) == -1)
+	{
+		int userid = GetClientUserId(client);
+		ServerCommand("sm_rename #%d \"%s | %N\"", userid, tagvalue, client);
+  	}
+}
+
 public void OnClientPutInServer(int client)
 { 
+	BAMOptOut[client] = false;
 	BAMCooldown[client] = 0; 
 }
 
 public Action CommandGetProfile(int client, int args)
 {
-	char arg1[MAX_TARGET_LENGTH];
+	if (!IsValidClient(client)) return Plugin_Handled;
 
 	if (args < 1)
 	{
 		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_profile <#userid|name>");
 		return Plugin_Handled;
 	}
+	
+	char arg1[MAX_TARGET_LENGTH];
 	
 	GetCmdArg(1, arg1, sizeof(arg1));
 	int target = FindTarget(client, arg1, true, false);
@@ -79,6 +123,7 @@ public Action CommandGetProfile(int client, int args)
 	
 	Format(profileLink, sizeof(profileLink), "%s%s", STEAMCOMMUNITY_PROFILESURL, targetAuthID);
 	
+	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} %N\'s profile link: %s", target, profileLink);
 	AdvMOTD_ShowMOTDPanel(client, "Steam Community", profileLink, MOTDPANEL_TYPE_URL, true, true, true);
 	
 	return Plugin_Handled;
@@ -86,7 +131,7 @@ public Action CommandGetProfile(int client, int args)
 
 public Action CommandYum(int client, int args)
 {
-	if (!IsValidClient) return Plugin_Handled;
+	if (!IsValidClient(client)) return Plugin_Handled;
 	
 	FakeClientCommand(client, "explode");
 	CPrintToChat(client, "{GREEN}[SM]{DEFAULT} That's {LIGHTGREEN}Andy{DEFAULT}'s thing, stahp.");
@@ -95,7 +140,7 @@ public Action CommandYum(int client, int args)
 
 public Action CommandDoQuack(int client, int args)
 {
-	if (!IsValidClient) return Plugin_Handled;
+	if (!IsValidClient(client)) return Plugin_Handled;
 	
 	EmitSoundToClient(client, "ambient/bumper_car_quack11.wav");
 	EmitSoundToClient(client, "ambient/bumper_car_quack11.wav");
@@ -150,7 +195,7 @@ public Action CommandRussianRoulette(int client, int args)
 
 public Action CommandBamboozle(int client, int args)
 {
-	if (!IsValidClient) return Plugin_Handled;
+	if (!IsValidClient(client)) return Plugin_Handled;
 	
 	if (BAMOptOut[client])
 	{
@@ -206,7 +251,7 @@ public Action CommandBamboozle(int client, int args)
 
 public Action CommandDontBamboozle(int client, int args)
 {
-	if (!IsValidClient) return Plugin_Handled;
+	if (!IsValidClient(client)) return Plugin_Handled;
 	
 	BAMOptOut[client] = !BAMOptOut[client];
 	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You have opted %s bamboozlement.", BAMOptOut[client] ? "out of" : "into");
@@ -215,7 +260,7 @@ public Action CommandDontBamboozle(int client, int args)
 
 public Action CommandChowMane(int client, int args)
 {
-	if (!IsValidClient) return Plugin_Handled;
+	if (!IsValidClient(client)) return Plugin_Handled;
 	
 	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} APPLY CHOW MANE LIBERALLY TO EAR CANALS!!ONE!11!ONE");
 	EmitSoundToClient(client, "coach/coach_attack_here.wav");
@@ -224,7 +269,7 @@ public Action CommandChowMane(int client, int args)
 
 public Action CommandAdministration(int client, int args)
 {
-	if (!IsValidClient) return Plugin_Handled;
+	if (!IsValidClient(client)) return Plugin_Handled;
 	/*
 	char playerName[MAX_NAME_LENGTH];
 	GetClientName(client, playerName, sizeof(playerName));
@@ -239,6 +284,32 @@ public Action CommandDazhLove(int client, int args)
 	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Do {LIGHTGREEN}Dazh{DEFAULT}\'s parents love him?");
 	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} While the answer to this question might be unsure to him, we are definitely certain that we love {LIGHTGREEN}Dazh{DEFAULT}! We hope the best for you buddy, good luck in everything you ever do!");
 	return Plugin_Handled;
+}
+
+public Action CommandAutoTag(int client, int args)
+{
+	if (!IsValidClient(client) || !AreClientCookiesCached(client)) return Plugin_Handled;
+  	
+	char tagvalue[24], namevalue[MAX_NAME_LENGTH];
+	cvarAutoTag.GetString(tagvalue, sizeof(tagvalue));
+	if (strlen(tagvalue) < 1) return Plugin_Handled;
+	GetClientName(client, namevalue, sizeof(namevalue));
+	isPlayerAutoTagEnabled[client] = !isPlayerAutoTagEnabled[client];
+	if (isPlayerAutoTagEnabled[client])
+	{
+		int userid = GetClientUserId(client);
+		if (CommandExists("sm_rename") && StrContains(namevalue, tagvalue, false) == -1)
+			ServerCommand("sm_rename #%d \"%s | %N\"", userid, tagvalue, client);
+		SetClientCookie(client, autoTagEnabledCookie, "1");
+		CPrintToChat(client, "{GREEN}[SM]{DEFAULT} Your autotag has been enabled. Use !autotag to disable it.");
+  	}
+  	else
+  	{
+  		SetClientCookie(client, autoTagEnabledCookie, "0");
+  		CPrintToChat(client, "{GREEN}[SM]{DEFAULT} Your tag has been disabled. Reconnect to reset your name.");
+  	}
+ 		
+  	return Plugin_Handled;
 }
 
 public bool IsValidClient(int client)

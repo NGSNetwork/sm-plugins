@@ -3,9 +3,9 @@
 
 #include <sourcemod>
 #include <store>
-#include <scp>
+#include <chat-processor>
 #include <smjansson>
-#include <morecolors>
+//#include <multicolors>
 
 enum Title
 {
@@ -35,9 +35,7 @@ int g_clientTitles[MAXPLAYERS + 1] = { -1, ... };
 int g_clientNameColors[MAXPLAYERS+1] = { -1, ... };
 int g_clientChatColors[MAXPLAYERS+1] = { -1, ... };
 
-Handle g_titlesNameIndex = INVALID_HANDLE;
-Handle g_namecolorsNameIndex = INVALID_HANDLE;
-Handle g_chatcolorsNameIndex = INVALID_HANDLE;
+StringMap g_titlesNameIndex, g_namecolorsNameIndex, g_chatcolorsNameIndex;
 
 bool g_databaseInitialized = false;
 
@@ -56,10 +54,13 @@ public void OnPluginStart()
 {
 	LoadTranslations("common.phrases");
 	LoadTranslations("store.phrases");
-
-	Store_RegisterItemType("title", OnTitleLoad, OnTitleLoadItem);
-	Store_RegisterItemType("namecolor", OnNameEquip, OnLoadNameItem);
-	Store_RegisterItemType("chatcolor", OnChatEquip, OnLoadChatItem);
+	
+	if (LibraryExists("store-inventory"))
+	{
+		Store_RegisterItemType("title", OnTitleLoad, OnTitleLoadItem);
+		Store_RegisterItemType("namecolor", OnNameEquip, OnLoadNameItem);
+		Store_RegisterItemType("chatcolor", OnChatEquip, OnLoadChatItem);
+	}
 }
 
 /** 
@@ -80,16 +81,6 @@ public void Store_OnDatabaseInitialized()
 	g_databaseInitialized = true;
 }
 
-/**
- * Called once a client is authorized and fully in-game, and 
- * after all post-connection authorizations have been performed.  
- *
- * This callback is gauranteed to occur on all clients, and always 
- * after each OnClientPutInServer() call.
- *
- * @param client		Client index.
- * @noreturn
- */
 public void OnClientPostAdminCheck(int client)
 {
 	if (!g_databaseInitialized || !IsValidClient(client))
@@ -98,10 +89,16 @@ public void OnClientPostAdminCheck(int client)
 	g_clientTitles[client] = -1;
 	g_clientNameColors[client] = -1;
 	g_clientChatColors[client] = -1;
+	
+	int accountId = GetSteamAccountID(client);
+	if (accountId == 0) return;
+	
+	int clientLoadout = Store_GetClientLoadout(client);
+	int clientSerial = GetClientSerial(client);
 
-	Store_GetEquippedItemsByType(GetSteamAccountID(client), "title", Store_GetClientLoadout(client), OnGetPlayerTitle, GetClientSerial(client));
-	Store_GetEquippedItemsByType(GetSteamAccountID(client), "namecolor", Store_GetClientLoadout(client), OnGetPlayerNameColor, GetClientSerial(client));
-	Store_GetEquippedItemsByType(GetSteamAccountID(client), "chatcolor", Store_GetClientLoadout(client), OnGetPlayerChatColor, GetClientSerial(client));
+	Store_GetEquippedItemsByType(accountId, "title", clientLoadout, OnGetPlayerTitle, clientSerial);
+	Store_GetEquippedItemsByType(accountId, "namecolor", clientLoadout, OnGetPlayerNameColor, clientSerial);
+	Store_GetEquippedItemsByType(accountId, "chatcolor", clientLoadout, OnGetPlayerChatColor, clientSerial);
 }
 
 public void Store_OnClientLoadoutChanged(int client)
@@ -110,29 +107,35 @@ public void Store_OnClientLoadoutChanged(int client)
 	g_clientNameColors[client] = -1;
 	g_clientChatColors[client] = -1;
 	
-	Store_GetEquippedItemsByType(GetSteamAccountID(client), "title", Store_GetClientLoadout(client), OnGetPlayerTitle, GetClientSerial(client));
-	Store_GetEquippedItemsByType(GetSteamAccountID(client), "namecolor", Store_GetClientLoadout(client), OnGetPlayerNameColor, GetClientSerial(client));
-	Store_GetEquippedItemsByType(GetSteamAccountID(client), "chatcolor", Store_GetClientLoadout(client), OnGetPlayerChatColor, GetClientSerial(client));
+	int accountId = GetSteamAccountID(client);
+	if (accountId == 0) return;
+	
+	int clientLoadout = Store_GetClientLoadout(client);
+	int clientSerial = GetClientSerial(client);
+	
+	Store_GetEquippedItemsByType(accountId, "title", clientLoadout, OnGetPlayerTitle, clientSerial);
+	Store_GetEquippedItemsByType(accountId, "namecolor", clientLoadout, OnGetPlayerNameColor, clientSerial);
+	Store_GetEquippedItemsByType(accountId, "chatcolor", clientLoadout, OnGetPlayerChatColor, clientSerial);
 }
 
 public void Store_OnReloadItems() 
 {
-	if (g_titlesNameIndex != INVALID_HANDLE)
-		CloseHandle(g_titlesNameIndex);
+	if (g_titlesNameIndex != null)
+		delete g_titlesNameIndex;
 		
-	g_titlesNameIndex = CreateTrie();
+	g_titlesNameIndex = new StringMap();
 	g_titleCount = 0;
 
-	if (g_namecolorsNameIndex != INVALID_HANDLE)
-		CloseHandle(g_namecolorsNameIndex);
+	if (g_namecolorsNameIndex != null)
+		delete g_namecolorsNameIndex;
 		
-	g_namecolorsNameIndex = CreateTrie();
+	g_namecolorsNameIndex = new StringMap();
 	g_namecolorCount = 0;
 	
-	if (g_chatcolorsNameIndex != INVALID_HANDLE)
-		CloseHandle(g_chatcolorsNameIndex);
+	if (g_chatcolorsNameIndex != null)
+		 delete g_chatcolorsNameIndex;
 		
-	g_chatcolorsNameIndex = CreateTrie();
+	g_chatcolorsNameIndex = new StringMap();
 	g_chatcolorCount = 0;
 }
 
@@ -149,7 +152,7 @@ public void OnGetPlayerTitle(int[] titles, int count, any serial)
 		Store_GetItemName(titles[index], itemName, sizeof(itemName));
 		
 		int title = -1;
-		if (!GetTrieValue(g_titlesNameIndex, itemName, title))
+		if (!g_titlesNameIndex.GetValue(itemName, title))
 		{
 			PrintToChat(client, "%s%t", STORE_PREFIX, "No item attributes");
 			continue;
@@ -173,7 +176,7 @@ public void OnGetPlayerNameColor(int[] titles, int count, any serial)
 		Store_GetItemName(titles[index], itemName, sizeof(itemName));
 		
 		int namecolor = -1;
-		if (!GetTrieValue(g_namecolorsNameIndex, itemName, namecolor))
+		if (!g_namecolorsNameIndex.GetValue(itemName, namecolor))
 		{
 			PrintToChat(client, "%s%t", STORE_PREFIX, "No item attributes");
 			continue;
@@ -197,7 +200,7 @@ public void OnGetPlayerChatColor(int[] titles, int count, any serial)
 		Store_GetItemName(titles[index], itemName, sizeof(itemName));
 		
 		int chatcolor = -1;
-		if (!GetTrieValue(g_chatcolorsNameIndex, itemName, chatcolor))
+		if (!g_chatcolorsNameIndex.GetValue(itemName, chatcolor))
 		{
 			PrintToChat(client, "%s%t", STORE_PREFIX, "No item attributes");
 			continue;
@@ -212,7 +215,7 @@ public void OnTitleLoadItem(const char[] itemName, const char[] attrs)
 {
 	strcopy(g_titles[g_titleCount][TitleName], STORE_MAX_NAME_LENGTH, itemName);
 		
-	SetTrieValue(g_titlesNameIndex, g_titles[g_titleCount][TitleName], g_titleCount);
+	g_titlesNameIndex.SetValue(g_titles[g_titleCount][TitleName], g_titleCount);
 	
 	Handle json = json_load(attrs);	
 
@@ -229,7 +232,7 @@ public void OnTitleLoadItem(const char[] itemName, const char[] attrs)
 	}
 	*/
 
-	CloseHandle(json);
+	delete json;
 
 	g_titleCount++;
 }
@@ -238,7 +241,7 @@ public void OnLoadNameItem(const char[] itemName, const char[] attrs)
 {
 	strcopy(g_namecolors[g_namecolorCount][NameColorName], STORE_MAX_NAME_LENGTH, itemName);
 		
-	SetTrieValue(g_namecolorsNameIndex, g_namecolors[g_namecolorCount][NameColorName], g_namecolorCount);
+	g_namecolorsNameIndex.SetValue(g_namecolors[g_namecolorCount][NameColorName], g_namecolorCount);
 	
 	Handle json = json_load(attrs);	
 	
@@ -255,7 +258,7 @@ public void OnLoadNameItem(const char[] itemName, const char[] attrs)
 	}
 	*/
 
-	CloseHandle(json);
+	delete json;
 
 	g_namecolorCount++;
 }
@@ -264,7 +267,7 @@ public void OnLoadChatItem(const char[] itemName, const char[] attrs)
 {
 	strcopy(g_chatcolors[g_chatcolorCount][ChatColorName], STORE_MAX_NAME_LENGTH, itemName);
 		
-	SetTrieValue(g_chatcolorsNameIndex, g_chatcolors[g_chatcolorCount][ChatColorName], g_chatcolorCount);
+	g_chatcolorsNameIndex.SetValue(g_chatcolors[g_chatcolorCount][ChatColorName], g_chatcolorCount);
 	
 	Handle json = json_load(attrs);	
 	
@@ -273,15 +276,8 @@ public void OnLoadChatItem(const char[] itemName, const char[] attrs)
 		json_object_get_string(json, "color", g_chatcolors[g_chatcolorCount][ChatColorText], 64);
 		CReplaceColorCodes(g_chatcolors[g_chatcolorCount][ChatColorText]);
 	}
-	/*
-	else
-	{
-		json_object_get_string(json, "text", g_namecolors[g_chatcolorCount][ChatColorText], 64);
-		CFormat(g_chatcolors[g_chatcolorCount][ChatColorText], 64);
-	}
-	*/
 
-	CloseHandle(json);
+	delete json;
 
 	g_chatcolorCount++;
 }
@@ -305,7 +301,7 @@ public Store_ItemUseAction OnTitleLoad(int client, int itemId, bool equipped)
 	else
 	{
 		int title = -1;
-		if (!GetTrieValue(g_titlesNameIndex, name, title))
+		if (!g_titlesNameIndex.GetValue(name, title))
 		{
 			PrintToChat(client, "%s%t", STORE_PREFIX, "No item attributes");
 			return Store_DoNothing;
@@ -341,7 +337,7 @@ public Store_ItemUseAction OnNameEquip(int client, int itemId, bool equipped)
 	else
 	{
 		int namecolor = -1;
-		if (!GetTrieValue(g_namecolorsNameIndex, name, namecolor))
+		if (!g_namecolorsNameIndex.GetValue(name, namecolor))
 		{
 			PrintToChat(client, "%s%t", STORE_PREFIX, "No item attributes");
 			return Store_DoNothing;
@@ -377,7 +373,7 @@ public Store_ItemUseAction OnChatEquip(int client, int itemId, bool equipped)
 	else
 	{
 		int chatcolor = -1;
-		if (!GetTrieValue(g_chatcolorsNameIndex, name, chatcolor))
+		if (!g_chatcolorsNameIndex.GetValue(name, chatcolor))
 		{
 			PrintToChat(client, "%s%t", STORE_PREFIX, "No item attributes");
 			return Store_DoNothing;
@@ -394,7 +390,7 @@ public Store_ItemUseAction OnChatEquip(int client, int itemId, bool equipped)
 	}
 }
 
-public Action OnChatMessage(int &author, Handle recipients, char[] name, char[] message)
+public Action CP_OnChatMessage(int& author, ArrayList recipients, char[] flagstring, char[] name, char[] message, bool& processcolors, bool& removecolors)
 {
 	bool bChanged;
 	char sTitle[64];
@@ -450,6 +446,7 @@ public Action OnChatMessage(int &author, Handle recipients, char[] name, char[] 
 stock bool IsSource2009()
 {
 	return (SOURCE_SDK_CSS <= GuessSDKVersion() < SOURCE_SDK_LEFT4DEAD);
+	
 }
 
 public bool IsValidClient (int client)

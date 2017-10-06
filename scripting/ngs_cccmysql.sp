@@ -139,7 +139,11 @@ public CCC_OnUserConfigLoaded(client) {
 		return;
 	}
 	decl String:auth[32];
-	GetClientAuthString(client, auth, sizeof(auth));
+	if (!GetClientAuthId(client, AuthId_Engine, auth, sizeof(auth)))
+	{
+		LogError("Couldn\'t get %N\'s steamID!, returned %s", auth);
+		return;
+	}
 	KvRewind(kv);
 	if(!KvJumpToKey(kv, auth)) {
 		KvRewind(kv);

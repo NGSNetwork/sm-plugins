@@ -40,8 +40,9 @@ public void OnClientConnected(int client)
 public Action AuthCheckTimer(Handle timer, int userid)
 {
 	int client = GetClientOfUserId(userid);
+	if (client == 0 || !IsClientInGame(client)) return Plugin_Continue;
 	char auth[24];
-	if (!GetClientAuthId(client, AuthId_Steam2, auth, sizeof(auth)) || StrContains("STEAM_ID_STOP_IGNORING_RETVALS", auth, false) != -1)
+	if (!GetClientAuthId(client, AuthId_Engine, auth, sizeof(auth)))
 	{
 		if (IsPlayerAlive(client))
 		{
@@ -54,22 +55,15 @@ public Action AuthCheckTimer(Handle timer, int userid)
 	}
 	else
 	{
-		KillTheTimer(client);
+		delete authClientTimer[client];
 	}
 	return Plugin_Continue;
-}
-
-stock void KillTheTimer(int client)
-{
-	KillTimer(authClientTimer[client]);
-	authClientTimer[client] = null;
 }
 
 public void OnClientDisconnect(int client)
 {
 	if (authClientTimer[client] != null)
 	{
-		KillTimer(authClientTimer[client]);
-		authClientTimer[client] = null;
+		delete authClientTimer[client];
 	}
 }

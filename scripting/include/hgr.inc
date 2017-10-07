@@ -4,7 +4,7 @@
  * @param client     Player index.
  * @return           Plugin_Handled; to stop the player from hooking.
  */
-forward Action:HGR_OnClientHook(client);
+forward Action HGR_OnClientHook(int client);
 
 /**
  * Called when a player tries to search for a grab target.

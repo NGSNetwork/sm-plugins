@@ -15,7 +15,7 @@ enum RobotStatus {
  * @param client			Index of the client to check.
  * @return					RobotStatus value of the client; RobotStatus_Human if they're a human, RobotStatus_Robot if they're a robot, RobotStatus_WantsToBeRobot if they want to be a robot, but can't for some reason.
  */
-native RobotStatus:BeTheRobot_GetRobotStatus(client);
+native RobotStatus BeTheRobot_GetRobotStatus(int client);
 
 /**
  * Sets if a client should be robot or not.
@@ -24,7 +24,7 @@ native RobotStatus:BeTheRobot_GetRobotStatus(client);
  * @param toggle			True to make the client a robot, false to change them back to a human. Skip this argument to toggle instead.
  * @noreturn
  */
-native BeTheRobot_SetRobot(client, bool:toggle = bool:2);
+native void BeTheRobot_SetRobot(int client, bool toggle = view_as<bool>(2));
 
 /**
  * Uses Be the Robot's "CheckTheRules()" native to check if a client should be allowed to be a robot or not.
@@ -32,9 +32,9 @@ native BeTheRobot_SetRobot(client, bool:toggle = bool:2);
  * @param client			Index of the client to check.
  * @return					True if the client is allowed to be a robot (not dead, allowed class by server, etc.) false otherwise.
  */
-native bool:BeTheRobot_CheckRules(client);
+native bool BeTheRobot_CheckRules(int client);
 
-public SharedPlugin:__pl_betherobot = 
+public SharedPlugin __pl_betherobot = 
 {
 	name = "betherobot",
 	file = "betherobot.smx",
@@ -46,7 +46,7 @@ public SharedPlugin:__pl_betherobot =
 };
 
 #if !defined REQUIRE_PLUGIN
-public __pl_betherobot_SetNTVOptional()
+public void __pl_betherobot_SetNTVOptional()
 {
 	MarkNativeAsOptional("BeTheRobot_GetRobotStatus");
 	MarkNativeAsOptional("BeTheRobot_SetRobot");

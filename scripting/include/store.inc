@@ -11,7 +11,8 @@
 #include <store/store-logging>
 
 //External Includes
-#include <morecolors>
+// #include <morecolors>
+#include <colorvariables>
 
 //Optional Includes
 #undef REQUIRE_PLUGIN

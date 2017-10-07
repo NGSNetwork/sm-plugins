@@ -90,7 +90,7 @@ forward void OnChatMessage_Post(int author, Handle recipients, const char[] name
  * @return		The current type of chat message (see constants) 
  **********************************************************************/
  // Made this int but probably not int
- native int GetMessageFlags();
+native int GetMessageFlags();
 
  
  

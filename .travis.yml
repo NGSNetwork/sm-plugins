@@ -2,7 +2,7 @@
 # changed to fit addons being in the top spot
 
 # Set language
-language: c
+# language: c
 
 # Use the new container-based infrastructure
 sudo: false
@@ -31,8 +31,8 @@ install:
    - tar -xzf $(cat sourcemod-latest-linux)
    - cd ../
    - rm build-env/addons/sourcemod/scripting/*.sp
-   - cp -rv $SCRIPTING/. build-env/addons/sourcemod/scripting/
-   - cp -rv $INCLUDE/. build-env/addons/sourcemod/scripting/include/
+   - cp -rv $SCRIPTING/. build-env/addons/sourcemod/scripting/ > /dev/null 2>&1
+   - cp -rv $INCLUDE/. build-env/addons/sourcemod/scripting/include/ > /dev/null 2>&1
     
 before_script:
   - chmod +rx build-env/addons/sourcemod/scripting/spcomp

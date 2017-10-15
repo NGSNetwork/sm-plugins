@@ -1,0 +1,46 @@
+# from https://github.com/50DKP/FF2-Official/blob/stable/.travis.yml
+# changed to fit addons being in the top spot
+
+# Set language
+language: c
+
+# Use the new container-based infrastructure
+sudo: false
+
+# Install some apt packages needed for spcomp
+addons:
+    apt_packages:
+        - lib32stdc++6
+        - gcc-multilib
+
+# Set the build environment
+env:
+    - SMVERSION=1.8 # Stable
+    - SMVERSION=1.9 # Unstable
+    - SCRIPTING=scripting/
+    - PLUGINS=plugins/
+
+ 
+before_install:
+  - mkdir build-env
+    
+# And compile!
+install:
+   - cd build-env
+   - wget --input-file=http://sourcemod.net/smdrop/$SMVERSION/sourcemod-latest-linux
+   - tar -xzf $(cat sourcemod-latest-linux)
+   - cd ../
+   - find build-env/addons/sourcemod/scripting/ -name "*.sp" -type f -delete
+   - cp -rv $SCRIPTING/. build-env/addons/sourcemod/scripting/
+   - cp -rv $INCLUDE/. build-env/addons/sourcemod/scripting/include/
+    
+before_script:
+  - chmod +rx build-env/addons/sourcemod/scripting/spcomp
+  - chmod +rx build-env/addons/sourcemod/scripting/compile.sh
+  - cd build-env/addons/sourcemod/scripting/
+    
+script: ./compile.sh
+
+# Notifications
+notifications:
+    email: false

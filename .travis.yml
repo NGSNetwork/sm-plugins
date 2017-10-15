@@ -17,8 +17,8 @@ addons:
 env:
     - SMVERSION=1.8 # Stable
     - SMVERSION=1.9 # Unstable
-    - SCRIPTING=scripting/
-    - INCLUDE=scripting/include/
+    - SCRIPTING=scripting
+    - INCLUDE=scripting/include
 
  
 before_install:
@@ -31,8 +31,10 @@ install:
    - tar -xzf $(cat sourcemod-latest-linux)
    - cd ../
    - rm build-env/addons/sourcemod/scripting/*.sp
-   - cp -rv $SCRIPTING/. build-env/addons/sourcemod/scripting/ > /dev/null 2>&1
-   - cp -rv $INCLUDE/. build-env/addons/sourcemod/scripting/include/ > /dev/null 2>&1
+   - \cp -rv $SCRIPTING/* build-env/addons/sourcemod/scripting/ 
+   # > /dev/null 2>&1
+   - \cp -rv $INCLUDE/* build-env/addons/sourcemod/scripting/include/
+   # > /dev/null 2>&1
     
 before_script:
   - chmod +rx build-env/addons/sourcemod/scripting/spcomp

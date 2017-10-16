@@ -27,4 +27,10 @@
 *.out
 *.app
 compile.dat
+
+# Folders
 smac/
+
+# Debug Filetypes
+scripting/*.smx
+scripting/*/*.smx

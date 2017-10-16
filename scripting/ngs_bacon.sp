@@ -13,6 +13,8 @@
 #define DEFAULT_BACON_TOPCOUNT "1"
 #define BACON_MAX_TOPCOUNT 10
 
+// TODO: Make any print functions utilize the proper colorvariables variant
+
 //-------------------------------------------------------------------------------------------------
 public Plugin myinfo = {
 	name = "bacon",
@@ -262,14 +264,14 @@ bool ProcessColorCodes(char[] message, int maxlen)
 }
 
 //-------------------------------------------------------------------------------------------------
-RemoveColorCodes( char[] message[], maxlen ) {
+void RemoveColorCodes( char[] message, int maxlen ) {
 	ReplaceString( message, maxlen, "{CMD}", "" ); // unused color code, might change mind later
 	ReplaceString( message, maxlen, "{DEF}", "" );
 	ReplaceString( message, maxlen, "{PLAYER}", "" );
 	ReplaceString( message, maxlen, "{BACON}", "" );
 }
 
-SayText2( client, const char[] message[]) {
+void SayText2( int client, const char[] message) {
 	 
 	Handle hBf = StartMessageOne("SayText2", client);
 	if (hBf != INVALID_HANDLE) {
@@ -295,7 +297,7 @@ SayText2( client, const char[] message[]) {
 }
 
 //-------------------------------------------------------------------------------------------------
-BaconPrint( client, any:... ) {
+void BaconPrint( int client, any ... ) {
 	char message[256];
     
 	if( client == 0 ) {
@@ -324,7 +326,7 @@ BaconPrint( client, any:... ) {
 }
 
 //-------------------------------------------------------------------------------------------------
-BaconPrint2( client, any:... ) {
+void BaconPrint2( int client, any ... ) {
 	// bacon print variation without command context
 	char message[256];
 	if( client == 0 ) {
@@ -349,7 +351,7 @@ BaconPrint2( client, any:... ) {
 
 
 //-------------------------------------------------------------------------------------------------
-BaconPrintAll( any:... ) {
+void BaconPrintAll( any ... ) {
 
 	// this following code is the slowest shit ever
 	// ...like i give a shit
@@ -378,7 +380,7 @@ BaconPrintAll( any:... ) {
 }
 
 //-------------------------------------------------------------------------------------------------
-BaconFloodCheck( client, bool:print = true, bool:set = true ) {
+bool BaconFloodCheck( int client, bool print = true, bool set = true ) {
 	if( (GetGameTime() - bacon_action_time[client]) < c_bacon_cooldown ) {
 		if( print ) BaconPrint( client, "TOO MUCH BACON" );
 		return true;
@@ -391,7 +393,7 @@ BaconFloodCheck( client, bool:print = true, bool:set = true ) {
 }
 
 //-------------------------------------------------------------------------------------------------
-GetBaconAccountID( client ) {
+int GetBaconAccountID( int client ) {
 	return client == 0 ? 0 : GetSteamAccountID(client);
 }
 /*
@@ -411,7 +413,7 @@ FormatAuthCode( client, char[] authcode[], maxlen ) {
 }*/
 
 //-------------------------------------------------------------------------------------------------
-ValidateBaconTransaction( client, target ) {
+bool ValidateBaconTransaction( int client, int target ) {
 	if( client < 0 || client > MaxClients ) return false;
 	if( target < 0 || target > MaxClients ) {
 		BaconPrint( client, "INVALID TRANSACTION" );
@@ -433,20 +435,20 @@ ValidateBaconTransaction( client, target ) {
 }
 
 //-------------------------------------------------------------------------------------------------
-GetBaconClient( userid ) { // mmm... bacon client
+int GetBaconClient( int userid ) { // mmm... bacon client
 	if( userid == 0 ) return 0;
 	int a = GetClientOfUserId( userid );
 	return a == 0 ? -1 : a;
 }
 
 //-------------------------------------------------------------------------------------------------
-GetBaconUserId( client ) {
+int GetBaconUserId( int client ) {
 	if( client == 0 ) return 0;
 	return GetClientUserId( client );
 }
 
 //-------------------------------------------------------------------------------------------------
-PrintBaconAmount( client ) {
+void PrintBaconAmount( int client ) {
 	if( bacon_amount[client] != 0 )
 		BaconPrint( client, "YOU HAVE ___ BACON", bacon_amount[client] );
 	else
@@ -455,7 +457,7 @@ PrintBaconAmount( client ) {
 }
 
 //-------------------------------------------------------------------------------------------------
-public ShowBaconQuery( Handle owner, Handle hndl, const char[] error[], any:pack ) {
+public void ShowBaconQuery( Handle owner, Handle hndl, const char[] error, any pack ) {
 	ResetPack(pack);
 	int client = GetBaconClient( ReadPackCell(pack) );
 	ReplySource rs =  ReadPackCell(pack);
@@ -489,7 +491,7 @@ public ShowBaconQuery( Handle owner, Handle hndl, const char[] error[], any:pack
 }
 
 //-------------------------------------------------------------------------------------------------
-ShowBacon( client ) {
+void ShowBacon( int client ) {
 	if( bacon_cached[client] ) {
 	
 		// tell the user how much bacon he has
@@ -516,12 +518,12 @@ ShowBacon( client ) {
 	
 	Handle pack = CreateDataPack();
 	WritePackCell( pack, GetBaconUserId(client) );
-	WritePackCell( pack, _:GetCmdReplySource() );
+	WritePackCell( pack, view_as<int>(GetCmdReplySource()) );
 	SQL_TQuery( bacon_db, ShowBaconQuery, query, pack );
 }
 
 //-------------------------------------------------------------------------------------------------
-public GiveBaconInsert( Handle owner, Handle hndl, const char[] error[], any:pack ) {
+public void GiveBaconInsert( Handle owner, Handle hndl, const char[] error, any pack ) {
 	ResetPack(pack);
 	int client = GetBaconClient(ReadPackCell(pack));
 	int target = GetBaconClient(ReadPackCell(pack));
@@ -594,7 +596,7 @@ public GiveBaconInsert( Handle owner, Handle hndl, const char[] error[], any:pac
 }
 
 //-------------------------------------------------------------------------------------------------
-public GiveBaconSelect( Handle owner, Handle hndl, const char[] error[], any:pack ) {
+public void GiveBaconSelect( Handle owner, Handle hndl, const char[] error, any pack ) {
 	ResetPack(pack);
 	int client = GetBaconClient( ReadPackCell(pack) );
 	int target = GetBaconClient( ReadPackCell(pack) );
@@ -636,7 +638,7 @@ public GiveBaconSelect( Handle owner, Handle hndl, const char[] error[], any:pac
 	}
 	
 	// insert new (delicious) bacon into system
-	char[] query[256];
+	char query[256];
 	int source = GetBaconAccountID(client);
 	int dest = GetBaconAccountID(target);
 	
@@ -647,7 +649,7 @@ public GiveBaconSelect( Handle owner, Handle hndl, const char[] error[], any:pac
 }
 
 //-------------------------------------------------------------------------------------------------
-GiveBacon( client, target ) {
+void GiveBacon( int client, int target ) {
 
 	if( client == target ) {
 		BaconPrint( client, "NO SELF BACONING" );
@@ -670,7 +672,7 @@ GiveBacon( client, target ) {
 	Handle pack = CreateDataPack();
 	WritePackCell( pack, GetBaconUserId(client) );
 	WritePackCell( pack, GetBaconUserId(target) );
-	WritePackCell( pack, _:GetCmdReplySource() );
+	WritePackCell( pack, view_as<int>(GetCmdReplySource()) );
 	
 	SQL_TQuery( bacon_db, GiveBaconSelect, query, pack );
 	
@@ -685,12 +687,12 @@ GiveBacon( client, target ) {
 		
 		Format( query, sizeof(query), "INSERT OR REPLACE INTO BACON_NAME_CACHE2 VALUES (%d,'%s')", dest, escapedname );
 		
-		SQL_TQuery( bacon_db, CacheBaconTarget, query, 0 );
+		SQL_TQuery( bacon_db, CacheBaconTarget, query );
 	}
 }
 
 //-------------------------------------------------------------------------------------------------
-public CacheBaconTarget( Handle owner, Handle hndl, const char[] error[], any:data ) {
+public void CacheBaconTarget( Handle owner, Handle hndl, const char[] error, any data ) {
 	// handle errors
 	if( !hndl ) {
 		LogMessage( "CacheBaconTarget Database Error: %s", error );
@@ -698,7 +700,7 @@ public CacheBaconTarget( Handle owner, Handle hndl, const char[] error[], any:da
 }
 
 //-------------------------------------------------------------------------------------------------
-public TakeBaconDelete( Handle owner, Handle hndl, const char[] error[], any:pack ) {
+public void TakeBaconDelete( Handle owner, Handle hndl, const char[] error, any pack ) {
 	ResetPack(pack);
 	int client = GetBaconClient( ReadPackCell(pack) );
 	int target = GetBaconClient( ReadPackCell(pack) );
@@ -771,7 +773,7 @@ public TakeBaconDelete( Handle owner, Handle hndl, const char[] error[], any:pac
 }
 
 //-------------------------------------------------------------------------------------------------
-public TakeBaconSelect( Handle owner, Handle hndl, const char[] error[], any:pack ) {
+public void TakeBaconSelect( Handle owner, Handle hndl, const char[] error, any pack ) {
 	ResetPack(pack);
 	int client = GetBaconClient( ReadPackCell(pack) );
 	int target = GetBaconClient( ReadPackCell(pack) );
@@ -810,7 +812,7 @@ public TakeBaconSelect( Handle owner, Handle hndl, const char[] error[], any:pac
 	
 	RestoreReplySource();
 	
-	char[] query[512]; 
+	char query[512]; 
 	int source = GetBaconAccountID( client );
 	int dest = GetBaconAccountID( target );
 	
@@ -820,7 +822,7 @@ public TakeBaconSelect( Handle owner, Handle hndl, const char[] error[], any:pac
 }
 
 //-------------------------------------------------------------------------------------------------
-TakeBacon( client, target ) {
+void TakeBacon( int client, int target ) {
 	
 	if( client == target ) {
 		BaconPrint( client, "NO SELF TAKING" );
@@ -833,7 +835,7 @@ TakeBacon( client, target ) {
 	if( BaconFloodCheck(client) ) return;
 	
 	// take bacon from user
-	char[] query[512];
+	char query[512];
 	int source = GetBaconAccountID( client );
 	int dest = GetBaconAccountID( target );
 	Format( query, sizeof(query), "SELECT * FROM BACON2 WHERE source=%d AND dest=%d", source, dest );
@@ -841,13 +843,13 @@ TakeBacon( client, target ) {
 	Handle pack = CreateDataPack();
 	WritePackCell( pack, GetBaconUserId(client) );
 	WritePackCell( pack, GetBaconUserId(target) );
-	WritePackCell( pack, _:GetCmdReplySource() );
+	WritePackCell( pack, view_as<int>(GetCmdReplySource()) );
 	
 	SQL_TQuery( bacon_db, TakeBaconSelect, query, pack );
 }
 
 //-------------------------------------------------------------------------------------------------
-public MostBaconQueryNames( Handle owner, Handle hndl, const char[] error[], any:pack ) {
+public void MostBaconQueryNames( Handle owner, Handle hndl, const char[] error, any pack ) {
 	ResetPack(pack);
 	int client = GetBaconClient( ReadPackCell(pack) );
 	ReplySource rs = ReadPackCell(pack);
@@ -920,7 +922,7 @@ public MostBaconQueryNames( Handle owner, Handle hndl, const char[] error[], any
 }
 
 //-------------------------------------------------------------------------------------------------
-public MostBaconQuery( Handle owner, Handle hndl, const char[] error[], any:pack ) {
+public void MostBaconQuery( Handle owner, Handle hndl, const char[] error, any pack ) {
 	ResetPack(pack);
 	int client = GetBaconClient( ReadPackCell(pack) );
 	ReplySource rs = ReadPackCell(pack);
@@ -955,7 +957,7 @@ public MostBaconQuery( Handle owner, Handle hndl, const char[] error[], any:pack
 	
 	ResetPack(pack);
 	WritePackCell( pack, GetBaconUserId(client) );
-	WritePackCell( pack, _:rs );
+	WritePackCell( pack, view_as<int>(rs) );
 	WritePackCell( pack, rows );
 	
 	for( int i = 0; i < rows; i++ ) {
@@ -980,7 +982,7 @@ public MostBaconQuery( Handle owner, Handle hndl, const char[] error[], any:pack
 } 
 
 //-------------------------------------------------------------------------------------------------
-GetBaconTarget( client ) {
+int GetBaconTarget( int client ) {
 	char arg[64];
 	GetCmdArg( 1, arg, sizeof(arg) );
 	if( StrEqual( arg, "server", false ) ) {
@@ -991,7 +993,7 @@ GetBaconTarget( client ) {
 }
 
 //-------------------------------------------------------------------------------------------------
-public Action:Command_bacon( client, args ) {
+public Action Command_bacon( int client, int args ) {
 	if( args == 0 ) {
 		ShowBacon(client);
 		return Plugin_Handled;
@@ -1006,7 +1008,7 @@ public Action:Command_bacon( client, args ) {
 }
 
 //-------------------------------------------------------------------------------------------------
-public Action:Command_nobacon( client, args ) {
+public Action Command_nobacon( int client, int args ) {
 	if( args == 0 ) {
 		BaconPrint( client, "NOBACON USAGE" );
 		return Plugin_Handled;
@@ -1021,7 +1023,7 @@ public Action:Command_nobacon( client, args ) {
 }
 
 //-------------------------------------------------------------------------------------------------
-public Action:Command_mostbacon( client, args ) {
+public Action Command_mostbacon( int client, int args ) {
 	
 	// prevent system bacon overload //
 	if( BaconFloodCheck(client) ) return Plugin_Handled;
@@ -1031,7 +1033,7 @@ public Action:Command_mostbacon( client, args ) {
 	
 	Handle pack = CreateDataPack();
 	WritePackCell( pack, GetBaconUserId( client ) );
-	WritePackCell( pack, _:GetCmdReplySource() );
+	WritePackCell( pack, view_as<int>(GetCmdReplySource()) );
 	
 	SQL_TQuery( bacon_db, MostBaconQuery, query, pack );
 	

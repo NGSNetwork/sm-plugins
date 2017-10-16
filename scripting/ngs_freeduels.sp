@@ -455,7 +455,7 @@ public Action EventPlayerSpawn(Handle hEvent, const char[] strName, bool bHidden
 	if(g_Duel[iClient][Enabled] && g_Duel[iClient][GodMod] == 1)
 	{
 		SetGodModColor(iClient);
-		SetEntProp(iClient, Prop_Send, "m_CollisionGroup", 2);
+		SetEntProp(iClient, Prop_Send, "m_CollisionGroup", FindConVar("sm_friendly_noblock").IntValue);
 	}
 	else if (!g_Duel[iClient][GodMod] && !TF2Friendly_IsFriendly(iClient))
 		SetEntProp(iClient, Prop_Send, "m_CollisionGroup", 5);

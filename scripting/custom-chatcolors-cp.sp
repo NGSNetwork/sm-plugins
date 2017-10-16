@@ -1,3 +1,4 @@
+#pragma newdecls required
 #pragma semicolon 1
 
 #include <sourcemod>
@@ -5,22 +6,22 @@
 
 #define PLUGIN_VERSION		"3.1.0 CP"
 
-public Plugin:myinfo = {
+public Plugin myinfo = {
 	name        = "[Source 2013] Custom Chat Colors with Overrides",
 	author      = "Dr. McKay, Fixed up by Keith Warren (Drixevel), TheXeon",
 	description = "Processes chat and provides colors for Source 2013 games",
 	version     = PLUGIN_VERSION,
 	url         = "http://www.doctormckay.com"
-};
+}
 
-new Handle:colorForward;
-new Handle:nameForward;
-new Handle:tagForward;
-new Handle:applicationForward;
-new Handle:messageForward;
-new Handle:preLoadedForward;
-new Handle:loadedForward;
-new Handle:configReloadedForward;
+Handle colorForward;
+Handle nameForward;
+Handle tagForward;
+Handle applicationForward;
+Handle messageForward;
+Handle preLoadedForward;
+Handle loadedForward;
+Handle configReloadedForward;
 
 new String:tag[MAXPLAYERS + 1][32];
 new String:tagColor[MAXPLAYERS + 1][12];
@@ -32,7 +33,7 @@ new String:defaultTagColor[MAXPLAYERS + 1][12];
 new String:defaultUsernameColor[MAXPLAYERS + 1][12];
 new String:defaultChatColor[MAXPLAYERS + 1][12];
 
-new Handle:configFile;
+Handle configFile;
 
 enum CCC_ColorType {
 	CCC_TagColor,
@@ -210,10 +211,10 @@ public Action CP_OnChatMessage(int& author, ArrayList recipients, char[] flagstr
 		} else if(strlen(usernameColor[author]) == 8) {
 			Format(name, MAXLENGTH_NAME, "\x08%s%s", usernameColor[author], name);
 		} else {
-			Format(name, MAXLENGTH_NAME, "\x03%s", name); // team color by default!
+			// Format(name, MAXLENGTH_NAME, "\x03%s", name); // team color by default!
 		}
 	} else {
-		Format(name, MAXLENGTH_NAME, "\x03%s", name); // team color by default!
+		// Format(name, MAXLENGTH_NAME, "\x03%s", name); // team color by default!
 	}
 	if(CheckForward(author, message, CCC_TagColor)) {
 		if(strlen(tag[author]) > 0) {

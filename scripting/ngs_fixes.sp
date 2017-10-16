@@ -55,15 +55,21 @@ public Action AuthCheckTimer(Handle timer, int userid)
 	}
 	else
 	{
-		delete authClientTimer[client];
+		KillTimerDelete(client);
 	}
 	return Plugin_Continue;
 }
 
 public void OnClientDisconnect(int client)
 {
+	KillTimerDelete(client);
+}
+
+stock void KillTimerDelete(int client)
+{
 	if (authClientTimer[client] != null)
 	{
-		delete authClientTimer[client];
+		KillTimer(authClientTimer[client]);
+		authClientTimer[client] = null;
 	}
 }

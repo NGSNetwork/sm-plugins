@@ -10,8 +10,9 @@
 #define PLUGIN_VERSION "1.0.0"
 
 ConVar cvarAWPVersion;
+Database awpDB;
 Menu menuHome, menuPunishments, menuSpecificPunishments, menuTips;
-int chatsPunishEscalation[5] =  { 20, 30, 60, 1440, 0 };
+int chatsPunishEscalation[5] =  { 30, 60, 240, 1440, 10080, 0 };
 int banPunishEscalation[2] =  { 10080, 0 };
 
 //--------------------//
@@ -24,6 +25,29 @@ public Plugin myinfo = {
 	url = "https://www.neogenesisnetwork.net"
 }
 
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
+{
+	if (SQL_CheckConfig("autowarnpunisher"))
+		awpDB = SQL_Connect("autowarnpunisher", true, error, err_max);
+	else
+		awpDB = SQL_Connect("default", true, error, err_max);
+	
+	if (awpDB == INVALID_HANDLE)
+		return APLRes_Failure;
+	
+	SQL_SetCharset(awpDB, "utf8");
+	SQL_TQuery(awpDB, OnTableCreated, "CREATE TABLE IF NOT EXISTS `awp_punishments` (id int(11) NOT NULL AUTO_INCREMENT, auth varchar(32), type varchar(32), number int(11) NOT NULL, PRIMARY KEY (id)) ENGINE=InnoDB  DEFAULT CHARSET=utf8;");
+	return APLRes_Success;
+}
+
+public void OnTableCreated(Handle owner, Handle hndl, const char[] error, any data)
+{
+	if (hndl == INVALID_HANDLE)
+	{
+		SetFailState("Unable to create table. %s", error);
+	}
+}
+
 public void OnPluginStart()
 {
 	// Version CVAR and RESET
@@ -32,6 +56,7 @@ public void OnPluginStart()
 	
 	// Register commands for menus
 	RegAdminCmd("sm_ngsadminmenu", CommandAdminMenuHome, ADMFLAG_GENERIC, "Usage: sm_ngsadminmenu");
+	RegAdminCmd("sm_punishr", CommandPunishr, ADMFLAG_GENERIC, "Usage: sm_punishr <#userid|name> type");
 	
 	/*******************************************
 	*
@@ -81,9 +106,51 @@ public void OnVersionCvarChanged(ConVar convar, char[] oldValue, char[] newValue
 	convar.SetString(PLUGIN_VERSION);
 }
 
-public void OnClientPutInServer(int client)
-{ 
-	VoicesEnabled[client] = false; 
+/*******************************************
+*										   *
+*			    CMD HANDLERS			   *
+*										   *
+*******************************************/
+
+public Action CommandPunishr(int client, int args)
+{
+	if (!IsValidClient(client)) return Plugin_Handled;
+	
+	if (args < 2)
+	{
+		CPrintToChat(client, "{GREEN}[SM]{DEFAULT} Usage: sm_punishr <#userid|name> type");
+		return Plugin_Handled;
+	}
+	char arg1[MAX_BUFFER_LENGTH], arg2[MAX_BUFFER_LENGTH];
+	GetCmdArg(1, arg1, sizeof(arg1));
+	GetCmdArg(2, arg2, sizeof(arg2));
+	
+	int target = FindTarget(client, arg1, true, false);
+	if (!IsValidClient(target)) return Plugin_Handled;
+	
+	char steamID[MAX_BUFFER_LENGTH], escapedID[MAX_BUFFER_LENGTH], escapedType[MAX_BUFFER_LENGTH], query[MAX_BUFFER_LENGTH];
+	DBResultSet dbResult;
+	GetClientAuthId(target, AuthId_Steam2, steamID, sizeof(steamID));
+	
+	SQL_EscapeString(awpDB, steamID, escapedID, sizeof(escapedID));
+	SQL_EscapeString(awpDB, arg2, escapedType, sizeof(escapedType));
+	
+	if (StrEqual("textslur", arg2, false))
+	{
+		Format(query, "SELECT number FROM awp_punishments WHERE type='%s' and auth='%s';", escapedType, escapedID);
+		dbResult = SQL_TQuery(awpDB, query);
+		if (SQL_GetRowCount(dbResult) < 1)
+		{
+			Format(query, "INSERT INTO awp_punishments (auth, type, number) VALUES ('%s', '%s', '1');", escapedID, escapedType);
+			SQL_FastQuery(awpDB, query);
+		}
+		else
+		{
+			SQL_TConnect(
+		}
+	}
+	
+	return Plugin_Handled;
 }
 
 public Action CommandAdminMenuHome(int client, int args)
@@ -92,7 +159,6 @@ public Action CommandAdminMenuHome(int client, int args)
 	menuHome.Display(client, MENU_TIME_FOREVER);
 	return Plugin_Handled;
 }
-
 
 /*******************************************
 *										   *

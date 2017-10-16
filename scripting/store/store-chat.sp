@@ -17,7 +17,7 @@ enum NameColor
 	String:NameColorName[STORE_MAX_NAME_LENGTH],
 	String:NameColorText[64]
 }
-enum ChatColor
+enum ChatTextColor
 {
 	String:ChatColorName[STORE_MAX_NAME_LENGTH],
 	String:ChatColorText[64]
@@ -25,7 +25,7 @@ enum ChatColor
 
 int g_titles[1024][Title];
 int g_namecolors[1024][NameColor];
-int g_chatcolors[1024][ChatColor];
+int g_chatcolors[1024][ChatTextColor];
 
 int g_titleCount = 0;
 int g_namecolorCount = 0;
@@ -222,7 +222,8 @@ public void OnTitleLoadItem(const char[] itemName, const char[] attrs)
 	if (IsSource2009())
 	{
 		json_object_get_string(json, "colorful_text", g_titles[g_titleCount][TitleText], 64);
-		CReplaceColorCodes(g_titles[g_titleCount][TitleText]);
+		CProcessVariables(g_titles[g_titleCount][TitleText], 64);
+		// CReplaceColorCodes(g_titles[g_titleCount][TitleText]);
 	}
 	/*
 	else
@@ -248,7 +249,8 @@ public void OnLoadNameItem(const char[] itemName, const char[] attrs)
 	if (IsSource2009())
 	{
 		json_object_get_string(json, "color", g_namecolors[g_namecolorCount][NameColorText], 64);
-		CReplaceColorCodes(g_namecolors[g_namecolorCount][NameColorText]);
+		CProcessVariables(g_namecolors[g_namecolorCount][NameColorText], 64);
+		// CReplaceColorCodes(g_namecolors[g_namecolorCount][NameColorText]);
 	}
 	/*
 	else
@@ -274,7 +276,8 @@ public void OnLoadChatItem(const char[] itemName, const char[] attrs)
 	if (IsSource2009())
 	{
 		json_object_get_string(json, "color", g_chatcolors[g_chatcolorCount][ChatColorText], 64);
-		CReplaceColorCodes(g_chatcolors[g_chatcolorCount][ChatColorText]);
+		CProcessVariables(g_chatcolors[g_chatcolorCount][ChatColorText], 64);
+		// CReplaceColorCodes(g_chatcolors[g_chatcolorCount][ChatColorText]);
 	}
 
 	delete json;
@@ -397,7 +400,7 @@ public Action CP_OnChatMessage(int& author, ArrayList recipients, char[] flagstr
 	if (g_clientTitles[author] != -1)
 	{
 		bChanged = true;
-		Format(sTitle, sizeof(sTitle), "%s \x03", g_titles[g_clientTitles[author]][TitleText]);		
+		Format(sTitle, sizeof(sTitle), "%s \x03", g_titles[g_clientTitles[author]][TitleText]);
 	}
 	else
 		strcopy(sTitle, sizeof(sTitle), "");
@@ -443,11 +446,12 @@ public Action CP_OnChatMessage(int& author, ArrayList recipients, char[] flagstr
 	return Plugin_Continue;
 }
 
+/*
 stock bool IsSource2009()
 {
 	return (SOURCE_SDK_CSS <= GuessSDKVersion() < SOURCE_SDK_LEFT4DEAD);
 	
-}
+}*/
 
 public bool IsValidClient (int client)
 {

@@ -2,11 +2,13 @@
 #pragma semicolon 1
 
 #include <sourcemod>
-#include <morecolors>
+#include <colorvariables>
+// #include <morecolors>
 
 #undef REQUIRE_PLUGIN
 #include <basecomm>
 #include <sourcecomms>
+#define REQUIRE_PLUGIN
 
 #define PLUGIN_VERSION "1.0.0"
 
@@ -22,6 +24,7 @@ bool basecommExists, sourcecommsExists;
 bool djChatToggledOn[MAXPLAYERS + 1] =  { false, ... };
 
 ConVar cvarDisableDJForNonDJs;
+ConVar sv_allow_voice_from_file;
 
 char logfile[255];
 
@@ -36,9 +39,10 @@ public void OnPluginStart()
 	RegConsoleCmd("say_team", CommandSay, "Sends messages through DJ chat if that is toggled on.");
 	
 	CreateConVar("sm_rdjsuite_version", PLUGIN_VERSION, "DJSuite version number.", FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_DONTRECORD);
-	cvarDisableDJForNonDJs = CreateConVar("sm_rdjsuite_nondj_disabled", "1", "Disable the ability for nonDJS to play music.");
+	cvarDisableDJForNonDJs = CreateConVar("sm_djsuite_nondj_disabled", "1", "Disable the ability for nonDJS to play music.");
 	
 	cvarDisableDJForNonDJs.AddChangeHook(OnDJDisableChange);
+	sv_allow_voice_from_file = FindConVar("sv_allow_voice_from_file");
 	
 	BuildPath(Path_SM, logfile, sizeof(logfile), "logs/djchat.log");
 	
@@ -53,20 +57,21 @@ public void OnPluginStart()
 public void OnDJDisableChange(ConVar convar, char[] oldValue, char[] newValue)
 {
 	int value = StringToInt(newValue);
-	if (value)
+	char cvarValue[3];
+	sv_allow_voice_from_file.GetString(cvarValue, sizeof(cvarValue));
+	if (!value)
 	{
 		for (int i = 1; i <= MaxClients; i++)
-		{
-			if (IsValidClient(i)) SendConVarValue(i, FindConVar("sv_allow_voice_from_file"), "1");
-		}
+			if (IsValidClient(i)) SendConVarValue(i, sv_allow_voice_from_file, cvarValue);
 	}
 	else
 	{
 		for (int i = 1; i <= MaxClients; i++)
-		{
-			if (IsValidClient(i) && !CheckCommandAccess(i, "sm_djsuite_allowaudio_override", ADMFLAG_GENERIC))
-				SendConVarValue(i, FindConVar("sv_allow_voice_from_file"), "0");
-		}
+			if (IsValidClient(i))
+				if (!CheckCommandAccess(i, "sm_djsuite_allowaudio_override", ADMFLAG_ROOT))
+					SendConVarValue(i, sv_allow_voice_from_file, "0");
+				else
+					SendConVarValue(i, sv_allow_voice_from_file, "1");
 	}
 }
 
@@ -157,10 +162,10 @@ public void OnClientConnected(int client)
 public void OnClientPostAdminCheck(int client)
 {
 	if (!cvarDisableDJForNonDJs.BoolValue) return;
-	if (!CheckCommandAccess(client, "sm_djsuite_allowaudio_override", ADMFLAG_CUSTOM2) && !CheckCommandAccess(client, "sm_djsuite_allowaudio_override", ADMFLAG_GENERIC))
-		SendConVarValue(client, FindConVar("sv_allow_voice_from_file"), "0");
+	if (!CheckCommandAccess(client, "sm_djsuite_allowaudio_override", ADMFLAG_ROOT, true))
+		SendConVarValue(client, sv_allow_voice_from_file, "0");
 	else
-		SendConVarValue(client, FindConVar("sv_allow_voice_from_file"), "1");
+		SendConVarValue(client, sv_allow_voice_from_file, "1");
 }
 
 void DoDJChat(int client, char[] msg, bool isRequest=false)
@@ -179,7 +184,7 @@ void DoDJChat(int client, char[] msg, bool isRequest=false)
 	
 	for (int i = 1; i <= MaxClients; i++)
 		if (IsClientInGame(i) && !IsFakeClient(i))
-			if (CheckCommandAccess(i, "sm_djsuite_allowaudio_override", ADMFLAG_CUSTOM2) || CheckCommandAccess(i, "sm_djsuite_allowaudio_override", ADMFLAG_GENERIC))
+			if (CheckCommandAccess(i, "sm_djsuite_allowaudio_override", ADMFLAG_ROOT))
 				if (isRequest) CPrintToChat(i, "{PURPLE}[RDJC]{DEFAULT} {RED}*REQUEST*{DEFAULT} {CYAN}%s{DEFAULT}: {PINK}%s", name, msg);
 				else CPrintToChat(i, "{PURPLE}[RDJC]{DEFAULT} {CYAN}%s{DEFAULT}: {PINK}%s", name, msg);
 	

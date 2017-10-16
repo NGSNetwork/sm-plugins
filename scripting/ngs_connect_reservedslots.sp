@@ -41,15 +41,18 @@ public bool OnClientPreConnectEx(const char[] name, char password[255], const ch
 	
 	if (admin == INVALID_ADMIN_ID)
 	{
+		LogMessage("%s didn\'t have an adminid.", steamID);
 		return true;
 	}
-	
+	LogMessage("%s should flagcheck right after this.", steamID);
 	if (GetAdminFlag(admin, Admin_Reservation))
 	{
+		LogMessage("%s flag was good, should kick right after this.", steamID);
 		int target = SelectKickClient();
 						
 		if (target)
 		{
+			LogMessage("%s about to kick %N.", steamID, target);
 			char rReason[255];
 			g_hcvarReason.GetString(rReason, sizeof(rReason));
 			KickClientEx(target, "%s", rReason);

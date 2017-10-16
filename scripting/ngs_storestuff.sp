@@ -4,7 +4,7 @@
 #include <sourcemod>
 #include <sdktools>
 #include <tf2_stocks>
-#include <morecolors>
+#include <colorvariables>
 #include <clientprefs>
 #include <store>
 #include <afk_manager>

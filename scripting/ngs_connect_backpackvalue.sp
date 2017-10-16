@@ -1,5 +1,6 @@
 #include <sourcemod>
-#include <async>
+#include <SteamWorks>
+#include <colorvariables>
 
 #pragma newdecls required
 #pragma semicolon 1
@@ -33,15 +34,15 @@ public void OnPluginStart()
 	AutoExecConfig(true, "ngs-connect-backpackvalue");
 }
 
-public void OnClientConnected(int client)
+public void OnClientPostAdminCheck(int client)
 {
 	char url[MAX_BUFFER_LENGTH], auth[24];
 	GetClientAuthId(client, AuthId_SteamID64, auth, sizeof(auth));
 	Format(url, sizeof(url), "%s%s", BPVALUEURL, auth);
-	CurlHandle h = Async_CurlNew(client);
-	Async_CurlGet(h, url, OnRequestDone);
+	// CurlHandle h = Async_CurlNew(client);
+	// Async_CurlGet(h, url, OnRequestDone);
 }
-
+/*
 public void OnRequestDone(CurlHandle request, int curlcode, int httpcode, int size, any client)
 {
 	char buffer = new char[size+1];
@@ -57,9 +58,10 @@ public void OnRequestDone(CurlHandle request, int curlcode, int httpcode, int si
 			}
 			if (cvarScoreboardEnabled.BoolValue)
 			{
-				Se
+				//Se
 			}
 		}
 	}
 	Async_Close(request);
 }
+*/

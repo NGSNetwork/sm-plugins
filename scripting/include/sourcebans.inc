@@ -29,10 +29,10 @@
 #endif
 #define _sourcebans_included
 
-public SharedPlugin:__pl_sourcebans =
+public SharedPlugin __pl_sourcebans =
 {
-	name = "sourcebans", 
-	file = "sourcebans.smx",
+	name = "sourcebans++",
+	file = "sbpp_main.smx",
 	#if defined REQUIRE_PLUGIN
 	required = 1
 	#else
@@ -41,7 +41,7 @@ public SharedPlugin:__pl_sourcebans =
 };
 
 #if !defined REQUIRE_PLUGIN
-public __pl_sourcebans_SetNTVOptional()
+public void __pl_sourcebans_SetNTVOptional()
 {
 	MarkNativeAsOptional("SBBanPlayer");
 }
@@ -58,7 +58,7 @@ public __pl_sourcebans_SetNTVOptional()
  * @noreturn
  *********************************************************/
 #pragma deprecated Use SourceBans_BanPlayer() instead.
-native SBBanPlayer(client, target, time, String:reason[]);
+native void SBBanPlayer(int client, int target, int time, char[] reason);
 
 /*********************************************************
  * Ban Player from server
@@ -69,16 +69,16 @@ native SBBanPlayer(client, target, time, String:reason[]);
  * @param reason	The reason to ban the player from the server
  * @noreturn
  *********************************************************/
-native SourceBans_BanPlayer(client, target, time, String:reason[]);
+native void SourceBans_BanPlayer(int client, int target, int time, char[] reason);
 
 /*********************************************************
- * Called when the admin banning the player.
+ * Called when the admin is banning the player.
  *
  * @param           The client index of the admin who is banning the client.
  * @param target    The client index of the player to ban
  * @param time      The time to ban the player for (in minutes, 0 = permanent)
  * @param reason    The reason to ban the player from the server
  *********************************************************/
-forward SourceBans_OnBanPlayer(client, target, time, String:reason[]);
+forward void SourceBans_OnBanPlayer(int client, int target, int time, char[] reason);
 
 //Yarr!

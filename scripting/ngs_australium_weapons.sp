@@ -29,7 +29,7 @@ public void OnPluginStart()
 	
 	HookEvent("post_inventory_application", OnResupply);
 	
-	cHasAustralium = RegClientCookie("hasAustralium", 1, CookieAccess_Private);
+	cHasAustralium = RegClientCookie("hasAustralium", "Clients Australium-mode enabled!", CookieAccess_Private);
 	
 	for (int i = 1; i <= MaxClients; i++)
 	{

@@ -22,15 +22,19 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_find", Command_Find, "Finds supplied weapon name and quality in people's backpacks.");
 	BuildPath(Path_SM, path, sizeof(path), "data/backpack-tf.txt");
 	if(!FileExists(path)) {
-		return Plugin_Stop;
+		return;
 	}
 }
 
 public Action Command_Find(client, args)
 {
 	if(args == 0) {
-		Handle menu = CreateMenu(Handler_ItemSelection);
-		SetMenuTitle(menu, "Find Item");
+		// TODO: Make viable bandwidth-wise
+		
+		/*
+		Menu menu = new Menu(Handler_ItemSelection);
+		menu.SetTitle("Find Item");
+		
 		PrepPriceKv();
 		KvGotoFirstSubKey(backpackTFPricelist);
 		char name[128];
@@ -108,6 +112,7 @@ public Action Command_Find(client, args)
 			HTTPRequestHandle request = Steam_CreateHTTPRequest(HTTPMethod_GET, BACKPACK_TF_URL);
 		}
 	}
-	
+	*/
+	} // deleted when uncommenting
 	return Plugin_Handled;
 }

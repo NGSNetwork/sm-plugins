@@ -11,6 +11,9 @@
 #define _CV_MAX_VARIABLE_REDIRECTS 	10
 #define _CV_CONFIG_DIRECTORY 		"configs/colorvariables"
 
+#define MAX_BUFFER_LENGTH 1024
+#define MAX_MESSAGE_LENGTH 256
+
 static bool g_bInit = false;
 static Handle g_hColors = INVALID_HANDLE;
 static char g_sConfigGlobal[PLATFORM_MAX_PATH];

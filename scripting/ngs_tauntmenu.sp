@@ -102,6 +102,8 @@ public Action ShowMenu(int client)
 			menu.AddItem("30616", "Taunt: The Proletariat Posedown");
 			menu.AddItem("1174", "Taunt: The Table Tantrum");
 			menu.AddItem("1175", "Taunt: The Boiling Point");
+			menu.AddItem("30843", "Taunt: The Russian Arms Race");
+			menu.AddItem("30844", "Taunt: The Soviet Strongarm");
 		}
 		case TFClass_DemoMan:
 		{
@@ -121,6 +123,7 @@ public Action ShowMenu(int client)
 			menu.AddItem("1112", "Taunt: Party Trick");
 			menu.AddItem("30570", "Taunt: Pool Party");
 			menu.AddItem("30763", "Taunt: The Balloonibouncer");
+			menu.AddItem("30876", "Taunt: The Headcase");
 		}
 		case TFClass_Spy:
 		{
@@ -132,6 +135,8 @@ public Action ShowMenu(int client)
 		{
 			menu.AddItem("1115", "Taunt: Rancho Relaxo");
 			menu.AddItem("30618", "Taunt: Bucking Bronco");
+			menu.AddItem("30842", "Taunt: The Dueling Banjo");
+			menu.AddItem("30845", "Taunt: The Jumping Jack");
 		}
 	}
 	
@@ -150,6 +155,9 @@ public Action ShowMenu(int client)
 	menu.AddItem("30672", "Taunt: Zoomin' Broom");
 	menu.AddItem("1172", "Taunt: The Victory Lap");
 	menu.AddItem("30816", "Taunt: Second Rate Sorcery");
+	menu.AddItem("1182", "Taunt: Yeti Punch");
+	menu.AddItem("1183", "Taunt: Yeti Smash");
+	
 	
 	menu.Display(client, 20);
 }

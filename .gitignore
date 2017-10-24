@@ -26,14 +26,15 @@
 # Executables
 *.out
 *.app
+*.sh
 compile.dat
 
 # Folders
 smac/
+scripting/compiled
 
 # Debug Filetypes
 scripting/*.smx
 scripting/*/*.smx
 *.inc
-*.sh
 scripting/spcomp

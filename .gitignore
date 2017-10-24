@@ -34,3 +34,6 @@ smac/
 # Debug Filetypes
 scripting/*.smx
 scripting/*/*.smx
+*.inc
+*.sh
+scripting/spcomp

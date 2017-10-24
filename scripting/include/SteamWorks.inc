@@ -246,9 +246,9 @@ native bool SteamWorks_SetHTTPRequestAbsoluteTimeoutMS(Handle hHandle, int unMil
 
 typeset SteamWorksHTTPRequestCompleted
 {
-	function int(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode);
-	function int(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, any data1);
-	function int(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, any data1, any data2);
+	function void(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode);
+	function void(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, any data1);
+	function void(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, any data1, any data2);
 };
 
 typeset SteamWorksHTTPHeadersReceived

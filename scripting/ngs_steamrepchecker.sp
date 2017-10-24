@@ -1,4 +1,3 @@
-#pragma newdecls required
 #pragma semicolon 1
 
 #include <sourcemod>
@@ -7,7 +6,7 @@
 
 #undef REQUIRE_PLUGIN
 #include <ccc>
-#include <chat-processor>
+#include <scp>
 #include <sourcebans>
 #include <updater>
 
@@ -29,23 +28,31 @@ enum TagType {
 	TagType_TradeProbation
 }
 
-public Plugin myinfo = {
+public Plugin:myinfo = {
 	name        = "[TF2] SteamRep Checker (Redux)",
-	author      = "Dr. McKay / TheXeon",
+	author      = "Dr. McKay",
 	description = "Checks a user's SteamRep upon connection",
 	version     = PLUGIN_VERSION,
 	url         = "http://www.doctormckay.com"
 };
 
-ConVar cvarDealMethod, cvarSteamIDBanLength, cvarIPBanLength, cvarKickTaggedScammers, cvarValveBanDealMethod;
-ConVar cvarValveCautionDealMethod, cvarSteamAPIKey, cvarSendIP, cvarExcludedTags, cvarSpawnMessage, cvarLogLevel, cvarUpdater;
+new Handle:cvarDealMethod;
+new Handle:cvarSteamIDBanLength;
+new Handle:cvarIPBanLength;
+new Handle:cvarKickTaggedScammers;
+new Handle:cvarValveBanDealMethod;
+new Handle:cvarValveCautionDealMethod;
+new Handle:cvarSteamAPIKey;
+new Handle:cvarSendIP;
+new Handle:cvarExcludedTags;
+new Handle:cvarSpawnMessage;
+new Handle:cvarLogLevel;
+new Handle:cvarUpdater;
 
-ConVar sv_visiblemaxplayers;
+new TagType:clientTag[MAXPLAYERS + 1];
+new bool:messageDisplayed[MAXPLAYERS + 1];
 
-TagType clientTag[MAXPLAYERS + 1];
-bool messageDisplayed[MAXPLAYERS + 1];
-
-public void OnPluginStart() {
+public OnPluginStart() {
 	cvarDealMethod = CreateConVar("steamrep_checker_deal_method", "2", "How to deal with reported scammers.\n0 = Disabled\n1 = Prefix chat with [SCAMMER] tag and warn users in chat (requires Custom Chat Colors)\n2 = Kick\n3 = Ban Steam ID\n4 = Ban IP\n5 = Ban Steam ID + IP", _, true, 0.0, true, 5.0);
 	cvarSteamIDBanLength = CreateConVar("steamrep_checker_steamid_ban_length", "0", "Duration in minutes to ban Steam IDs for if steamrep_checker_deal_method = 3 or 5 (0 = permanent)", _, true, 0.0);
 	cvarIPBanLength = CreateConVar("steamrep_checker_ip_ban_length", "0", "Duration in minutes to ban IP addresses for if steamrep_checker_deal_method = 4 or 5 (0 = permanent)");
@@ -59,9 +66,7 @@ public void OnPluginStart() {
 	cvarLogLevel = CreateConVar("steamrep_checker_log_level", "1", "Level of logging\n0 = Errors only\n1 = Info + errors\n2 = Info, errors, and debug", _, true, 0.0, true, 2.0);
 	cvarUpdater = CreateConVar("steamrep_checker_auto_update", "1", "Enables automatic updating (has no effect if Updater is not installed)");
 	HookConVarChange(cvarUpdater, Callback_VersionConVarChanged); // For purposes of removing the "A" if updater is disabled
-	AutoExecConfig();
-	
-	sv_visiblemaxplayers = FindConVar("sv_visiblemaxplayers");
+	AutoExecConfig(true, "plugin.steamrep_checker");
 	
 	HookEvent("player_spawn", Event_PlayerSpawn);
 	HookEvent("player_changename", Event_PlayerChangeName);
@@ -70,23 +75,23 @@ public void OnPluginStart() {
 	RegConsoleCmd("sm_sr", Command_Rep, "Checks a user's SteamRep");
 }
 
-public void OnClientConnected(int client) {
+public OnClientConnected(client) {
 	clientTag[client] = TagType_None;
 }
 
-public void OnClientPostAdminCheck(int client) {
+public OnClientPostAdminCheck(client) {
 	PerformKicks();
-	if(IsFakeClient(client) || CheckCommandAccess(client, "SkipSR", ADMFLAG_ROOT, true)) {
+	if(IsFakeClient(client) || CheckCommandAccess(client, "SkipSR", ADMFLAG_ROOT)) {
 		return;
 	}
-	char auth[32];
+	decl String:auth[32];
 	GetClientAuthId(client, AuthId_Steam2, auth, sizeof(auth));
-	char excludedTags[64], ip[64];
+	new String:excludedTags[64], String:ip[64];
 	GetConVarString(cvarExcludedTags, excludedTags, sizeof(excludedTags));
-	if(cvarSendIP.BoolValue) {
+	if(GetConVarBool(cvarSendIP)) {
 		GetClientIP(client, ip, sizeof(ip));
 	}
-	HTTPRequestHandle request = Steam_CreateHTTPRequest(HTTPMethod_GET, STEAMREP_URL);
+	new HTTPRequestHandle:request = Steam_CreateHTTPRequest(HTTPMethod_GET, STEAMREP_URL);
 	Steam_SetHTTPRequestGetOrPostParameter(request, "steamID32", auth);
 	Steam_SetHTTPRequestGetOrPostParameter(request, "ignore", excludedTags);
 	Steam_SetHTTPRequestGetOrPostParameter(request, "IP", ip);
@@ -94,9 +99,9 @@ public void OnClientPostAdminCheck(int client) {
 	LogItem(Log_Debug, "Sending HTTP request for %L", client);
 }
 
-void PerformKicks() {
-	if(GetClientCount(false) >= (GetConVarInt(sv_visiblemaxplayers) - 1) && GetConVarBool(cvarKickTaggedScammers)) {
-		if(cvarDealMethod.IntValue == 1) {
+PerformKicks() {
+	if((GetClientCount(true) >= MaxClients - 1) && GetConVarBool(cvarKickTaggedScammers)) {
+		if(GetConVarInt(cvarDealMethod) == 1) {
 			for(int i = 1; i <= MaxClients; i++) {
 				if(IsClientInGame(i) && clientTag[i] == TagType_Scammer) {
 					KickClient(i, "You were kicked to free a slot because you are a reported scammer");
@@ -104,16 +109,16 @@ void PerformKicks() {
 				}
 			}
 		}
-		if(cvarValveBanDealMethod.IntValue == 1) {
-			for(int i = 1; i <= MaxClients; i++) {
+		if(GetConVarInt(cvarValveBanDealMethod) == 1) {
+			for(new i = 1; i <= MaxClients; i++) {
 				if(IsClientInGame(i) && clientTag[i] == TagType_TradeBanned) {
 					KickClient(i, "You were kicked to free a slot because you are trade banned");
 					return;
 				}
 			}
 		}
-		if(cvarValveCautionDealMethod.IntValue == 1) {
-			for(int i = 1; i <= MaxClients; i++) {
+		if(GetConVarInt(cvarValveCautionDealMethod) == 1) {
+			for(new i = 1; i <= MaxClients; i++) {
 				if(IsClientInGame(i) && clientTag[i] == TagType_TradeProbation) {
 					KickClient(i, "You were kicked to free a slot because you are on trade probation");
 					return;
@@ -123,33 +128,33 @@ void PerformKicks() {
 	}
 }
 
-public int OnSteamRepChecked(HTTPRequestHandle request, bool successful, HTTPStatusCode code, any userid) {
-	int client = GetClientOfUserId(userid);
+public OnSteamRepChecked(HTTPRequestHandle:request, bool:successful, HTTPStatusCode:code, any:userid) {
+	new client = GetClientOfUserId(userid);
 	if(client == 0) {
 		LogItem(Log_Debug, "Client with User ID %d left.", userid);
 		Steam_ReleaseHTTPRequest(request);
 		return;
 	}
 	if(!successful || code != HTTPStatusCode_OK) {
-		LogItem(Log_Error, "Error checking SteamRep for client %L. Status code: %d, Successful: %s", client, view_as<int>(code), successful ? "true" : "false");
+		LogItem(Log_Error, "Error checking SteamRep for client %L. Status code: %d, Successful: %s", client, _:code, successful ? "true" : "false");
 		Steam_ReleaseHTTPRequest(request);
 		return;
 	}
-	char data[4096];
+	decl String:data[4096];
 	Steam_GetHTTPResponseBodyData(request, data, sizeof(data));
 	Steam_ReleaseHTTPRequest(request);
 	LogItem(Log_Debug, "Received rep for %L: '%s'", client, data);
-	char exploded[3][35];
+	decl String:exploded[3][35];
 	ExplodeString(data, "&", exploded, sizeof(exploded), sizeof(exploded[]));
 	if(StrContains(exploded[1], "SCAMMER", false) != -1) {
 		LogItem(Log_Debug, "%L is a scammer, handling", client);
 		HandleScammer(client, exploded[2]);
 	} else {
-		char apiKey[64];
+		decl String:apiKey[64];
 		GetConVarString(cvarSteamAPIKey, apiKey, sizeof(apiKey));
 		if(strlen(apiKey) != 0) {
 			LogItem(Log_Debug, "%L is not a SR scammer, checking Steam...", client);
-			char steamid[64];
+			decl String:steamid[64];
 			Steam_GetCSteamIDForClient(client, steamid, sizeof(steamid));
 			request = Steam_CreateHTTPRequest(HTTPMethod_GET, STEAM_API_URL);
 			Steam_SetHTTPRequestGetOrPostParameter(request, "key", apiKey);
@@ -160,14 +165,14 @@ public int OnSteamRepChecked(HTTPRequestHandle request, bool successful, HTTPSta
 	}
 }
 
-void HandleScammer(int client, const char[] auth) {
-	char clientAuth[32];
+HandleScammer(client, const String:auth[]) {
+	decl String:clientAuth[32];
 	GetClientAuthId(client, AuthId_Steam2, clientAuth, sizeof(clientAuth));
 	if(!StrEqual(auth, clientAuth)) {
 		LogItem(Log_Error, "Steam ID for %L (%s) didn't match SteamRep's response (%s)", client, clientAuth, auth);
 		return;
 	}
-	switch(cvarDealMethod.IntValue) {
+	switch(GetConVarInt(cvarDealMethod)) {
 		case 0: {
 			// Disabled
 		}
@@ -199,11 +204,11 @@ void HandleScammer(int client, const char[] auth) {
 			LogItem(Log_Info, "Banned %L by IP as a scammer", client);
 			if(GetFeatureStatus(FeatureType_Native, "SourceBans_BanPlayer") == FeatureStatus_Available) {
 				// SourceBans doesn't currently expose a native to ban an IP!
-				char ip[64];
+				decl String:ip[64];
 				GetClientIP(client, ip, sizeof(ip));
 				ServerCommand("sm_banip \"%s\" %d A scammer has connected from this IP. Steam ID: %s", ip, GetConVarInt(cvarIPBanLength), clientAuth);
 			} else {
-				char banMessage[256];
+				decl String:banMessage[256];
 				Format(banMessage, sizeof(banMessage), "A scammer has connected from this IP. Steam ID: %s", clientAuth);
 				BanClient(client, GetConVarInt(cvarIPBanLength), BANFLAG_IP, banMessage, "You are a reported scammer. Visit http://www.steamrep.com for more information", "steamrep_checker");
 			}
@@ -211,8 +216,8 @@ void HandleScammer(int client, const char[] auth) {
 		case 5: {
 			// Ban Steam ID + IP
 			LogItem(Log_Info, "Banned %L by Steam ID and IP as a scammer", client);
-			if(GetFeatureStatus(FeatureType_Native, "SBBanPlayer") == FeatureStatus_Available) {
-				char ip[64];
+			if(GetFeatureStatus(FeatureType_Native, "SourceBans_BanPlayer") == FeatureStatus_Available) {
+				decl String:ip[64];
 				GetClientIP(client, ip, sizeof(ip));
 				SourceBans_BanPlayer(0, client, GetConVarInt(cvarSteamIDBanLength), "Player is a reported scammer via SteamRep.com");
 				ServerCommand("sm_banip \"%s\" %d A scammer has connected from this IP. Steam ID: %s", ip, GetConVarInt(cvarIPBanLength), clientAuth);
@@ -224,31 +229,31 @@ void HandleScammer(int client, const char[] auth) {
 	}
 }
 
-public int OnSteamAPI(HTTPRequestHandle request, bool successful, HTTPStatusCode code, any userid) {
-	int client = GetClientOfUserId(userid);
+public OnSteamAPI(HTTPRequestHandle:request, bool:successful, HTTPStatusCode:code, any:userid) {
+	new client = GetClientOfUserId(userid);
 	if(client == 0) {
 		LogItem(Log_Debug, "Client with User ID %d left when checking Valve status.", userid);
 		Steam_ReleaseHTTPRequest(request);
 		return;
 	}
 	if(!successful || code != HTTPStatusCode_OK) {
-		LogItem(Log_Error, "Error checking Steam for client %L. Status code: %d, Successful: %s", client, view_as<int>(code), successful ? "true" : "false");
+		LogItem(Log_Error, "Error checking Steam for client %L. Status code: %d, Successful: %s", client, _:code, successful ? "true" : "false");
 		Steam_ReleaseHTTPRequest(request);
 		return;
 	}
-	char path[PLATFORM_MAX_PATH];
+	decl String:path[PLATFORM_MAX_PATH];
 	BuildPath(Path_SM, path, sizeof(path), "data/steamrep_checker.txt");
 	Steam_WriteHTTPResponseBody(request, path);
 	Steam_ReleaseHTTPRequest(request);
-	KeyValues kv = new KeyValues("response");
+	new Handle:kv = CreateKeyValues("response");
 	if(!FileToKeyValues(kv, path)) {
 		LogItem(Log_Error, "Steam returned invalid KeyValues for %L.", client);
-		delete kv;
+		CloseHandle(kv);
 		return;
 	}
 	KvJumpToKey(kv, "players");
 	KvJumpToKey(kv, "0");
-	char banStatus[64];
+	decl String:banStatus[64];
 	KvGetString(kv, "EconomyBan", banStatus, sizeof(banStatus));
 	CloseHandle(kv);
 	if(StrEqual(banStatus, "banned")) {
@@ -262,10 +267,10 @@ public int OnSteamAPI(HTTPRequestHandle request, bool successful, HTTPStatusCode
 	}
 }
 
-void HandleValvePlayer(int client, bool banned) {
-	char clientAuth[32];
+HandleValvePlayer(client, bool:banned) {
+	decl String:clientAuth[32];
 	GetClientAuthId(client, AuthId_Steam2, clientAuth, sizeof(clientAuth));
-	switch((banned) ? cvarValveBanDealMethod.IntValue : cvarValveCautionDealMethod.IntValue) {
+	switch((banned) ? GetConVarInt(cvarValveBanDealMethod) : GetConVarInt(cvarValveCautionDealMethod)) {
 		case 0: {
 			// Disabled
 		}
@@ -287,11 +292,11 @@ void HandleValvePlayer(int client, bool banned) {
 			// Ban Steam ID
 			LogItem(Log_Info, "Banned %L by Steam ID as %s", client, banned ? "trade banned" : "trade probation");
 			if(GetFeatureStatus(FeatureType_Native, "SourceBans_BanPlayer") == FeatureStatus_Available) {
-				char message[256];
+				decl String:message[256];
 				Format(message, sizeof(message), "Player is %s", banned ? "trade banned" : "on trade probation");
-				SourceBans_BanPlayer(0, client, cvarSteamIDBanLength.IntValue, message);
+				SourceBans_BanPlayer(0, client, GetConVarInt(cvarSteamIDBanLength), message);
 			} else {
-				char message[256], kickMessage[256];
+				decl String:message[256], String:kickMessage[256];
 				Format(message, sizeof(message), "Player is %s", banned ? "trade banned" : "on trade probation");
 				Format(kickMessage, sizeof(kickMessage), "You are %s", banned ? "trade banned" : "on trade probation");
 				BanClient(client, GetConVarInt(cvarSteamIDBanLength), BANFLAG_AUTHID, message, kickMessage, "steamrep_checker");
@@ -304,7 +309,7 @@ void HandleValvePlayer(int client, bool banned) {
 				// SourceBans doesn't currently expose a native to ban an IP!
 				ServerCommand("sm_banip #%d %d A %s has connected from this IP. Steam ID: %s", banned ? "trade banned player" : "player on trade probation", GetClientUserId(client), GetConVarInt(cvarIPBanLength), clientAuth);
 			} else {
-				char message[256], kickMessage[256];
+				decl String:message[256], String:kickMessage[256];
 				Format(message, sizeof(message), "A %s has connected from this IP. Steam ID: %s", banned ? "trade banned player" : "player on trade probation", clientAuth);
 				Format(kickMessage, sizeof(kickMessage), "You are %s", banned ? "trade banned" : "on trade probation");
 				BanClient(client, GetConVarInt(cvarIPBanLength), BANFLAG_IP, message, kickMessage, "steamrep_checker");
@@ -314,12 +319,12 @@ void HandleValvePlayer(int client, bool banned) {
 			// Ban Steam ID + IP
 			LogItem(Log_Info, "Banned %L by Steam ID and IP as %s", client, banned ? "trade banned" : "trade probation");
 			if(GetFeatureStatus(FeatureType_Native, "SourceBans_BanPlayer") == FeatureStatus_Available) {
-				char message[256];
+				decl String:message[256];
 				Format(message, sizeof(message), "Player is %s", banned ? "trade banned" : "on trade probation");
 				SourceBans_BanPlayer(0, client, GetConVarInt(cvarSteamIDBanLength), message);
 				ServerCommand("sm_banip #%d %d A %s has connected from this IP. Steam ID: %s", banned ? "trade banned player" : "player on trade probation", GetClientUserId(client), GetConVarInt(cvarIPBanLength), clientAuth);
 			} else {
-				char message[256], char kickMessage[256];
+				decl String:message[256], String:kickMessage[256];
 				Format(message, sizeof(message), "A %s has connected from this IP. Steam ID: %s", banned ? "trade banned player" : "player on trade probation", clientAuth);
 				Format(kickMessage, sizeof(kickMessage), "You are %s", banned ? "trade banned" : "on trade probation");
 				BanClient(client, GetConVarInt(cvarSteamIDBanLength), BANFLAG_AUTHID, message, kickMessage, "steamrep_checker");
@@ -329,8 +334,8 @@ void HandleValvePlayer(int client, bool banned) {
 	}
 }
 
-void SetClientTag(int client, TagType type) {
-	char name[MAX_NAME_LENGTH];
+SetClientTag(client, TagType:type) {
+	decl String:name[MAX_NAME_LENGTH];
 	switch(type) {
 		case TagType_Scammer: {
 			PrintToChatAll("\x07FF0000WARNING: \x03%N \x01is a reported scammer at SteamRep.com", client);
@@ -351,7 +356,7 @@ void SetClientTag(int client, TagType type) {
 	clientTag[client] = type;
 }
 
-public Action CP_OnChatMessage(int& author, ArrayList recipients, char[] flagstring, char[] name, char[] message, bool& processcolors, bool& removecolors) {
+public Action:OnChatMessage(&author, Handle:recipients, String:name[], String:message[]) {
 	switch(clientTag[author]) {
 		case TagType_None: return Plugin_Continue;
 		case TagType_Scammer: ReplaceString(name, MAXLENGTH_NAME, "[SCAMMER]", "\x07FF0000[SCAMMER]\x03");
@@ -361,7 +366,7 @@ public Action CP_OnChatMessage(int& author, ArrayList recipients, char[] flagstr
 	return Plugin_Changed;
 }
 
-public Action CCC_OnColor(int client, const char[] message, CCC_ColorType type) {
+public Action:CCC_OnColor(client, const String:message[], CCC_ColorType:type) {
 	if(type == CCC_TagColor && clientTag[client] != TagType_None) {
 		return Plugin_Handled;
 	}
@@ -369,11 +374,11 @@ public Action CCC_OnColor(int client, const char[] message, CCC_ColorType type) 
 	return Plugin_Continue;
 }
 
-public void Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadcast) {
+public Event_PlayerSpawn(Handle:event, const String:name[], bool:dontBroadcast) {
 	if(!GetConVarBool(cvarSpawnMessage)) {
 		return;
 	}
-	int client = GetClientOfUserId(GetEventInt(event, "userid"));
+	new client = GetClientOfUserId(GetEventInt(event, "userid"));
 	if(GetClientTeam(client) < 2 || messageDisplayed[client]) {
 		return;
 	}
@@ -381,12 +386,12 @@ public void Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadcas
 	messageDisplayed[client] = true;
 }
 
-public void Event_PlayerChangeName(Handle event, const char[] name, bool dontBroadcast) {
-	int client = GetClientOfUserId(GetEventInt(event, "userid"));
+public Event_PlayerChangeName(Handle:event, const String:name[], bool:dontBroadcast) {
+	new client = GetClientOfUserId(GetEventInt(event, "userid"));
 	if(clientTag[client] == TagType_None) {
 		return;
 	}
-	char clientName[MAX_NAME_LENGTH];
+	decl String:clientName[MAX_NAME_LENGTH];
 	GetEventString(event, "newname", clientName, sizeof(clientName));
 	if(clientTag[client] == TagType_Scammer && StrContains(clientName, "[SCAMMER]") != 0) {
 		KickClient(client, "Kicked from server\n\nDo not attempt to remove the [SCAMMER] tag");
@@ -397,8 +402,8 @@ public void Event_PlayerChangeName(Handle event, const char[] name, bool dontBro
 	}
 }
 
-public Action Command_Rep(int client, int args) {
-	int target;
+public Action:Command_Rep(client, args) {
+	new target;
 	if(args == 0) {
 		target = GetClientAimTarget(client);
 		if(target <= 0) {
@@ -406,7 +411,7 @@ public Action Command_Rep(int client, int args) {
 			return Plugin_Handled;
 		}
 	} else {
-		char arg1[MAX_NAME_LENGTH];
+		decl String:arg1[MAX_NAME_LENGTH];
 		GetCmdArg(1, arg1, sizeof(arg1));
 		target = FindTargetEx(client, arg1, true, false, false);
 		if(target == -1) {
@@ -414,7 +419,7 @@ public Action Command_Rep(int client, int args) {
 			return Plugin_Handled;
 		}
 	}
-	char steamID[64];
+	decl String:steamID[64];
 	Steam_GetCSteamIDForClient(target, steamID, sizeof(steamID));
 	decl String:url[256];
 	Format(url, sizeof(url), "http://steamrep.com/profiles/%s", steamID);

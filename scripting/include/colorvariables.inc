@@ -172,6 +172,37 @@ stock void CPrintToChatAdmins(int iBitFlags, const char[] sMessage, any ...)
 	g_iAuthor = 0;
 }
 
+stock void CPrintToChatOverride(const char[] override, const char[] sMessage, any ...)
+{
+	char sBuffer[_CV_MAX_MESSAGE_LENGTH];
+	AdminId iAdminID;
+
+	for (int iClient = 1; iClient <= MaxClients; iClient++) {
+		if (!IsClientInGame(iClient) || g_bSkipPlayers[iClient]) {
+			g_bSkipPlayers[iClient] = false;
+			continue;
+		}
+
+		iAdminID = GetUserAdmin(iClient);
+		if (iAdminID == INVALID_ADMIN_ID || !CheckAccess(iAdminID, override, ADMFLAG_ROOT)
+		{
+			continue;
+		}
+
+		SetGlobalTransTarget(iClient);
+		VFormat(sBuffer, sizeof(sBuffer), sMessage, 3);
+
+		AddPrefixAndDefaultColor(sBuffer, sizeof(sBuffer));
+		g_bIgnorePrefix = false;
+
+		CProcessVariables(sBuffer, sizeof(sBuffer));
+		CAddWhiteSpace(sBuffer, sizeof(sBuffer));
+
+		SendPlayerMessage(iClient, sBuffer, g_iAuthor);
+	}
+	g_iAuthor = 0;
+}
+
 stock void CReplyToCommand(int iClient, const char[] sMessage, any ...)
 {
 	if (iClient < 0 || iClient > MaxClients) {

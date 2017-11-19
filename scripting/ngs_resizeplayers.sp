@@ -3,6 +3,7 @@
 #include <sdkhooks>
 #include <tf2>
 #include <friendly>
+#include <colorvariables>
 #define REQUIRE_EXTENSIONS
 #include <tf2_stocks>
 
@@ -53,7 +54,6 @@ bool g_bIsTF2 = false;
 bool g_bLateLoaded = false;
 bool g_bCustomDmgAvailable = false;
 bool g_bHitboxAvailable = false;
-bool wasResized[MAXPLAYERS + 1];
 Handle g_hGetMaxHealth = INVALID_HANDLE;
 
 bool g_bEnabled;
@@ -205,11 +205,14 @@ public void OnPluginStart()
   HookEventEx("player_spawn", OnPlayerSpawn);
   
   RegAdminCmd("sm_resize", OnResizeCmd, TARGET_ADMIN_FLAG, "Toggles a client's size.");
+  RegAdminCmd("sm_resize_f", OnResizeFriendlyCmd, TARGET_ADMIN_FLAG, "Changes client size with friendly check.");
   //RegAdminCmd("sm_scale", OnResizeCmd, TARGET_ADMIN_FLAG, "Toggles a client's size.");
   RegAdminCmd("sm_resizeme", OnResizeMeCmd, SELF_ADMIN_FLAG, "Toggles a client's size.");
   //RegAdminCmd("sm_scaleme", OnResizeMeCmd, SELF_ADMIN_FLAG, "Toggles a client's size.");
+  
   RegAdminCmd("sm_resizehead", OnResizeHeadCmd, TARGET_ADMIN_FLAG, "Toggles a client's head size.");
   //RegAdminCmd("sm_scalehead", OnResizeHeadCmd, TARGET_ADMIN_FLAG, "Toggles a client's head size.");
+  RegAdminCmd("sm_resizehead_f", OnResizeHeadFriendlyCmd, TARGET_ADMIN_FLAG, "Changes client head size with friendly check.");
   RegAdminCmd("sm_resizemyhead", OnResizeMyHeadCmd, SELF_ADMIN_FLAG, "Toggles a client's head size.");
   //RegAdminCmd("sm_scalemyhead", OnResizeMyHeadCmd, SELF_ADMIN_FLAG, "Toggles a client's head size.");
   
@@ -217,15 +220,19 @@ public void OnPluginStart()
   //RegAdminCmd("sm_scaletorso", OnResizeTorsoCmd, TARGET_ADMIN_FLAG, "Toggles a client's torso size.");
   RegAdminCmd("sm_resizemytorso", OnResizeMyTorsoCmd, SELF_ADMIN_FLAG, "Toggles a client's torso size.");
   //RegAdminCmd("sm_scalemytorso", OnResizeMyTorsoCmd, SELF_ADMIN_FLAG, "Toggles a client's torso size.");
+  RegAdminCmd("sm_resizetorso_f", OnResizeTorsoFriendlyCmd, TARGET_ADMIN_FLAG, "Changes client torso size with friendly check.");
+  
   RegAdminCmd("sm_resizehands", OnResizeHandsCmd, TARGET_ADMIN_FLAG, "Toggles a client's hand size.");
   //RegAdminCmd("sm_scalehands", OnResizeHandsCmd, TARGET_ADMIN_FLAG, "Toggles a client's hand size.");
   RegAdminCmd("sm_resizemyhands", OnResizeMyHandsCmd, SELF_ADMIN_FLAG, "Toggles a client's hand size.");
   //RegAdminCmd("sm_scalemyhands", OnResizeMyHandsCmd, SELF_ADMIN_FLAG, "Toggles a client's hand size.");
+  RegAdminCmd("sm_resizehands_f", OnResizeHandsFriendlyCmd, TARGET_ADMIN_FLAG, "Changes client hands size with friendly check.");
   
   RegAdminCmd("sm_resizereset", OnResetCmd, TARGET_ADMIN_FLAG, "Resets a client's size.");
   //RegAdminCmd("sm_scalereset", OnResetCmd, TARGET_ADMIN_FLAG, "Resets a client's size.");
   RegAdminCmd("sm_resizeresetme", OnResetMeCmd, SELF_ADMIN_FLAG, "Resets a client's size.");
   //RegAdminCmd("sm_scaleresetme", OnResetMeCmd, SELF_ADMIN_FLAG, "Resets a client's size.");
+  RegAdminCmd("sm_resizereset_f", OnResetFriendlyCmd, TARGET_ADMIN_FLAG, "Resets client size with friendly check.");
 
   if (g_bLateLoaded)
   {
@@ -753,8 +760,44 @@ public Action OnResizeCmd(int client, int args)
   return Plugin_Handled;
 }
 
+public Action OnResizeFriendlyCmd(int client, int args)
+{
+  char arg1[128];
+  GetCmdArg(1, arg1, 128);
+  int target = FindTarget(client, arg1);
+  if (target == -1) return Plugin_Handled;
+  if (!TF2Friendly_IsFriendly(target))
+  {
+    CPrintToChat(target, "%sYou must be in friendly to use this!", CHAT_TAG);
+    return Plugin_Handled;
+  }
+  if (g_bEnabled)
+  {
+    ResizeProcess(ResizeType_Generic, false, client, args);
+  }
+  return Plugin_Handled;
+}
+
 public Action OnResizeHeadCmd(int client, int args)
 {  
+  if (g_bEnabled)
+  {
+    ResizeProcess(ResizeType_Head, false, client, args);
+  }
+  return Plugin_Handled;
+}
+
+public Action OnResizeHeadFriendlyCmd(int client, int args)
+{  
+  char arg1[128];
+  GetCmdArg(1, arg1, 128);
+  int target = FindTarget(client, arg1);
+  if (target == -1) return Plugin_Handled;
+  if (!TF2Friendly_IsFriendly(target))
+  {
+    CPrintToChat(target, "%sYou must be in friendly to use this!", CHAT_TAG);
+    return Plugin_Handled;
+  }
   if (g_bEnabled)
   {
     ResizeProcess(ResizeType_Head, false, client, args);
@@ -771,6 +814,24 @@ public Action OnResizeTorsoCmd(int client, int args)
   return Plugin_Handled;
 }
 
+public Action OnResizeTorsoFriendlyCmd(int client, int args)
+{  
+  char arg1[128];
+  GetCmdArg(1, arg1, 128);
+  int target = FindTarget(client, arg1);
+  if (target == -1) return Plugin_Handled;
+  if (!TF2Friendly_IsFriendly(target))
+  {
+    CPrintToChat(target, "%sYou must be in friendly to use this!", CHAT_TAG);
+    return Plugin_Handled;
+  }
+  if (g_bEnabled)
+  {
+    ResizeProcess(ResizeType_Torso, false, client, args);
+  }
+  return Plugin_Handled;
+}
+
 public Action OnResizeHandsCmd(int client, int args)
 {  
   if (g_bEnabled)
@@ -780,8 +841,31 @@ public Action OnResizeHandsCmd(int client, int args)
   return Plugin_Handled;
 }
 
+public Action OnResizeHandsFriendlyCmd(int client, int args)
+{  
+  char arg1[128];
+  GetCmdArg(1, arg1, 128);
+  int target = FindTarget(client, arg1);
+  if (target == -1) return Plugin_Handled;
+  if (!TF2Friendly_IsFriendly(target))
+  {
+    CPrintToChat(target, "%sYou must be in friendly to use this!", CHAT_TAG);
+    return Plugin_Handled;
+  }
+  if (g_bEnabled)
+  {
+    ResizeProcess(ResizeType_Hands, false, client, args);
+  }
+  return Plugin_Handled;
+}
+
 public Action OnResizeMeCmd(int client, int args)
 {
+  if (!TF2Friendly_IsFriendly(client))
+  {
+    CReplyToCommand(client, "%sYou must be in friendly to use this!", CHAT_TAG);
+    return Plugin_Handled;
+  }
   if (g_bEnabled)
   {
     ResizeProcess(ResizeType_Generic, true, client, args);
@@ -791,6 +875,11 @@ public Action OnResizeMeCmd(int client, int args)
 
 public Action OnResizeMyHeadCmd(int client, int args)
 {
+  if (!TF2Friendly_IsFriendly(client))
+  {
+    CReplyToCommand(client, "%sYou must be in friendly to use this!", CHAT_TAG);
+    return Plugin_Handled;
+  }
   if (g_bEnabled)
   {
     ResizeProcess(ResizeType_Head, true, client, args);
@@ -800,6 +889,11 @@ public Action OnResizeMyHeadCmd(int client, int args)
 
 public Action OnResizeMyTorsoCmd(int client, int args)
 {
+  if (!TF2Friendly_IsFriendly(client))
+  {
+    CReplyToCommand(client, "%sYou must be in friendly to use this!", CHAT_TAG);
+    return Plugin_Handled;
+  }
   if (g_bEnabled)
   {
     ResizeProcess(ResizeType_Torso, true, client, args);
@@ -809,6 +903,11 @@ public Action OnResizeMyTorsoCmd(int client, int args)
 
 public Action OnResizeMyHandsCmd(int client, int args)
 {
+  if (!TF2Friendly_IsFriendly(client))
+  {
+    CReplyToCommand(client, "%sYou must be in friendly to use this!", CHAT_TAG);
+    return Plugin_Handled;
+  }
   if (g_bEnabled)
   {
     ResizeProcess(ResizeType_Hands, true, client, args);
@@ -825,13 +924,41 @@ public Action OnResetCmd(int client, int args)
   return Plugin_Handled;
 }
 
+public Action OnResetFriendlyCmd(int client, int args)
+{  
+  char arg1[128];
+  GetCmdArg(1, arg1, 128);
+  int target = FindTarget(client, arg1);
+  if (target == -1) return Plugin_Handled;
+  if (!TF2Friendly_IsFriendly(target))
+  {
+    CPrintToChat(target, "%sYou must be in friendly to use this!", CHAT_TAG);
+    return Plugin_Handled;
+  }
+  if (g_bEnabled)
+  {
+    ResetProcess(false, client, args);
+  }
+  return Plugin_Handled;
+}
+
 public Action OnResetMeCmd(int client, int args)
 {
+  if (!TF2Friendly_IsFriendly(client))
+  {
+    CReplyToCommand(client, "%sYou must be in friendly to use this!", CHAT_TAG);
+    return Plugin_Handled;
+  }
   if (g_bEnabled)
   {
     ResetProcess(true, client, args);
   }
   return Plugin_Handled;
+}
+
+public int TF2Friendly_OnDisableFriendly(int client)
+{
+  ResetProcess(false, client, 0);
 }
 
 void ResetProcess(const bool bSelfCmd, const int client, const int args)

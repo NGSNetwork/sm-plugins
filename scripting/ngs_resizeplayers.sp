@@ -311,7 +311,7 @@ void ReadjustInitialSize(const int client, const bool bResetOnDisable = false)
           continue;
         }
         StopTimer(client, i);
-        ResizePlayer(i, client, g_szDefault[i]);
+        ResizePlayer(i, client, g_szDefault[i], _, _, _, _, false);
       }
     }
   }
@@ -322,7 +322,7 @@ void ReadjustInitialSize(const int client, const bool bResetOnDisable = false)
       StopTimer(client, i);
       if (g_bIsAvailable[i] && g_fClientCurrentScale[i][client] != 1.0)
       {
-        ResizePlayer(i, client, "1.0");
+        ResizePlayer(i, client, "1.0", _, _, _, _, false);
       }
     }
   }
@@ -436,13 +436,13 @@ public Action OnPlayerSpawn(Handle event, const char[] name, bool dontBroadcast)
     //Resize back to specified scale on spawn.
     if (IsPlayerAlive(client) && g_bIsAvailable[ResizeType_Generic])
     {
-      ResizePlayer(ResizeType_Generic, client, g_szClientCurrentScale[ResizeType_Generic][client]);
+      ResizePlayer(ResizeType_Generic, client, g_szClientCurrentScale[ResizeType_Generic][client], _, _, _, _, false);
       
       //If server wants to unstick on spawn, then check player is stuck.
       if ((g_iUnstick == 2 || g_iUnstick == 3) && g_fClientCurrentScale[ResizeType_Generic][client] != 1.0 && IsPlayerStuck(client))
       {
         StopTimer(client, ResizeType_Generic);
-        ResizePlayer(ResizeType_Generic, client, "1.0");
+        ResizePlayer(ResizeType_Generic, client, "1.0", _, _, _, _, false);
         PrintToChat(client, "%sYou were \x05resized\x01 to \x051.0\x01 to avoid being stuck.", CHAT_TAG);
       }
     }
@@ -450,7 +450,7 @@ public Action OnPlayerSpawn(Handle event, const char[] name, bool dontBroadcast)
   return Plugin_Continue;
 }
 
-void ResizeProcess(const int type, const bool bSelfCmd, const int client, const int args)
+void ResizeProcess(const int type, const bool bSelfCmd, const int client, const int args, const bool bFriendlyCheck=false)
 {
   if (!g_bIsAvailable[type])
   {
@@ -472,6 +472,11 @@ void ResizeProcess(const int type, const bool bSelfCmd, const int client, const 
       return;
     }
     
+    if (bSelfCmd && bFriendlyCheck && !TF2Friendly_IsFriendly(client))
+    {
+    	CPrintToChat(client, "%sYou must be in friendly to use this!", CHAT_TAG);
+    	return;
+    }
     if (g_iMenu == 1 || (bSelfCmd && g_iMenu == 2) || (!bSelfCmd && g_iMenu == 3))
     {
       DisplayMenuSafely(g_hMenu[type], client);
@@ -485,7 +490,7 @@ void ResizeProcess(const int type, const bool bSelfCmd, const int client, const 
     else
     {
       StopTimer(client, type);
-      if (ResizePlayer(type, client, _, (g_iLogging == 1 || (g_iLogging == 2 && !bSelfCmd)), _, _, (type == ResizeType_Generic && (g_iUnstick == 1 || g_iUnstick == 3))))
+      if (ResizePlayer(type, client, _, (g_iLogging == 1 || (g_iLogging == 2 && !bSelfCmd)), _, _, (type == ResizeType_Generic && (g_iUnstick == 1 || g_iUnstick == 3)), bFriendlyCheck))
       {
         g_iLastResize[type][client] = iNow;
         int target[1];
@@ -564,29 +569,41 @@ void ResizeProcess(const int type, const bool bSelfCmd, const int client, const 
       }
       StopTimer(iTargetList[i], type);
       
+      if (bFriendlyCheck && !TF2Friendly_IsFriendly(iTargetList[i]))
+      {
+        CPrintToChat(iTargetList[i], "%sYou must be in friendly to use this!", CHAT_TAG);
+        continue;
+      }
+      
       char szScaleEdited[16];
       int iMarkInScale = FindCharInString(szScale, '.');
       FormatEx(szScaleEdited, sizeof(szScaleEdited), "%s%s%s", (iMarkInScale == 0 ? "0" : ""), szScale, (iMarkInScale == -1 ? ".0" : (iMarkInScale == (strlen(szScale) - 1) ? "0" : "")));
       
-      bResult = ResizePlayer(type, iTargetList[i], szScaleEdited, bLog, client, szTime, bCheckStuck);
+      bResult = ResizePlayer(type, iTargetList[i], szScaleEdited, bLog, client, szTime, bCheckStuck, bFriendlyCheck);
     }
     
-    if (type == ResizeType_Generic && !bResult)
+    if (!bResult)
     {
-      ReplyToCommand(client, "%sYou were not resized to avoid being stuck.", CHAT_TAG);
-      return;
+		ReplyToCommand(client, "%sYou were not resized!.", CHAT_TAG);
+    	return;
     }
     NotifyPlayers(type, client, tn_is_ml, iTargetList, target_count, szScale, szTargetName, szTime);
     g_iLastResize[type][client] = iNow;
   }
 }
 
-bool ResizePlayer(const int type, const int client, const char[] szScale = "0.0", const bool bLog = false, const int iOrigin = -1, const char[] szTime = "0.0", const bool bCheckStuck = false)
+bool ResizePlayer(const int type, const int client, const char[] szScale = "0.0", const bool bLog = false, const int iOrigin = -1, const char[] szTime = "0.0", const bool bCheckStuck = false, const bool bFriendlyCheck=true)
 {
   float fScale = StringToFloat(szScale), fTime = StringToFloat(szTime);
   
   char szOriginalScale[8];
   strcopy(szOriginalScale, sizeof(szOriginalScale), g_szClientCurrentScale[type][client]);
+  
+  if (bFriendlyCheck && !TF2Friendly_IsFriendly(client))
+  {
+    CPrintToChat(client, "%sYou must be in friendly to use this!", CHAT_TAG);
+    return false;
+  }
   
   if (fScale == 0.0)
   {
@@ -654,7 +671,7 @@ bool ResizePlayer(const int type, const int client, const char[] szScale = "0.0"
   
     if (bCheckStuck && IsPlayerAlive(client) && IsPlayerStuck(client))
     {
-      ResizePlayer(ResizeType_Generic, client, szOriginalScale);
+      ResizePlayer(ResizeType_Generic, client, szOriginalScale, _, _, _, false, bFriendlyCheck);
       return false;
     }
   }
@@ -762,18 +779,18 @@ public Action OnResizeCmd(int client, int args)
 
 public Action OnResizeFriendlyCmd(int client, int args)
 {
-  char arg1[128];
-  GetCmdArg(1, arg1, 128);
-  int target = FindTarget(client, arg1);
-  if (target == -1) return Plugin_Handled;
-  if (!TF2Friendly_IsFriendly(target))
-  {
-    CPrintToChat(target, "%sYou must be in friendly to use this!", CHAT_TAG);
-    return Plugin_Handled;
-  }
+//  char arg1[128];
+//  GetCmdArg(1, arg1, 128);
+//  int target = FindTarget(client, arg1);
+//  if (target == -1) return Plugin_Handled;
+//  if (!TF2Friendly_IsFriendly(target))
+//  {
+//    CPrintToChat(target, "%sYou must be in friendly to use this!", CHAT_TAG);
+//    return Plugin_Handled;
+//  }
   if (g_bEnabled)
   {
-    ResizeProcess(ResizeType_Generic, false, client, args);
+    ResizeProcess(ResizeType_Generic, false, client, args, true);
   }
   return Plugin_Handled;
 }
@@ -789,18 +806,18 @@ public Action OnResizeHeadCmd(int client, int args)
 
 public Action OnResizeHeadFriendlyCmd(int client, int args)
 {  
-  char arg1[128];
-  GetCmdArg(1, arg1, 128);
-  int target = FindTarget(client, arg1);
-  if (target == -1) return Plugin_Handled;
-  if (!TF2Friendly_IsFriendly(target))
-  {
-    CPrintToChat(target, "%sYou must be in friendly to use this!", CHAT_TAG);
-    return Plugin_Handled;
-  }
+//  char arg1[128];
+//  GetCmdArg(1, arg1, 128);
+//  int target = FindTarget(client, arg1);
+//  if (target == -1) return Plugin_Handled;
+//  if (!TF2Friendly_IsFriendly(target))
+//  {
+//    CPrintToChat(target, "%sYou must be in friendly to use this!", CHAT_TAG);
+//    return Plugin_Handled;
+//  }
   if (g_bEnabled)
   {
-    ResizeProcess(ResizeType_Head, false, client, args);
+    ResizeProcess(ResizeType_Head, false, client, args, true);
   }
   return Plugin_Handled;
 }
@@ -816,18 +833,18 @@ public Action OnResizeTorsoCmd(int client, int args)
 
 public Action OnResizeTorsoFriendlyCmd(int client, int args)
 {  
-  char arg1[128];
-  GetCmdArg(1, arg1, 128);
-  int target = FindTarget(client, arg1);
-  if (target == -1) return Plugin_Handled;
-  if (!TF2Friendly_IsFriendly(target))
-  {
-    CPrintToChat(target, "%sYou must be in friendly to use this!", CHAT_TAG);
-    return Plugin_Handled;
-  }
+//  char arg1[128];
+//  GetCmdArg(1, arg1, 128);
+//  int target = FindTarget(client, arg1);
+//  if (target == -1) return Plugin_Handled;
+//  if (!TF2Friendly_IsFriendly(target))
+//  {
+//    CPrintToChat(target, "%sYou must be in friendly to use this!", CHAT_TAG);
+//    return Plugin_Handled;
+//  }
   if (g_bEnabled)
   {
-    ResizeProcess(ResizeType_Torso, false, client, args);
+    ResizeProcess(ResizeType_Torso, false, client, args, true);
   }
   return Plugin_Handled;
 }
@@ -843,74 +860,74 @@ public Action OnResizeHandsCmd(int client, int args)
 
 public Action OnResizeHandsFriendlyCmd(int client, int args)
 {  
-  char arg1[128];
-  GetCmdArg(1, arg1, 128);
-  int target = FindTarget(client, arg1);
-  if (target == -1) return Plugin_Handled;
-  if (!TF2Friendly_IsFriendly(target))
-  {
-    CPrintToChat(target, "%sYou must be in friendly to use this!", CHAT_TAG);
-    return Plugin_Handled;
-  }
+//  char arg1[128];
+//  GetCmdArg(1, arg1, 128);
+//  int target = FindTarget(client, arg1);
+//  if (target == -1) return Plugin_Handled;
+//  if (!TF2Friendly_IsFriendly(target))
+//  {
+//    CPrintToChat(target, "%sYou must be in friendly to use this!", CHAT_TAG);
+//    return Plugin_Handled;
+//  }
   if (g_bEnabled)
   {
-    ResizeProcess(ResizeType_Hands, false, client, args);
+    ResizeProcess(ResizeType_Hands, false, client, args, true);
   }
   return Plugin_Handled;
 }
 
 public Action OnResizeMeCmd(int client, int args)
 {
-  if (!TF2Friendly_IsFriendly(client))
-  {
-    CReplyToCommand(client, "%sYou must be in friendly to use this!", CHAT_TAG);
-    return Plugin_Handled;
-  }
+//  if (!TF2Friendly_IsFriendly(client))
+//  {
+//    CReplyToCommand(client, "%sYou must be in friendly to use this!", CHAT_TAG);
+//    return Plugin_Handled;
+//  }
   if (g_bEnabled)
   {
-    ResizeProcess(ResizeType_Generic, true, client, args);
+    ResizeProcess(ResizeType_Generic, true, client, args, true);
   }
   return Plugin_Handled;
 }
 
 public Action OnResizeMyHeadCmd(int client, int args)
 {
-  if (!TF2Friendly_IsFriendly(client))
-  {
-    CReplyToCommand(client, "%sYou must be in friendly to use this!", CHAT_TAG);
-    return Plugin_Handled;
-  }
+//  if (!TF2Friendly_IsFriendly(client))
+//  {
+//    CReplyToCommand(client, "%sYou must be in friendly to use this!", CHAT_TAG);
+//    return Plugin_Handled;
+//  }
   if (g_bEnabled)
   {
-    ResizeProcess(ResizeType_Head, true, client, args);
+    ResizeProcess(ResizeType_Head, true, client, args, true);
   }
   return Plugin_Handled;
 }
 
 public Action OnResizeMyTorsoCmd(int client, int args)
 {
-  if (!TF2Friendly_IsFriendly(client))
-  {
-    CReplyToCommand(client, "%sYou must be in friendly to use this!", CHAT_TAG);
-    return Plugin_Handled;
-  }
+//  if (!TF2Friendly_IsFriendly(client))
+//  {
+//    CReplyToCommand(client, "%sYou must be in friendly to use this!", CHAT_TAG);
+//    return Plugin_Handled;
+//  }
   if (g_bEnabled)
   {
-    ResizeProcess(ResizeType_Torso, true, client, args);
+    ResizeProcess(ResizeType_Torso, true, client, args, true);
   }
   return Plugin_Handled;
 }
 
 public Action OnResizeMyHandsCmd(int client, int args)
 {
-  if (!TF2Friendly_IsFriendly(client))
-  {
-    CReplyToCommand(client, "%sYou must be in friendly to use this!", CHAT_TAG);
-    return Plugin_Handled;
-  }
+//  if (!TF2Friendly_IsFriendly(client))
+//  {
+//    CReplyToCommand(client, "%sYou must be in friendly to use this!", CHAT_TAG);
+//    return Plugin_Handled;
+//  }
   if (g_bEnabled)
   {
-    ResizeProcess(ResizeType_Hands, true, client, args);
+    ResizeProcess(ResizeType_Hands, true, client, args, true);
   }
   return Plugin_Handled;
 }
@@ -926,32 +943,32 @@ public Action OnResetCmd(int client, int args)
 
 public Action OnResetFriendlyCmd(int client, int args)
 {  
-  char arg1[128];
-  GetCmdArg(1, arg1, 128);
-  int target = FindTarget(client, arg1);
-  if (target == -1) return Plugin_Handled;
-  if (!TF2Friendly_IsFriendly(target))
-  {
-    CPrintToChat(target, "%sYou must be in friendly to use this!", CHAT_TAG);
-    return Plugin_Handled;
-  }
+//  char arg1[128];
+//  GetCmdArg(1, arg1, 128);
+//  int target = FindTarget(client, arg1);
+//  if (target == -1) return Plugin_Handled;
+//  if (!TF2Friendly_IsFriendly(target))
+//  {
+//    CPrintToChat(target, "%sYou must be in friendly to use this!", CHAT_TAG);
+//    return Plugin_Handled;
+//  }
   if (g_bEnabled)
   {
-    ResetProcess(false, client, args);
+    ResetProcess(false, client, args, true);
   }
   return Plugin_Handled;
 }
 
 public Action OnResetMeCmd(int client, int args)
 {
-  if (!TF2Friendly_IsFriendly(client))
-  {
-    CReplyToCommand(client, "%sYou must be in friendly to use this!", CHAT_TAG);
-    return Plugin_Handled;
-  }
+//  if (!TF2Friendly_IsFriendly(client))
+//  {
+//    CReplyToCommand(client, "%sYou must be in friendly to use this!", CHAT_TAG);
+//    return Plugin_Handled;
+//  }
   if (g_bEnabled)
   {
-    ResetProcess(true, client, args);
+    ResetProcess(true, client, args, true);
   }
   return Plugin_Handled;
 }
@@ -961,7 +978,7 @@ public int TF2Friendly_OnDisableFriendly(int client)
   ResetProcess(false, client, 0);
 }
 
-void ResetProcess(const bool bSelfCmd, const int client, const int args)
+void ResetProcess(const bool bSelfCmd, const int client, const int args, const bool bFriendlyCheck=false)
 {
   if (args == 0)
   {
@@ -970,13 +987,18 @@ void ResetProcess(const bool bSelfCmd, const int client, const int args)
       PrintToServer("%s%T", CONSOLE_TAG, "Command is in-game only", LANG_SERVER);
       return;
     }
+    if (bFriendlyCheck && !TF2Friendly_IsFriendly(client))
+    {
+      CPrintToChat(client, "%sYou must be in friendly to use this!", CHAT_TAG);
+      return;
+    }
   
     for (int type = 0; type < ResizeTypes; type++)
     {
       if (g_bIsAvailable[type])
       {
         StopTimer(client, type);
-        ResizePlayer(type, client, "1.0", (g_iLogging == 1 || (g_iLogging == 2 && !bSelfCmd)));
+        ResizePlayer(type, client, "1.0", (g_iLogging == 1 || (g_iLogging == 2 && !bSelfCmd)), _, _, false, bFriendlyCheck);
       }
     }
     
@@ -1018,7 +1040,12 @@ void ResetProcess(const bool bSelfCmd, const int client, const int args)
             continue;
           }
           StopTimer(iTargetList[i], type);
-          ResizePlayer(type, iTargetList[i], "1.0", bLog, client);
+          if (bFriendlyCheck && !TF2Friendly_IsFriendly(iTargetList[i]))
+          {
+            CPrintToChat(iTargetList[i], "%sYou must be in friendly to use this!", CHAT_TAG);
+            continue;
+          }
+          ResizePlayer(type, iTargetList[i], "1.0", bLog, client, _, false, bFriendlyCheck);
         }
       }
     }
@@ -1129,7 +1156,7 @@ public Action ResizeTimer(Handle timer, Handle pack)
   ReadPackString(pack, szOriginalScale, sizeof(szOriginalScale));
   if (client > 0)
   {
-    ResizePlayer(type, client, szOriginalScale);
+    ResizePlayer(type, client, szOriginalScale, _, _, _, _, false);
     g_hClientTimer[type][client] = INVALID_HANDLE;
   }
 }
@@ -1155,7 +1182,12 @@ void ResizeMenuHandlerTyped(const int type, Handle menu, MenuAction action, int 
     char info[32];
     GetMenuItem(menu, param2, info, sizeof(info));
     StopTimer(param1, type);
-    if (ResizePlayer(type, param1, info, g_iLogging == 1, param1, _, (type == ResizeType_Generic && (g_iUnstick == 1 || g_iUnstick == 3))))
+    if (!TF2Friendly_IsFriendly(param1))
+    {
+    	CPrintToChat(param1, "%sYou must be in friendly to use this!", CHAT_TAG);
+    	return;
+    }
+    else if (ResizePlayer(type, param1, info, g_iLogging == 1, param1, _, (type == ResizeType_Generic && (g_iUnstick == 1 || g_iUnstick == 3)), false))
     {
       g_iLastResize[type][param1] = iNow;
       int target[1];
@@ -1517,7 +1549,7 @@ public void OnPluginEnd()
         StopTimer(i, j);
         if (g_bIsAvailable[j] && g_fClientCurrentScale[j][i] != 1.0)
         {
-          ResizePlayer(j, i, "1.0");
+          ResizePlayer(j, i, "1.0", _, _, _, _, true);
         }
       }
     }

@@ -1,7 +1,6 @@
 #include <sourcemod>
 #include <sdktools>
 #include <store>
-#include <morecolors>
 #include <socket>
 
 #define PLUGIN_NAME 		"[ANY] Steambot credits"

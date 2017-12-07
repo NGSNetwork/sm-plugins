@@ -43,6 +43,8 @@ public void OnPluginStart()
 	RegAdminCmd("sm_nameban", CommandNameBan, ADMFLAG_GENERIC, "Usage: sm_nameban <#userid|name>");
 	RegAdminCmd("sm_nameunban", CommandNameUnban, ADMFLAG_GENERIC, "Usage: sm_nameunban <#userid|name>");
 	RegAdminCmd("sm_checkcommandaccess", CommandCheckCommandAccess, ADMFLAG_GENERIC, "Usage: sm_checkcommandaccess <#userid|name> <cmdstring>");
+	RegAdminCmd("sm_getclientinfo", CommandGetClientInfo, ADMFLAG_GENERIC, "Usage: sm_getclientinfo <#userid|name> <varstring>");
+	RegAdminCmd("sm_queryclientconvar", CommandQueryClientConVar, ADMFLAG_GENERIC, "Usage: sm_queryclientconvar <#userid|name> <varstring>");
 	// TODO: Uncomment everything in this area.
 	//RegAdminCmd("sm_specplayer", CommandSpecPlayer, ADMFLAG_GENERIC, "Usage: sm_specplayer <#userid|name>");
 	RegAdminCmd("sm_getlookingpos", CommandGetLookingPosition, ADMFLAG_GENERIC, "Usage: sm_getlookingpos");
@@ -456,6 +458,60 @@ public Action CommandCheckCommandAccess(int client, int args)
 	else
 		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} {LIGHTGREEN}%N{DEFAULT} doesn\'t have CheckAccess access to {OLIVE}%s{DEFAULT}!", target, arg2);
 	return Plugin_Handled;
+}
+
+public Action CommandGetClientInfo(int client, int args)
+{
+	if (args < 1)
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_getclientinfo <#userid|name> <cmdstring>");
+		return Plugin_Handled;
+	}
+		
+	char arg1[MAX_BUFFER_LENGTH], arg2[MAX_BUFFER_LENGTH];
+	GetCmdArg(1, arg1, sizeof(arg1));
+	GetCmdArg(2, arg2, sizeof(arg2));
+	int target = FindTarget(client, arg1, true);
+	if (!IsValidClient(target)) return Plugin_Handled;
+	
+	char varString[MAX_BUFFER_LENGTH];
+	
+	if (GetClientInfo(target, arg2, varString, sizeof(varString)))
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} {LIGHTGREEN}%N{DEFAULT}\'s value for {YELLOW}%s{DEFAULT} is {OLIVE}%s{DEFAULT}!", target, arg2, varString);
+	else
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Could not get client info of {LIGHTGREEN}%N{DEFAULT}!", target);
+	return Plugin_Handled;
+}
+
+public Action CommandQueryClientConVar(int client, int args)
+{
+	if (args < 1)
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_queryclientconvar <#userid|name> <cmdstring>");
+		return Plugin_Handled;
+	}
+		
+	char arg1[MAX_BUFFER_LENGTH], arg2[MAX_BUFFER_LENGTH];
+	GetCmdArg(1, arg1, sizeof(arg1));
+	GetCmdArg(2, arg2, sizeof(arg2));
+	int target = FindTarget(client, arg1, true);
+	if (!IsValidClient(target)) return Plugin_Handled;
+	
+	QueryClientConVar(target, arg2, ClientConVar, client);
+	return Plugin_Handled;
+}
+
+void ClientConVar(QueryCookie cookie, int client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue, any value)
+{
+	switch (result)
+	{
+		case ConVarQuery_Okay:
+			CReplyToCommand(value, "{GREEN}[SM]{DEFAULT} {LIGHTGREEN}%N{DEFAULT}\'s value for {YELLOW}%s{DEFAULT} is {OLIVE}%s{DEFAULT}!", client, cvarName, cvarValue);
+		case ConVarQuery_Protected:
+			CReplyToCommand(value, "{GREEN}[SM]{DEFAULT} {LIGHTGREEN}%N{DEFAULT}\'s value for {YELLOW}%s{DEFAULT} is {PURPLE}PROTECTED{DEFAULT}!", client, cvarName);
+		default:
+			CReplyToCommand(value, "{GREEN}[SM]{DEFAULT} Invalid ConVar or ConVar not found for {LIGHTGREEN}%N{DEFAULT}!", client);
+	}
 }
 
 public bool IsValidClient(int client)

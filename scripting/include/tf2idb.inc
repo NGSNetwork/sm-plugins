@@ -51,52 +51,52 @@ enum TF2ItemQuality {
 };
 
 //Most of these that return a bool return false if the ID is invalid/not found
-native bool:TF2IDB_IsValidItemID(id);
-native bool:TF2IDB_GetItemName(id, String:string[], length);
-native bool:TF2IDB_GetItemClass(id, String:string[], length);
-native bool:TF2IDB_GetItemSlotName(id, String:string[], length, TFClassType:classType=TFClass_Unknown);
-native TF2ItemSlot:TF2IDB_GetItemSlot(id, TFClassType:classType=TFClass_Unknown);
-native bool:TF2IDB_GetItemQualityName(id, String:string[], length);
-native TF2ItemQuality:TF2IDB_GetItemQuality(id);
-native bool:TF2IDB_GetItemLevels(id, &min, &max);
+native bool TF2IDB_IsValidItemID(int id);
+native bool TF2IDB_GetItemName(int id, char[] string, int length);
+native bool TF2IDB_GetItemClass(int id, char[] string, int length);
+native bool TF2IDB_GetItemSlotName(int id, char[] string, int length, TFClassType classType=TFClass_Unknown);
+native TF2ItemSlot TF2IDB_GetItemSlot(int id, TFClassType classType=TFClass_Unknown);
+native bool TF2IDB_GetItemQualityName(int id, char[] string, int length);
+native TF2ItemQuality TF2IDB_GetItemQuality(int id);
+native bool TF2IDB_GetItemLevels(int id, int &min, int &max);
 
 //TF2IDB_GetItemAttributes returns the number of attributes found
-native TF2IDB_GetItemAttributes(id, aid[TF2IDB_MAX_ATTRIBUTES], Float:values[TF2IDB_MAX_ATTRIBUTES]);
+native int TF2IDB_GetItemAttributes(int id, int aid[TF2IDB_MAX_ATTRIBUTES], float values[TF2IDB_MAX_ATTRIBUTES]);
 
 //TF2IDB_GetItemEquipRegions returns an Array Handle containing a list of the equip region names for the item
-native Handle:TF2IDB_GetItemEquipRegions(id);
+native Handle TF2IDB_GetItemEquipRegions(int id);
 
-native bool:TF2IDB_DoRegionsConflict(const String:region1[], const String:region2[]);
+native bool TF2IDB_DoRegionsConflict(const char[] region1, const char[] region2);
 
 //TF2IDB_ListParticles returns an Array Handle containing a list of the particle IDs
-native Handle:TF2IDB_ListParticles();
+native Handle TF2IDB_ListParticles();
 
 //TF2IDB_FindItemCustom returns an Array Handle containing a list of integers for the first column of the query result
-native Handle:TF2IDB_FindItemCustom(const String:query[]);
+native Handle TF2IDB_FindItemCustom(const char[] query);
 
-native bool:TF2IDB_ItemHasAttribute(id, aid);
+native bool TF2IDB_ItemHasAttribute(int id, int aid);
 
 //TF2IDB_UsedByClasses returns a bitfield (0bXXXXXXXXXX) of the classes that use this item
 //Check a particular class using e.g. (TF2IDB_UsedByClasses(id) & (1 << _:TFClass_Scout))
 //Note that this DOES INCLUDE TFClass_Unknown, as (1 << 0)
-native TF2IDB_UsedByClasses(id);
+native int TF2IDB_UsedByClasses(int id);
 
 //All return false if ID invalid/not found
-native bool:TF2IDB_IsValidAttributeID(id);
-native bool:TF2IDB_GetAttributeName(id, String:string[], length);
-native bool:TF2IDB_GetAttributeClass(id, String:string[], length);
-native bool:TF2IDB_GetAttributeType(id, String:string[], length);
-native bool:TF2IDB_GetAttributeDescString(id, String:string[], length);
-native bool:TF2IDB_GetAttributeDescFormat(id, String:string[], length);
-native bool:TF2IDB_GetAttributeEffectType(id, String:string[], length);
-native bool:TF2IDB_GetAttributeArmoryDesc(id, String:string[], length);
-native bool:TF2IDB_GetAttributeItemTag(id, String:string[], length);
+native bool TF2IDB_IsValidAttributeID(int id);
+native bool TF2IDB_GetAttributeName(int id, char[] string, int length);
+native bool TF2IDB_GetAttributeClass(int id, char[] string, int length);
+native bool TF2IDB_GetAttributeType(int id, char[] string, int length);
+native bool TF2IDB_GetAttributeDescString(int id, char[] string, int length);
+native bool TF2IDB_GetAttributeDescFormat(int id, char[] string, int length);
+native bool TF2IDB_GetAttributeEffectType(int id, char[] string, int length);
+native bool TF2IDB_GetAttributeArmoryDesc(int id, char[] string, int length);
+native bool TF2IDB_GetAttributeItemTag(int id, char[] string, int length);
 
 //TF2IDB_GetAttributeProperties copies the result to each field, -1 indicating the field was not present on the attribute
-native bool:TF2IDB_GetAttributeProperties(id, &hidden=-1, &stored_as_integer=-1, &is_set_bonus=-1, &is_user_generated=-1, &can_affect_recipe_component_name=-1);
+native bool TF2IDB_GetAttributeProperties(int id, int &hidden=-1, int &stored_as_integer=-1, int &is_set_bonus=-1, int &is_user_generated=-1, int &can_affect_recipe_component_name=-1);
 
-native bool:TF2IDB_GetQualityName(TF2ItemQuality:quality, String:string[], length);
-native TF2ItemQuality:TF2IDB_GetQualityByName(const String:string[]);
+native bool TF2IDB_GetQualityName(TF2ItemQuality quality, char[] string, int length);
+native TF2ItemQuality TF2IDB_GetQualityByName(const char[] string);
 
 /**
  * @brief	Execute a custom prepared statement on the TF2IDB tables, returning the executed DBStatement
@@ -117,9 +117,9 @@ native TF2ItemQuality:TF2IDB_GetQualityByName(const String:string[]);
  * @return					A fully executed DBStatement handle, or INVALID_HANDLE if the statement
  *							execution failed. This handle must be closed by the calling plugin, even though it is owned by tf2idb.
  **/
-native DBStatement:TF2IDB_CustomQuery(const String:query[], Handle:arguments, maxStringSize);
+native DBStatement TF2IDB_CustomQuery(const char[] query, Handle arguments, int maxStringSize);
 
-public SharedPlugin:__pl_tf2idb = {
+public SharedPlugin __pl_tf2idb = {
 	name = "tf2idb",
 	file = "tf2idb.smx",
 #if defined REQUIRE_PLUGIN
@@ -131,7 +131,7 @@ public SharedPlugin:__pl_tf2idb = {
 
 
 #if !defined REQUIRE_PLUGIN
-public __pl_tf2idb_SetNTVOptional() {
+public void __pl_tf2idb_SetNTVOptional() {
 	MarkNativeAsOptional("TF2IDB_IsValidItemID");
 	MarkNativeAsOptional("TF2IDB_GetItemName");
 	MarkNativeAsOptional("TF2IDB_GetItemClass");

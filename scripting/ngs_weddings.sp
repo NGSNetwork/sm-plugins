@@ -37,12 +37,12 @@ char marriage_ids[MAXPLAYERS + 1][MAX_ID_LENGTH];
 int marriage_scores[MAXPLAYERS + 1];
 int marriage_times[MAXPLAYERS + 1];
 
-#include "weddings\sql_queries.sp"
-#include "weddings\functions_general.sp"
-#include "weddings\functions_proposals.sp"
-#include "weddings\functions_marriages.sp"
-#include "weddings\functions_natives.sp"
-#include "weddings\menu_handlers.sp"
+#include <weddings/sql_queries>
+#include <weddings/functions_general>
+#include <weddings/functions_proposals>
+#include <weddings/functions_marriages>
+#include <weddings/functions_natives>
+#include <weddings/menu_handlers>
 
 public Plugin myinfo = {
 	name = "[NGS] Weddings",

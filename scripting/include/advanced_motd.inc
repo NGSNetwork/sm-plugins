@@ -63,7 +63,7 @@ stock void AdvMOTD_ShowMOTDPanel(int client, const char[] title, const char[] ms
 		QueryClientConVar(client, "cl_disablehtmlmotd", AdvMOTD_OnQueryFinished, pack);
 	} else {
 		ShowVGUIPanel(client, "info", kv, visible);
-		CloseHandle(kv);
+		delete kv;
 	}
 }
 

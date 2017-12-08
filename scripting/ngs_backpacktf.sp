@@ -12,7 +12,8 @@
 #include <sourcemod>
 #include <sdktools>
 #include <steamtools>
-#include <webfix>
+//#include <webfix>
+#include <advanced_motd>
 
 #define PLUGIN_VERSION		"2.11.2"
 #define BACKPACK_TF_URL		"http://backpack.tf/api/IGetPrices/v3/"
@@ -884,19 +885,19 @@ public Action Command_Backpack(int client, int args) {
 	Steam_GetCSteamIDForClient(target, steamID, sizeof(steamID)); // we could use the regular Steam ID, but we already have SteamTools, so we can just bypass backpack.tf's redirect directly
 	char url[256];
 	Format(url, sizeof(url), "https://backpack.tf/profiles/%s", steamID);
-	// AdvMOTD_ShowMOTDPanel(client, "backpack.tf", url, MOTDPANEL_TYPE_URL, true, true, true, OnMOTDFailure);
-	WebFix_OpenUrl(client, "backpack.tf", url);
+	AdvMOTD_ShowMOTDPanel(client, "backpack.tf", url, MOTDPANEL_TYPE_URL, true, true, true, OnMOTDFailure);
+//	WebFix_OpenUrl(client, "backpack.tf", url);
 	return Plugin_Handled;
 }
 
-//public void OnMOTDFailure(int client, MOTDFailureReason reason) {
-//	switch(reason) 
-//	{
-//		case MOTDFailure_Disabled: PrintToChat(client, "\x04[SM] .\x01You cannot view backpacks with HTML MOTDs disabled.");
-//		case MOTDFailure_Matchmaking: PrintToChat(client, "\x04[SM] \x01You cannot view backpacks after joining via Quickplay.");
-//		case MOTDFailure_QueryFailed: PrintToChat(client, "\x04[SM] \x01Unable to open backpack.");
-//	}
-//}
+public void OnMOTDFailure(int client, MOTDFailureReason reason) {
+	switch(reason) 
+	{
+		case MOTDFailure_Disabled: PrintToChat(client, "\x04[SM] .\x01You cannot view backpacks with HTML MOTDs disabled.");
+		case MOTDFailure_Matchmaking: PrintToChat(client, "\x04[SM] \x01You cannot view backpacks after joining via Quickplay.");
+		case MOTDFailure_QueryFailed: PrintToChat(client, "\x04[SM] \x01Unable to open backpack.");
+	}
+}
 
 void DisplayClientMenu(int client) {
 	Handle menu = CreateMenu(Handler_ClientMenu);

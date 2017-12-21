@@ -83,6 +83,9 @@ public Action ShowMenu(int client)
 			menu.AddItem("1119", "Taunt: Deep Fried Desire");
 			menu.AddItem("1168", "Taunt: The Carlton");
 			menu.AddItem("30572", "Taunt: The Boston Breakdance");
+			menu.AddItem("30917", "Taunt: The Trackman's Touchdown");
+			menu.AddItem("30920", "Taunt: The Bunnyhopper");
+			menu.AddItem("30921", "Taunt: Runner's Rhythm");
 		}
 		case TFClass_Sniper:
 		{
@@ -116,6 +119,7 @@ public Action ShowMenu(int client)
 		{
 			menu.AddItem("477", "Taunt: The Meet the Medic");
 			menu.AddItem("1109", "Taunt: Results Are In");
+			menu.AddItem("30918", "Taunt: Surgeon's Squeezebox");
 		}
 		
 		case TFClass_Pyro:
@@ -124,12 +128,14 @@ public Action ShowMenu(int client)
 			menu.AddItem("30570", "Taunt: Pool Party");
 			menu.AddItem("30763", "Taunt: The Balloonibouncer");
 			menu.AddItem("30876", "Taunt: The Headcase");
+			menu.AddItem("30919", "Taunt: The Skating Scorcher");
 		}
 		case TFClass_Spy:
 		{
 			menu.AddItem("1108", "Taunt: Buy A Life");
 			menu.AddItem("30615", "Taunt: The Box Trot");
 			menu.AddItem("30762", "Taunt: Disco Fever");
+			menu.AddItem("30922", "Taunt: Luxury Lounge");
 		}
 		case TFClass_Engineer:
 		{

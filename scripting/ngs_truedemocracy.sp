@@ -13,12 +13,12 @@ Menu voteMenu[MAXPLAYERS + 1];
 
 bool voteEnabled;
 
-int results[5] = {0, 0, 0, 0, 0};
-int optionplaces[5] = {1, 2, 3, 4, 5};
+int results[MAXPLAYERS + 1];
+int resultcount[5] = {0, 0, 0, 0, 0};
 
 int numOptions = 0;
 
-char question[1024], options[5][48], baseoptions[5][48];
+char question[1024], options[5][2][48];
 //new Handle:BleedTime;
 
 public Plugin myinfo = {
@@ -50,47 +50,52 @@ public Action CommandRandomVote(int client, int args)
 	}
 	voteEnabled = true;
 	numOptions = args - 1;
-	char voteTitle[64];
+	char voteTitle[64], optionNum[18];
 	
-	clearVoteResults();
+	ClearVoteResults();
 	
 	GetCmdArg(1, question, sizeof(question));
-	for (int i = 2; i <= 6; i++)
+	for (int i = 2; i <= numOptions + 1; i++)
 	{
-		if (args < i) break;
+//		if (args < i) break;
 		int place = i - 2;
-		GetCmdArg(i, options[place], 48);
-		strcopy(baseoptions[place], 48, options[place]);
+		GetCmdArg(i, options[place][0], 48);
+		Format(options[place][1], sizeof(options[place][1]), "option%d", place + 1);
 	}
 	
 	Format(voteTitle, sizeof(voteTitle), "%s (random options)", question);
-	
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (!IsValidClient(i)) continue;
 		voteMenu[i] = new Menu(RandomizedVoteMenuHandler);
 		voteMenu[i].SetTitle(voteTitle);
-		for (int j = 0; j < numOptions; j++)
-		{
-			int randPos = GetRandomInt(0, numOptions - 1);
-			char tmp[48];
-			strcopy(tmp, 48, options[j]);
-			int pos = optionplaces[j];
-			strcopy(options[j], 48, options[randPos]);
-			optionplaces[j] = optionplaces[randPos];
-			strcopy(options[randPos], 48, tmp);
-			optionplaces[randPos] = pos;
-		}
+		RandomizeOptions(numOptions);
 		for (int k = 0; k < numOptions; k++)
 		{
-			char info[32];
-			Format(info, sizeof(info), "option%d", optionplaces[k]);
-			voteMenu[i].AddItem(info, options[k]);
+			voteMenu[i].AddItem(options[k][1], options[k][0]);
 		}
-		voteMenu[i].Display(i, 20);
+		voteMenu[i].Display(i, 30);
 	}
-	CreateTimer(25.0, OnVoteTimerEnd);
+	CreateTimer(30.0, OnVoteTimerEnd);
 	return Plugin_Handled;
+}
+
+public void RandomizeOptions(int numOptions)
+{
+	for (int j = 0; j < numOptions; j++)
+	{
+		int randPos = GetRandomInt(0, numOptions - 1);
+		char tmpQuestion[48], tmpOption[48];
+		strcopy(tmpQuestion, 48, options[j][0]);
+		strcopy(tmpOption, 48, options[j][1]);
+		
+		// TODO: Convert the rest down below!
+		int pos = optionplaces[j];
+		strcopy(options[j], 48, options[randPos]);
+		optionplaces[j] = optionplaces[randPos];
+		strcopy(options[randPos], 48, tmp);
+		optionplaces[randPos] = pos;
+	}
 }
 
 public Action OnVoteTimerEnd(Handle timer, any data)
@@ -118,7 +123,7 @@ public Action CommandRandomVoteEnd(int client, int args)
 
 public Action CommandRandomVoteClear(int client, int args)
 {
-	clearVoteResults();
+	ClearVoteResults();
 	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Vote results cleared.");
 	return Plugin_Handled;
 }
@@ -152,7 +157,7 @@ public int RandomizedVoteMenuHandler(Menu menu, MenuAction action, int param1, i
 	return 0;
 }
 
-void clearVoteResults()
+void ClearVoteResults()
 {
 	for (int i = 0; i < 5; i++)
 	{

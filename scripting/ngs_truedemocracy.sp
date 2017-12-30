@@ -14,11 +14,11 @@ Menu voteMenu[MAXPLAYERS + 1];
 bool voteEnabled;
 
 int results[MAXPLAYERS + 1];
-int resultcount[5] = {0, 0, 0, 0, 0};
+int resultCount[5] = {0, 0, 0, 0, 0};
 
 int numOptions = 0;
 
-char question[1024], options[5][2][48];
+char question[1024], options[5][2][48], baseoptions[5][48];
 //new Handle:BleedTime;
 
 public Plugin myinfo = {
@@ -50,17 +50,17 @@ public Action CommandRandomVote(int client, int args)
 	}
 	voteEnabled = true;
 	numOptions = args - 1;
-	char voteTitle[64], optionNum[18];
+	char voteTitle[64];
 	
 	ClearVoteResults();
 	
 	GetCmdArg(1, question, sizeof(question));
 	for (int i = 2; i <= numOptions + 1; i++)
 	{
-//		if (args < i) break;
 		int place = i - 2;
 		GetCmdArg(i, options[place][0], 48);
-		Format(options[place][1], sizeof(options[place][1]), "option%d", place + 1);
+		strcopy(baseoptions[place], 48, options[place][0]);
+		Format(options[place][1], 48, "option%d", (place + 1));
 	}
 	
 	Format(voteTitle, sizeof(voteTitle), "%s (random options)", question);
@@ -69,7 +69,7 @@ public Action CommandRandomVote(int client, int args)
 		if (!IsValidClient(i)) continue;
 		voteMenu[i] = new Menu(RandomizedVoteMenuHandler);
 		voteMenu[i].SetTitle(voteTitle);
-		RandomizeOptions(numOptions);
+		RandomizeOptions();
 		for (int k = 0; k < numOptions; k++)
 		{
 			voteMenu[i].AddItem(options[k][1], options[k][0]);
@@ -80,7 +80,7 @@ public Action CommandRandomVote(int client, int args)
 	return Plugin_Handled;
 }
 
-public void RandomizeOptions(int numOptions)
+public void RandomizeOptions()
 {
 	for (int j = 0; j < numOptions; j++)
 	{
@@ -88,13 +88,13 @@ public void RandomizeOptions(int numOptions)
 		char tmpQuestion[48], tmpOption[48];
 		strcopy(tmpQuestion, 48, options[j][0]);
 		strcopy(tmpOption, 48, options[j][1]);
-		
-		// TODO: Convert the rest down below!
-		int pos = optionplaces[j];
-		strcopy(options[j], 48, options[randPos]);
-		optionplaces[j] = optionplaces[randPos];
-		strcopy(options[randPos], 48, tmp);
-		optionplaces[randPos] = pos;
+		strcopy(options[j][0], 48, options[randPos][0]);
+		strcopy(options[j][1], 48, options[randPos][1]);
+		strcopy(options[randPos][0], 48, tmpQuestion);
+		strcopy(options[randPos][1], 48, tmpOption);
+//		optionplaces[j] = optionplaces[randPos];
+//		strcopy(options[randPos], 48, tmp);
+//		optionplaces[randPos] = pos;
 	}
 }
 
@@ -106,10 +106,11 @@ public Action OnVoteTimerEnd(Handle timer, any data)
 
 public Action CommandRandomVoteResults(int client, int args)
 {
+	CountVoteResults();
 	CPrintToChatAll("{GREEN}[SM]{DEFAULT} === Vote results ===");
 	for (int i = 0; i < numOptions; i++)
 	{
-		CPrintToChatAll("{CRIMSON}%d.{DEFAULT} {YELLOW}%s{DEFAULT}: %d.", i + 1, baseoptions[i], results[i]);
+		CPrintToChatAll("{CRIMSON}%d.{DEFAULT} {YELLOW}%s{DEFAULT}: %d.", i + 1, baseoptions[i], resultCount[i]);
 	}
 	return Plugin_Handled;
 }
@@ -137,10 +138,10 @@ public int RandomizedVoteMenuHandler(Menu menu, MenuAction action, int param1, i
 			if (!voteEnabled) return 0;
 			char info[32];
 			menu.GetItem(param2, info, sizeof(info));
-			int place = info[6] - 49;
-//			CPrintToChatAdmins(ADMFLAG_ROOT, "info is %s", info);
-//			CPrintToChatAdmins(ADMFLAG_ROOT, "info[6] - 49 is %d", place);
-			results[place]++;
+			int place = info[6] - 48;
+//			CPrintToChatAdmins(ADMFLAG_ROOT, "%N chose %s", param1, info);
+//			CPrintToChatAdmins(ADMFLAG_ROOT, "%N set to place info[6] - 48 is %d", param1, place);
+			results[param1] = place;
 		}
  
 		case MenuAction_Cancel:
@@ -157,11 +158,25 @@ public int RandomizedVoteMenuHandler(Menu menu, MenuAction action, int param1, i
 	return 0;
 }
 
+void CountVoteResults()
+{
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		int result = results[i];
+		if (result == 0) continue;
+		resultCount[result - 1]++;
+	}
+}
+
 void ClearVoteResults()
 {
-	for (int i = 0; i < 5; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		results[i] = 0;
+	}
+	for (int i = 0; i < 5; i++)
+	{
+		resultCount[i] = 0;
 	}
 }
 

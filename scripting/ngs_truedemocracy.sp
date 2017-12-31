@@ -38,11 +38,17 @@ public void OnPluginStart( )
 	RegAdminCmd("sm_rvoteend", CommandRandomVoteEnd, ADMFLAG_VOTE, "Ends a vote.");
 	RegAdminCmd("sm_rvoteclear", CommandRandomVoteClear, ADMFLAG_VOTE, "Clears results of last vote.");
 
+	RegConsoleCmd("sm_rrevote", CommandRandomVoteRevote, "Revote on a randomized vote!");
 	LoadTranslations("common.phrases");
 }
 
 public Action CommandRandomVote(int client, int args)
 {
+	if (voteEnabled)
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} There is already a vote going on!");
+		return Plugin_Handled;
+	}
 	if (args < 3)
 	{
 		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Please provide a question and two options!");
@@ -67,13 +73,7 @@ public Action CommandRandomVote(int client, int args)
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (!IsValidClient(i)) continue;
-		voteMenu[i] = new Menu(RandomizedVoteMenuHandler);
-		voteMenu[i].SetTitle(voteTitle);
-		RandomizeOptions();
-		for (int k = 0; k < numOptions; k++)
-		{
-			voteMenu[i].AddItem(options[k][1], options[k][0]);
-		}
+		PrepareVoteMenu(i, voteTitle);
 		voteMenu[i].Display(i, 30);
 	}
 	CreateTimer(30.0, OnVoteTimerEnd);
@@ -92,9 +92,6 @@ public void RandomizeOptions()
 		strcopy(options[j][1], 48, options[randPos][1]);
 		strcopy(options[randPos][0], 48, tmpQuestion);
 		strcopy(options[randPos][1], 48, tmpOption);
-//		optionplaces[j] = optionplaces[randPos];
-//		strcopy(options[randPos], 48, tmp);
-//		optionplaces[randPos] = pos;
 	}
 }
 
@@ -122,6 +119,16 @@ public Action CommandRandomVoteEnd(int client, int args)
 	return Plugin_Handled;
 }
 
+public Action CommandRandomVoteRevote(int client, int args)
+{
+	if (!IsValidClient(client) || !voteEnabled) return Plugin_Handled;
+	char voteTitle[64];
+	Format(voteTitle, sizeof(voteTitle), "%s (random options)", question);
+	PrepareVoteMenu(client, voteTitle);
+	voteMenu[client].Display(client, 30);
+	return Plugin_Handled;
+}
+
 public Action CommandRandomVoteClear(int client, int args)
 {
 	ClearVoteResults();
@@ -136,26 +143,34 @@ public int RandomizedVoteMenuHandler(Menu menu, MenuAction action, int param1, i
 		case MenuAction_Select:
 		{
 			if (!voteEnabled) return 0;
-			char info[32];
-			menu.GetItem(param2, info, sizeof(info));
+			char info[32], displayBuffer[48];
+			menu.GetItem(param2, info, sizeof(info), _, displayBuffer, sizeof(displayBuffer));
 			int place = info[6] - 48;
+			CPrintToChat(param1, "{GREEN}[SM]{DEFAULT} Vote for {OLIVE}%s{DEFAULT} counted! Use {YELLOW}!rrevote{DEFAULT} to revote!", displayBuffer);
 //			CPrintToChatAdmins(ADMFLAG_ROOT, "%N chose %s", param1, info);
 //			CPrintToChatAdmins(ADMFLAG_ROOT, "%N set to place info[6] - 48 is %d", param1, place);
 			results[param1] = place;
 		}
- 
 		case MenuAction_Cancel:
-		{
 			PrintToServer("Client %d's menu was cancelled for reason %d", param1, param2);
-		}
- 
 		case MenuAction_End:
-		{
 			delete menu;
-		}
 	}
  
 	return 0;
+}
+
+void PrepareVoteMenu(int client, char[] title)
+{
+//	if (voteMenu[client] != null) return; commenting this out but I'm not sure it'll leak
+	voteMenu[client] = new Menu(RandomizedVoteMenuHandler);
+	voteMenu[client].SetTitle(title);
+	RandomizeOptions();
+	for (int k = 0; k < numOptions; k++)
+	{
+		voteMenu[client].AddItem(options[k][1], options[k][0]);
+	}
+	voteMenu[client].ExitButton = false;
 }
 
 void CountVoteResults()

@@ -140,7 +140,7 @@ public void OnPreThink(int iClient)
 	
 	char strClassname[32];
 	GetEntityClassname(iWeapon, strClassname, sizeof(strClassname));
-	if(!StrEqual(strClassname, "tf_weapon_flamethrower", false))
+	if(!StrEqual(strClassname, "tf_weapon_flamethrower", false) && !StrEqual(strClassname, "tf_weapon_rocketlauncher_fireball", false))
 		return;
 	
 	if((GetEntPropFloat(iWeapon, Prop_Send, "m_flNextSecondaryAttack") - flNextSecondaryAttack[iClient]) <= 0.0)
@@ -179,7 +179,7 @@ public void OnWeaponSwitchPost(int iClient, int iWeapon)
 	
 	char strClassname[32];
 	GetEntityClassname(iWeapon, strClassname, sizeof(strClassname));
-	if(!StrEqual(strClassname, "tf_weapon_flamethrower", false))
+	if(!StrEqual(strClassname, "tf_weapon_flamethrower", false) && !StrEqual(strClassname, "tf_weapon_rocketlauncher_fireball", false))
 		return;
 	
 	flNextSecondaryAttack[iClient] = GetEntPropFloat(iWeapon, Prop_Send, "m_flNextSecondaryAttack");

@@ -45,6 +45,7 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_rr", CommandRussianRoulette, "Usage: sm_rr <numofbullets>");
 	RegConsoleCmd("sm_russianroulette", CommandRussianRoulette, "Usage: sm_russianroulette <numofbullets>");
 	RegConsoleCmd("sm_autotag", CommandAutoTag, "Usage: sm_autotag to toggle");
+	RegConsoleCmd("sm_wondertained", CommandWondertained, "Usage: sm_wondertained");
 	LoadTranslations("common.phrases");
 	
 	cvarAutoTag = CreateConVar("sm_ngsplayertoolkit_autotag", "NGS", "Tag to give players, leave blank to disable.");
@@ -70,6 +71,17 @@ public void OnMapStart()
 	PrecacheSound("weapons/ambassador_shoot.wav", false);
 	PrecacheSound("weapons/sentry_empty.wav", false);
 	PrecacheSound("weapons/diamond_back_01.wav", false);
+	
+	// Laughing taunt
+	PrecacheSound("vo/scout_laughlong02.mp3");
+	PrecacheSound("vo/soldier_laughlong03.mp3");
+	PrecacheSound("vo/pyro_laugh_addl04.mp3");
+	PrecacheSound("vo/demoman_laughlong02.mp3");
+	PrecacheSound("vo/heavy_laugherbigsnort01.mp3");
+	PrecacheSound("vo/engineer_laughlong02.mp3");
+	PrecacheSound("vo/medic_laughlong01.mp3");
+	PrecacheSound("vo/sniper_laughlong02.mp3");
+	PrecacheSound("vo/spy_laughlong01.mp3");
 }
 
 public void OnClientCookiesCached(int client)
@@ -114,18 +126,21 @@ public Action CommandGetProfile(int client, int args)
 	GetCmdArg(1, arg1, sizeof(arg1));
 	int target = FindTarget(client, arg1, true, false);
 
-	if (target == -1) return Plugin_Handled;
+	if (!IsValidClient(target)) return Plugin_Handled;
 	
 	
 	char targetAuthID[MAX_BUFFER_LENGTH];
 	char profileLink [MAX_BUFFER_LENGTH];
-	GetClientAuthId(target, AuthId_SteamID64, targetAuthID, sizeof(targetAuthID), true);
-	
-	Format(profileLink, sizeof(profileLink), "%s%s", STEAMCOMMUNITY_PROFILESURL, targetAuthID);
-	
-	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} %N\'s profile link: %s", target, profileLink);
-	AdvMOTD_ShowMOTDPanel(client, "Steam Community", profileLink, MOTDPANEL_TYPE_URL, true, true, true);
-	
+	if (GetClientAuthId(target, AuthId_SteamID64, targetAuthID, sizeof(targetAuthID)))
+	{
+		Format(profileLink, sizeof(profileLink), "%s%s", STEAMCOMMUNITY_PROFILESURL, targetAuthID);
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} %N\'s profile link: %s", target, profileLink);
+		AdvMOTD_ShowMOTDPanel(client, "Steam Community", profileLink, MOTDPANEL_TYPE_URL, true, true, true);
+	}
+	else
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Sorry! %N doesn\'t seem to be connected to Steam!", target);
+	}
 	return Plugin_Handled;
 }
 
@@ -149,6 +164,22 @@ public Action CommandDoQuack(int client, int args)
 	SetHudTextParams(-1.0, 0.1, 3.0, 255, 0, 0, 255, 1, 1.0, 1.0, 1.0);
 	ShowSyncHudText(client, hHudText, "._o< *quack* >o_.");
 	CloseHandle(hHudText);
+	return Plugin_Handled;
+}
+
+public Action CommandWondertained(int client, int args)
+{
+	if (!IsValidClient(client)) return Plugin_Handled;
+	EmitSoundToClient(client, "vo/scout_laughlong02.mp3");
+	EmitSoundToClient(client, "vo/soldier_laughlong03.mp3");
+	EmitSoundToClient(client, "vo/pyro_laugh_addl04.mp3");
+	EmitSoundToClient(client, "vo/demoman_laughlong02.mp3");
+	EmitSoundToClient(client, "vo/heavy_laugherbigsnort01.mp3");
+	EmitSoundToClient(client, "vo/engineer_laughlong02.mp3");
+	EmitSoundToClient(client, "vo/medic_laughlong01.mp3");
+	EmitSoundToClient(client, "vo/sniper_laughlong02.mp3");
+	EmitSoundToClient(client, "vo/spy_laughlong01.mp3");
+	// CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} 
 	return Plugin_Handled;
 }
 

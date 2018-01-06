@@ -48,6 +48,7 @@ bool tradeCookiesJustMade[MAXPLAYERS + 1];
 float c_timewarp_cooldown;
 
 int SpawnCooldown;
+int SpecMonoculusCooldown[2];
 int uNecromashCooldown;
 int jNecromashCooldown;
 
@@ -278,11 +279,20 @@ public Action CommandTeamMonoculus(int client, int args)
 		CPrintToChat(target, "%tYou may not use the item because you are friendly.", "Store Tag Colored");
 		return Plugin_Handled;
 	}
+	int playerTeam = view_as<int>(GetClientTeam(target));
+	int currentTime = GetTime();
+	if (currentTime - SpecMonoculusCooldown[playerTeam - 2] < 90)
+    {
+   		CPrintToChat(target, "%tYou must wait {PURPLE}%d{DEFAULT} seconds to spawn this.", "Store Tag Colored", 90 - (currentTime - SpecMonoculusCooldown[playerTeam - 2]));
+   		Store_GiveItem(GetSteamAccountID(target), 406);
+   		return Plugin_Handled;
+  	}
+	SpecMonoculusCooldown[playerTeam - 2] = currentTime;
 	
 	int BaseHealth = GetConVarInt(cvarHealth), HealthPerPlayer = GetConVarInt(cvarHealthPerPlayer), HealthPerLevel = GetConVarInt(cvarHealthPerLevel);
 	SetConVarInt(cvarHealth, 4200), SetConVarInt(cvarHealthPerPlayer, 300), SetConVarInt(cvarHealthPerLevel, 2000);
 	int Ent = CreateEntityByName("eyeball_boss");
-	SetEntProp(Ent, Prop_Data, "m_iTeamNum", view_as<int>(GetClientTeam(target)));
+	SetEntProp(Ent, Prop_Data, "m_iTeamNum", playerTeam);
 	SetEntProp(Ent, Prop_Send, "m_CollisionGroup", 2);
 	
 	float start[3], angle[3], end[3]; 

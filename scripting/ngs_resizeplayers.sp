@@ -188,7 +188,7 @@ public void OnPluginStart()
     PrepSDKCall_SetFromConf(hConf, SDKConf_Virtual, "GetMaxHealth");
     PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
     g_hGetMaxHealth = EndPrepSDKCall();
-    CloseHandle(hConf);
+    delete hConf;
   }
   
   LoadTranslations("core.phrases.txt");
@@ -584,8 +584,8 @@ void ResizeProcess(const int type, const bool bSelfCmd, const int client, const 
     
     if (!bResult)
     {
-		ReplyToCommand(client, "%sYou were not resized!.", CHAT_TAG);
-    	return;
+      ReplyToCommand(client, "%sYou were not resized!.", CHAT_TAG);
+      return;
     }
     NotifyPlayers(type, client, tn_is_ml, iTargetList, target_count, szScale, szTargetName, szTime);
     g_iLastResize[type][client] = iNow;
@@ -1008,7 +1008,7 @@ void ResetProcess(const bool bSelfCmd, const int client, const int args, const b
     }
     else if (g_iNotify == 2)
     {
-      PrintToChatAll("%s%N's size was \x05reset\x01!", CHAT_TAG, client);
+      CPrintToChatAdmins(ADMFLAG_RESERVATION, "%s%N's size was \x05reset\x01!", CHAT_TAG, client);
     }
   }
   else if (bSelfCmd)
@@ -1058,7 +1058,7 @@ void ResetProcess(const bool bSelfCmd, const int client, const int args, const b
       }
       else if (g_iNotify == 2)
       {
-        PrintToChatAll("%s%N's size was \x05reset\x01!", CHAT_TAG, client);
+        CPrintToChatAdmins(ADMFLAG_RESERVATION, "%s%N's size was \x05reset\x01!", CHAT_TAG, client);
       }
     }
     else
@@ -1069,7 +1069,7 @@ void ResetProcess(const bool bSelfCmd, const int client, const int args, const b
       }
       else if (g_iNotify == 2)
       {
-        PrintToChatAll("%s%N \x05reset\x01 the size of %s!", CHAT_TAG, client, szTargetName);
+        CPrintToChatAdmins(ADMFLAG_RESERVATION, "%s%N \x05reset\x01 the size of %s!", CHAT_TAG, client, szTargetName);
       }
     }
   }
@@ -1098,13 +1098,13 @@ bool NotifyPlayers(const int type, const int iOrigin, const bool tn_is_ml, const
   
     switch ((view_as<int>(StringToFloat(szScale) > 0.0) << 2) | (view_as<int>(StringToFloat(szTime) > 0.0) << 1) | view_as<int>(g_iNotify == 1))
     {
-      case 0b000:  PrintToChatAll("%s%N%s \x05resized\x01 to \x05%s\x01!", CHAT_TAG, targets[0], szPart, g_szClientCurrentScale[type][targets[0]]);
+      case 0b000:  CPrintToChatAdmins(ADMFLAG_RESERVATION, "%s%N%s \x05resized\x01 to \x05%s\x01!", CHAT_TAG, targets[0], szPart, g_szClientCurrentScale[type][targets[0]]);
       case 0b001:  ShowActivity2(iOrigin, CHAT_TAG, "%N%s \x05resized\x01 to \x05%s\x01!", targets[0], szPart, g_szClientCurrentScale[type][targets[0]]);
-      case 0b010:  PrintToChatAll("%s%N%s \x05resized\x01 to \x05%s\x01 for \x05%s\x01 seconds!", CHAT_TAG, targets[0], szPart, g_szClientCurrentScale[type][targets[0]], szTimeEdited);
+      case 0b010:  CPrintToChatAdmins(ADMFLAG_RESERVATION, "%s%N%s \x05resized\x01 to \x05%s\x01 for \x05%s\x01 seconds!", CHAT_TAG, targets[0], szPart, g_szClientCurrentScale[type][targets[0]], szTimeEdited);
       case 0b011:  ShowActivity2(iOrigin, CHAT_TAG, "%N%s \x05resized\x01 to \x05%s\x01 for \x05%s\x01 seconds!", targets[0], szPart, g_szClientCurrentScale[type][targets[0]], szTimeEdited);
-      case 0b100:  PrintToChatAll("%s%N%s \x05resized\x01 to \x05%s\x01!", CHAT_TAG, targets[0], szPart, szScaleEdited);
+      case 0b100:  CPrintToChatAdmins(ADMFLAG_RESERVATION, "%s%N%s \x05resized\x01 to \x05%s\x01!", CHAT_TAG, targets[0], szPart, szScaleEdited);
       case 0b101:  ShowActivity2(iOrigin, CHAT_TAG, "%N%s \x05resized\x01 to \x05%s\x01!", targets[0], szPart, szScaleEdited);
-      case 0b110:  PrintToChatAll("%s%N%s \x05resized\x01 to \x05%s\x01 for \x05%s\x01 seconds!", CHAT_TAG, targets[0], szPart, szScaleEdited, szTimeEdited);
+      case 0b110:  CPrintToChatAdmins(ADMFLAG_RESERVATION, "%s%N%s \x05resized\x01 to \x05%s\x01 for \x05%s\x01 seconds!", CHAT_TAG, targets[0], szPart, szScaleEdited, szTimeEdited);
       case 0b111:  ShowActivity2(iOrigin, CHAT_TAG, "%N%s \x05resized\x01 to \x05%s\x01 for \x05%s\x01 seconds!", targets[0], szPart, szScaleEdited, szTimeEdited);
     }
   }
@@ -1133,13 +1133,13 @@ bool NotifyPlayers(const int type, const int iOrigin, const bool tn_is_ml, const
   
     switch ((view_as<int>(StringToFloat(szScale) > 0.0) << 2) | (view_as<int>(StringToFloat(szTime) > 0.0) << 1) | view_as<int>(g_iNotify == 1))
     {
-      case 0b000:  PrintToChatAll("%s%N \x05resized\x01 %s%s!", CHAT_TAG, iOrigin, szTarget, szPart);
+      case 0b000:  CPrintToChatAdmins(ADMFLAG_RESERVATION, "%s%N \x05resized\x01 %s%s!", CHAT_TAG, iOrigin, szTarget, szPart);
       case 0b001:  ShowActivity2(iOrigin, CHAT_TAG, "%N \x05resized\x01 %s%s!", iOrigin, szTarget, szPart);
-      case 0b010:  PrintToChatAll("%s%N \x05resized\x01 %s%s for \x05%s\x01 seconds!", CHAT_TAG, iOrigin, szTarget, szPart, szTimeEdited);
+      case 0b010:  CPrintToChatAdmins(ADMFLAG_RESERVATION, "%s%N \x05resized\x01 %s%s for \x05%s\x01 seconds!", CHAT_TAG, iOrigin, szTarget, szPart, szTimeEdited);
       case 0b011:  ShowActivity2(iOrigin, CHAT_TAG, "%N \x05resized\x01 %s%s for \x05%s\x01 seconds!", iOrigin, szTarget, szPart, szTimeEdited);
-      case 0b100:  PrintToChatAll("%s%N \x05resized\x01 %s%s to \x05%s\x01!", CHAT_TAG, iOrigin, szTarget, szPart, szScaleEdited);
+      case 0b100:  CPrintToChatAdmins(ADMFLAG_RESERVATION, "%s%N \x05resized\x01 %s%s to \x05%s\x01!", CHAT_TAG, iOrigin, szTarget, szPart, szScaleEdited);
       case 0b101:  ShowActivity2(iOrigin, CHAT_TAG, "%N \x05resized\x01 %s%s to \x05%s\x01!", iOrigin, szTarget, szPart, szScaleEdited);
-      case 0b110:  PrintToChatAll("%s%N \x05resized\x01 %s%s to \x05%s\x01 for \x05%s\x01 seconds!", CHAT_TAG, iOrigin, szTarget, szPart, szScaleEdited, szTimeEdited);
+      case 0b110:  CPrintToChatAdmins(ADMFLAG_RESERVATION, "%s%N \x05resized\x01 %s%s to \x05%s\x01 for \x05%s\x01 seconds!", CHAT_TAG, iOrigin, szTarget, szPart, szScaleEdited, szTimeEdited);
       case 0b111:  ShowActivity2(iOrigin, CHAT_TAG, "%N \x05resized\x01 %s%s to \x05%s\x01 for \x05%s\x01 seconds!", iOrigin, szTarget, szPart, szScaleEdited, szTimeEdited);
     }
   }

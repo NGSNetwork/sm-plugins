@@ -2,10 +2,8 @@
 #pragma semicolon 1
 
 #include <sourcemod>
-#include <sdktools>
-#include <sdkhooks>
 #include <advanced_motd>
-#include <morecolors>
+#include <colorvariables>
 
 #define PLUGIN_VERSION "1.0.0"
 #define NGSRAFFLEURL "https://steamcommunity.com/groups/NGSRaffle#announcements/detail/"
@@ -23,7 +21,7 @@ public Plugin myinfo = {
 	author = "TheXeon",
 	description = "Announces NGS group raffles!",
 	version = PLUGIN_VERSION,
-	url = "https://neogenesisnetwork.net"
+	url = "https://www.neogenesisnetwork.net"
 }
 
 public void OnPluginStart()
@@ -41,7 +39,7 @@ public Action CommandSetRaffle(int client, int args)
 {
 	if (!CheckCommandAccess(client, "sm_raffleadmin_override", ADMFLAG_GENERIC)) return Plugin_Handled;
 	
-	if (args < 1)
+	if (args < 2)
 	{
 		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_setraffle <raffle announcement id> <0 = free, 1 = invite, 2 = paid, 3 = donor-only, 4 = member-only> <featured item(s)>");
 		return Plugin_Handled;
@@ -51,8 +49,8 @@ public Action CommandSetRaffle(int client, int args)
 	char arg2[MAX_BUFFER_LENGTH];
 	
 	GetCmdArg(1, raffleID, sizeof(raffleID));
-	if (GetCmdArg(2, arg2, sizeof(arg2)) > 0) GetCmdArg(2, arg2, sizeof(arg2));
-	if (GetCmdArg(3, raffleItem, sizeof(raffleItem)) > 0) GetCmdArg(3, raffleItem, sizeof(raffleItem));
+	GetCmdArg(2, arg2, sizeof(arg2));
+	if (args > 2) GetCmdArg(3, raffleItem, sizeof(raffleItem));
 	
 	if (StrEqual(arg2, "free", false)) raffleType = 0;
 	else if (StrEqual(arg2, "invite", false)) raffleType = 1;
@@ -95,12 +93,16 @@ public Action CommandCancelRaffle(int client, int args)
 	if (!CheckCommandAccess(client, "sm_raffleadmin_override", ADMFLAG_GENERIC)) return Plugin_Handled;
 	raffleID = NULL_STRING;
 	raffleItem = NULL_STRING;
-	for (int i = 1; i <= MaxClients; i++)
+	if (hHudText != null)
 	{
-		if (hHudText != null) ClearSyncHud(i, hHudText);
+		for (int i = 1; i <= MaxClients; i++)
+		{
+			if (IsValidClient(i))
+				ClearSyncHud(i, hHudText);
+		}
 	}
-	
-	if (hHudText == null) hHudText = CreateHudSynchronizer();
+	else
+		hHudText = CreateHudSynchronizer();
 	
 	SetHudTextParams(-1.0, 0.1, 5.0, 255, 0, 0, 255, 1, 1.0, 1.0, 1.0);
     
@@ -111,13 +113,14 @@ public Action CommandCancelRaffle(int client, int args)
 			ShowSyncHudText(i, hHudText, "Raffle has been canceled...");
 		}
 	}
-	CloseHandle(hHudText);
+	delete hHudText;
 	
 	return Plugin_Handled;
 }
 
 public Action CommandJoinRaffle(int client, int args)
 {
+	if (!IsValidClient(client)) return Plugin_Handled;
 	if (StrEqual(raffleID, "", false))
 	{
 		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} There is currently no raffle going on.");

@@ -22,8 +22,8 @@ char question[1024], options[5][2][48], baseoptions[5][48];
 //new Handle:BleedTime;
 
 public Plugin myinfo = {
-	name             = "[NGS] Randomized Votes - True Democracy",
-	author         = "TheXeon",
+	name            = "[NGS] Randomized Votes - True Democracy",
+	author          = "TheXeon",
 	description     = "Chance for bottles to break.",
 	version         = PLUGIN_VERSION,
 	url             = "https://www.neogenesisnetwork.net/"
@@ -39,6 +39,7 @@ public void OnPluginStart( )
 	RegAdminCmd("sm_rvoteclear", CommandRandomVoteClear, ADMFLAG_VOTE, "Clears results of last vote.");
 
 	RegConsoleCmd("sm_rrevote", CommandRandomVoteRevote, "Revote on a randomized vote!");
+	
 	LoadTranslations("common.phrases");
 }
 

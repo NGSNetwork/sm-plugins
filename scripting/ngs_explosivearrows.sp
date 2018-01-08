@@ -73,7 +73,7 @@ public Action Player_Death(Handle event, const char[] name, bool dontBroadcast) 
 		return;
 	GetClientAbsOrigin(client, deathpos[client]);
 	if (CheckCommandAccess(client, "sm_explarrowsme", ADMFLAG_RESERVATION, false)) return;
-	if (g_Arrows[client] == true)
+	if (g_Arrows[client])
 	{
 		g_Arrows[client] = false;
 		CPrintToChat(client, "{GREEN}[SM]{DEFAULT} Explosive arrows disabled.");
@@ -122,7 +122,7 @@ public Action Command_Arrows(int client, int args)
 
 	GetCmdArg(1, arg1, sizeof(arg1));
 	GetCmdArg(2, arg2, sizeof(arg2));
-	bool button = !!StringToInt(arg2);
+	bool button = view_as<bool>(StringToInt(arg2));
 
 	char target_name[MAX_TARGET_LENGTH];
 	int target_list[MAXPLAYERS], target_count;

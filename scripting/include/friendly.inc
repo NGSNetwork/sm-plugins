@@ -5,7 +5,6 @@
 
 public SharedPlugin __pl_tf2friendly = {
 	name = "[TF2] Friendly Mode",
-	file = "friendly.smx",
 #if defined REQUIRE_PLUGIN
 	required = 1,
 #else

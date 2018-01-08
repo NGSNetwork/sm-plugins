@@ -54,7 +54,7 @@ bool C_Profile_Colors[] = {true, false, true, false, false, false, false, false,
 int C_Profile_TeamIndex[] = {NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX};
 bool C_Profile_SayText2 = false;
 
-static Handle sm_show_activity = null;
+static ConVar sm_show_activity = null;
 
 /**
  * Prints a message to a specific client in the chat area.
@@ -551,7 +551,7 @@ stock void C_SetupProfile()
 	else if (engine == Engine_HL2DM)
 	{
 		/* hl2mp profile is based on mp_teamplay convar */
-		if (GetConVarBool(FindConVar("mp_teamplay")))
+		if (FindConVar("mp_teamplay").BoolValue)
 		{
 			C_Profile_Colors[Color_Red] = true;
 			C_Profile_Colors[Color_Blue] = true;
@@ -622,7 +622,7 @@ stock int C_ShowActivity(int client, const char[] format, any ...)
 
 	char szBuffer[MAX_MESSAGE_LENGTH];
 	//char szCMessage[MAX_MESSAGE_LENGTH];
-	int  value = GetConVarInt(sm_show_activity);
+	int  value = sm_show_activity.IntValue;
 	ReplySource replyto = GetCmdReplySource();
 
 	char name[MAX_NAME_LENGTH] = "Console";
@@ -736,7 +736,7 @@ stock int C_ShowActivityEx(int client, const char[] tag, const char[] format, an
 
 	char szBuffer[MAX_MESSAGE_LENGTH];
 	//char szCMessage[MAX_MESSAGE_LENGTH];
-	int value = GetConVarInt(sm_show_activity);
+	int value = sm_show_activity.IntValue;
 	ReplySource replyto = GetCmdReplySource();
 
 	char name[MAX_NAME_LENGTH] = "Console";
@@ -852,7 +852,7 @@ stock int C_ShowActivity2(int client, const char[] tag, const char[] format, any
 
 	char szBuffer[MAX_MESSAGE_LENGTH];
 	//char szCMessage[MAX_MESSAGE_LENGTH];
-	int value = GetConVarInt(sm_show_activity);
+	int value = sm_show_activity.IntValue;
 	// ReplySource replyto = GetCmdReplySource();
 
 	char name[MAX_NAME_LENGTH] = "Console";

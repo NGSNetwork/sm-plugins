@@ -7,7 +7,6 @@
 #endif
 #define _more_colors_included
 
-#pragma newdecls optional
 #include <regex>
 
 #define MORE_COLORS_VERSION     "2.0.0-MC"
@@ -22,10 +21,10 @@
 #define MC_GAME_DODS           0
 
 bool MC_SkipList[MAXPLAYERS + 1];
-Handle MC_Trie;
+StringMap MC_Trie;
 int MC_TeamColors[][] = {{0xCCCCCC, 0x4D7942, 0xFF4040}}; // Multi-dimensional array for games that don't support SayText2. First index is the game index (as defined by the GAME_ defines), second index is team. 0 = spectator, 1 = team1, 2 = team2
 
-static Handle sm_show_activity = INVALID_HANDLE;
+static ConVar sm_show_activity = INVALID_HANDLE;
 
 /**
  * Prints a message to a specific client in the chat area.
@@ -271,7 +270,7 @@ stock void MC_ReplaceColorCodes(char[] buffer, int author = 0, bool removeTags =
 			} else {
 				ReplaceString(output, maxlen, tag, buff, false);
 			}
-		} else if(!GetTrieValue(MC_Trie, buff, value)) {
+		} else if(!MC_Trie.GetValue(buff, value)) {
 			continue;
 		}
 
@@ -328,13 +327,13 @@ stock void MC_StrToLower(char[] buffer) {
 stock bool MC_AddColor(const char[] name, int color) {
 	MC_CheckTrie();
 	int value;
-	if(GetTrieValue(MC_Trie, name, value)) {
+	if(MC_Trie.GetValue(name, value)) {
 		return false;
 	}
 	char newName[64];
 	strcopy(newName, sizeof(newName), name);
 	MC_StrToLower(newName);
-	SetTrieValue(MC_Trie, newName, color);
+	MC_Trie.SetValue(newName, color);
 	return true;
 }
 
@@ -745,7 +744,7 @@ stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, an
 stock bool CColorExists(const char[] color) {
 	MC_CheckTrie();
 	int temp;
-	return GetTrieValue(MC_Trie, color, temp);
+	return MC_Trie.GetValue(color, temp);
 }
 
 /**
@@ -780,180 +779,180 @@ stock int CGetTeamColor(int client) {
 	return value;
 }
 
-stock Handle MC_InitColorTrie() {
-	Handle hTrie = CreateTrie();
-	SetTrieValue(hTrie, "aliceblue", 0xF0F8FF);
-	SetTrieValue(hTrie, "allies", 0x4D7942); // same as Allies team in DoD:S
-	SetTrieValue(hTrie, "ancient", 0xEB4B4B); // same as Ancient item rarity in Dota 2
-	SetTrieValue(hTrie, "antiquewhite", 0xFAEBD7);
-	SetTrieValue(hTrie, "aqua", 0x00FFFF);
-	SetTrieValue(hTrie, "aquamarine", 0x7FFFD4);
-	SetTrieValue(hTrie, "arcana", 0xADE55C); // same as Arcana item rarity in Dota 2
-	SetTrieValue(hTrie, "axis", 0xFF4040); // same as Axis team in DoD:S
-	SetTrieValue(hTrie, "azure", 0x007FFF);
-	SetTrieValue(hTrie, "beige", 0xF5F5DC);
-	SetTrieValue(hTrie, "bisque", 0xFFE4C4);
-	SetTrieValue(hTrie, "black", 0x000000);
-	SetTrieValue(hTrie, "blanchedalmond", 0xFFEBCD);
-	SetTrieValue(hTrie, "blue", 0x99CCFF); // same as BLU/Counter-Terrorist team color
-	SetTrieValue(hTrie, "blueviolet", 0x8A2BE2);
-	SetTrieValue(hTrie, "brown", 0xA52A2A);
-	SetTrieValue(hTrie, "burlywood", 0xDEB887);
-	SetTrieValue(hTrie, "cadetblue", 0x5F9EA0);
-	SetTrieValue(hTrie, "chartreuse", 0x7FFF00);
-	SetTrieValue(hTrie, "chocolate", 0xD2691E);
-	SetTrieValue(hTrie, "collectors", 0xAA0000); // same as Collector's item quality in TF2
-	SetTrieValue(hTrie, "common", 0xB0C3D9); // same as Common item rarity in Dota 2
-	SetTrieValue(hTrie, "community", 0x70B04A); // same as Community item quality in TF2
-	SetTrieValue(hTrie, "coral", 0xFF7F50);
-	SetTrieValue(hTrie, "cornflowerblue", 0x6495ED);
-	SetTrieValue(hTrie, "cornsilk", 0xFFF8DC);
-	SetTrieValue(hTrie, "corrupted", 0xA32C2E); // same as Corrupted item quality in Dota 2
-	SetTrieValue(hTrie, "crimson", 0xDC143C);
-	SetTrieValue(hTrie, "cyan", 0x00FFFF);
-	SetTrieValue(hTrie, "darkblue", 0x00008B);
-	SetTrieValue(hTrie, "darkcyan", 0x008B8B);
-	SetTrieValue(hTrie, "darkgoldenrod", 0xB8860B);
-	SetTrieValue(hTrie, "darkgray", 0xA9A9A9);
-	SetTrieValue(hTrie, "darkgrey", 0xA9A9A9);
-	SetTrieValue(hTrie, "darkgreen", 0x006400);
-	SetTrieValue(hTrie, "darkkhaki", 0xBDB76B);
-	SetTrieValue(hTrie, "darkmagenta", 0x8B008B);
-	SetTrieValue(hTrie, "darkolivegreen", 0x556B2F);
-	SetTrieValue(hTrie, "darkorange", 0xFF8C00);
-	SetTrieValue(hTrie, "darkorchid", 0x9932CC);
-	SetTrieValue(hTrie, "darkred", 0x8B0000);
-	SetTrieValue(hTrie, "darksalmon", 0xE9967A);
-	SetTrieValue(hTrie, "darkseagreen", 0x8FBC8F);
-	SetTrieValue(hTrie, "darkslateblue", 0x483D8B);
-	SetTrieValue(hTrie, "darkslategray", 0x2F4F4F);
-	SetTrieValue(hTrie, "darkslategrey", 0x2F4F4F);
-	SetTrieValue(hTrie, "darkturquoise", 0x00CED1);
-	SetTrieValue(hTrie, "darkviolet", 0x9400D3);
-	SetTrieValue(hTrie, "deeppink", 0xFF1493);
-	SetTrieValue(hTrie, "deepskyblue", 0x00BFFF);
-	SetTrieValue(hTrie, "dimgray", 0x696969);
-	SetTrieValue(hTrie, "dimgrey", 0x696969);
-	SetTrieValue(hTrie, "dodgerblue", 0x1E90FF);
-	SetTrieValue(hTrie, "exalted", 0xCCCCCD); // same as Exalted item quality in Dota 2
-	SetTrieValue(hTrie, "firebrick", 0xB22222);
-	SetTrieValue(hTrie, "floralwhite", 0xFFFAF0);
-	SetTrieValue(hTrie, "forestgreen", 0x228B22);
-	SetTrieValue(hTrie, "frozen", 0x4983B3); // same as Frozen item quality in Dota 2
-	SetTrieValue(hTrie, "fuchsia", 0xFF00FF);
-	SetTrieValue(hTrie, "fullblue", 0x0000FF);
-	SetTrieValue(hTrie, "fullred", 0xFF0000);
-	SetTrieValue(hTrie, "gainsboro", 0xDCDCDC);
-	SetTrieValue(hTrie, "genuine", 0x4D7455); // same as Genuine item quality in TF2
-	SetTrieValue(hTrie, "ghostwhite", 0xF8F8FF);
-	SetTrieValue(hTrie, "gold", 0xFFD700);
-	SetTrieValue(hTrie, "goldenrod", 0xDAA520);
-	SetTrieValue(hTrie, "gray", 0xCCCCCC); // same as spectator team color
-	SetTrieValue(hTrie, "grey", 0xCCCCCC);
-	SetTrieValue(hTrie, "green", 0x3EFF3E);
-	SetTrieValue(hTrie, "greenyellow", 0xADFF2F);
-	SetTrieValue(hTrie, "haunted", 0x38F3AB); // same as Haunted item quality in TF2
-	SetTrieValue(hTrie, "honeydew", 0xF0FFF0);
-	SetTrieValue(hTrie, "hotpink", 0xFF69B4);
-	SetTrieValue(hTrie, "immortal", 0xE4AE33); // same as Immortal item rarity in Dota 2
-	SetTrieValue(hTrie, "indianred", 0xCD5C5C);
-	SetTrieValue(hTrie, "indigo", 0x4B0082);
-	SetTrieValue(hTrie, "ivory", 0xFFFFF0);
-	SetTrieValue(hTrie, "khaki", 0xF0E68C);
-	SetTrieValue(hTrie, "lavender", 0xE6E6FA);
-	SetTrieValue(hTrie, "lavenderblush", 0xFFF0F5);
-	SetTrieValue(hTrie, "lawngreen", 0x7CFC00);
-	SetTrieValue(hTrie, "legendary", 0xD32CE6); // same as Legendary item rarity in Dota 2
-	SetTrieValue(hTrie, "lemonchiffon", 0xFFFACD);
-	SetTrieValue(hTrie, "lightblue", 0xADD8E6);
-	SetTrieValue(hTrie, "lightcoral", 0xF08080);
-	SetTrieValue(hTrie, "lightcyan", 0xE0FFFF);
-	SetTrieValue(hTrie, "lightgoldenrodyellow", 0xFAFAD2);
-	SetTrieValue(hTrie, "lightgray", 0xD3D3D3);
-	SetTrieValue(hTrie, "lightgrey", 0xD3D3D3);
-	SetTrieValue(hTrie, "lightgreen", 0x99FF99);
-	SetTrieValue(hTrie, "lightpink", 0xFFB6C1);
-	SetTrieValue(hTrie, "lightsalmon", 0xFFA07A);
-	SetTrieValue(hTrie, "lightseagreen", 0x20B2AA);
-	SetTrieValue(hTrie, "lightskyblue", 0x87CEFA);
-	SetTrieValue(hTrie, "lightslategray", 0x778899);
-	SetTrieValue(hTrie, "lightslategrey", 0x778899);
-	SetTrieValue(hTrie, "lightsteelblue", 0xB0C4DE);
-	SetTrieValue(hTrie, "lightyellow", 0xFFFFE0);
-	SetTrieValue(hTrie, "lime", 0x00FF00);
-	SetTrieValue(hTrie, "limegreen", 0x32CD32);
-	SetTrieValue(hTrie, "linen", 0xFAF0E6);
-	SetTrieValue(hTrie, "magenta", 0xFF00FF);
-	SetTrieValue(hTrie, "maroon", 0x800000);
-	SetTrieValue(hTrie, "mediumaquamarine", 0x66CDAA);
-	SetTrieValue(hTrie, "mediumblue", 0x0000CD);
-	SetTrieValue(hTrie, "mediumorchid", 0xBA55D3);
-	SetTrieValue(hTrie, "mediumpurple", 0x9370D8);
-	SetTrieValue(hTrie, "mediumseagreen", 0x3CB371);
-	SetTrieValue(hTrie, "mediumslateblue", 0x7B68EE);
-	SetTrieValue(hTrie, "mediumspringgreen", 0x00FA9A);
-	SetTrieValue(hTrie, "mediumturquoise", 0x48D1CC);
-	SetTrieValue(hTrie, "mediumvioletred", 0xC71585);
-	SetTrieValue(hTrie, "midnightblue", 0x191970);
-	SetTrieValue(hTrie, "mintcream", 0xF5FFFA);
-	SetTrieValue(hTrie, "mistyrose", 0xFFE4E1);
-	SetTrieValue(hTrie, "moccasin", 0xFFE4B5);
-	SetTrieValue(hTrie, "mythical", 0x8847FF); // same as Mythical item rarity in Dota 2
-	SetTrieValue(hTrie, "navajowhite", 0xFFDEAD);
-	SetTrieValue(hTrie, "navy", 0x000080);
-	SetTrieValue(hTrie, "normal", 0xB2B2B2); // same as Normal item quality in TF2
-	SetTrieValue(hTrie, "oldlace", 0xFDF5E6);
-	SetTrieValue(hTrie, "olive", 0x9EC34F);
-	SetTrieValue(hTrie, "olivedrab", 0x6B8E23);
-	SetTrieValue(hTrie, "orange", 0xFFA500);
-	SetTrieValue(hTrie, "orangered", 0xFF4500);
-	SetTrieValue(hTrie, "orchid", 0xDA70D6);
-	SetTrieValue(hTrie, "palegoldenrod", 0xEEE8AA);
-	SetTrieValue(hTrie, "palegreen", 0x98FB98);
-	SetTrieValue(hTrie, "paleturquoise", 0xAFEEEE);
-	SetTrieValue(hTrie, "palevioletred", 0xD87093);
-	SetTrieValue(hTrie, "papayawhip", 0xFFEFD5);
-	SetTrieValue(hTrie, "peachpuff", 0xFFDAB9);
-	SetTrieValue(hTrie, "peru", 0xCD853F);
-	SetTrieValue(hTrie, "pink", 0xFFC0CB);
-	SetTrieValue(hTrie, "plum", 0xDDA0DD);
-	SetTrieValue(hTrie, "powderblue", 0xB0E0E6);
-	SetTrieValue(hTrie, "purple", 0x800080);
-	SetTrieValue(hTrie, "rare", 0x4B69FF); // same as Rare item rarity in Dota 2
-	SetTrieValue(hTrie, "red", 0xFF4040); // same as RED/Terrorist team color
-	SetTrieValue(hTrie, "rosybrown", 0xBC8F8F);
-	SetTrieValue(hTrie, "royalblue", 0x4169E1);
-	SetTrieValue(hTrie, "saddlebrown", 0x8B4513);
-	SetTrieValue(hTrie, "salmon", 0xFA8072);
-	SetTrieValue(hTrie, "sandybrown", 0xF4A460);
-	SetTrieValue(hTrie, "seagreen", 0x2E8B57);
-	SetTrieValue(hTrie, "seashell", 0xFFF5EE);
-	SetTrieValue(hTrie, "selfmade", 0x70B04A); // same as Self-Made item quality in TF2
-	SetTrieValue(hTrie, "sienna", 0xA0522D);
-	SetTrieValue(hTrie, "silver", 0xC0C0C0);
-	SetTrieValue(hTrie, "skyblue", 0x87CEEB);
-	SetTrieValue(hTrie, "slateblue", 0x6A5ACD);
-	SetTrieValue(hTrie, "slategray", 0x708090);
-	SetTrieValue(hTrie, "slategrey", 0x708090);
-	SetTrieValue(hTrie, "snow", 0xFFFAFA);
-	SetTrieValue(hTrie, "springgreen", 0x00FF7F);
-	SetTrieValue(hTrie, "steelblue", 0x4682B4);
-	SetTrieValue(hTrie, "strange", 0xCF6A32); // same as Strange item quality in TF2
-	SetTrieValue(hTrie, "tan", 0xD2B48C);
-	SetTrieValue(hTrie, "teal", 0x008080);
-	SetTrieValue(hTrie, "thistle", 0xD8BFD8);
-	SetTrieValue(hTrie, "tomato", 0xFF6347);
-	SetTrieValue(hTrie, "turquoise", 0x40E0D0);
-	SetTrieValue(hTrie, "uncommon", 0xB0C3D9); // same as Uncommon item rarity in Dota 2
-	SetTrieValue(hTrie, "unique", 0xFFD700); // same as Unique item quality in TF2
-	SetTrieValue(hTrie, "unusual", 0x8650AC); // same as Unusual item quality in TF2
-	SetTrieValue(hTrie, "valve", 0xA50F79); // same as Valve item quality in TF2
-	SetTrieValue(hTrie, "vintage", 0x476291); // same as Vintage item quality in TF2
-	SetTrieValue(hTrie, "violet", 0xEE82EE);
-	SetTrieValue(hTrie, "wheat", 0xF5DEB3);
-	SetTrieValue(hTrie, "white", 0xFFFFFF);
-	SetTrieValue(hTrie, "whitesmoke", 0xF5F5F5);
-	SetTrieValue(hTrie, "yellow", 0xFFFF00);
-	SetTrieValue(hTrie, "yellowgreen", 0x9ACD32);
+stock StringMap MC_InitColorTrie() {
+	StringMap hTrie = new StringMap();
+	hTrie.SetValue("aliceblue", 0xF0F8FF);
+	hTrie.SetValue("allies", 0x4D7942); // same as Allies team in DoD:S
+	hTrie.SetValue("ancient", 0xEB4B4B); // same as Ancient item rarity in Dota 2
+	hTrie.SetValue("antiquewhite", 0xFAEBD7);
+	hTrie.SetValue("aqua", 0x00FFFF);
+	hTrie.SetValue("aquamarine", 0x7FFFD4);
+	hTrie.SetValue("arcana", 0xADE55C); // same as Arcana item rarity in Dota 2
+	hTrie.SetValue("axis", 0xFF4040); // same as Axis team in DoD:S
+	hTrie.SetValue("azure", 0x007FFF);
+	hTrie.SetValue("beige", 0xF5F5DC);
+	hTrie.SetValue("bisque", 0xFFE4C4);
+	hTrie.SetValue("black", 0x000000);
+	hTrie.SetValue("blanchedalmond", 0xFFEBCD);
+	hTrie.SetValue("blue", 0x99CCFF); // same as BLU/Counter-Terrorist team color
+	hTrie.SetValue("blueviolet", 0x8A2BE2);
+	hTrie.SetValue("brown", 0xA52A2A);
+	hTrie.SetValue("burlywood", 0xDEB887);
+	hTrie.SetValue("cadetblue", 0x5F9EA0);
+	hTrie.SetValue("chartreuse", 0x7FFF00);
+	hTrie.SetValue("chocolate", 0xD2691E);
+	hTrie.SetValue("collectors", 0xAA0000); // same as Collector's item quality in TF2
+	hTrie.SetValue("common", 0xB0C3D9); // same as Common item rarity in Dota 2
+	hTrie.SetValue("community", 0x70B04A); // same as Community item quality in TF2
+	hTrie.SetValue("coral", 0xFF7F50);
+	hTrie.SetValue("cornflowerblue", 0x6495ED);
+	hTrie.SetValue("cornsilk", 0xFFF8DC);
+	hTrie.SetValue("corrupted", 0xA32C2E); // same as Corrupted item quality in Dota 2
+	hTrie.SetValue("crimson", 0xDC143C);
+	hTrie.SetValue("cyan", 0x00FFFF);
+	hTrie.SetValue("darkblue", 0x00008B);
+	hTrie.SetValue("darkcyan", 0x008B8B);
+	hTrie.SetValue("darkgoldenrod", 0xB8860B);
+	hTrie.SetValue("darkgray", 0xA9A9A9);
+	hTrie.SetValue("darkgrey", 0xA9A9A9);
+	hTrie.SetValue("darkgreen", 0x006400);
+	hTrie.SetValue("darkkhaki", 0xBDB76B);
+	hTrie.SetValue("darkmagenta", 0x8B008B);
+	hTrie.SetValue("darkolivegreen", 0x556B2F);
+	hTrie.SetValue("darkorange", 0xFF8C00);
+	hTrie.SetValue("darkorchid", 0x9932CC);
+	hTrie.SetValue("darkred", 0x8B0000);
+	hTrie.SetValue("darksalmon", 0xE9967A);
+	hTrie.SetValue("darkseagreen", 0x8FBC8F);
+	hTrie.SetValue("darkslateblue", 0x483D8B);
+	hTrie.SetValue("darkslategray", 0x2F4F4F);
+	hTrie.SetValue("darkslategrey", 0x2F4F4F);
+	hTrie.SetValue("darkturquoise", 0x00CED1);
+	hTrie.SetValue("darkviolet", 0x9400D3);
+	hTrie.SetValue("deeppink", 0xFF1493);
+	hTrie.SetValue("deepskyblue", 0x00BFFF);
+	hTrie.SetValue("dimgray", 0x696969);
+	hTrie.SetValue("dimgrey", 0x696969);
+	hTrie.SetValue("dodgerblue", 0x1E90FF);
+	hTrie.SetValue("exalted", 0xCCCCCD); // same as Exalted item quality in Dota 2
+	hTrie.SetValue("firebrick", 0xB22222);
+	hTrie.SetValue("floralwhite", 0xFFFAF0);
+	hTrie.SetValue("forestgreen", 0x228B22);
+	hTrie.SetValue("frozen", 0x4983B3); // same as Frozen item quality in Dota 2
+	hTrie.SetValue("fuchsia", 0xFF00FF);
+	hTrie.SetValue("fullblue", 0x0000FF);
+	hTrie.SetValue("fullred", 0xFF0000);
+	hTrie.SetValue("gainsboro", 0xDCDCDC);
+	hTrie.SetValue("genuine", 0x4D7455); // same as Genuine item quality in TF2
+	hTrie.SetValue("ghostwhite", 0xF8F8FF);
+	hTrie.SetValue("gold", 0xFFD700);
+	hTrie.SetValue("goldenrod", 0xDAA520);
+	hTrie.SetValue("gray", 0xCCCCCC); // same as spectator team color
+	hTrie.SetValue("grey", 0xCCCCCC);
+	hTrie.SetValue("green", 0x3EFF3E);
+	hTrie.SetValue("greenyellow", 0xADFF2F);
+	hTrie.SetValue("haunted", 0x38F3AB); // same as Haunted item quality in TF2
+	hTrie.SetValue("honeydew", 0xF0FFF0);
+	hTrie.SetValue("hotpink", 0xFF69B4);
+	hTrie.SetValue("immortal", 0xE4AE33); // same as Immortal item rarity in Dota 2
+	hTrie.SetValue("indianred", 0xCD5C5C);
+	hTrie.SetValue("indigo", 0x4B0082);
+	hTrie.SetValue("ivory", 0xFFFFF0);
+	hTrie.SetValue("khaki", 0xF0E68C);
+	hTrie.SetValue("lavender", 0xE6E6FA);
+	hTrie.SetValue("lavenderblush", 0xFFF0F5);
+	hTrie.SetValue("lawngreen", 0x7CFC00);
+	hTrie.SetValue("legendary", 0xD32CE6); // same as Legendary item rarity in Dota 2
+	hTrie.SetValue("lemonchiffon", 0xFFFACD);
+	hTrie.SetValue("lightblue", 0xADD8E6);
+	hTrie.SetValue("lightcoral", 0xF08080);
+	hTrie.SetValue("lightcyan", 0xE0FFFF);
+	hTrie.SetValue("lightgoldenrodyellow", 0xFAFAD2);
+	hTrie.SetValue("lightgray", 0xD3D3D3);
+	hTrie.SetValue("lightgrey", 0xD3D3D3);
+	hTrie.SetValue("lightgreen", 0x99FF99);
+	hTrie.SetValue("lightpink", 0xFFB6C1);
+	hTrie.SetValue("lightsalmon", 0xFFA07A);
+	hTrie.SetValue("lightseagreen", 0x20B2AA);
+	hTrie.SetValue("lightskyblue", 0x87CEFA);
+	hTrie.SetValue("lightslategray", 0x778899);
+	hTrie.SetValue("lightslategrey", 0x778899);
+	hTrie.SetValue("lightsteelblue", 0xB0C4DE);
+	hTrie.SetValue("lightyellow", 0xFFFFE0);
+	hTrie.SetValue("lime", 0x00FF00);
+	hTrie.SetValue("limegreen", 0x32CD32);
+	hTrie.SetValue("linen", 0xFAF0E6);
+	hTrie.SetValue("magenta", 0xFF00FF);
+	hTrie.SetValue("maroon", 0x800000);
+	hTrie.SetValue("mediumaquamarine", 0x66CDAA);
+	hTrie.SetValue("mediumblue", 0x0000CD);
+	hTrie.SetValue("mediumorchid", 0xBA55D3);
+	hTrie.SetValue("mediumpurple", 0x9370D8);
+	hTrie.SetValue("mediumseagreen", 0x3CB371);
+	hTrie.SetValue("mediumslateblue", 0x7B68EE);
+	hTrie.SetValue("mediumspringgreen", 0x00FA9A);
+	hTrie.SetValue("mediumturquoise", 0x48D1CC);
+	hTrie.SetValue("mediumvioletred", 0xC71585);
+	hTrie.SetValue("midnightblue", 0x191970);
+	hTrie.SetValue("mintcream", 0xF5FFFA);
+	hTrie.SetValue("mistyrose", 0xFFE4E1);
+	hTrie.SetValue("moccasin", 0xFFE4B5);
+	hTrie.SetValue("mythical", 0x8847FF); // same as Mythical item rarity in Dota 2
+	hTrie.SetValue("navajowhite", 0xFFDEAD);
+	hTrie.SetValue("navy", 0x000080);
+	hTrie.SetValue("normal", 0xB2B2B2); // same as Normal item quality in TF2
+	hTrie.SetValue("oldlace", 0xFDF5E6);
+	hTrie.SetValue("olive", 0x9EC34F);
+	hTrie.SetValue("olivedrab", 0x6B8E23);
+	hTrie.SetValue("orange", 0xFFA500);
+	hTrie.SetValue("orangered", 0xFF4500);
+	hTrie.SetValue("orchid", 0xDA70D6);
+	hTrie.SetValue("palegoldenrod", 0xEEE8AA);
+	hTrie.SetValue("palegreen", 0x98FB98);
+	hTrie.SetValue("paleturquoise", 0xAFEEEE);
+	hTrie.SetValue("palevioletred", 0xD87093);
+	hTrie.SetValue("papayawhip", 0xFFEFD5);
+	hTrie.SetValue("peachpuff", 0xFFDAB9);
+	hTrie.SetValue("peru", 0xCD853F);
+	hTrie.SetValue("pink", 0xFFC0CB);
+	hTrie.SetValue("plum", 0xDDA0DD);
+	hTrie.SetValue("powderblue", 0xB0E0E6);
+	hTrie.SetValue("purple", 0x800080);
+	hTrie.SetValue("rare", 0x4B69FF); // same as Rare item rarity in Dota 2
+	hTrie.SetValue("red", 0xFF4040); // same as RED/Terrorist team color
+	hTrie.SetValue("rosybrown", 0xBC8F8F);
+	hTrie.SetValue("royalblue", 0x4169E1);
+	hTrie.SetValue("saddlebrown", 0x8B4513);
+	hTrie.SetValue("salmon", 0xFA8072);
+	hTrie.SetValue("sandybrown", 0xF4A460);
+	hTrie.SetValue("seagreen", 0x2E8B57);
+	hTrie.SetValue("seashell", 0xFFF5EE);
+	hTrie.SetValue("selfmade", 0x70B04A); // same as Self-Made item quality in TF2
+	hTrie.SetValue("sienna", 0xA0522D);
+	hTrie.SetValue("silver", 0xC0C0C0);
+	hTrie.SetValue("skyblue", 0x87CEEB);
+	hTrie.SetValue("slateblue", 0x6A5ACD);
+	hTrie.SetValue("slategray", 0x708090);
+	hTrie.SetValue("slategrey", 0x708090);
+	hTrie.SetValue("snow", 0xFFFAFA);
+	hTrie.SetValue("springgreen", 0x00FF7F);
+	hTrie.SetValue("steelblue", 0x4682B4);
+	hTrie.SetValue("strange", 0xCF6A32); // same as Strange item quality in TF2
+	hTrie.SetValue("tan", 0xD2B48C);
+	hTrie.SetValue("teal", 0x008080);
+	hTrie.SetValue("thistle", 0xD8BFD8);
+	hTrie.SetValue("tomato", 0xFF6347);
+	hTrie.SetValue("turquoise", 0x40E0D0);
+	hTrie.SetValue("uncommon", 0xB0C3D9); // same as Uncommon item rarity in Dota 2
+	hTrie.SetValue("unique", 0xFFD700); // same as Unique item quality in TF2
+	hTrie.SetValue("unusual", 0x8650AC); // same as Unusual item quality in TF2
+	hTrie.SetValue("valve", 0xA50F79); // same as Valve item quality in TF2
+	hTrie.SetValue("vintage", 0x476291); // same as Vintage item quality in TF2
+	hTrie.SetValue("violet", 0xEE82EE);
+	hTrie.SetValue("wheat", 0xF5DEB3);
+	hTrie.SetValue("white", 0xFFFFFF);
+	hTrie.SetValue("whitesmoke", 0xF5F5F5);
+	hTrie.SetValue("yellow", 0xFFFF00);
+	hTrie.SetValue("yellowgreen", 0x9ACD32);
 	return hTrie;
 }

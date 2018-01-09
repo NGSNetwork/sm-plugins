@@ -202,7 +202,7 @@ stock void MC_SkipNextClient(int client) {
  * @return			No return
  */
 stock void MC_CheckTrie() {
-	if(MC_Trie == INVALID_HANDLE) {
+	if(MC_Trie == null) {
 		MC_Trie = MC_InitColorTrie();
 	}
 }
@@ -242,14 +242,14 @@ stock void MC_ReplaceColorCodes(char[] buffer, int author = 0, bool removeTags =
 	strcopy(output, maxlen, buffer);
 	// Since the string's size is going to be changing, output will hold the replaced string and we'll search buffer
 
-	Handle regex = CompileRegex("{[#a-zA-Z0-9]+}");
+	Regex regex = new Regex("{[#a-zA-Z0-9]+}");
 	for(int i = 0; i < 1000; i++) { // The RegEx extension is quite flaky, so we have to loop here :/. This loop is supposed to be infinite and broken by return, but conditions have been added to be safe.
-		if(MatchRegex(regex, buffer[cursor]) < 1) {
-			CloseHandle(regex);
+		if(regex.Match(buffer[cursor]) < 1) {
+			delete regex;
 			strcopy(buffer, maxlen, output);
 			return;
 		}
-		GetRegexSubString(regex, 0, tag, sizeof(tag));
+		regex.GetSubString(0, tag, sizeof(tag));
 		MC_StrToLower(tag);
 		cursor = StrContains(buffer[cursor], tag, false) + cursor + 1;
 		strcopy(buff, sizeof(buff), tag);

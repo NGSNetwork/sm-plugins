@@ -17,6 +17,7 @@ addons:
 env:
     - SMVERSION=1.8 # Stable
     - SMVERSION=1.9 # Unstable
+    - SMVERSION=1.10 # Unstable
 
  
 before_install:
@@ -25,7 +26,7 @@ before_install:
 # And compile!
 install:
    - cd build-env
-   - wget --input-file=http://sourcemod.net/smdrop/$SMVERSION/sourcemod-latest-linux
+   - wget --input-file=https://sourcemod.net/smdrop/$SMVERSION/sourcemod-latest-linux
    - tar -xzf $(cat sourcemod-latest-linux)
    - ls
    - cd ../

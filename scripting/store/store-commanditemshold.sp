@@ -18,7 +18,7 @@ enum CommandItem
 int g_commandItems[MAX_COMMANDITEMS][CommandItem];
 int g_commandItemCount;
 
-Handle g_commandItemsNameIndex;
+StringMap g_commandItemsNameIndex;
 
 public Plugin myinfo = {
 	name        = "[Store] CommandItems Hold",
@@ -55,7 +55,7 @@ public void Store_OnReloadItems()
 		g_commandItemsNameIndex = null;
 	}
 		
-	g_commandItemsNameIndex = CreateTrie();
+	g_commandItemsNameIndex = new StringMap();
 	g_commandItemCount = 0;
 }
 
@@ -63,7 +63,7 @@ public void OnCommandItemAttributesLoad(const char[] itemName, const char[] attr
 {
 	strcopy(g_commandItems[g_commandItemCount][CommandItemName], STORE_MAX_NAME_LENGTH, itemName);
 		
-	SetTrieValue(g_commandItemsNameIndex, g_commandItems[g_commandItemCount][CommandItemName], g_commandItemCount);
+	g_commandItemsNameIndex.SetValue(g_commandItems[g_commandItemCount][CommandItemName], g_commandItemCount);
 	
 	Handle json = json_load(attrs);
 	json_object_get_string(json, "command", g_commandItems[g_commandItemCount][CommandItemText], 255);
@@ -74,8 +74,8 @@ public void OnCommandItemAttributesLoad(const char[] itemName, const char[] attr
 	for (int i = 0, size = json_array_size(teams); i < size; i++)
 		g_commandItems[g_commandItemCount][CommandItemTeams][i] = json_array_get_int(teams, i);
 
-	CloseHandle(teams);
-	CloseHandle(json);
+	delete teams;
+	delete json;
 
 	g_commandItemCount++;
 }
@@ -91,7 +91,7 @@ public Store_ItemUseAction OnCommandItemUse(int client, int itemId, bool equippe
 	Store_GetItemName(itemId, itemName, sizeof(itemName));
 
 	int commandItemhold = -1;
-	if (!GetTrieValue(g_commandItemsNameIndex, itemName, commandItemhold))
+	if (!g_commandItemsNameIndex.GetValue(itemName, commandItemhold))
 	{
 		PrintToChat(client, "%s%t",  "No item attributes");
 		return Store_DoNothing;
@@ -122,16 +122,12 @@ public Store_ItemUseAction OnCommandItemUse(int client, int itemId, bool equippe
 	for (int i = 0; i <= strlen(clientName); i++)
 	{
 		if (IsCharAlpha(clientName[i]) || IsCharNumeric(clientName[i]) || IsCharSpace(clientName[i]))
-		{
 			sanitizedName[j] = clientName[i];
-			j++;
-		}
 		else
-		{
 			sanitizedName[j] = 32;
-			j++;
-		}
+		j++;
 	}
+	sanitizedName[j] = '\0';
 	
 	char clientTeamStr[13];
 	IntToString(clientTeam, clientTeamStr, sizeof(clientTeamStr));

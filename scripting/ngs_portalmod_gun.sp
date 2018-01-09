@@ -603,92 +603,84 @@ public void EventPlayerDeath(Event hEvent, const char[] strName, bool bHidden)
 	if(!cvarPerLife.BoolValue)
 		return;
 		
-	new client = GetClientOfUserId(GetEventInt(hEvent, "userid"));
+	int client = GetClientOfUserId(hEvent.GetInt("userid"));
 	if(!IsValidClient(client)) return;
 	
 	if(IsChell[client])
 		ChellInitialisation(client);
 }
 
-public Action:EventPlayerInventory(Handle:hEvent, const String:strName[], bool:bHidden)
+public void EventPlayerInventory(Event hEvent, const char[] strName, bool bHidden)
 {
-	if(!GetConVarBool(cvarEnabled))
-		return Plugin_Continue;
+	if(!cvarEnabled.BoolValue)
+		return;
 		
-	new client = GetClientOfUserId(GetEventInt(hEvent, "userid"));
+	int client = GetClientOfUserId(hEvent.GetInt("userid"));
 	
-	if(!IsValidClient(client)) return Plugin_Continue;
-	if(!IsPlayerAlive(client)) return Plugin_Continue;
+	if(!IsValidClient(client)) return;
+	if(!IsPlayerAlive(client)) return;
 	if(IsChell[client])
 		GiveRevolver(client);
-	
-	return Plugin_Continue;
 }
 
-public Action:EventRoundStart(Handle:hEvent, const String:strName[], bool:bHidden)
+public void EventRoundStart(Event hEvent, const char[] strName, bool bHidden)
 {
-	if(!GetConVarBool(cvarEnabled))
-		return Plugin_Continue;
+	if(!cvarEnabled.BoolValue)
+		return;
 		
-	for(new i=1; i<MaxClients; i++)
+	for(int i=1; i<MaxClients; i++)
 		if(IsValidClient(i) && IsChell[i])
 			RemovePortalGun(i);
 	
 	Initialisation();
-	
-	return Plugin_Continue;
 }
 
-public Action:EventPlayerchangeclass(Handle:hEvent, const String:strName[], bool:bHidden)
+public void EventPlayerchangeclass(Event hEvent, const char[] strName, bool bHidden)
 {
-	if(!GetConVarBool(cvarEnabled))
-		return Plugin_Continue;
+	if(!cvarEnabled.BoolValue)
+		return;
 		
-	new client = GetClientOfUserId(GetEventInt(hEvent, "userid"));
+	int client = GetClientOfUserId(hEvent.GetInt("userid"));
 	if(!IsValidClient(client))
-		return Plugin_Continue;	
+		return;	
 		
 	//PrintToChat(client, "new: %i, Old: %i", GetEventInt(hEvent, "class"), TF2_GetPlayerClass(client));
 	
-	new flags = GetUserFlagBits(client);
+	int flags = GetUserFlagBits(client);
 	if(flags & ADMFLAG_GENERIC || flags & ADMFLAG_ROOT || flags & FlagImmunity)
-		return Plugin_Continue;	
+		return;	
 		
 	/*** Is this class allowed to receive the PortalGun ? ***/
-	new Class = GetEventInt(hEvent, "class");
-	if(TFClassType:Class >= TFClass_Scout && TFClassType:Class <= TFClass_Engineer)
+	TFClassType Class = view_as<TFClassType>(hEvent.GetInt("class"));
+	if(Class >= TFClass_Scout && Class <= TFClass_Engineer)
 	{
-		if(!ChellClass[TFClassTypeToInt(TFClassType:Class) -1])
+		if(!ChellClass[TFClassTypeToInt(Class) - 1])
 		{
 			PrintToChat(client, "[PORTALMOD] This class is not allowed to receive a PortalGun!");
 			RemovePortalGun(client); // Remove player Portalgun
 		}
-	}
-		
-	return Plugin_Continue;	
+	}	
 }
 
-public Action:EventPlayerTeamPost(Handle:hEvent, const String:strName[], bool:bHidden)
+public void EventPlayerTeamPost(Event hEvent, const char[] strName, bool bHidden)
 {
-	if(!GetConVarBool(cvarEnabled))
-		return Plugin_Continue;
+	if(!cvarEnabled.BoolValue)
+		return;
 		
-	new client = GetClientOfUserId(GetEventInt(hEvent, "userid"));
-	new Team = GetEventInt(hEvent, "team");
+	int client = GetClientOfUserId(hEvent.GetInt("userid"));
+	int Team = hEvent.GetInt("team");
 	
 	if(IsValidClient(client))
 		PlayerTeam[client] = Team-2;
-		
-	return Plugin_Continue;	
 }
 
-public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damagetype)
+public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &damage, int &damagetype)
 {
-	new Type = -1;
-	new client = -1;
+	int Type = -1;
+	int client = -1;
 	
-	for(new i=0; i<MaxClients; i++)
-		for(new j=0; j<2; j++)
+	for(int i=0; i<MaxClients; i++)
+		for(int j=0; j<2; j++)
 			if(EntRefToEntIndex(g_Portal[i][j][ID]) == victim)
 			{
 				client = i;
@@ -707,7 +699,7 @@ public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damage
 		if(IsValidEdict(victim)) RemoveEdict(victim);
 			
 		g_Portal[client][Type][ID] = -1;
-		for(new k=0; k<3; k++)
+		for(int k=0; k<3; k++)
 			g_Portal[client][Type][vec_Pos][k] = 0.0;
 			
 		if(Type == 0 && IsValidEdict(EntRefToEntIndex(g_Portal[client][1][ID])))
@@ -717,10 +709,10 @@ public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damage
 			
 
 		ClientCommand(client, "playgamesound portalmod_gun/weapons/portalgun/portal_fizzle2.mp3");
-		new ActiveWeapon 	= GetEntPropEnt(client, Prop_Data, "m_hActiveWeapon");
+		int ActiveWeapon 	= GetEntPropEnt(client, Prop_Data, "m_hActiveWeapon");
 		if(IsValidEntity(ActiveWeapon))
 		{
-			new idx	= GetEntProp(ActiveWeapon, Prop_Send, "m_iItemDefinitionIndex");
+			int idx	= GetEntProp(ActiveWeapon, Prop_Send, "m_iItemDefinitionIndex");
 			if(idx == StringToInt(PORTALGUN_ID))
 			{
 				SetEntProp(GetEntPropEnt(client, Prop_Data, "m_hViewModel"), Prop_Send, "m_nSequence", 2);
@@ -731,12 +723,12 @@ public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damage
 	return Plugin_Continue;
 }
 
-public Action:OnWeaponSwitch(client, weapon)
+public Action OnWeaponSwitch(int client, int weapon)
 {
 	if(!IsChell[client])
 		return Plugin_Continue;
 		
-	new TFClassType:Class = TF2_GetPlayerClass(client);
+	TFClassType Class = TF2_GetPlayerClass(client);
 	if(Class >= TFClass_Scout && Class <= TFClass_Engineer)
 	{	
 		if(!ChellClass[TFClassTypeToInt(Class) -1]) // Class not allowed => remove Portalgun
@@ -747,7 +739,7 @@ public Action:OnWeaponSwitch(client, weapon)
 		}
 	}
 	
-	new String:ClassName[64];
+	char ClassName[64];
 	GetEdictClassname(weapon, ClassName, sizeof(ClassName));
 	if(!StrEqual(ClassName, PORTALGUN_CLASSNAME))
 		return Plugin_Continue;
@@ -756,27 +748,27 @@ public Action:OnWeaponSwitch(client, weapon)
 	return Plugin_Continue;
 }  
 
-public SpawnStartTouch(spawn, entity)
+public void SpawnStartTouch(int spawn, int entity)
 {
-	decl String:ClassName[64];
+	char ClassName[64];
 	GetEdictClassname(entity, ClassName, sizeof(ClassName));
 	if (StrEqual(ClassName,"tf_projectile_energy_ball"))
 	{
-		new String:WeapData[10];
+		char WeapData[10];
 		GetEntPropString(entity, Prop_Data, "m_iName", WeapData, sizeof(WeapData)); //Is portalGun projectile ?
 		if(StrContains(WeapData, PORTALGUN_ID, true) == -1)
 			return;
 			
 		RemoveEdict(entity);
 		
-		new client 	= GetEntPropEnt(entity, Prop_Data, "m_hOwnerEntity");
+		int client 	= GetEntPropEnt(entity, Prop_Data, "m_hOwnerEntity");
 		if(IsValidClient(client))
 		{
 			ClientCommand(client, "playgamesound portalmod_gun/weapons/portalgun/portal_fizzle2.mp3");
-			new ActiveWeapon = GetEntPropEnt(client, Prop_Data, "m_hActiveWeapon");
+			int ActiveWeapon = GetEntPropEnt(client, Prop_Data, "m_hActiveWeapon");
 			if(IsValidEntity(ActiveWeapon))
 			{
-				new idx	= GetEntProp(ActiveWeapon, Prop_Send, "m_iItemDefinitionIndex");
+				int idx	= GetEntProp(ActiveWeapon, Prop_Send, "m_iItemDefinitionIndex");
 				if(idx == StringToInt(PORTALGUN_ID))
 				{
 					SetEntProp(GetEntPropEnt(client, Prop_Data, "m_hViewModel"), Prop_Send, "m_nSequence", 2);
@@ -793,9 +785,9 @@ public SpawnStartTouch(spawn, entity)
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 
-public Action:GivePortalGun(client, Args)
+public Action GivePortalGun(int client, int Args)
 {	
-	if(!GetConVarBool(cvarEnabled)) return Plugin_Handled;
+	if(!cvarEnabled.BoolValue) return Plugin_Handled;
 	if(!IsValidClient(client)) return Plugin_Handled;
 	if (!TF2Friendly_IsFriendly(client))
 	{
@@ -817,7 +809,7 @@ public Action:GivePortalGun(client, Args)
 	return Plugin_Handled;
 }
 
-EquipPortalGun(client)
+void EquipPortalGun(int client)
 {	
 	if(PlayerTeam[client] > 1 || PlayerTeam[client] < 0)
 		return;
@@ -839,13 +831,13 @@ EquipPortalGun(client)
 	CreateTimer(0.1, TimerPortal, client);
 }
 
-GiveRevolver(client)
+void GiveRevolver(int client)
 {
 	if(!IsValidClient(client)) return;
 	if(PlayerTeam[client] < 0 || PlayerTeam[client] > 1) return;
 	
-	new flags = OVERRIDE_ATTRIBUTES;
-	new Handle:newItem = TF2Items_CreateItem(flags);
+	int flags = OVERRIDE_ATTRIBUTES;
+	Handle newItem = TF2Items_CreateItem(flags);
 
 	flags |= OVERRIDE_CLASSNAME;
 	TF2Items_SetClassname(newItem, PORTALGUN_CLASSNAME);
@@ -856,15 +848,15 @@ GiveRevolver(client)
 	TF2Items_SetAttribute(newItem, 0, 280, 9.0);
 
 	TF2Items_SetFlags(newItem, flags);	
-	new WeaponID = GetPlayerWeaponSlot(client, 1);
+	int WeaponID = GetPlayerWeaponSlot(client, 1);
 	if(IsValidEdict(WeaponID))
 	{
 		RemovePlayerItem(client, WeaponID);
 		RemoveEdict(WeaponID);
 	}
 
-	new entity = TF2Items_GiveNamedItem(client, newItem);
-	CloseHandle(newItem);	
+	int entity = TF2Items_GiveNamedItem(client, newItem);
+	delete newItem;	
 	
 	SetEntProp(entity, Prop_Send, "m_iItemDefinitionIndex", StringToInt(PORTALGUN_ID));
 	
@@ -873,18 +865,16 @@ GiveRevolver(client)
 
 	SetEntityRenderMode(entity, RENDER_TRANSCOLOR);
 	SetEntityRenderColor(entity, 255, 255, 255, 0);
-	
-	return;
 }
 
-RemovePortalGun(client)
+void RemovePortalGun(int client)
 {
 	if(!IsValidClient(client))
 		return;
 		
 	IsChell[client] = false;
 	
-	new Health = GetClientHealth(client);
+	int Health = GetClientHealth(client);
 	
 	TF2_RemoveWeaponSlot(client, 1); // Remove PortalGun weapon
 	ChellInitialisation(client);	 // Initialize player data and remove portal entities
@@ -892,9 +882,9 @@ RemovePortalGun(client)
 	SetEntityHealth(client, Health); // Keep Health	
 }
 
-RemovePortalgunClass(TFClassType:Class)
+void RemovePortalgunClass(TFClassType Class)
 {
-	for(new i=1; i<MaxClients; i++)
+	for(int i=1; i<MaxClients; i++)
 		if(IsValidClient(i) && TF2_GetPlayerClass(i) == Class)
 			RemovePortalGun(i);
 }
@@ -905,22 +895,22 @@ RemovePortalgunClass(TFClassType:Class)
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 
-public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:angles[3], &weapon) 
+public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon) 
 { 
 	if(PlayerTeam[client] < 0 || PlayerTeam[client] > 1)
 		return Plugin_Changed;
 		
 	if((buttons & IN_ATTACK) || (buttons & IN_ATTACK2)) 
     { 
-		new ActiveWeapon = GetEntPropEnt(client, Prop_Data, "m_hActiveWeapon");
+		int ActiveWeapon = GetEntPropEnt(client, Prop_Data, "m_hActiveWeapon");
 		if(!IsValidEntity(ActiveWeapon))
 			return Plugin_Changed;
 			
-		new idx	= GetEntProp(ActiveWeapon, Prop_Send, "m_iItemDefinitionIndex");
+		int idx	= GetEntProp(ActiveWeapon, Prop_Send, "m_iItemDefinitionIndex");
 		if(idx == StringToInt(PORTALGUN_ID))
 		{						
-			decl Float:WeapPos[3];
-			new WeaponModel = GetEntPropEnt(client, Prop_Data, "m_hViewModel");
+			float WeapPos[3];
+			int WeaponModel = GetEntPropEnt(client, Prop_Data, "m_hViewModel");
 			GetClientEyePosition(client, WeapPos);
 			
 			if(buttons & IN_ATTACK)
@@ -979,52 +969,52 @@ public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:ang
 //							Timers Zone
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-public Action:TimerPortal(Handle:timer, any:client)
+public Action TimerPortal(Handle timer, any client)
 {
-	new WeaponModel 	= GetEntPropEnt(client, Prop_Data, "m_hViewModel");
+	int WeaponModel 	= GetEntPropEnt(client, Prop_Data, "m_hViewModel");
 	SetEntProp(WeaponModel, Prop_Send, "m_nSequence", 0);
 }
 
-public Action:TimerCanAttack2(Handle:timer, any:client)
+public Action TimerCanAttack2(Handle timer, any client)
 {	
 	CanAttack2[client] = true;
 }
 
-public Action:TimerCanAttack(Handle:timer, any:client)
+public Action TimerCanAttack(Handle timer, any client)
 {	
 	CanAttack[client] = true;
 }
 
-public Action:TimerCanTP(Handle:timer, any:client)
+public Action TimerCanTP(Handle timer, any client)
 {	
 	CanTP[client] = true;
 }
 
-public Action:TimerDeleteParticule(Handle:timer, any:particle)
+public Action TimerDeleteParticule(Handle timer, any particle)
 {	
 	if(IsValidEdict(EntRefToEntIndex(particle)))
 		RemoveEdict(EntRefToEntIndex(particle));
 }
 
-public Action:TimerEquipPortalgun(Handle:timer, any:client)
+public Action TimerEquipPortalgun(Handle timer, any client)
 {	
 	EquipPortalGun(client);
 }
 
 
-public OnGameFrame()
+public void OnGameFrame()
 {	
-	if(!GetConVarBool(cvarEnabled))
+	if(!cvarEnabled.BoolValue)
 		return;
 		
-	decl Float:Pos[3];
-	decl Float:EyesPos[3];
-	decl Float:result[3];
-	decl i,Type, k;
-	decl bool:stop;
+	float Pos[3];
+	float EyesPos[3];
+	float result[3];
+	int i,Type, k;
+	bool stop;
 
 	
-	for(new client=1; client <= MaxClients; client++)
+	for(int client=1; client <= MaxClients; client++)
 	{
 		if(IsValidClient(client) && IsClientInGame(client) && !IsClientSourceTV(client) && (PlayerTeam[client] == 1 || PlayerTeam[client] == 0))
 		{
@@ -1146,17 +1136,17 @@ public OnGameFrame()
 
 
 
-public bool:TraceEntityFilterPlayer(entity, contentsMask, any:data) 
+public bool TraceEntityFilterPlayer(int entity, int contentsMask, any data) 
 {
  	return entity > MAXPLAYERS;
 }
 
-public bool:TraceEntityFilterEntities(entity, contentsMask, any:data) 
+public bool TraceEntityFilterEntities(int entity, int contentsMask, any data) 
 {
 	return entity > MaxClients;
 }
 
-createPortal(client, Type, Float:Pos[3])
+void createPortal(int client, int Type, float Pos[3])
 {
 	if(!TestZone(Pos, client, Type))	//Isn't valid wall to spawn portal
 	{	
@@ -1165,17 +1155,17 @@ createPortal(client, Type, Float:Pos[3])
 		return; 
 	}
 	
-	decl Float:v_Angle[3];
-	for(new i=0; i<3; i++)
+	float v_Angle[3];
+	for(int i=0; i<3; i++)
 		v_Angle[i] = g_Portal[client][Type][vec_Angle][i];
 	
 	// If Portal already exist
 	
 	if(EntRefToEntIndex(g_Portal[client][Type][ID]) > 0 && IsPortal(g_Portal[client][Type][ID])) 
 	{
-		decl Float:OldPos[3];
+		float OldPos[3];
 		GetEntPropVector(EntRefToEntIndex(g_Portal[client][Type][ID]), Prop_Send, "m_vecOrigin", OldPos);
-		new iParticle 	= CreateEntityByName("info_particle_system");
+		int iParticle 	= CreateEntityByName("info_particle_system");
 		if (IsValidEdict(iParticle))
 		{		
 			if(Type == 0)
@@ -1208,7 +1198,7 @@ createPortal(client, Type, Float:Pos[3])
 	
 	//Creation of the portal ---
 
-	new pEnt =	CreateEntityByName("prop_dynamic");        
+	int pEnt =	CreateEntityByName("prop_dynamic");        
 	if (pEnt == -1) 
 	{ 
 		LogMessage("item failed to create."); 
@@ -1229,9 +1219,9 @@ createPortal(client, Type, Float:Pos[3])
 			SetEntProp(EntRefToEntIndex(g_Portal[client][0][ID]), Prop_Send, "m_nSkin", GetEntType(g_Portal[client][0][ID]) +2);
 	}
 	
-	if(GetConVarInt(cvarBreakable)) // Enable portal damage
+	if(cvarBreakable.IntValue) // Enable portal damage
 	{		
-		g_Portal[client][Type][P_Health] = GetConVarInt(cvarPortalHealth) * 1.0;
+		g_Portal[client][Type][P_Health] = cvarPortalHealth.IntValue * 1.0;
 		SDKHook(pEnt, SDKHook_OnTakeDamage, OnTakeDamage);
 	}
 	
@@ -1239,13 +1229,13 @@ createPortal(client, Type, Float:Pos[3])
 	TeleportEntity(pEnt, Pos, v_Angle, NULL_VECTOR);
 	
 	/**** WHY DO YOU CRASH HERE !!!!!!!!!!! ****/
-	decl soundID; 
+	int soundID; 
 	/*soundID = GetRandomInt(0, 2) %3 +1;*/ // Server crash due to GetRandomInt call ...
 	soundID = RandInt() %3 +1;
 	//PrintToChat(client,"rand: %i", soundID);
 	/***/
 	
-	decl String:Adress[80];
+	char Adress[80];
 	Format(Adress, sizeof(Adress), "portalmod_gun/weapons/portalgun/portal_open%i.mp3", soundID); 
 	
 	
@@ -1258,27 +1248,25 @@ createPortal(client, Type, Float:Pos[3])
 	g_Portal[client][Type][vec_Pos][1] 	= Pos[1];
 	g_Portal[client][Type][vec_Pos][2] 	= Pos[2];
 	g_Portal[client][Type][ID]			= EntIndexToEntRef(pEnt);
-	
-	return;
 }
 
-bool:TestZone(Float:Origin[3], client, Type)		// Test portal's wall if it's a valid zone 
+bool TestZone(float Origin[3], int client, int Type)		// Test portal's wall if it's a valid zone 
 {
-	decl Float:AxeZ_Angle[3];
-	decl Float:AxeY_Angle[3];
-	decl Float:AxeX_Angle[3];
-	decl Float:AxeZop_Angle[3];		// Z opposite axe
-	decl Float:AxeYop_Angle[3];
-	decl Float:AxeXop_Angle[3];
-	decl Float:PosZ[3];
-	decl Float:PosY[3];
-	decl Float:PosX[3];
-	decl Float:PosZop[3];
-	decl Float:PosYop[3];
-	decl Float:PosXop[3];
-	decl Float:c_wall;
+	float AxeZ_Angle[3];
+	float AxeY_Angle[3];
+	float AxeX_Angle[3];
+	float AxeZop_Angle[3];		// Z opposite axe
+	float AxeYop_Angle[3];
+	float AxeXop_Angle[3];
+	float PosZ[3];
+	float PosY[3];
+	float PosX[3];
+	float PosZop[3];
+	float PosYop[3];
+	float PosXop[3];
+	float c_wall;
 	
-	c_wall = GetConVarFloat(cvarWall);
+	c_wall = cvarWall.FloatValue;
 	if(c_wall == 0.0) return true;
 	
 	// Create portal axe Z
@@ -1351,12 +1339,12 @@ bool:TestZone(Float:Origin[3], client, Type)		// Test portal's wall if it's a va
 
 	
 	// Distance beetween portal
-	for(new i=0; i<MaxClients; i++)
-		for(new j=0; j<2; j++)
+	for(int i=0; i<MaxClients; i++)
+		for(int j=0; j<2; j++)
 			if(IsPortal(g_Portal[i][j][ID]) && !(i == client && j == Type))
 			{
-				decl Float:v_Pos[3];
-				for(new k=0; k<3; k++)
+				float v_Pos[3];
+				for(int k=0; k<3; k++)
 					v_Pos[k] = g_Portal[i][j][vec_Pos][k];
 				if(GetVectorDistance(Origin, v_Pos, true) < 8250.0) 
 					return false;
@@ -1407,24 +1395,23 @@ bool:TestZone(Float:Origin[3], client, Type)		// Test portal's wall if it's a va
 	return true;
 }
 
-bool:IsValidPortalDistance(client, Float:Origin[3], Float:Angle[3], bool:Horizontal=false, bool:FloorDirection=false)
+bool IsValidPortalDistance(int client, float Origin[3], float Angle[3], bool Horizontal=false, bool FloorDirection=false)
 {
-	new Handle:trace = INVALID_HANDLE;
-	decl Float:EndPos[3];
+	Handle trace = null;
+	float EndPos[3];
 	
 	trace = TR_TraceRayFilterEx(Origin, Angle, MASK_SOLID, RayType_Infinite, TraceEntityFilterEntities, client);		
 	if (!TR_DidHit(trace)) 
 	{
-		CloseHandle(trace);
+		delete trace;
 		return false;
 	}
 	
 	TR_GetEndPosition(EndPos, trace);
 	//PrintToChatAll("dist   : %f",GetVectorDistance(EndPos, Origin, false));
-	CloseHandle(trace);
+	delete trace;
 	
-	decl Float:c_wall;
-	c_wall = GetConVarFloat(cvarWall);
+	float c_wall = cvarWall.FloatValue;
 	
 	if(!FloorDirection && Horizontal && GetVectorDistance(EndPos, Origin, false) < (100.0 * c_wall) )
 		return false;
@@ -1436,60 +1423,60 @@ bool:IsValidPortalDistance(client, Float:Origin[3], Float:Angle[3], bool:Horizon
 	return true;
 }
 
-SpawnBullet(client, type)
+void SpawnBullet(int client, int type)
 {
-	decl Float:Pl_Angles[3], Float:Pl_Origin[3];
-	decl Float:EntityAgl[3];
+	float Pl_Angles[3], Pl_Origin[3];
+	float EntityAgl[3];
 	bool SpawnPortal = true;
 	
 	GetClientEyePosition(client, Pl_Origin);
 	GetClientEyeAngles(client, Pl_Angles);
 	
-	new Handle:trace;
+	Handle trace;
 	trace = TR_TraceRayFilterEx(Pl_Origin, Pl_Angles, MASK_ALL, RayType_Infinite, TraceEntityFilterPlayer, client); //MASK_SOLID pour detecter les joueurs
 	if (!TR_DidHit(trace)) 
 	{
-		CloseHandle(trace);	
+		delete trace;	
 		return;
 	}
 	
-	new EntColid = TR_GetEntityIndex(trace);
+	int EntColid = TR_GetEntityIndex(trace);
 	TR_GetPlaneNormal(trace, EntityAgl);
 	
 	if(EntColid == -1)	// Invalid wall or entity => No portal spawn
 		SpawnPortal = false;
 	else
 	{
-		decl String:EntClsName[64];
+		char EntClsName[64];
 		GetEntityClassname(EntColid, EntClsName, sizeof(EntClsName));
 		//LogMessage("EntColid: %i, Classname: %s", EntColid, EntClsName);
 		
 		if(StrEqual("func_door", EntClsName)) // No Portal on door !
 			SpawnPortal = false;
 		
-		if(!GetConVarBool(cvarProp)) // Can spawn portal on prop_dynamic or physics ?
-			if(StrEqual("prop_dynamic", EntClsName) || StrEqual("prop_physics", EntClsName))
-				SpawnPortal = false;
+		// Can spawn portal on prop_dynamic or physics ?
+		if(!cvarProp.BoolValue && (StrEqual("prop_dynamic", EntClsName) || StrEqual("prop_physics", EntClsName))) 
+			SpawnPortal = false;
 			
 	}
-	CloseHandle(trace);
+	delete trace;
 	
 	GetVectorAngles(EntityAgl, EntityAgl);	
 	if(EntityAgl[1] == 0.0 && (EntityAgl[0] == 270.0 || EntityAgl[0] == 90.0))
 		EntityAgl[1] = Pl_Angles[1];
 	//PrintToChatAll("p_angl: %f, %f ,%f",EntityAgl[0], EntityAgl[1], EntityAgl[2]);	
 	
-	decl Float:RocketPos[3];
-	decl Float:vBufferi[3];
-	decl Float:Vel[3];
-	new String:TargetName[10];
+	float RocketPos[3];
+	float vBufferi[3];
+	float Vel[3];
+	char TargetName[10];
 	
 	GetAngleVectors(Pl_Angles, vBufferi, NULL_VECTOR, NULL_VECTOR);
 	NormalizeVector(vBufferi, Vel);
 	ScaleVector(Vel, 2000.0);
 	
 	// Spawn PortalGun projectile ---
-	new ent_rocket = CreateEntityByName("tf_projectile_energy_ball");
+	int ent_rocket = CreateEntityByName("tf_projectile_energy_ball");
 	SetEntData(ent_rocket, FindSendPropInfo("CTFProjectile_Rocket", "m_iTeamNum"), type+2, true);
 	SetEntPropEnt(ent_rocket, Prop_Send, "m_hOwnerEntity", client);
 	
@@ -1503,7 +1490,7 @@ SpawnBullet(client, type)
 	TeleportEntity(ent_rocket, Pl_Origin, Pl_Angles, Vel);
 	
 	//Add Particle on PortalGun projectile ---
-	new iParticle = CreateEntityByName("info_particle_system");
+	int iParticle = CreateEntityByName("info_particle_system");
 	if(IsValidEdict(iParticle))
 	{		
 		if(type == 1)
@@ -1529,17 +1516,17 @@ SpawnBullet(client, type)
 	}
 }
 
-bool:IsPortal(entRef)
+bool IsPortal(int entRef)
 {
 	if(!IsValidEdict(EntRefToEntIndex(entRef)))
 		return false;
 		
-	decl String:ClassName[64];
+	char ClassName[64];
 	GetEdictClassname(EntRefToEntIndex(entRef), ClassName, sizeof(ClassName));
 	if(!StrEqual("prop_dynamic",ClassName))
 		return false;
 		
-	decl String:modelname[128];
+	char modelname[128];
 	GetEntPropString(EntRefToEntIndex(entRef), Prop_Data, "m_ModelName", modelname, 128);
 	if(StrEqual(modelname, PORTAL))
 		return true;
@@ -1553,16 +1540,16 @@ bool:IsPortal(entRef)
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 
-Float:operator%(Float:oper1, Float:oper2)
+float operator%(float oper1, float oper2)
 {
 	return oper1 - (oper2 * (oper1/oper2));
 }
 
-stock RandInt()
+stock int RandInt()
 {
-	new a=1103515245, b=12345, m=2147483648;
-	new nombre = GetTime();    	
-	for(new i=0; i<15; i++){
+	int a=1103515245, b=12345, m=2147483648;
+	int nombre = GetTime();    	
+	for(int i=0; i<15; i++){
 		nombre = (a*nombre+ b) % m;
 	}
 	
@@ -1570,25 +1557,25 @@ stock RandInt()
 	return nombre;
 }
 
-tpPlayer(client, Pt_client, type, ID_Portal_A)
+void tpPlayer(int client, int Pt_client, int type, int ID_Portal_A)
 {
-	decl Float:Pos[3];
-	decl Float:EntAngle[3];
-	decl Float:Pleye[3];
-	decl Float:Velo[3];
-	decl Float:Sph[3];
-	decl Float:v_Angle[3];
+	float Pos[3];
+	float EntAngle[3];
+	float Pleye[3];
+	float Velo[3];
+	float Sph[3];
+	float v_Angle[3];
 	
-	for(new i=0; i<3; i++)
+	for(int i=0; i<3; i++)
 		v_Angle[i] = g_Portal[Pt_client][GetEntType(ID_Portal_A)][vec_Angle][i];
 	
-	new Particle 	= CreateEntityByName("info_particle_system"); // Spawn Particle Portal A (enter)
+	int Particle 	= CreateEntityByName("info_particle_system"); // Spawn Particle Portal A (enter)
 	if (IsValidEdict(Particle))
 	{		
 		if(type == 0)
 		{
-			decl Float:v_Pos[3];
-			for(new i=0; i<3; i++)
+			float v_Pos[3];
+			for(int i=0; i<3; i++)
 				v_Pos[i] = g_Portal[Pt_client][1][vec_Pos][i];
 				
 			DispatchKeyValue(Particle, "effect_name", "teleportedin_blue");
@@ -1596,8 +1583,8 @@ tpPlayer(client, Pt_client, type, ID_Portal_A)
 		}
 		else
 		{
-			decl Float:v_Pos[3];
-			for(new i=0; i<3; i++)
+			float v_Pos[3];
+			for(int i=0; i<3; i++)
 				v_Pos[i] = g_Portal[Pt_client][0][vec_Pos][i];
 				
 			DispatchKeyValue(Particle, "effect_name", "teleportedin_red");
@@ -1613,7 +1600,7 @@ tpPlayer(client, Pt_client, type, ID_Portal_A)
 
 	// data ---
 	
-	decl String:ClassName[64];
+	char ClassName[64];
 	GetEdictClassname(EntRefToEntIndex(g_Portal[Pt_client][type][ID]), ClassName, sizeof(ClassName));
 	
 	if(!StrEqual("prop_dynamic",ClassName))
@@ -1627,7 +1614,7 @@ tpPlayer(client, Pt_client, type, ID_Portal_A)
 	
 	//Calcul exit Position ---
 	
-	new Radius = 50;
+	int Radius = 50;
 	if(g_Portal[Pt_client][type][vec_Angle][0] > 268 )	//Sky direction
 		Radius = 15;
 	else if(g_Portal[Pt_client][type][vec_Angle][0] > 85.0 && g_Portal[Pt_client][type][vec_Angle][0] < 92.0)	//Floor direction
@@ -1647,9 +1634,9 @@ tpPlayer(client, Pt_client, type, ID_Portal_A)
 	
 	//Calcul exit angle ---
 	
-	decl Float:PrtA_Opp[3];
-	decl Float:ExitAngle[3];
-	decl Float:Diff[3];
+	float PrtA_Opp[3];
+	float ExitAngle[3];
+	float Diff[3];
 	
 	PrtA_Opp[0]	= 0.0 - g_Portal[Pt_client][GetEntType(ID_Portal_A)][vec_Angle][0];
 	PrtA_Opp[1]	= g_Portal[Pt_client][GetEntType(ID_Portal_A)][vec_Angle][1] - 180.0;
@@ -1674,10 +1661,10 @@ tpPlayer(client, Pt_client, type, ID_Portal_A)
 	
 	//Calcul exit velo ---
 	
-	decl Float:PlAngle[3];
-	decl Float:VeloAngle[3];
-	decl Float:Speed;
-	decl Float:ExitVelo[3];
+	float PlAngle[3];
+	float VeloAngle[3];
+	float Speed;
+	float ExitVelo[3];
 	
 	Speed = GetVectorLength(Velo);
 	GetVectorAngles(Velo, PlAngle);
@@ -1702,7 +1689,7 @@ tpPlayer(client, Pt_client, type, ID_Portal_A)
 	}
 	else
 	{
-		for(new i = 0; i<2; i++)
+		for(int i = 0; i<2; i++)
 			VeloAngle[i] = g_Portal[Pt_client][type][vec_Angle][i];
 	}
 	
@@ -1715,10 +1702,10 @@ tpPlayer(client, Pt_client, type, ID_Portal_A)
 	
 	// Speed Limit !
 	
-	new Float:Div;
-	new Float:SpeedLimit = 1000.0;
+	float Div;
+	float SpeedLimit = 1000.0;
 	
-	for(new i=0; i<3; i++)
+	for(int i=0; i<3; i++)
 	{
 		if(ExitVelo[i] > SpeedLimit || ExitVelo[i] < -SpeedLimit)
 		{
@@ -1727,7 +1714,7 @@ tpPlayer(client, Pt_client, type, ID_Portal_A)
 			if(Div < 0.0)
 				Div = 0.0 - Div;
 			
-			for(new j=0; j<3; j++)
+			for(int j=0; j<3; j++)
 				ExitVelo[j] /= Div;
 			
 			continue;
@@ -1747,9 +1734,9 @@ tpPlayer(client, Pt_client, type, ID_Portal_A)
 		else
 			DispatchKeyValue(Particle, "effect_name", "teleportedin_blue");
 			
-		decl Float:v_Angle2[3];
-		decl Float:v_Pos2[3];
-		for(new i=0; i<3; i++)
+		float v_Angle2[3];
+		float v_Pos2[3];
+		for(int i=0; i<3; i++)
 		{
 			v_Angle2[i] = g_Portal[Pt_client][type][vec_Angle][i];
 			v_Pos2[i] = g_Portal[Pt_client][type][vec_Pos][i];
@@ -1815,9 +1802,9 @@ tpPlayer(client, Pt_client, type, ID_Portal_A)
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 
-public Action:ResetPlugin(client, args)
+public Action ResetPlugin(int client, int args)
 {
-	if(!GetConVarBool(cvarEnabled))
+	if(!cvarEnabled.BoolValue)
 	{
 		ReplyToCommand(client, "[PORTALMOD] Disabled !");
 		return Plugin_Handled;
@@ -1828,7 +1815,7 @@ public Action:ResetPlugin(client, args)
 	else
 		ReplyToCommand(client, "[PORTALMOD] [0/2] Will be reset");
 	
-	for(new i=1; i<MaxClients; i++)
+	for(int i=1; i<MaxClients; i++)
 		RemovePortalGun(i);
 		
 	if(IsValidClient(client))
@@ -1836,11 +1823,11 @@ public Action:ResetPlugin(client, args)
 	else
 		ReplyToCommand(client, "[PORTALMOD] [1/2] Portal Gun removed");
 		
-	decl String:newVal[2];
-	GetConVarString(cvarFlag, newVal, sizeof(newVal));
+	char newVal[2];
+	cvarFlag.GetString(newVal, sizeof(newVal));
 	GetImmunityFlag(newVal);
 	
-	for(new i=0; i<9; i++)
+	for(int i=0; i<9; i++)
 		ChellClass[i] = GetConVarBool(cvarClass[i]);
 		
 	Initialisation();
@@ -1859,9 +1846,9 @@ public Action:ResetPlugin(client, args)
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 
-public Native_GiveClientPortalGun(Handle:plugin, numParams)
+public int Native_GiveClientPortalGun(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1); 
+	int client = GetNativeCell(1); 
 	if(!IsValidClient(client)) 
 	{
 		LogMessage("[PORTALMOD] Error invalid client in Native GiveClientPortalGun()");
@@ -1874,9 +1861,9 @@ public Native_GiveClientPortalGun(Handle:plugin, numParams)
 		GiveRevolver(client);
 }
 
-public Native_IsClientHasPortalGun(Handle:plugin, numParams)
+public int Native_IsClientHasPortalGun(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1); 
+	int client = GetNativeCell(1); 
 	if(!IsValidClient(client)) 
 	{
 		LogMessage("[PORTALMOD] Error invalid client in Native IsClientHasPortalGun()");
@@ -1889,9 +1876,9 @@ public Native_IsClientHasPortalGun(Handle:plugin, numParams)
 	return true;
 }
 
-public Native_RemoveClientPortalGun(Handle:plugin, numParams)
+public int Native_RemoveClientPortalGun(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1); 
+	int client = GetNativeCell(1); 
 	if(!IsValidClient(client)) 
 	{
 		LogMessage("[PORTALMOD] Error invalid client in Native RemoveClientPortalGun()");
@@ -1903,16 +1890,16 @@ public Native_RemoveClientPortalGun(Handle:plugin, numParams)
 }
 
 
-public Native_GetClientPortalEntRef(Handle:plugin, numParams)
+public int Native_GetClientPortalEntRef(Handle plugin, int numParams)
 {
-	new client = GetNativeCell(1); 
+	int client = GetNativeCell(1); 
 	if(!IsValidClient(client)) 
 	{
 		LogMessage("[PORTALMOD] Error invalid client in Native GetClientPortalEntRef()");
 		return -1;
 	}
 	
-	new type = GetNativeCell(2);
+	int type = GetNativeCell(2);
 	if(type > 1 || type < 0)
 	{
 		LogMessage("[PORTALMOD] Error invalid portal type in Native GetClientPortalEntRef()");

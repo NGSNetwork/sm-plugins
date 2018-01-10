@@ -1,3 +1,4 @@
+#pragma newdecls required
 #pragma semicolon 1
 
 #include <sourcemod>
@@ -9,155 +10,154 @@
 #define UPDATE_URL			"http://hg.doctormckay.com/public-plugins/raw/default/chatcolorsmysqlmodule.txt"
 #define PLUGIN_VERSION		"1.1.3"
 
-public Plugin:myinfo = {
+public Plugin myinfo = {
 	name        = "[Source 2009] Custom Chat Colors MySQL Module",
 	author      = "Dr. McKay / TheXeon",
 	description = "Allows for Custom Chat Colors to be configured via MySQL",
 	version     = PLUGIN_VERSION,
 	url         = "http://www.doctormckay.com"
-};
+}
 
-new Handle:cvarUpdater;
+ConVar cvarUpdater;
 
-new Handle:kv;
+KeyValues kv;
 
-public OnPluginStart() {
+public void OnPluginStart() {
 	cvarUpdater = CreateConVar("ccc_mysql_auto_update", "1", "Enables automatic updating (has no effect if Updater is not installed)");
 	RegAdminCmd("sm_ccc_mysql_dump", Command_DumpData, ADMFLAG_ROOT, "DEBUG: Dumps cached data");
 	CCC_OnConfigReloaded();
 }
 
-public CCC_OnConfigReloaded() {
+public void CCC_OnConfigReloaded() {
 	if(SQL_CheckConfig("custom-chatcolors")) {
-		SQL_TConnect(OnDatabaseConnected, "custom-chatcolors");
+		Database.Connect(OnDatabaseConnected, "custom-chatcolors");
 	} else if(SQL_CheckConfig("default")) {
-		SQL_TConnect(OnDatabaseConnected, "default");
+		Database.Connect(OnDatabaseConnected, "default");
 	} else {
 		SetFailState("No database configuration \"custom-chatcolors\" or \"default\" found.");
 	}
 }
 
-public OnDatabaseConnected(Handle:owner, Handle:hndl, const String:error[], any:data) {
-	if(hndl == INVALID_HANDLE) {
-		if(kv == INVALID_HANDLE) {
+public void OnDatabaseConnected(Database db, const char[] error, any data) {
+	if(db == null) {
+		if(kv == null) {
 			SetFailState("Unable to connect to database. %s", error);
 		} else {
 			LogError("Unable to connect to database. Falling back to saved values. %s", error);
 			return;
 		}
 	}
-	if(kv == INVALID_HANDLE) {
-		SQL_TQuery(hndl, OnTableCreated, "CREATE TABLE IF NOT EXISTS `custom_chatcolors` (`index` int(11) NOT NULL, `identity` varchar(32) NOT NULL, `override` varchar(32) DEFAULT NULL, `flag` char(1) DEFAULT NULL, `tag` varchar(32) DEFAULT NULL, `tagcolor` varchar(8) DEFAULT NULL, `namecolor` varchar(8) DEFAULT NULL, `textcolor` varchar(8) DEFAULT NULL, PRIMARY KEY (`index`), UNIQUE KEY `identity` (`identity`)) ENGINE=MyISAM DEFAULT CHARSET=latin1", hndl);
+	if(kv == null) {
+		db.Query(OnTableCreated, "CREATE TABLE IF NOT EXISTS `custom_chatcolors` (`index` int(11) NOT NULL, `identity` varchar(32) NOT NULL, `override` varchar(32) DEFAULT NULL, `flag` char(1) DEFAULT NULL, `tag` varchar(32) DEFAULT NULL, `tagcolor` varchar(8) DEFAULT NULL, `namecolor` varchar(8) DEFAULT NULL, `textcolor` varchar(8) DEFAULT NULL, PRIMARY KEY (`index`), UNIQUE KEY `identity` (`identity`)) ENGINE=MyISAM DEFAULT CHARSET=latin1");
 	} else {
-		SQL_TQuery(hndl, OnDataReceived, "SELECT * FROM `custom_chatcolors` ORDER BY `index` ASC", hndl);
+		db.Query(OnDataReceived, "SELECT * FROM `custom_chatcolors` ORDER BY `index` ASC");
 	}
 }
 
-public OnTableCreated(Handle:owner, Handle:hndl, const String:error[], any:db) {
-	if(hndl == INVALID_HANDLE) {
-		CloseHandle(db);
+public void OnTableCreated(Database db, DBResultSet results, const char[] error, any data) {
+	if(results == null) {
+		delete db;
 		SetFailState("Error creating database table. %s", error);
 	}
-	SQL_TQuery(db, OnDataReceived, "SELECT * FROM `custom_chatcolors` ORDER BY `index` ASC", db);
+	db.Query(OnDataReceived, "SELECT * FROM `custom_chatcolors` ORDER BY `index` ASC");
 }
 
-public OnDataReceived(Handle:owner, Handle:hndl, const String:error[], any:db) {
-	if(hndl == INVALID_HANDLE) {
-		if(kv == INVALID_HANDLE) {
-			CloseHandle(db);
+public void OnDataReceived(Database db, DBResultSet results, const char[] error, any data) {
+	if(results == null) {
+		delete db;
+		if(kv == null) {
 			SetFailState("Unable to query database. %s", error);
 		} else {
-			CloseHandle(db);
 			LogError("Unable to query database. Falling back to saved values. %s", error);
 			return;
 		}
 	}
-	if(kv != INVALID_HANDLE) {
-		CloseHandle(kv);
+	if(kv != null) {
+		delete kv;
 	}
-	kv = CreateKeyValues("admin_colors");
-	decl String:identity[33], String:override[33], String:flag[2], String:tag[33], String:tagcolor[12], String:namecolor[12], String:textcolor[12];
-	while(SQL_FetchRow(hndl)) {
+	kv = new KeyValues("admin_colors");
+	char identity[33], override[33], flag[2], tag[33], tagcolor[12], namecolor[12], textcolor[12];
+	while(results.FetchRow()) {
 		// index	identity	override	flag	tag		tagcolor	namecolor	textcolor
 		// 0		1			2			3		4		5			6			7
-		SQL_FetchString(hndl, 1, identity, sizeof(identity));
-		SQL_FetchString(hndl, 2, override, sizeof(override));
-		SQL_FetchString(hndl, 3, flag, sizeof(flag));
-		SQL_FetchString(hndl, 4, tag, sizeof(tag));
-		SQL_FetchString(hndl, 5, tagcolor, sizeof(tagcolor));
-		SQL_FetchString(hndl, 6, namecolor, sizeof(namecolor));
-		SQL_FetchString(hndl, 7, textcolor, sizeof(textcolor));
-		KvJumpToKey(kv, identity, true);
+		results.FetchString(1, identity, sizeof(identity));
+		results.FetchString(2, override, sizeof(override));
+		results.FetchString(3, flag, sizeof(flag));
+		results.FetchString(4, tag, sizeof(tag));
+		results.FetchString(5, tagcolor, sizeof(tagcolor));
+		results.FetchString(6, namecolor, sizeof(namecolor));
+		results.FetchString(7, textcolor, sizeof(textcolor));
+		kv.JumpToKey(identity, true);
 		if(StrContains(identity, "STEAM_") != 0 && StrContains(identity, "[U:1:") != 0) {
 			if (strlen(override) > 0)
-				KvSetString(kv, "override", override);
+				kv.SetString("override", override);
 			if (strlen(flag) > 0)
-				KvSetString(kv, "flag", flag);
+				kv.SetString("flag", flag);
 		}
 		if(strlen(tag) > 0) {
-			KvSetString(kv, "tag", tag);
+			kv.SetString("tag", tag);
 		}
 		if(strlen(tagcolor) == 6 || strlen(tagcolor) == 8 || StrEqual(tagcolor, "O", false) || StrEqual(tagcolor, "G", false) || StrEqual(tagcolor, "T", false)) {
 			if(strlen(tagcolor) > 1) {
 				Format(tagcolor, sizeof(tagcolor), "#%s", tagcolor);
 			}
-			KvSetString(kv, "tagcolor", tagcolor);
+			kv.SetString("tagcolor", tagcolor);
 		}
 		if(strlen(namecolor) == 6 || strlen(namecolor) == 8 || StrEqual(namecolor, "O", false) || StrEqual(namecolor, "G", false) || StrEqual(namecolor, "T", false)) {
 			if(strlen(namecolor) > 1) {
 				Format(namecolor, sizeof(namecolor), "#%s", namecolor);
 			}
-			KvSetString(kv, "namecolor", namecolor);
+			kv.SetString("namecolor", namecolor);
 		}
 		if(strlen(textcolor) == 6 || strlen(textcolor) == 8 || StrEqual(textcolor, "O", false) || StrEqual(textcolor, "G", false) || StrEqual(textcolor, "T", false)) {
 			if(strlen(textcolor) > 1) {
 				Format(textcolor, sizeof(textcolor), "#%s", textcolor);
 			}
-			KvSetString(kv, "textcolor", textcolor);
+			kv.SetString("textcolor", textcolor);
 		}
-		KvRewind(kv);
+		kv.Rewind();
 	}
-	CloseHandle(db); // Close database connection
+	delete db; // Close database connection
 }
 
-public Action:Command_DumpData(client, args) {
-	if(kv == INVALID_HANDLE) {
+public Action Command_DumpData(int client, int args) {
+	if(kv == null) {
 		ReplyToCommand(client, "\x04[CCC] \x01No data is currently loaded.");
 		return Plugin_Handled;
 	}
-	decl String:path[PLATFORM_MAX_PATH];
+	char path[PLATFORM_MAX_PATH];
 	BuildPath(Path_SM, path, sizeof(path), "data/custom-chatcolors-mysql-dump.txt");
-	KeyValuesToFile(kv, path);
+	kv.ImportFromFile(path);
 	ReplyToCommand(client, "\x04[CCC] \x01Loaded data has been dumped to %s", path);
 	return Plugin_Handled;
 }
 
-public CCC_OnUserConfigLoaded(client) {
-	if(kv == INVALID_HANDLE) {
+public void CCC_OnUserConfigLoaded(int client) {
+	if(kv == null) {
 		// Database not ready yet, let's wait till it is
 		CreateTimer(5.0, Timer_CheckDatabase, GetClientUserId(client), TIMER_REPEAT);
 		return;
 	}
-	decl String:auth[32];
+	char auth[32];
 	if (!GetClientAuthId(client, AuthId_Engine, auth, sizeof(auth)))
 	{
 		LogError("Couldn\'t get %N\'s steamID!, returned %s", auth);
 		return;
 	}
-	KvRewind(kv);
-	if(!KvJumpToKey(kv, auth)) {
-		KvRewind(kv);
-		KvGotoFirstSubKey(kv);
-		new AdminId:admin = GetUserAdmin(client);
-		new AdminFlag:flag;
-		decl String:configFlag[2];
-		decl String:section[32];
+	kv.Rewind();
+	if(!kv.JumpToKey(auth)) {
+		kv.Rewind();
+		kv.GotoFirstSubKey();
+		AdminId admin = GetUserAdmin(client);
+		AdminFlag flag;
+		char configFlag[2];
+		char section[32];
 		char override[32];
-		new bool:found = false;
+		bool found = false;
 		do {
-			KvGetSectionName(kv, section, sizeof(section));
-			KvGetString(kv, "flag", configFlag, sizeof(configFlag));
-			KvGetString(kv, "override", override, sizeof(override));
+			kv.GetSectionName(section, sizeof(section));
+			kv.GetString("flag", configFlag, sizeof(configFlag));
+			kv.GetString("override", override, sizeof(override));
 			if(StrEqual(configFlag, "") && StrEqual(override, "") && StrContains(section, "STEAM_", false) == -1 && StrContains(section, "[U:1:", false) == -1) {
 				found = true;
 				break;
@@ -178,26 +178,26 @@ public CCC_OnUserConfigLoaded(client) {
 					break;
 				}
 			}
-		} while(KvGotoNextKey(kv));
+		} while(kv.GotoNextKey());
 		if(!found) {
 			return;
 		}
 	}
-	decl String:clientTag[32];
-	decl String:clientTagColor[12];
-	decl String:clientNameColor[12];
-	decl String:clientChatColor[12];
-	KvGetString(kv, "tag", clientTag, sizeof(clientTag));
-	KvGetString(kv, "tagcolor", clientTagColor, sizeof(clientTagColor));
-	KvGetString(kv, "namecolor", clientNameColor, sizeof(clientNameColor));
-	KvGetString(kv, "textcolor", clientChatColor, sizeof(clientChatColor));
+	char clientTag[32];
+	char clientTagColor[12];
+	char clientNameColor[12];
+	char clientChatColor[12];
+	kv.GetString("tag", clientTag, sizeof(clientTag));
+	kv.GetString("tagcolor", clientTagColor, sizeof(clientTagColor));
+	kv.GetString("namecolor", clientNameColor, sizeof(clientNameColor));
+	kv.GetString("textcolor", clientChatColor, sizeof(clientChatColor));
 	ReplaceString(clientTagColor, sizeof(clientTagColor), "#", "");
 	ReplaceString(clientNameColor, sizeof(clientNameColor), "#", "");
 	ReplaceString(clientChatColor, sizeof(clientChatColor), "#", "");
-	new tagLen = strlen(clientTagColor);
-	new nameLen = strlen(clientNameColor);
-	new chatLen = strlen(clientChatColor);
-	new color;
+	int tagLen = strlen(clientTagColor);
+	int nameLen = strlen(clientNameColor);
+	int chatLen = strlen(clientChatColor);
+	int color;
 	if(strlen(clientTag) > 0) {
 		CCC_SetTag(client, clientTag);
 	}
@@ -237,12 +237,12 @@ public CCC_OnUserConfigLoaded(client) {
 	}
 }
 
-public Action:Timer_CheckDatabase(Handle:timer, any:userid) {
-	new client = GetClientOfUserId(userid);
+public Action Timer_CheckDatabase(Handle timer, any userid) {
+	int client = GetClientOfUserId(userid);
 	if(client == 0) {
 		return Plugin_Stop;
 	}
-	if(kv == INVALID_HANDLE) {
+	if(kv == null) {
 		return Plugin_Continue;
 	}
 	CCC_OnUserConfigLoaded(client);
@@ -251,43 +251,43 @@ public Action:Timer_CheckDatabase(Handle:timer, any:userid) {
 
 /////////////////////////////////
 
-public OnAllPluginsLoaded() {
-	new Handle:convar;
+public void OnAllPluginsLoaded() {
+	ConVar convar;
 	if(LibraryExists("updater")) {
 		Updater_AddPlugin(UPDATE_URL);
-		decl String:version[12];
+		char version[12];
 		Format(version, sizeof(version), "%sA", PLUGIN_VERSION);
 		convar = CreateConVar("custom_chat_colors_mysql_version", version, "Custom Chat Colors MySQL Module Version", FCVAR_DONTRECORD|FCVAR_NOTIFY|FCVAR_CHEAT);
 	} else {
 		convar = CreateConVar("custom_chat_colors_mysql_version", PLUGIN_VERSION, "Custom Chat Colors MySQL Module Version", FCVAR_DONTRECORD|FCVAR_NOTIFY|FCVAR_CHEAT);	
 	}
-	HookConVarChange(convar, Callback_VersionConVarChanged);
+	convar.AddChangeHook(Callback_VersionConVarChanged);
 	Callback_VersionConVarChanged(convar, "", ""); // Check the cvar value
 }
 
-public OnLibraryAdded(const String:name[]) {
+public void OnLibraryAdded(const char[] name) {
 	if(StrEqual(name, "updater")) {
 		Updater_AddPlugin(UPDATE_URL);
 	}
 }
 
-public Callback_VersionConVarChanged(Handle:convar, const String:oldValue[], const String:newValue[]) {
+public void Callback_VersionConVarChanged(ConVar convar, const char[] oldValue, const char[] newValue) {
 	if(LibraryExists("updater")) {
-		decl String:version[12];
+		char version[12];
 		Format(version, sizeof(version), "%sA", PLUGIN_VERSION);
-		SetConVarString(convar, version);
+		convar.SetString(version);
 	} else {
-		SetConVarString(convar, PLUGIN_VERSION);
+		convar.SetString(PLUGIN_VERSION);
 	}
 }
 
-public Action:Updater_OnPluginDownloading() {
-	if(!GetConVarBool(cvarUpdater)) {
+public Action Updater_OnPluginDownloading() {
+	if(!cvarUpdater.BoolValue) {
 		return Plugin_Handled;
 	}
 	return Plugin_Continue;
 }
 
-public Updater_OnPluginUpdated() {
+public void Updater_OnPluginUpdated() {
 	ReloadPlugin();
 }

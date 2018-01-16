@@ -65,11 +65,18 @@ public Action Cmd_TauntMenu(int client, int args)
 		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You must join a team to use this command.");
 		return Plugin_Handled;
 	}
-	ShowMenu(client);
+	int item = 0;
+	if (args > 0)
+	{
+		char itemNum[8];
+		GetCmdArg(1, itemNum, sizeof(itemNum));
+		item = StringToInt(itemNum);
+	}
+	ShowMenu(client, item - 1);
 	return Plugin_Handled;
 }
 
-public Action ShowMenu(int client)
+public void ShowMenu(int client, int itemNum)
 {
 	TFClassType class = TF2_GetPlayerClass(client);
 	Menu menu = new Menu(Taunt_MenuSelected);
@@ -164,8 +171,16 @@ public Action ShowMenu(int client)
 	menu.AddItem("1182", "Taunt: Yeti Punch");
 	menu.AddItem("1183", "Taunt: Yeti Smash");
 	
-	
-	menu.Display(client, 20);
+	char itemBuffer[24];
+	if (itemNum > -1 && menu.GetItem(itemNum, itemBuffer, sizeof(itemBuffer)))
+	{
+		ExecuteTaunt(client, StringToInt(itemBuffer));
+		delete menu;
+	}
+	else
+	{
+		menu.Display(client, 20);
+	}
 }
 
 public int Taunt_MenuSelected(Menu menu, MenuAction action, int iClient, int param2)

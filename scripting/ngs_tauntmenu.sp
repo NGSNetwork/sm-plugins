@@ -1,6 +1,4 @@
-/** Commented as tf2items isnt using new-style syntax yet.
 #pragma newdecls required
-*/
 #pragma semicolon 1
 
 #include <sdktools>
@@ -40,16 +38,16 @@ public void OnPluginStart()
 	if (hPlayTaunt == null)
 	{
 		SetFailState("Unable to initialize call to CTFPlayer::PlayTauntSceneFromItem. Wait patiently for a fix.");
-		CloseHandle(conf);
+		delete conf;
 		return;
 	}
 	
 	RegConsoleCmd("sm_taunt", Cmd_TauntMenu, "Taunt Menu");
 	RegConsoleCmd("sm_taunts", Cmd_TauntMenu, "Taunt Menu");
 	
-	CloseHandle(conf);
+	delete conf;
 	LoadTranslations("common.phrases");
-	CreateConVar("tf_tauntmenu_version", PLUGIN_VERSION, "[NGS] Taunt Menu Version", FCVAR_NOTIFY);
+	CreateConVar("tf_tauntmenu_version", PLUGIN_VERSION, "[NGS] Taunt Menu Version");
 	PrecacheTaunts();
 }
 
@@ -185,12 +183,12 @@ public void ShowMenu(int client, int itemNum)
 
 public int Taunt_MenuSelected(Menu menu, MenuAction action, int iClient, int param2)
 {
-	if(action == MenuAction_End)
+	if (action == MenuAction_End)
 	{
 		delete menu;
 	}
 	
-	if(action == MenuAction_Select)
+	if (action == MenuAction_Select)
 	{
 		char info[12];
 		
@@ -205,15 +203,15 @@ public void ExecuteTaunt(int client, int itemdef)
 	{
 		TF2_RemovePlayerDisguise(client);
 	}
-	Handle hItem = TF2Items_CreateItem(OVERRIDE_ALL|PRESERVE_ATTRIBUTES|FORCE_GENERATION);
+	TF2Item hItem = new TF2Item(OVERRIDE_ALL|PRESERVE_ATTRIBUTES|FORCE_GENERATION);
 	
-	TF2Items_SetClassname(hItem, "tf_wearable_vm");
-	TF2Items_SetQuality(hItem, 6);
-	TF2Items_SetLevel(hItem, 1);
-	TF2Items_SetNumAttributes(hItem, 0);
-	TF2Items_SetItemIndex(hItem, itemdef);
+	hItem.SetClassname("tf_wearable_vm");
+	hItem.Quality = 6;
+	hItem.Level = 1;
+	hItem.NumAttributes = 0;
+	hItem.DefIndex = itemdef;
 	
-	int ent = TF2Items_GiveNamedItem(client, hItem);
+	int ent = hItem.GiveNamedItem(client);
 	Address pEconItemView = GetEntityAddress(ent) + view_as<Address>(FindSendPropInfo("CTFWearable", "m_Item"));
 	
 	SDKCall(hPlayTaunt, client, pEconItemView) ? 1 : 0;

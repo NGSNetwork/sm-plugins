@@ -134,9 +134,11 @@ native int TF2Items_GetFlags(Handle hItem);
  * Gets the entity classname we'll use for the item.
  *
  * @param hItem		Handle to the TF2Items object that we'll be operating with.
- * @return			New classname to use for the entity.
+ * @param strDest	String to store classname in.
+ * @param iDestSize	Size of string buffer.
+ * @noreturn.
  */
-native char TF2Items_GetClassname(Handle hItem, char[] strDest, int iDestSize);
+native void TF2Items_GetClassname(Handle hItem, char[] strDest, int iDestSize);
 
 /**
  * Gets the new item definition index we'll use to override.
@@ -190,6 +192,200 @@ native int TF2Items_GetAttributeId(Handle hItem, int iSlotIndex);
  * @return			The attribute value to use.
  */
 native float TF2Items_GetAttributeValue(Handle hItem, int iSlotIndex); 
+
+// ====[ METHODMAPS ]==========================================================
+
+methodmap TF2Item < Handle
+{
+	/**
+	 * Make a new TF2Item (this is a Handle internally).
+	 *
+	 * @param iFlags	Flags to use for generating an item.
+	 * return			New "object" TF2Item.
+	 */
+	public TF2Item(int iFlags)
+	{
+		return view_as<TF2Item>(TF2Items_CreateItem(iFlags));
+	}
+	
+	/**
+	 * WARNING: This is for ADVANCED users only!
+	 * You probably want to be using the forward instead of this.
+	 *
+	 * This native will perform a GiveNamedItem call for the specified client in
+	 * order to generate an object based on the specifications of the TF2Items
+	 * object passed to it.
+	 * 
+	 * Since the item generation requires all the information that can be passed by
+	 * the extensions natives, the flags will be ignored and all the given
+	 * information will be used.
+	 * 
+	 * Remember that if your values aren't correct, this call may end up in a crash,
+	 * so please make sure you fill out everything: Classname, item definition index,
+	 * quality, level and attributes.
+	 * 
+	 * @param iClient	Client that the item will be generated for.
+	 * @return			Entity index of the newly created item.
+	 */
+	public int GiveNamedItem(int client)
+	{
+		return TF2Items_GiveNamedItem(client, view_as<Handle>(this));
+	}
+	
+	/**
+	 * Gets and sets the flags used to determine what the item will override on the
+	 * GiveNamedItem call.
+	 *
+	 * @param iFlags		Flags used to override item's flags.
+	 * @return			The flags used by the item.
+	 */
+	property int Flags
+	{
+		public get()
+		{
+			return TF2Items_GetFlags(view_as<Handle>(this));
+		}
+		public set(int iFlags)
+		{
+			TF2Items_SetFlags(view_as<Handle>(this), iFlags);
+		}
+	}
+	
+	/**
+	 * Gets and sets the item definition index.
+	 *
+	 * @param iItemDefIndex	Item index to set to.
+	 * @return			Definition index.
+	 */
+	property int DefIndex
+	{
+		public get()
+		{
+			return TF2Items_GetItemIndex(view_as<Handle>(this));
+		}
+		public set(int iItemDefIndex)
+		{
+			TF2Items_SetItemIndex(view_as<Handle>(this), iItemDefIndex);
+		}
+	}
+	
+	/**
+	 * Gets and sets the item's quality value, wich determines what color will be used for
+	 * the item name. Valid values are from 0 to 9.
+	 * 
+	 * @param iEntityQuality		New item quality.
+	 * @return			Item's current quality.
+	 */
+	property int Quality
+	{
+		public get()
+		{
+			return TF2Items_GetQuality(view_as<Handle>(this));
+		}
+		public set(int iEntityQuality)
+		{
+			TF2Items_SetQuality(view_as<Handle>(this), iEntityQuality);
+		}
+	}
+	
+	/**
+	 * Gets and sets the item's level value. This value can range from 0 to 127.
+	 *
+	 * @param iEntityLevel		Item level from 0 to 127.
+	 * @return			Entity level.
+	 */
+	property int Level
+	{
+		public get()
+		{
+			return TF2Items_GetLevel(view_as<Handle>(this));
+		}
+		public set(int iEntityLevel)
+		{
+			TF2Items_SetLevel(view_as<Handle>(this), iEntityLevel);
+		}
+	}
+	
+	/**
+	 * Gets ands sets the number of attributes that will be used on the item. The maximum
+	 * number of attributes that can be allocated ranges from 0 to 20.
+	 *
+	 * @param iNumAttributes	Number of attributes to put on item. 
+	 * @return			Number of attributes.
+	 */
+	property int NumAttributes
+	{
+		public get()
+		{
+			TF2Items_GetNumAttributes(view_as<Handle>(this));
+		}
+		public set(int iNumAttributes)
+		{
+			TF2Items_SetNumAttributes(view_as<Handle>(this), iNumAttributes);
+		}
+	}
+	
+	/**
+	 * Sets the new entity classname used for the item's entity.
+	 *
+	 * @param strClassName		New classname to use for the entity.
+	 * @noreturn
+	 */
+	public void SetClassname(char[] strClassName)
+	{
+		TF2Items_SetClassname(view_as<Handle>(this), strClassName);
+	}
+	
+	/**
+	 * Gets the entity classname we'll use for the item.
+	 *
+	 * @param strDest	String to store classname in.
+	 * @param iDestSize	Size of string buffer.
+	 * @noreturn.
+	 */
+	public void GetClassname(char[] strDest, int iDestSize)
+	{
+		TF2Items_GetClassname(view_as<Handle>(this), strDest, iDestSize);
+	}
+	
+	/**
+	 * Retrieves the value used for the attribute at the specified index on the item
+	 * object. Remember the iSlotIndex ranges from 0 to 20.
+	 *
+	 * @param iSlotIndex		The attribute slot index, ranges from 0 to 20.
+	 * @return			The attribute value to use.
+	 */
+	public float GetAttributeValue(int iSlotIndex)
+	{
+		return TF2Items_GetAttributeValue(view_as<Handle>(this), iSlotIndex);
+	}
+	
+	/**
+	 * Setups the given attribute index to use the attribute and values specified
+	 * with iAttribDefIndex and flValue. Remember the iSlotIndex ranges from 0 to 20.
+	 * 
+	 * @param iSlotIndex			The attribute slot index, ranges from 0 to 20.
+	 * @param iAttribDefIndex		The attribute definition index, as it appears on game_items.txt.
+	 * @param flValue				The value assigned to the attribute (how much health, damage, etc.).
+	 * @noreturn
+	 */
+	public void SetAttribute(int iSlotIndex, int iAttribDefIndex, float flValue)
+	{
+		TF2Items_SetAttribute(view_as<Handle>(this), iSlotIndex, iAttribDefIndex, flValue);
+	}
+	
+	/**
+	 * Retrieves the attribute definition index used at the specified index on the
+	 * item object. Remember the iSlotIndex ranges from 0 to 20.
+	 *
+	 * @param iSlotIndex		The attribute slot index, ranges from 0 to 20.
+	 * @return			The attribute definition index to use.
+	 */
+	public int GetAttributeId(int iSlotIndex)
+	{
+		return TF2Items_GetAttributeId(view_as<Handle>(this), iSlotIndex);
+	}
+}
 
 // ====[ FORWARDS ]============================================================
 /**

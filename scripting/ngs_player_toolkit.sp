@@ -16,10 +16,12 @@
 int BAMCooldown[MAXPLAYERS + 1];
 bool BAMOptOut[MAXPLAYERS + 1];
 bool isPlayerAutoTagEnabled[MAXPLAYERS + 1];
+bool isDamageNotificationEnabled[MAXPLAYERS + 1];
 
 ConVar cvarAutoTag;
 
-Handle autoTagEnabledCookie = INVALID_HANDLE;
+Handle autoTagEnabledCookie;
+Handle getDamageNotificationCookie;
 
 //--------------------//
 
@@ -46,11 +48,16 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_russianroulette", CommandRussianRoulette, "Usage: sm_russianroulette <numofbullets>");
 	RegConsoleCmd("sm_autotag", CommandAutoTag, "Usage: sm_autotag to toggle");
 	RegConsoleCmd("sm_wondertained", CommandWondertained, "Usage: sm_wondertained");
+	RegConsoleCmd("sm_toggledamagenotif", CommandToggleDamageNotif, "Usage: sm_toggledamagenotif");
+	RegConsoleCmd("sm_toggledamagenotifs", CommandToggleDamageNotif, "Usage: sm_toggledamagenotifs");
 	LoadTranslations("common.phrases");
 	
 	cvarAutoTag = CreateConVar("sm_ngsplayertoolkit_autotag", "NGS", "Tag to give players, leave blank to disable.");
 	
 	autoTagEnabledCookie = RegClientCookie("AutoTagEnabled", "Is autotag enabled?", CookieAccess_Public);
+	getDamageNotificationCookie = RegClientCookie("DamageNotifsEnabled", "Is damage notifications enabled.", CookieAccess_Public);
+	
+	HookEvent("player_death", OnPlayerDeath);
 	
 	for (int i = MaxClients; i > 0; --i)
 	{
@@ -87,9 +94,12 @@ public void OnMapStart()
 public void OnClientCookiesCached(int client)
 {
 	char sValue[8];
+	char notifValue[8];
 	GetClientCookie(client, autoTagEnabledCookie, sValue, sizeof(sValue));
+	GetClientCookie(client, getDamageNotificationCookie, notifValue, sizeof(notifValue));
 	
 	isPlayerAutoTagEnabled[client] = (sValue[0] != '\0' && StringToInt(sValue));
+	isDamageNotificationEnabled[client] = (notifValue[0] != '\0' && StringToInt(notifValue));
 }
 
 public void OnClientPostAdminCheck(int client)
@@ -270,7 +280,7 @@ public Action CommandBamboozle(int client, int args)
 	SetHudTextParams(-1.0, 0.1, 3.0, 255, 0, 0, 255, 1, 1.0, 1.0, 1.0);
 	ShowSyncHudText(target, hHudText, "BAMBOOZLED");
 	ShowSyncHudText(client, hHudText, "BAMBOOZLED");
-	CloseHandle(hHudText);
+	delete hHudText;
 	
 	char targetName[MAX_BUFFER_LENGTH], clientName[MAX_BUFFER_LENGTH];
 	GetClientName(target, targetName, sizeof(targetName));
@@ -301,10 +311,6 @@ public Action CommandChowMane(int client, int args)
 public Action CommandAdministration(int client, int args)
 {
 	if (!IsValidClient(client)) return Plugin_Handled;
-	/*
-	char playerName[MAX_NAME_LENGTH];
-	GetClientName(client, playerName, sizeof(playerName));
-	*/
 	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Happy birthday, {LIGHTGREEN}%N{DEFAULT}!", client);
 	EmitSoundToClient(client, "misc/happy_birthday_tf_08.wav");
 	return Plugin_Handled;
@@ -341,6 +347,29 @@ public Action CommandAutoTag(int client, int args)
   	}
  		
   	return Plugin_Handled;
+}
+
+public Action CommandToggleDamageNotif(int client, int args)
+{
+	if (!IsValidClient(client) || !AreClientCookiesCached(client)) return Plugin_Handled;
+	
+	char numToSet[4];
+	Format(numToSet, sizeof(numToSet), "%s", isDamageNotificationEnabled[client] ? "0" : "1");
+	SetClientCookie(client, getDamageNotificationCookie, numToSet);
+	isDamageNotificationEnabled[client] = !isDamageNotificationEnabled[client];
+	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You %s receive damage notifications now. Use !toggledamagenotifs to %s it.", isDamageNotificationEnabled[client] ? "will" : "will not", isDamageNotificationEnabled[client] ? "disable" : "enable");
+	return Plugin_Handled;
+}
+
+public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
+{
+	int victim = GetClientOfUserId(event.GetInt("userid"));
+	int attacker = GetClientOfUserId(event.GetInt("attacker"));
+	int deathFlags = event.GetInt("death_flags");
+	if (!IsValidClient(victim)) return;
+	if (!isDamageNotificationEnabled[victim] || victim == attacker || deathFlags & 32) return;
+	int attackerHealth = GetClientHealth(attacker);
+	CPrintToChat(victim, "{GREEN}[SM]{DEFAULT} {LIGHTGREEN}%N{DEFAULT} had {LIGHTGREEN}%d{DEFAULT} health remaining.", attacker, attackerHealth);
 }
 
 public bool IsValidClient(int client)

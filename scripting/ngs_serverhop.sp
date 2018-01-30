@@ -2,6 +2,7 @@
 #pragma semicolon 1
 
 #include <sourcemod>
+#include <convars>
 #include <socket>
 #include <multicolors>
 
@@ -59,22 +60,26 @@ public void OnPluginStart()
 	GetGameFolderName(gameFolder, sizeof(gameFolder));
 	if (StrEqual(gameFolder, "tf", true)) isTF2 = true;
 	
-	char path[MAX_STR_LEN];
-	Handle kv;
+	char path[MAX_STR_LEN], hostip[24];
+	Inet_NtoA(FindConVar("hostip").IntValue, hostip, sizeof(hostip));
+	int hostport = FindConVar("hostport").IntValue;
+	
 	BuildPath(Path_SM, path, sizeof(path), "configs/serverhop.cfg");
-	kv = CreateKeyValues("Servers");
-	if (!FileToKeyValues(kv, path)) LogToGame("Error loading server list!");
+	KeyValues kv = new KeyValues("Servers");
+	if (!kv.ImportFromFile(path)) SetFailState("Error loading server list!");
 	int i;
-	KvRewind(kv);
-	KvGotoFirstSubKey(kv);
+	kv.Rewind();
+	kv.GotoFirstSubKey();
 	do
 	{
-		KvGetSectionName(kv, serverName[i], MAX_STR_LEN);
-		KvGetString(kv, "address", serverAddress[i], MAX_STR_LEN);
-		serverPort[i] = KvGetNum(kv, "port", 27015);
+		kv.GetString("address", serverAddress[i], MAX_STR_LEN);
+		serverPort[i] = kv.GetNum("port", 27015);
+		if (StrEqual(serverAddress[i], hostip) && serverPort[i] == hostport) continue;
+		kv.GetSectionName(serverName[i], MAX_STR_LEN);
 		i++;
 	}
-	while (KvGotoNextKey(kv));
+	while (kv.GotoNextKey());
+	delete kv;
 	serverCount = i;
 	TriggerTimer(timer);
 }
@@ -89,13 +94,13 @@ public Action CommandHop(int client, int args)
 	return Plugin_Handled;
 }
 
-public Action ServerMenu(int client)
+public void ServerMenu(int client)
 {
-	Handle menu = CreateMenu(MenuHandler);
+	Menu menu = new Menu(HopMenuHandler);
 	char serverNumStr[MAX_STR_LEN];
 	char menuTitle[MAX_STR_LEN];
 	Format(menuTitle, sizeof(menuTitle), "%T", "SelectServer", client);
-	SetMenuTitle(menu, menuTitle);
+	menu.SetTitle(menuTitle);
 	for (int i = 0; i < serverCount; i++)
 	{
 		if (strlen(serverInfo[i]) > 0)
@@ -104,13 +109,13 @@ public Action ServerMenu(int client)
 				PrintToConsole(client, serverInfo[i]);
 			#endif
 			IntToString(i, serverNumStr, sizeof(serverNumStr));
-			AddMenuItem(menu, serverNumStr, serverInfo[i]);
+			menu.AddItem(serverNumStr, serverInfo[i]);
 		}
 	}
-	DisplayMenu(menu, client, 20);
+	menu.Display(client, 20);
 }
 
-public int MenuHandler(Handle menu, MenuAction action, int param1, int param2)
+public int HopMenuHandler(Menu menu, MenuAction action, int param1, int param2)
 {
 	if (action == MenuAction_Select)
 	{
@@ -119,14 +124,14 @@ public int MenuHandler(Handle menu, MenuAction action, int param1, int param2)
 		GetMenuItem(menu, param2, infobuf, sizeof(infobuf));
 		int serverNum = StringToInt(infobuf);
 		// header
-		Handle kvheader = CreateKeyValues("header");
+		KeyValues kvheader = new KeyValues("header");
 		char menuTitle[MAX_STR_LEN];
 		Format(menuTitle, sizeof(menuTitle), "%T", "AboutToJoinServer", param1);
-		KvSetString(kvheader, "title", menuTitle);
-		KvSetNum(kvheader, "level", 1);
-		KvSetString(kvheader, "time", "10");
+		kvheader.SetString("title", menuTitle);
+		kvheader.SetNum("level", 1);
+		kvheader.SetString("time", "10");
 		CreateDialog(param1, kvheader, DialogType_Msg);
-		CloseHandle(kvheader);
+		delete kvheader;
 		// join confirmation dialog
 		if (isTF2)
 		{
@@ -136,16 +141,16 @@ public int MenuHandler(Handle menu, MenuAction action, int param1, int param2)
 		}
 		else
 		{
-			Handle kv = CreateKeyValues("menu");
-			KvSetString(kv, "time", "10");
+			KeyValues kv = CreateKeyValues("menu");
+			kv.SetString("time", "10");
 			Format(address, MAX_STR_LEN, "%s:%i", serverAddress[serverNum], serverPort[serverNum]);
-			KvSetString(kv, "title", address);
+			kv.SetString("title", address);
 			CreateDialog(param1, kv, DialogType_AskConnect);
-			CloseHandle(kv);
+			delete kv;
 		}
 		
 		// broadcast to all
-		if (GetConVarBool(cv_broadcasthops))
+		if (cv_broadcasthops.BoolValue)
 		{
 			char clientName[MAX_NAME_LENGTH];
 			GetClientName(param1, clientName, sizeof(clientName));
@@ -174,18 +179,18 @@ public Action CleanUp(Handle timer)
 		if (strlen(serverInfo[i]) == 0 && !socketError[i])
 		{
 			if(cv_log_errors.BoolValue) LogError("Server %s:%i is down: no timely reply received", serverAddress[i], serverPort[i]);
-			CloseHandle(socket[i]);
+			delete socket[i];
 		}
 	}
 	// all server info is up to date: advertise
 	if (cv_advert.BoolValue)
 	{
-		if (advertInterval == GetConVarFloat(cv_advert_interval))
+		if (advertInterval == cv_advert_interval.FloatValue)
 		{	
 			Advertise();
 		}
 		advertInterval++;
-		if (advertInterval > GetConVarFloat(cv_advert_interval))
+		if (advertInterval > cv_advert_interval.FloatValue)
 		{	
 			advertInterval = 1;
 		}
@@ -281,20 +286,38 @@ public int OnSocketReceive(Handle sock, char[] receiveData, const int dataSize, 
 	#if defined DEBUG then
 		LogError(serverInfo[i]);
 	#endif
-	CloseHandle(sock);
+	delete sock;
 }
 
 public int OnSocketDisconnected(Handle sock, any i)
 {
-	CloseHandle(sock);
+	delete sock;
 }
 
 public int OnSocketError(Handle sock, const int errorType, const int errorNum, any i)
 {
 	if(GetConVarBool(cv_log_errors)) LogError("Server %s:%i is down: socket error %d (errno %d)", serverAddress[i], serverPort[i], errorType, errorNum);
 	socketError[i] = true;
-	CloseHandle(sock);
+	delete sock;
 }
+
+// Powerlord is king
+/**
+* @param binary binary IP, usually from hostip
+* @param address buffer to save address to
+* @param maxlength length of buffer
+* @noreturn
+*/
+stock void Inet_NtoA(int binary, char[] address, int maxlength)
+{
+    int quads[4];
+    quads[0] = binary >> 24 & 0x000000FF; // mask isn't necessary for this one, but do it anyway
+    quads[1] = binary >> 16 & 0x000000FF;
+    quads[2] = binary >> 8 & 0x000000FF;
+    quads[3] = binary & 0x000000FF;
+    
+    Format(address, maxlength, "%d.%d.%d.%d", quads[0], quads[1], quads[2], quads[3]);
+}  
 
 public bool IsValidClient (int client)
 {

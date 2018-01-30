@@ -53,7 +53,6 @@ public void OnPluginStart()
 	LoadTranslations("common.phrases");
 	
 	cvarAutoTag = CreateConVar("sm_ngsplayertoolkit_autotag", "NGS", "Tag to give players, leave blank to disable.");
-	
 	autoTagEnabledCookie = RegClientCookie("AutoTagEnabled", "Is autotag enabled?", CookieAccess_Public);
 	getDamageNotificationCookie = RegClientCookie("DamageNotifsEnabled", "Is damage notifications enabled.", CookieAccess_Public);
 	
@@ -189,7 +188,7 @@ public Action CommandWondertained(int client, int args)
 	EmitSoundToClient(client, "vo/medic_laughlong01.mp3");
 	EmitSoundToClient(client, "vo/sniper_laughlong02.mp3");
 	EmitSoundToClient(client, "vo/spy_laughlong01.mp3");
-	// CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} 
+	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} This {RED}Command{DEFAULT} Is Brought To You By {LIGHTGREEN}Dr. Wondertainment{DEFAULT} And The People Of NGS.");
 	return Plugin_Handled;
 }
 
@@ -366,9 +365,11 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	int victim = GetClientOfUserId(event.GetInt("userid"));
 	int attacker = GetClientOfUserId(event.GetInt("attacker"));
 	int deathFlags = event.GetInt("death_flags");
-	if (!IsValidClient(victim)) return;
+	if (!IsValidClient(victim) || !IsValidClient(attacker)) return;
 	if (!isDamageNotificationEnabled[victim] || victim == attacker || deathFlags & 32) return;
-	int attackerHealth = GetClientHealth(attacker);
+	int attackerHealth = 0;
+	if (IsPlayerAlive(attacker))
+		attackerHealth = GetClientHealth(attacker);
 	CPrintToChat(victim, "{GREEN}[SM]{DEFAULT} {LIGHTGREEN}%N{DEFAULT} had {LIGHTGREEN}%d{DEFAULT} health remaining.", attacker, attackerHealth);
 }
 

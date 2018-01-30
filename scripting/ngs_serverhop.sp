@@ -21,7 +21,7 @@ char serverName[MAX_SERVERS][MAX_STR_LEN];
 char serverAddress[MAX_SERVERS][MAX_STR_LEN];
 int serverPort[MAX_SERVERS];
 char serverInfo[MAX_SERVERS][MAX_INFO_LEN];
-Handle socket[MAX_SERVERS];
+Socket socket[MAX_SERVERS];
 bool socketError[MAX_SERVERS];
 bool isTF2;
 ConVar cv_serverformat;
@@ -165,9 +165,9 @@ public Action RefreshServerInfo(Handle timer)
 	{
 		serverInfo[i] = "";
 		socketError[i] = false;
-		socket[i] = SocketCreate(SOCKET_UDP, OnSocketError);
-		SocketSetArg(socket[i], i);
-		SocketConnect(socket[i], OnSocketConnected, OnSocketReceive, OnSocketDisconnected, serverAddress[i], serverPort[i]);
+		socket[i] = new Socket(SOCKET_UDP, OnSocketError);
+		socket[i].SetArg(i);
+		socket[i].Connect(OnSocketConnected, OnSocketReceive, OnSocketDisconnected, serverAddress[i], serverPort[i]);
 	}
 	CreateTimer(SERVER_TIMEOUT, CleanUp);
 }
@@ -277,7 +277,7 @@ public int OnSocketReceive(Handle sock, char[] receiveData, const int dataSize, 
 	offset++;
 	IntToString(GetByte(receiveData, offset), maxPlayers, sizeof(maxPlayers));
 	char format[MAX_STR_LEN];
-	GetConVarString(cv_serverformat, format, sizeof(format));
+	cv_serverformat.GetString(format, sizeof(format));
 	ReplaceString(format, strlen(format), "%name", serverName[i], false);
 	ReplaceString(format, strlen(format), "%map", mapName, false);
 	ReplaceString(format, strlen(format), "%numplayers", numPlayers, false);

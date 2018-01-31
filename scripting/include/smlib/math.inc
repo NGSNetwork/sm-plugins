@@ -25,7 +25,7 @@ enum VecAngle
  * @param number		A number that can be positive or negative.
  * @return				Positive number.
  */
-stock any:Math_Abs(any:number)
+stock any Math_Abs(any number)
 {	
 	if (number >= 0) {
 		return number;
@@ -43,9 +43,9 @@ stock any:Math_Abs(any:number)
  * @param tolerance 	If you want to check that those vectors are somewhat even. 0.0 means they are 100% even if this function returns true.
  * @return				True if vectors are equal, false otherwise.
  */
-stock bool:Math_VectorsEqual(Float:vec1[3], Float:vec2[3], Float:tolerance=0.0)
+stock bool Math_VectorsEqual(float vec1[3], float vec2[3], float tolerance=0.0)
 {	
-	new Float:distance = GetVectorDistance(vec1, vec2);
+	float distance = GetVectorDistance(vec1, vec2);
 	
 	return distance <= tolerance;
 }
@@ -58,7 +58,7 @@ stock bool:Math_VectorsEqual(Float:vec1[3], Float:vec2[3], Float:tolerance=0.0)
  * @param min			Min Value used as lower border
  * @return				Correct value not lower than min
  */
-stock any:Math_Min(any:value, any:min)
+stock any Math_Min(any value, any min)
 {
 	if (value < min) {
 		value = min;
@@ -75,7 +75,7 @@ stock any:Math_Min(any:value, any:min)
  * @param max			Max Value used as upper border
  * @return				Correct value not upper than max
  */
-stock any:Math_Max(any:value, any:max)
+stock any Math_Max(any value, any max)
 {	
 	if (value > max) {
 		value = max;
@@ -96,7 +96,7 @@ stock any:Math_Max(any:value, any:max)
  * @param max			Max value used as upper border
  * @return				Correct value not lower than min and not greater than max.
  */
-stock any:Math_Clamp(any:value, any:min, any:max)
+stock any Math_Clamp(any value, any min, any max)
 {
 	value = Math_Min(value, min);
 	value = Math_Max(value, max);
@@ -112,7 +112,7 @@ stock any:Math_Clamp(any:value, any:min, any:max)
  * @param max		The upper border.
  * @return			True if the value is within bounds (bigger or equal min / smaller or equal max), false otherwise.
  */
-stock bool:Math_IsInBounds(any:value, any:min, any:max)
+stock bool Math_IsInBounds(any value, any min, any max)
 {
 	if (value < min || value > max) {
 		return false;
@@ -131,7 +131,7 @@ stock bool:Math_IsInBounds(any:value, any:min, any:max)
  * @param max			Max value used as upper border
  * @return				Overflowed number
  */
-stock any:Math_Overflow(any:value, any:min, any:max)
+stock any Math_Overflow(any value, any min, any max)
 {
 	return (value % max) + min;
 }
@@ -146,9 +146,9 @@ stock any:Math_Overflow(any:value, any:min, any:max)
  * @param max			Max value used as upper border
  * @return				Random Integer number between min and max
  */
-stock Math_GetRandomInt(min, max)
+stock int Math_GetRandomInt(int min, int max)
 {
-	new random = GetURandomInt();
+	int random = GetURandomInt();
 	
 	if (random == 0) {
 		random++;
@@ -166,7 +166,7 @@ stock Math_GetRandomInt(min, max)
  * @param max			Max value used as upper border
  * @return				Random Float number between min and max
  */
-stock Float:Math_GetRandomFloat(Float:min, Float:max)
+stock float Math_GetRandomFloat(float min, float max)
 {
 	return (GetURandomFloat() * (max  - min)) + min;
 }
@@ -180,7 +180,7 @@ stock Float:Math_GetRandomFloat(Float:min, Float:max)
  * @param all			Integer value
  * @return				An Integer value between 0 and 100 (inclusive).
  */
-stock Math_GetPercentage(value, all) {
+stock int Math_GetPercentage(int value, int all) {
 	return RoundToNearest((float(value) / float(all)) * 100.0);
 }
 
@@ -193,7 +193,7 @@ stock Math_GetPercentage(value, all) {
  * @param all			Float value
  * @return				A Float value between 0.0 and 100.0 (inclusive).
  */
-stock Float:Math_GetPercentageFloat(Float:value, Float:all) {
+stock float Math_GetPercentageFloat(float value, float all) {
 	return (value / all) * 100.0;
 }
 
@@ -208,7 +208,7 @@ stock Float:Math_GetPercentageFloat(Float:value, Float:all) {
  * @param output		Output vector
  * @noreturn
  */
-stock Math_MoveVector(const Float:start[3], const Float:end[3], Float:scale, Float:output[3])
+stock void Math_MoveVector(const float start[3], const float end[3], float scale, float output[3])
 {
 	SubtractVectors(end,start,output);
 	ScaleVector(output,scale);
@@ -221,7 +221,7 @@ stock Math_MoveVector(const Float:start[3], const Float:end[3], Float:scale, Flo
  * @param units			Float value
  * @return				Meters as Float value.
  */
-stock Float:Math_UnitsToMeters(Float:units)
+stock float Math_UnitsToMeters(float units)
 {
 	return (units * GAMEUNITS_TO_METERS);
 }
@@ -232,7 +232,7 @@ stock Float:Math_UnitsToMeters(Float:units)
  * @param units			Float value
  * @return				Feet as Float value.
  */
-stock Float:Math_UnitsToFeet(Float:units)
+stock float Math_UnitsToFeet(float units)
 {
 	return (Math_UnitsToMeters(units) * METERS_TO_FEET);
 }

@@ -408,7 +408,7 @@ stock void Client_SetFOV(int client, int value)
  */
 stock bool Client_DrawViewModel(int client)
 {
-	return bool GetEntProp(client, Prop_Send, "m_bDrawViewmodel");
+	return view_as<bool>(GetEntProp(client, Prop_Send, "m_bDrawViewmodel"));
 }
 
 /**
@@ -418,7 +418,7 @@ stock bool Client_DrawViewModel(int client)
  * @param drawViewModel	Set to true if to draw, false otherwise.
  * @noreturn
  */
-stock Client_SetDrawViewModel(int client, bool drawViewModel)
+stock void Client_SetDrawViewModel(int client, bool drawViewModel)
 {
 	SetEntProp(client, Prop_Send, "m_bDrawViewmodel", drawViewModel);
 }
@@ -752,7 +752,7 @@ stock int Client_SetArmor(int client, int val)
  * @param client			Client's index.
  * @return					Suitpower
  */
-stock float Client_GetSuitPower(client)
+stock float Client_GetSuitPower(int client)
 {
 	return GetEntPropFloat(client, Prop_Data, "m_flSuitPower");
 }
@@ -874,9 +874,9 @@ stock bool Client_ExitVehicle(int client)
  * @param pitch			The pitch of the audiofile.
  * @return				True on success, false on failure.
  */
-stock bool Client_RawAudio(client, const emitter, const String:soundfile[], Float:length = 0.0, pitch = 100)
+stock bool Client_RawAudio(int client, const int emitter, const char[] soundfile, float length = 0.0, pitch = 100)
 {
-	new Handle:message = StartMessageOne("RawAudio", client);
+	Handle message = StartMessageOne("RawAudio", client);
 
 	if (message == INVALID_HANDLE) {
 		return false;
@@ -902,9 +902,9 @@ stock bool Client_RawAudio(client, const emitter, const String:soundfile[], Floa
  * @param pitch			The pitch of the audiofile.
  * @return				True on success, false on failure.
  */
-stock bool Client_RawAudioToAll(const emitter, const String:soundfile[], Float:length = 0.0, pitch = 100)
+stock bool Client_RawAudioToAll(const int emitter, const char[] soundfile, float length = 0.0, int pitch = 100)
 {
-	new Handle:message = StartMessageAll("RawAudio");
+	Handle message = StartMessageAll("RawAudio");
 
 	if (message == INVALID_HANDLE) {
 		return false;
@@ -925,9 +925,9 @@ stock bool Client_RawAudioToAll(const emitter, const String:soundfile[], Float:l
  * 
  * @param client		Client Index
  * @param value			The impulse command value.
- * @return				True on success, false on failure.
+ * @noreturn
  */
-stock Client_Impulse(client, value)
+stock void Client_Impulse(int client, int value)
 {
 	SetEntProp(client, Prop_Data, "m_nImpulse", value);
 }
@@ -939,9 +939,9 @@ stock Client_Impulse(client, value)
  * @param client		Client Index.
  * @return				Weapon list offset or -1 on failure.
  */
-stock Client_GetWeaponsOffset(client)
+stock int Client_GetWeaponsOffset(int client)
 {
-	static offset = -1;
+	static int offset = -1;
 
 	if (offset == -1) {
 		offset = FindDataMapOffs(client, "m_hMyWeapons");
@@ -956,9 +956,9 @@ stock Client_GetWeaponsOffset(client)
  * @param client		Client Index.
  * @return				Weapon Index or INVALID_ENT_REFERENCE if the client has no active weapon.
  */
-stock Client_GetActiveWeapon(client)
+stock int Client_GetActiveWeapon(int client)
 {
-	new weapon =  GetEntPropEnt(client, Prop_Data, "m_hActiveWeapon");
+	int weapon =  GetEntPropEnt(client, Prop_Data, "m_hActiveWeapon");
 	
 	if (!Entity_IsValid(weapon)) {
 		return INVALID_ENT_REFERENCE;
@@ -975,9 +975,9 @@ stock Client_GetActiveWeapon(client)
  * @param size			Max size of String: buffer.
  * @return				Weapon Entity Index on success or INVALID_ENT_REFERENCE otherwise 
  */
-stock Client_GetActiveWeaponName(client, char[] buffer, size)
+stock int Client_GetActiveWeaponName(int client, char[] buffer, int size)
 {
-	new weapon = Client_GetActiveWeapon(client);
+	int weapon = Client_GetActiveWeapon(client);
 	
 	if (weapon == INVALID_ENT_REFERENCE) {
 		buffer[0] = '\0';
@@ -997,7 +997,7 @@ stock Client_GetActiveWeaponName(client, char[] buffer, size)
  * @param weapon		Index of a valid weapon.
  * @noreturn
  */
-stock Client_SetActiveWeapon(client, weapon)
+stock void Client_SetActiveWeapon(int client, int weapon)
 {
 	SetEntPropEnt(client, Prop_Data, "m_hActiveWeapon", weapon);
 	ChangeEdictState(client, FindDataMapOffs(client, "m_hActiveWeapon"));
@@ -1011,9 +1011,9 @@ stock Client_SetActiveWeapon(client, weapon)
  * @param className		Weapon Classname.
  * @return				True on success, false on failure.
  */
-stock bool Client_ChangeWeapon(client, const String:className[])
+stock bool Client_ChangeWeapon(int client, const char[] className)
 {
-	new weapon = Client_GetWeapon(client, className);
+	int weapon = Client_GetWeapon(client, className);
 	
 	if (weapon == INVALID_ENT_REFERENCE) {
 		return false;
@@ -1033,9 +1033,9 @@ stock bool Client_ChangeWeapon(client, const String:className[])
  * @param client 		Client Index.	
  * @return				Entity Index or, INVALID_ENT_REFERENCE.
  */
-stock Client_ChangeToLastWeapon(client)
+stock int Client_ChangeToLastWeapon(int client)
 {
-	new weapon = Client_GetLastActiveWeapon(client);
+	int weapon = Client_GetLastActiveWeapon(client);
 	
 	if (weapon == INVALID_ENT_REFERENCE) {
 		weapon = Client_GetDefaultWeapon(client);
@@ -1062,7 +1062,7 @@ stock Client_ChangeToLastWeapon(client)
  */
 stock Client_GetLastActiveWeapon(client)
 {
-	new weapon = GetEntPropEnt(client, Prop_Data, "m_hLastWeapon");
+	int weapon = GetEntPropEnt(client, Prop_Data, "m_hLastWeapon");
 	
 	if (!Entity_IsValid(weapon)) {
 		return INVALID_ENT_REFERENCE;

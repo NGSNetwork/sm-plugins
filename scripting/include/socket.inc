@@ -203,6 +203,7 @@ enum SocketOption {
 typeset SocketConnectCB
 {
     function void (Handle socket, any arg);
+    function void (Socket socket, any arg);
 };
 
 /**
@@ -219,6 +220,7 @@ typeset SocketConnectCB
 typeset SocketIncomingCB
 {
     function void (Handle socket, Handle newSocket, const char[] remoteIP, int remotePort, any arg);
+    function void (Socket socket, Socket newSocket, const char[] remoteIP, int remotePort, any arg);
 };
 
 /**
@@ -238,6 +240,7 @@ typeset SocketIncomingCB
 typeset SocketReceiveCB
 {
     function void (Handle socket, char[] receiveData, const int dataSize, any arg);
+    function void (Socket socket, char[] receiveData, const int dataSize, any arg);
 };
 
 /**
@@ -250,6 +253,7 @@ typeset SocketReceiveCB
 typeset SocketSendqueueEmptyCB
 {
     function void (Handle socket, any arg);
+    function void (Socket socket, any arg);
 };
 
 /**
@@ -264,6 +268,7 @@ typeset SocketSendqueueEmptyCB
 typeset SocketDisconnectCB
 {
     function void (Handle socket, any arg);
+    function void (Socket socket, any arg);
 };
 
 /**
@@ -280,6 +285,7 @@ typeset SocketDisconnectCB
 typeset SocketErrorCB
 {
     function void (Handle socket, const int errorType, const int errorNum, any arg);
+    function void (Socket socket, const int errorType, const int errorNum, any arg);
 };
 
 

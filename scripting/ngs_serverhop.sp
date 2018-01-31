@@ -226,11 +226,11 @@ public Action Advertise()
 	}
 }
 
-public int OnSocketConnected(Handle sock, any i)
+public int OnSocketConnected(Socket sock, any i)
 {
 	char requestStr[25];
 	Format(requestStr, sizeof(requestStr), "%s", "\xFF\xFF\xFF\xFF\x54Source Engine Query");
-	SocketSend(sock, requestStr, 25);
+	sock.Send(requestStr, 25);
 }
 
 char GetByte(char[] receiveData, int offset)
@@ -254,7 +254,7 @@ char GetString(char[] receiveData, int dataSize, int offset)
 	return serverStr;
 }
 
-public int OnSocketReceive(Handle sock, char[] receiveData, const int dataSize, any i)
+public int OnSocketReceive(Socket sock, char[] receiveData, const int dataSize, any i)
 {
 	char srvName[MAX_STR_LEN];
 	char mapName[MAX_STR_LEN];
@@ -289,14 +289,14 @@ public int OnSocketReceive(Handle sock, char[] receiveData, const int dataSize, 
 	delete sock;
 }
 
-public int OnSocketDisconnected(Handle sock, any i)
+public int OnSocketDisconnected(Socket sock, any i)
 {
 	delete sock;
 }
 
-public int OnSocketError(Handle sock, const int errorType, const int errorNum, any i)
+public int OnSocketError(Socket sock, const int errorType, const int errorNum, any i)
 {
-	if(GetConVarBool(cv_log_errors)) LogError("Server %s:%i is down: socket error %d (errno %d)", serverAddress[i], serverPort[i], errorType, errorNum);
+	if(cv_log_errors.BoolValue) LogError("Server %s:%i is down: socket error %d (errno %d)", serverAddress[i], serverPort[i], errorType, errorNum);
 	socketError[i] = true;
 	delete sock;
 }

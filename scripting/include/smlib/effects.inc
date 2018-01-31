@@ -28,9 +28,9 @@ enum DissolveType
  * @param dissolveType	Dissolve Type, use the DissolveType enum.
  * @return				True on success, otherwise false.
  */
-stock bool:Effect_DissolveEntity(entity, DissolveType:dissolveType=DISSOLVE_NORMAL)
+stock bool Effect_DissolveEntity(int entity, DissolveType dissolveType=DISSOLVE_NORMAL)
 {
-	new env_entity_dissolver = CreateEntityByName("env_entity_dissolver");
+	int env_entity_dissolver = CreateEntityByName("env_entity_dissolver");
 
 	if (env_entity_dissolver == -1) {
 		return false;
@@ -51,9 +51,9 @@ stock bool:Effect_DissolveEntity(entity, DissolveType:dissolveType=DISSOLVE_NORM
  * @param dissolveType	Dissolve Type, use the DissolveType enum.
  * @return				True on success, otherwise false.
  */
-stock bool:Effect_DissolvePlayerRagDoll(client, DissolveType:dissolveType=DISSOLVE_NORMAL)
+stock bool Effect_DissolvePlayerRagDoll(int client, DissolveType dissolveType=DISSOLVE_NORMAL)
 {
-	new m_hRagdoll = GetEntPropEnt(client, Prop_Send, "m_hRagdoll");
+	int m_hRagdoll = GetEntPropEnt(client, Prop_Send, "m_hRagdoll");
 
 	if (m_hRagdoll == -1) {
 		return false;
@@ -62,7 +62,7 @@ stock bool:Effect_DissolvePlayerRagDoll(client, DissolveType:dissolveType=DISSOL
 	return Effect_DissolveEntity(m_hRagdoll, dissolveType);
 }
 
-functag EffectCallback public(entity, any:data);
+typedef EffectCallback = function void(int entity, any data);
 
 /**
  * Fades an entity in our out.
@@ -78,11 +78,11 @@ functag EffectCallback public(entity, any:data);
  * @param fast			Optional: Fade the entity fast (~0.7 secs) or slow (~3 secs)
  * @param callback		Optional: You can specify a callback Function that will get called when the fade is finished.
  * @param data			Optional: You can pass any data to the callback.
- * @return				True on success, otherwise false.
+ * @noreturn
  */
-stock Effect_Fade(entity, fadeOut=true, kill=false, fast=true, EffectCallback:callback=INVALID_FUNCTION, any:data=0)
+stock void Effect_Fade(int entity, bool fadeOut=true, bool kill=false, bool fast=true, EffectCallback callback=INVALID_FUNCTION, any data=0)
 {
-	new Float:timerTime = 0.0;
+	float timerTime = 0.0;
 	
 	if (fast) {
 		timerTime = 0.6;
@@ -108,14 +108,14 @@ stock Effect_Fade(entity, fadeOut=true, kill=false, fast=true, EffectCallback:ca
 	ChangeEdictState(entity, GetEntSendPropOffs(entity, "m_nRenderFX", true));
 
 	if (kill || callback != INVALID_FUNCTION) {
-		new Handle:dataPack = INVALID_HANDLE;
+		DataPack dataPack;
 		CreateDataTimer(timerTime, _smlib_Timer_Effect_Fade, dataPack, TIMER_FLAG_NO_MAPCHANGE | TIMER_DATA_HNDL_CLOSE);
 		
-		WritePackCell(dataPack, EntIndexToEntRef(entity));
-		WritePackCell(dataPack, kill);
-		WritePackCell(dataPack, _:callback);
-		WritePackCell(dataPack, data);
-		ResetPack(dataPack);
+		dataPack.WriteCell(EntIndexToEntRef(entity));
+		dataPack.WriteCell(kill);
+		dataPack.WriteFunction(callback);
+		dataPack.WriteCell(data);
+		dataPack.Reset();
 	}
 }
 
@@ -127,9 +127,9 @@ stock Effect_Fade(entity, fadeOut=true, kill=false, fast=true, EffectCallback:ca
  * @param fast			Optional: Fade the entity fast (~0.7 secs) or slow (~3 secs)
  * @param callback		Optional: You can specify a callback Function that will get called when the fade is finished.
  * @param data			Optional: You can pass any data to the callback.
- * @return				True on success, otherwise false.
+ * @noreturn
  */
-stock Effect_FadeIn(entity, fast=true, EffectCallback:callback=INVALID_FUNCTION, any:data=0)
+stock void Effect_FadeIn(int entity, bool fast=true, EffectCallback callback=INVALID_FUNCTION, any data=0)
 {
 	Effect_Fade(entity, false, false, fast, callback, data);
 }
@@ -144,19 +144,20 @@ stock Effect_FadeIn(entity, fast=true, EffectCallback:callback=INVALID_FUNCTION,
  * @param fast			Optional: Fade the entity fast (~0.7 secs) or slow (~3 secs)
  * @param callback		Optional: You can specify a callback Function that will get called when the fade is finished.
  * @param data			Optional: You can pass any data to the callback.
- * @return				True on success, otherwise false.
+ * @noreturn
  */
-stock Effect_FadeOut(entity, kill=false, fast=true, EffectCallback:callback=INVALID_FUNCTION, any:data=0)
+stock void Effect_FadeOut(int entity, bool kill=false, bool fast=true, EffectCallback callback=INVALID_FUNCTION, any data=0)
 {
 	Effect_Fade(entity, true, kill, fast, callback, data);
 }
 
-public Action:_smlib_Timer_Effect_Fade(Handle:Timer, Handle:dataPack)
+public Action _smlib_Timer_Effect_Fade(Handle timer, DataPack dataPack)
 {
-	new entity = ReadPackCell(dataPack);
-	new kill = ReadPackCell(dataPack);
-	new EffectCallback:callback = EffectCallback:ReadPackCell(dataPack);
-	new any:data = any:ReadPackCell(dataPack);
+	dataPack.Reset();
+	int entity = dataPack.ReadCell();
+	int kill = dataPack.ReadCell();
+	EffectCallback callback = view_as<EffectCallback>(dataPack.ReadFunction());
+	any data = view_as<any>(dataPack.ReadCell());
 	
 	if (callback != INVALID_FUNCTION) {
 		Call_StartFunction(INVALID_HANDLE, callback);
@@ -193,23 +194,23 @@ public Action:_smlib_Timer_Effect_Fade(Handle:Timer, Handle:dataPack)
  * @param speed			Speed of the beam.
  * @noreturn
  */
-stock Effect_DrawBeamBoxToClient(
-	client,
-	const Float:bottomCorner[3],
-	const Float:upperCorner[3],
-	modelIndex,
-	haloIndex,
-	startFrame=0,
-	frameRate=30,
-	Float:life=5.0,
-	Float:width=5.0,
-	Float:endWidth=5.0,
-	fadeLength=2,
-	Float:amplitude=1.0,
-	const color[4]={ 255, 0, 0, 255 },
-	speed=0
+stock void Effect_DrawBeamBoxToClient(
+	int client,
+	const float bottomCorner[3],
+	const float upperCorner[3],
+	int modelIndex,
+	int haloIndex,
+	int startFrame=0,
+	int frameRate=30,
+	float life=5.0,
+	float width=5.0,
+	float endWidth=5.0,
+	int fadeLength=2,
+	float amplitude=1.0,
+	const int color[4]={ 255, 0, 0, 255 },
+	int speed=0
 ) {
-    new clients[1];
+    int clients[1];
     clients[0] = client;
     Effect_DrawBeamBox(clients, 1, bottomCorner, upperCorner, modelIndex, haloIndex, startFrame, frameRate, life, width, endWidth, fadeLength, amplitude, color, speed);
 }
@@ -234,24 +235,24 @@ stock Effect_DrawBeamBoxToClient(
  * @param speed			Speed of the beam.
  * @noreturn
  */
-stock Effect_DrawBeamBoxToAll(
-	const Float:bottomCorner[3],
-	const Float:upperCorner[3],
-	modelIndex,
-	haloIndex,
-	startFrame=0,
-	frameRate=30,
-	Float:life=5.0,
-	Float:width=5.0,
-	Float:endWidth=5.0,
-	fadeLength=2,
-	Float:amplitude=1.0,
-	const color[4]={ 255, 0, 0, 255 },
-	speed=0
+stock void Effect_DrawBeamBoxToAll(
+	const float bottomCorner[3],
+	const float upperCorner[3],
+	int modelIndex,
+	int haloIndex,
+	int startFrame=0,
+	int frameRate=30,
+	float life=5.0,
+	float width=5.0,
+	float endWidth=5.0,
+	int fadeLength=2,
+	float amplitude=1.0,
+	const int color[4]={ 255, 0, 0, 255 },
+	int speed=0
 )
 {
-	new clients[MaxClients];
-	new numClients = Client_Get(clients, CLIENTFILTER_INGAME);
+	int clients[MaxClients];
+	int numClients = Client_Get(clients, CLIENTFILTER_INGAME);
 
 	Effect_DrawBeamBox(clients, numClients, bottomCorner, upperCorner, modelIndex, haloIndex, startFrame, frameRate, life, width, endWidth, fadeLength, amplitude, color, speed);
 }
@@ -278,27 +279,27 @@ stock Effect_DrawBeamBoxToAll(
  * @param speed			Speed of the beam.
  * @noreturn
  */
-stock Effect_DrawBeamBox(
-	clients[],
-	numClients,
-	const Float:bottomCorner[3],
-	const Float:upperCorner[3],
-	modelIndex,
-	haloIndex,
-	startFrame=0,
-	frameRate=30,
-	Float:life=5.0,
-	Float:width=5.0,
-	Float:endWidth=5.0,
-	fadeLength=2,
-	Float:amplitude=1.0,
-	const color[4]={ 255, 0, 0, 255 },
-	speed=0
+stock void Effect_DrawBeamBox(
+	int[] clients,
+	int numClients,
+	const float bottomCorner[3],
+	const float upperCorner[3],
+	int modelIndex,
+	int haloIndex,
+	int startFrame=0,
+	int frameRate=30,
+	float life=5.0,
+	float width=5.0,
+	float endWidth=5.0,
+	int fadeLength=2,
+	float amplitude=1.0,
+	const int color[4]={ 255, 0, 0, 255 },
+	int speed=0
 ) {
 	// Create the additional corners of the box
-	decl Float:corners[8][3];
+	float corners[8][3];
 
-	for (new i=0; i < 4; i++) {
+	for (int i=0; i < 4; i++) {
 		Array_Copy(bottomCorner,	corners[i],		3);
 		Array_Copy(upperCorner,		corners[i+4],	3);
 	}
@@ -314,21 +315,21 @@ stock Effect_DrawBeamBox(
 
 	// Horizontal Lines
 	// Bottom
-	for (new i=0; i < 4; i++) {
-		new j = ( i == 3 ? 0 : i+1 );
+	for (int i=0; i < 4; i++) {
+		int j = ( i == 3 ? 0 : i+1 );
 		TE_SetupBeamPoints(corners[i], corners[j], modelIndex, haloIndex, startFrame, frameRate, life, width, endWidth, fadeLength, amplitude, color, speed);
 		TE_Send(clients, numClients);
 	}
 
 	// Top
-	for (new i=4; i < 8; i++) {
-		new j = ( i == 7 ? 4 : i+1 );
+	for (int i=4; i < 8; i++) {
+		int j = ( i == 7 ? 4 : i+1 );
 		TE_SetupBeamPoints(corners[i], corners[j], modelIndex, haloIndex, startFrame, frameRate, life, width, endWidth, fadeLength, amplitude, color, speed);
 		TE_Send(clients, numClients);
 	}
 
 	// All Vertical Lines
-	for (new i=0; i < 4; i++) {
+	for (int i=0; i < 4; i++) {
 		TE_SetupBeamPoints(corners[i], corners[i+4], modelIndex, haloIndex, startFrame, frameRate, life, width, endWidth, fadeLength, amplitude, color, speed);
 		TE_Send(clients, numClients);
 	}

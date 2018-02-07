@@ -9,7 +9,7 @@
 /**
  * Executes a threaded SQL Query (See: SQL_TQuery)
  * This function supports the printf Syntax.
- * 
+ *
  *
  * @param database		A database Handle.
  * @param callback		Callback; database is in "owner" and the query Handle is passed in "hndl".
@@ -25,11 +25,11 @@ stock void SQL_TQueryF(Database database, SQLTCallback callback, any data, DBPri
 		ThrowError("[SMLIB] Error: Invalid database handle.");
 		return;
 	}
-	
+
 	char query[16384];
 	VFormat(query, sizeof(query), format, 6);
-	
-	SQL_TQuery(database, callback, query, data, DBPrio_Normal);
+
+	SQL_TQuery(database, callback, query, data, priority);
 }
 
 /**
@@ -44,10 +44,10 @@ stock void SQL_TQueryF(Database database, SQLTCallback callback, any data, DBPri
  *						or no current result set.
  */
 stock int SQL_FetchIntByName(Handle query, char[] fieldName, DBResult &result=DBVal_Error) {
-	
+
 	int fieldNum;
 	SQL_FieldNameToNum(query, fieldName, fieldNum);
-	
+
 	return SQL_FetchInt(query, fieldNum, result);
 }
 
@@ -63,13 +63,13 @@ stock int SQL_FetchIntByName(Handle query, char[] fieldName, DBResult &result=DB
  *						or no current result set.
  */
 stock bool SQL_FetchBoolByName(Handle query, char[] fieldName, DBResult &result=DBVal_Error) {
-	
+
 	return view_as<bool>(SQL_FetchIntByName(query, fieldName, result));
 }
 
 /**
  * Fetches a float from a field in the current row of a result set. (See: SQL_FetchFloat)
- * 
+ *
  * @param query			A query (or statement) Handle.
  * @param field			The field index (starting from 0).
  * @param result		Optional variable to store the status of the return value.
@@ -79,16 +79,16 @@ stock bool SQL_FetchBoolByName(Handle query, char[] fieldName, DBResult &result=
  *						or no current result set.
  */
 stock float SQL_FetchFloatByName(Handle query, char[] fieldName, DBResult &result=DBVal_Error) {
-	
+
 	int fieldNum;
 	SQL_FieldNameToNum(query, fieldName, fieldNum);
-	
+
 	return SQL_FetchFloat(query, fieldNum, result);
 }
 
 /**
  * Fetches a string from a field in the current row of a result set. (See: SQL_FetchString)
- * 
+ *
  * @param query			A query (or statement) Handle.
  * @param field			The field index (starting from 0).
  * @param buffer		String buffer.
@@ -100,9 +100,9 @@ stock float SQL_FetchFloatByName(Handle query, char[] fieldName, DBResult &resul
  *						or no current result set.
  */
 stock int SQL_FetchStringByName(Handle query, char[] fieldName, char[] buffer, int maxlength, DBResult &result=DBVal_Error) {
-	
+
 	int fieldNum;
 	SQL_FieldNameToNum(query, fieldName, fieldNum);
-	
+
 	return SQL_FetchString(query, fieldNum, buffer, maxlength, result);
 }

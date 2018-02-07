@@ -17,10 +17,10 @@ stock void Debug_FloatArray(const float[] array, int size=3)
 	char output[64] = "";
 
 	for (int i=0; i < size; ++i) {
-		
+
 		if (i > 0 && i < size) {
 			StrCat(output, sizeof(output), ", ");
-			
+
 		}
 
 		Format(output, sizeof(output), "%s%f", output, array[i]);

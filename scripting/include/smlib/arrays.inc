@@ -27,7 +27,7 @@ stock int Array_FindValue(any[] array, int size, any value, int start=0)
 			return i;
 		}
 	}
-	
+
 	return -1;
 }
 
@@ -53,7 +53,7 @@ stock int Array_FindString(const char[][] array, int size, const char[] str, boo
 			return i;
 		}
 	}
-	
+
 	return -1;
 }
 
@@ -74,18 +74,18 @@ stock int Array_FindLowestValue(any[] array, int size, int start=0)
 	any value = array[start];
 	any tempValue;
 	int x = start;
-	
+
 	for (int i=start; i < size; i++) {
-		
+
 		tempValue = array[i];
-		
+
 		if (tempValue < value) {
 			value = tempValue;
 			x = i;
 		}
-		
+
 	}
-	
+
 	return x;
 }
 
@@ -106,18 +106,18 @@ stock int Array_FindHighestValue(any[] array, int size, int start=0)
 	any value = array[start];
 	any tempValue;
 	int x = start;
-	
+
 	for (int i=start; i < size; i++) {
-		
+
 		tempValue = array[i];
-		
+
 		if (tempValue > value) {
 			value = tempValue;
 			x = i;
 		}
-		
+
 	}
-	
+
 	return x;
 }
 

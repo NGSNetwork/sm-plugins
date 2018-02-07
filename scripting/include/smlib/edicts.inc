@@ -17,7 +17,7 @@ stock int Edict_FindByName(const char[] name)
 {
 	int maxEntities = GetMaxEntities();
 	for (int edict=0; edict < maxEntities; edict++) {
-		
+
 		if (!IsValidEdict(edict)) {
 			continue;
 		}
@@ -43,11 +43,11 @@ stock int Edict_FindByHammerId(int hammerId)
 {
 	int maxEntities = GetMaxEntities();
 	for (int edict=0; edict < maxEntities; edict++) {
-		
+
 		if (!IsValidEdict(edict)) {
 			continue;
 		}
-		
+
 		if (Entity_GetHammerId(edict) == hammerId) {
 			return edict;
 		}
@@ -65,13 +65,13 @@ stock int Edict_FindByHammerId(int hammerId)
  * @return					Edict Index or INVALID_ENT_REFERENCE if no entity was found.
  */
 stock int Edict_GetClosest(float vecOrigin_center[3], bool clientsOnly=false, int ignoreEntity=-1)
-{	
+{
 	float vecOrigin_edict[3];
-	float distance = 0.0;
+	float smallestDistance = 0.0;
 	int closestEdict = INVALID_ENT_REFERENCE;
-	
+
 	int maxEntities;
-	
+
 	if (clientsOnly) {
 		maxEntities = MaxClients;
 	}
@@ -80,29 +80,29 @@ stock int Edict_GetClosest(float vecOrigin_center[3], bool clientsOnly=false, in
 	}
 
 	for (int edict=1; edict <= maxEntities; edict++) {
-		
+
 		if (!IsValidEdict(edict)) {
 			continue;
 		}
-		
+
 		if (ignoreEntity >= 0 && edict == ignoreEntity) {
 			continue;
 		}
-			
+
 		if (GetEntSendPropOffs(edict, "m_vecOrigin") == -1) {
 			continue;
 		}
 
 		Entity_GetAbsOrigin(edict, vecOrigin_edict);
-		
-		float edict_distance = GetVectorDistance(vecOrigin_center, vecOrigin_edict);
-		
-		if (edict_distance < distance) {
-			distance = edict_distance;
+
+		float edict_distance = GetVectorDistance(vecOrigin_center, vecOrigin_edict, true);
+
+		if (edict_distance < smallestDistance || smallestDistance == 0.0) {
+			smallestDistance = edict_distance;
 			closestEdict = edict;
 		}
 	}
-	
+
 	return closestEdict;
 }
 
@@ -114,13 +114,13 @@ stock int Edict_GetClosest(float vecOrigin_center[3], bool clientsOnly=false, in
  * @return					The closest edict or INVALID_ENT_REFERENCE
  */
 stock int Edict_GetClosestToEdict(int edict, bool clientsOnly=false)
-{	
+{
 	float vecOrigin[3];
-	
+
 	if (GetEntSendPropOffs(edict, "m_vecOrigin") == -1) {
 		return INVALID_ENT_REFERENCE;
 	}
-	
+
 	Entity_GetAbsOrigin(edict, vecOrigin);
 
 	return Edict_GetClosest(vecOrigin, clientsOnly, edict);

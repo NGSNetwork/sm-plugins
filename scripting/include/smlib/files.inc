@@ -4,7 +4,7 @@
 #define _smlib_files_included
 
 #include <sourcemod>
-#include <sdktools_stringtables>
+#include <sdktools>
 #include <smlib/arrays>
 
 /**
@@ -19,20 +19,20 @@
  * @noreturn
  */
 stock void File_GetBaseName(const char[] path, char[] buffer, int size)
-{	
+{
 	if (path[0] == '\0') {
 		buffer[0] = '\0';
 		return;
 	}
-	
+
 	int pos_start = FindCharInString(path, '/', true);
-	
+
 	if (pos_start == -1) {
 		pos_start = FindCharInString(path, '\\', true);
 	}
-	
+
 	pos_start++;
-	
+
 	strcopy(buffer, size, path[pos_start]);
 }
 
@@ -49,23 +49,23 @@ stock void File_GetBaseName(const char[] path, char[] buffer, int size)
  * @noreturn
  */
 stock void File_GetDirName(const char[] path, char[] buffer, int size)
-{	
+{
 	if (path[0] == '\0') {
 		buffer[0] = '\0';
 		return;
 	}
-	
+
 	int pos_start = FindCharInString(path, '/', true);
-	
+
 	if (pos_start == -1) {
 		pos_start = FindCharInString(path, '\\', true);
-		
+
 		if (pos_start == -1) {
 			buffer[0] = '\0';
 			return;
 		}
 	}
-	
+
 	strcopy(buffer, size, path);
 	buffer[pos_start] = '\0';
 }
@@ -81,14 +81,14 @@ stock void File_GetDirName(const char[] path, char[] buffer, int size)
  * @noreturn
  */
 stock void File_GetFileName(const char[] path, char[] buffer, int size)
-{	
+{
 	if (path[0] == '\0') {
 		buffer[0] = '\0';
 		return;
 	}
-	
+
 	File_GetBaseName(path, buffer, size);
-	
+
 	int pos_ext = FindCharInString(buffer, '.', true);
 
 	if (pos_ext != -1) {
@@ -110,7 +110,7 @@ stock void File_GetFileName(const char[] path, char[] buffer, int size)
 stock void File_GetExtension(const char[] path, char[] buffer, int size)
 {
 	int extpos = FindCharInString(path, '.', true);
-	
+
 	if (extpos == -1) {
 		buffer[0] = '\0';
 		return;
@@ -130,7 +130,7 @@ stock void File_GetExtension(const char[] path, char[] buffer, int size)
  *
  * @param path			Path String
  * @param recursive		Whether to do recursion or not.
- * @param ignoreExts	Optional: 2 dimensional String array.You can define it like this: new String:ignore[][] = { ".ext1", ".ext2" };
+ * @param ignoreExts	Optional: 2 dimensional String array.You can define it like this: char ignore[][] = { ".ext1", ".ext2" };
  * @param size			This should be set to the number of file extensions in the ignoreExts array (sizeof(ignore) for the example above)
  * @noreturn
  */
@@ -144,14 +144,14 @@ stock void File_AddToDownloadsTable(const char[] path, bool recursive=true, cons
 	}
 
 	if (FileExists(path)) {
-		
+
 		char fileExtension[4];
 		File_GetExtension(path, fileExtension, sizeof(fileExtension));
-		
+
 		if (StrEqual(fileExtension, "bz2", false) || StrEqual(fileExtension, "ztmp", false)) {
 			return;
 		}
-		
+
 		if (Array_FindString(ignoreExts, size, fileExtension) != -1) {
 			return;
 		}
@@ -172,15 +172,15 @@ stock void File_AddToDownloadsTable(const char[] path, bool recursive=true, cons
 			if (StrEqual(dirEntry, ".") || StrEqual(dirEntry, "..")) {
 				continue;
 			}
-			
+
 			Format(dirEntry, sizeof(dirEntry), "%s/%s", path, dirEntry);
 			File_AddToDownloadsTable(dirEntry, recursive, ignoreExts, size);
 		}
-		
+
 		delete __dir;
 	}
 	else if (FindCharInString(path, '*', true)) {
-		
+
 		char fileExtension[4];
 		File_GetExtension(path, fileExtension, sizeof(fileExtension));
 
@@ -224,7 +224,7 @@ stock void File_AddToDownloadsTable(const char[] path, bool recursive=true, cons
 stock void File_ReadDownloadList(const char[] path)
 {
 	File file = OpenFile(path, "r");
-	
+
 	if (file == null) {
 		return;
 	}
@@ -232,13 +232,13 @@ stock void File_ReadDownloadList(const char[] path)
 	char buffer[PLATFORM_MAX_PATH];
 	while (!file.EndOfFile()) {
 		file.ReadLine(buffer, sizeof(buffer));
-		
+
 		int pos;
 		pos = StrContains(buffer, "//");
 		if (pos != -1) {
 			buffer[pos] = '\0';
 		}
-		
+
 		pos = StrContains(buffer, "#");
 		if (pos != -1) {
 			buffer[pos] = '\0';
@@ -248,9 +248,9 @@ stock void File_ReadDownloadList(const char[] path)
 		if (pos != -1) {
 			buffer[pos] = '\0';
 		}
-		
+
 		TrimString(buffer);
-		
+
 		if (buffer[0] == '\0') {
 			continue;
 		}
@@ -262,36 +262,42 @@ stock void File_ReadDownloadList(const char[] path)
 }
 
 /*
- * Attempts to load a translation file and unloads the plugin if the file doesn't exist.
+ * Attempts to load a translation file and optionally unloads the plugin if the file
+ * doesn't exist (also prints an error message).
  *
- * @param file		Filename of the translations file (eg. <pluginname>.phrases).
- * @noreturn
+ * @param file			Filename of the translations file (eg. <pluginname>.phrases).
+ * @param setFailState	If true, it sets the failstate if the translations file doesn't exist
+ * @return				True on success, false otherwise (only if setFailState is set to false)
  */
-stock void File_LoadTranslations(const char[] file)
+stock bool File_LoadTranslations(const char[] file)
 {
 	char path[PLATFORM_MAX_PATH];
-	
-	Format(path, sizeof(path), "translations/%s", file);
-	
-	BuildPath(Path_SM, path, sizeof(path), path);
-	
+
+	BuildPath(Path_SM, path, sizeof(path), "translations/%s", file);
+
 	if (FileExists(path)) {
 		LoadTranslations(file);
-		return;
+		return true;
 	}
-	
+
 	Format(path, sizeof(path), "%s.txt", path);
-	
-	if (FileExists(path)) {
-		LoadTranslations(file);
-		return;
+
+	if (!FileExists(path)) {
+
+		if (setFailState) {
+			SetFailState("Unable to locate translation file (%s).", path);
+		}
+
+		return false;
 	}
-	
-	SetFailState("Unable to locate translation file (%s).", path);
+
+	LoadTranslations(file);
+
+	return true;
 }
 
 /*
- * Reads the contents of a given file into a string buffer in binaey mode.
+ * Reads the contents of a given file into a string buffer in binary mode.
  *
  * @param path		Path to the file
  * @param buffer	String buffer

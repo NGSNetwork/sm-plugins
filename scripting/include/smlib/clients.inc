@@ -43,7 +43,16 @@
  * @param 1		Name of the client index variable (will be only valid in the loop).
  * @param 2		CLIENTFILTER_ flags to check.
  */
-#define LOOP_CLIENTS(%1,%2) for (new %1=Client_GetNext(%2); %1 >= 1 && %1 <= MaxClients; %1=Client_GetNext(%2, ++%1))
+#define LOOP_CLIENTS(%1,%2) for (int %1=Client_GetNext(%2); %1 >= 1 && %1 <= MaxClients; %1=Client_GetNext(%2, ++%1))
+
+/**
+ * Macro for iterating trough all observers of a player.
+ *
+ * @param 1		Client Index for who to get the observers.
+ * @param 2		Name of the observer client index variable (will be only valid in the loop).
+ * @param 3		CLIENTFILTER_ flags to check.
+ */
+#define LOOP_OBSERVERS(%1,%2,%3) for (int %2=Client_GetNextObserver(%1, 1, %3); %2 >= 1 && %2 <= MaxClients; %2=Client_GetNextObserver(%1, ++%2, %3))
 
 /**
  * Very useful macro to iterate all weapons of a client.
@@ -100,7 +109,7 @@ stock bool Client_IsValid(int client, bool checkConnected=true)
 	if (checkConnected && !IsClientConnected(client)) {
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -150,14 +159,14 @@ stock int Client_FindBySteamId(const char[] auth, AuthIdType authType=AuthId_Ste
 		if (!IsClientAuthorized(client)) {
 			continue;
 		}
-		
+
 		GetClientAuthId(client, authType, clientAuth, sizeof(clientAuth));
 
 		if (StrEqual(auth, clientAuth)) {
 			return client;
 		}
 	}
-	
+
 	return -1;
 }
 
@@ -177,7 +186,7 @@ stock int Client_FindByName(const char[] name, bool partOfName=true, bool caseSe
 		if (!IsClientAuthorized(client)) {
 			continue;
 		}
-		
+
 		GetClientName(client, clientName, sizeof(clientName));
 
 		if (partOfName) {
@@ -189,7 +198,7 @@ stock int Client_FindByName(const char[] name, bool partOfName=true, bool caseSe
 			return client;
 		}
 	}
-	
+
 	return -1;
 }
 
@@ -219,7 +228,7 @@ enum Obs_Allow
 
 /**
  * Gets the client's  observer mode (Obs_Mode).
- * 
+ *
  * @param client		Client Index.
  * @return				The current observer mode (ObsMode).
  */
@@ -233,7 +242,7 @@ stock Obs_Mode Client_GetObserverMode(int client)
  * Sets the client's observer mode.
  * Use a value of the Obs_Mode enum.
  * This is a rewrite of CBasePlayer::SetObserverMode().
- * 
+ *
  * @param client			Client Index.
  * @param mode				New Observer mode value (Obs_Mode).
  * @param updateMoveType	Set to true (default) to allow this function updating the movetype, false otherwise.
@@ -244,7 +253,7 @@ stock bool Client_SetObserverMode(int client, Obs_Mode mode, bool updateMoveType
 	if (mode < OBS_MODE_NONE || mode >= NUM_OBSERVER_MODES) {
 		return false;
 	}
-	
+
 	// check mp_forcecamera settings for dead players
 	if (mode > OBS_MODE_FIXED && GetClientTeam(client) > TEAM_SPECTATOR)
 	{
@@ -274,7 +283,7 @@ stock bool Client_SetObserverMode(int client, Obs_Mode mode, bool updateMoveType
 	switch (mode) {
 		case OBS_MODE_NONE, OBS_MODE_FIXED, OBS_MODE_DEATHCAM: {
 			Client_SetFOV(client, 0);	// Reset FOV
-			
+
 			if (updateMoveType) {
 				SetEntityMoveType(client, MOVETYPE_NONE);
 			}
@@ -282,7 +291,7 @@ stock bool Client_SetObserverMode(int client, Obs_Mode mode, bool updateMoveType
 		case OBS_MODE_CHASE, OBS_MODE_IN_EYE: {
 			// udpate FOV and viewmodels
 			Client_SetViewOffset(client, NULL_VECTOR);
-			
+
 			if (updateMoveType) {
 				SetEntityMoveType(client, MOVETYPE_OBSERVER);
 			}
@@ -290,7 +299,7 @@ stock bool Client_SetObserverMode(int client, Obs_Mode mode, bool updateMoveType
 		case OBS_MODE_ROAMING: {
 			Client_SetFOV(client, 0);	// Reset FOV
 			Client_SetViewOffset(client, NULL_VECTOR);
-			
+
 			if (updateMoveType) {
 				SetEntityMoveType(client, MOVETYPE_OBSERVER);
 			}
@@ -302,7 +311,7 @@ stock bool Client_SetObserverMode(int client, Obs_Mode mode, bool updateMoveType
 
 /**
  * Gets the client's last oberserver mode
- * 
+ *
  * @param client		Client Index.
  * @return				Last Observer mode
  */
@@ -313,7 +322,7 @@ stock Obs_Mode Client_GetObserverLastMode(int client)
 
 /**
  * Sets the client's last oberserver mode
- * 
+ *
  * @param client		Client Index.
  * @param mode			Last Observer mode
  * @noreturn
@@ -326,7 +335,7 @@ stock void Client_SetObserverLastMode(int client, Obs_Mode mode)
 /**
  * Gets the client's view offset.
  * This is the position relative to the client itself.
- * 
+ *
  * @param client		Client Index.
  * @param vec			Vector Buffer.
  * @noreturn
@@ -339,7 +348,7 @@ stock void Client_GetViewOffset(int client, float vec[3])
 /**
  * Sets the client's view offset.
  * This is the position relative to the client itself.
- * 
+ *
  * @param client		Client Index.
  * @param vec			Vector buffer.
  * @noreturn
@@ -351,7 +360,7 @@ stock void Client_SetViewOffset(int client, float vec[3])
 
 /**
  * Gets the client's current observer target entity.
- * 
+ *
  * @param client		Client Index.
  * @return				Observed Entity Index.
  */
@@ -362,7 +371,7 @@ stock int Client_GetObserverTarget(int client)
 
 /**
  * Sets the client's current observer target entity.
- * 
+ *
  * @param client		Client Index.
  * @param entity		Observed Entity Index.
  * @param resetFOV		If to reset the client's field of view.
@@ -371,7 +380,7 @@ stock int Client_GetObserverTarget(int client)
 stock void Client_SetObserverTarget(int client, int entity, bool resetFOV=true)
 {
 	SetEntPropEnt(client, Prop_Send, "m_hObserverTarget", entity);
-	
+
 	if (resetFOV) {
 		Client_SetFOV(client, 0);
 	}
@@ -379,7 +388,7 @@ stock void Client_SetObserverTarget(int client, int entity, bool resetFOV=true)
 
 /**
  * Gets the client's Field Of View.
- * 
+ *
  * @param client		Client Index.
  * @return				Field Of View
  */
@@ -390,7 +399,7 @@ stock int Client_GetFOV(int client)
 
 /**
  * Sets the client's Field Of View.
- * 
+ *
  * @param client		Client Index.
  * @param value			Field Of View
  * @noreturn
@@ -402,7 +411,7 @@ stock void Client_SetFOV(int client, int value)
 
 /**
  * Checks if the client's View Model is drawn for the client.
- * 
+ *
  * @param client		Client Index.
  * @return				True if the viewmodel is drawn, false otherwise.
  */
@@ -413,7 +422,7 @@ stock bool Client_DrawViewModel(int client)
 
 /**
  * Sets if to draw the client's view model for the client.
- * 
+ *
  * @param client		Client Index.
  * @param drawViewModel	Set to true if to draw, false otherwise.
  * @noreturn
@@ -483,20 +492,41 @@ stock bool Client_IsInThirdPersonMode(int client)
 stock bool Client_ScreenFade(int client, int duration, int mode, int holdtime=-1, int r=0, int g=0, int b=0, int a=255, bool reliable=true)
 {
 	Handle userMessage = StartMessageOne("Fade", client, (reliable?USERMSG_RELIABLE:0));
-	
-	if (userMessage == INVALID_HANDLE) {
+
+	if (userMessage == null) {
 		return false;
 	}
 
-	BfWriteShort(userMessage,	duration);	// Fade duration
-	BfWriteShort(userMessage,	holdtime);	// Fade hold time
-	BfWriteShort(userMessage,	mode);		// What to do
-	BfWriteByte(userMessage,	r);			// Color R
-	BfWriteByte(userMessage,	g);			// Color G
-	BfWriteByte(userMessage,	b);			// Color B
-	BfWriteByte(userMessage,	a);			// Color Alpha
+	if (GetFeatureStatus(FeatureType_Native, "GetUserMessageType") == FeatureStatus_Available &&
+		GetUserMessageType() == UM_Protobuf) {
+
+		Protobuf message = UserMessageToProtobuf(userMessage);
+
+		int color[4];
+		color[0] = r;
+		color[1] = g;
+		color[2] = b;
+		color[3] = a;
+
+		message.SetInt("duration",   duration);
+		message.SetInt("hold_time",  holdtime);
+		message.SetInt("flags",      mode);
+		message.SetColor("clr",        color);
+	}
+	else {
+
+		BfWrite message = UserMessageToBfWrite(userMessage);
+
+		message.WriteShort(duration);	// Fade duration
+		message.WriteShort(holdtime);	// Fade hold time
+		message.WriteShort(mode);		// What to do
+		message.WriteByte(r);			// Color R
+		message.WriteByte(g);			// Color G
+		message.WriteByte(b);			// Color B
+		message.WriteByte(a);			// Color Alpha
+	}
 	EndMessage();
-	
+
 	return true;
 }
 
@@ -512,14 +542,14 @@ stock int Client_GetClones(int client, int[] cloneList)
 {
 	int x=0;
 	char ip_client[16], ip_player[16];
-	
+
 	GetClientIP(client, ip_client, sizeof(client));
-	
+
 	for (int player=1; player <= MaxClients; player++) {
-		
+
 		if (IsClientInGame(player)) {
 			GetClientIP(player, ip_player, sizeof(ip_player));
-			
+
 			if (StrEqual(ip_client, ip_player, false)) {
 				cloneList[x++] = player;
 			}
@@ -536,8 +566,8 @@ stock int Client_GetClones(int client, int[] cloneList)
  * @return				Returns true if the client is on a ladder other wise false.
  */
 stock bool Client_IsOnLadder(int client)
-{	
-	return GetEntityMoveType(client) == MOVETYPE_LADDER
+{
+	return view_as<MoveType>(GetEntityMoveType(client)) == MOVETYPE_LADDER;
 }
 
 enum Water_Level
@@ -555,7 +585,7 @@ enum Water_Level
  * @return				Returns 0 if not in water. 1 if feets are in water. 2 if waist is in water. 3 if head is in water.
  */
 stock Water_Level Client_GetWaterLevel(int client)
-{	
+{
 	return view_as<Water_Level>(GetEntProp(client, Prop_Send, "m_nWaterLevel"));
 }
 
@@ -572,18 +602,18 @@ stock float Client_GetSuitSprintPower(int client)
 
 /*
  * Sets a client suit sprint power in percent.
- * 
+ *
  * @param client		Client index.
  * @param power			power (0.0 to 100.0)
  * @noreturn
  */
 stock void Client_SetSuitSprintPower(int client, float power)
-{	
+{
 	SetEntPropFloat(client, Prop_Send, "m_flSuitPower", power);
 }
 
 /*
- * Returns the client count put in the server. 
+ * Returns the client count put in the server.
  *
  * @param inGameOnly	If false connecting players are also counted.
  * @param countBots		If true bots will be counted too.
@@ -592,21 +622,21 @@ stock void Client_SetSuitSprintPower(int client, float power)
 stock void Client_GetCount(bool countInGameOnly=true, bool countFakeClients=true)
 {
 	int numClients = 0;
-	
+
 	for (int client=1; client <= MaxClients; client++) {
-		
+
 		if (!IsClientConnected(client)) {
 			continue;
 		}
-		
+
 		if (countInGameOnly && !IsClientInGame(client)) {
 			continue;
 		}
-		
+
 		if (!countFakeClients && IsFakeClient(client)) {
 			continue;
 		}
-		
+
 		numClients++;
 	}
 
@@ -620,9 +650,9 @@ stock void Client_GetCount(bool countInGameOnly=true, bool countFakeClients=true
  * The Scoreboard uses the goldSource corrected Ping, the net_graph doesn't
  * For Fake Clients 0 is returned.
  *
- * @param inGameOnly	Wether players not ingame yet are also counted
- * @param countBots		If true bots will be counted too.
- * @return				Client's ping or 0 for fake clients
+ * @param client		Client index
+ * @param goldSource	If true, get the ping as displayed in the player's scoreboard, false returns the net_graph variant.
+ * @return				Client's fake ping or 0 for fake clients
  */
 stock int Client_GetFakePing(int client, bool goldSource=true)
 {
@@ -632,8 +662,8 @@ stock int Client_GetFakePing(int client, bool goldSource=true)
 
 	int ping;
 	float latency = GetClientLatency(client, NetFlow_Outgoing); // in seconds
-		
-	// that should be the correct latency, we assume that cmdrate is higher 
+
+	// that should be the correct latency, we assume that cmdrate is higher
 	// then updaterate, what is the case for default settings
 	char cl_cmdrate[4];
 	GetClientInfo(client, "cl_cmdrate", cl_cmdrate, sizeof(cl_cmdrate));
@@ -649,7 +679,7 @@ stock int Client_GetFakePing(int client, bool goldSource=true)
 
 	ping = RoundFloat(latency * 1000.0); // as msecs
 	ping = Math_Clamp(ping, 5, 1000); // set bounds, dont show pings under 5 msecs
-	
+
 	return ping;
 }
 
@@ -678,7 +708,7 @@ stock void Client_GetLastPlaceName(int client, char[] buffer, int size)
 }
 
 /**
- * Returns the client's Score. 
+ * Returns the client's Score.
  *
  * @param client			Client's index.
  * @return					Score.
@@ -718,9 +748,9 @@ stock int Client_GetDeaths(int client)
  * @param value				Death count
  * @noreturn
  */
-stock void Client_SetDeaths(int client, int val)
+stock void Client_SetDeaths(int client, any value)
 {
-	SetEntProp(client, Prop_Data, "m_iDeaths", val);
+	SetEntProp(client, Prop_Data, "m_iDeaths", value);
 }
 
 /**
@@ -741,9 +771,9 @@ stock int Client_GetArmor(int client)
  * @param value				Armor value
  * @noreturn
  */
-stock int Client_SetArmor(int client, int val)
+stock int Client_SetArmor(int client, any value)
 {
-	SetEntProp(client, Prop_Data, "m_ArmorValue", val);
+	SetEntProp(client, Prop_Data, "m_ArmorValue", value);
 }
 
 /**
@@ -858,7 +888,7 @@ stock bool Client_ExitVehicle(int client)
 	if (vehicle == -1) {
 		return false;
 	}
-	
+
 	return AcceptEntityInput(vehicle, "ExitVehicle");
 }
 
@@ -878,14 +908,24 @@ stock bool Client_RawAudio(int client, const int emitter, const char[] soundfile
 {
 	Handle message = StartMessageOne("RawAudio", client);
 
-	if (message == INVALID_HANDLE) {
+	if (message == null) {
 		return false;
 	}
 
-	BfWriteByte(message,	pitch);
-	BfWriteByte(message,	emitter);
-	BfWriteFloat(message,	length);
-	BfWriteString(message,	soundfile);
+	if (GetFeatureStatus(FeatureType_Native, "GetUserMessageType") == FeatureStatus_Available
+		&& GetUserMessageType() == UM_Protobuf) {
+
+		PbSetInt(message,    "pitch",          pitch);
+		PbSetInt(message,    "entidx",         emitter);
+		PbSetFloat(message,  "duration",       length );
+		PbSetString(message, "voice_filename", soundfile);
+	}
+	else {
+		BfWriteByte(message,	pitch);
+		BfWriteByte(message,	emitter);
+		BfWriteFloat(message,	length);
+		BfWriteString(message,	soundfile);
+	}
 	EndMessage();
 
 	return true;
@@ -906,14 +946,24 @@ stock bool Client_RawAudioToAll(const int emitter, const char[] soundfile, float
 {
 	Handle message = StartMessageAll("RawAudio");
 
-	if (message == INVALID_HANDLE) {
+	if (message == null) {
 		return false;
 	}
 
-	BfWriteByte(message,	pitch);
-	BfWriteByte(message,	emitter);
-	BfWriteFloat(message,	length);
-	BfWriteString(message,	soundfile);
+	if (GetFeatureStatus(FeatureType_Native, "GetUserMessageType") == FeatureStatus_Available
+		&& GetUserMessageType() == UM_Protobuf) {
+
+		PbSetInt(message, "pitch", pitch);
+		PbSetInt(message, "entidx", emitter);
+		PbSetFloat(message, "duration", length);
+		PbSetString(message, "voice_filename", soundfile);
+	}
+	else {
+		BfWriteByte(message,	pitch);
+		BfWriteByte(message,	emitter);
+		BfWriteFloat(message,	length);
+		BfWriteString(message,	soundfile);
+	}
 	EndMessage();
 
 	return true;
@@ -922,7 +972,7 @@ stock bool Client_RawAudioToAll(const int emitter, const char[] soundfile, float
 /**
  * Sets an Impulse value for a client (eg: "impulse 100" for flashlight, value would be 100).
  * See: http://developer.valvesoftware.com/wiki/Impulse
- * 
+ *
  * @param client		Client Index
  * @param value			The impulse command value.
  * @noreturn
@@ -944,9 +994,9 @@ stock int Client_GetWeaponsOffset(int client)
 	static int offset = -1;
 
 	if (offset == -1) {
-		offset = FindDataMapOffs(client, "m_hMyWeapons");
+		offset = FindDataMapInfo(client, "m_hMyWeapons");
 	}
-	
+
 	return offset;
 }
 
@@ -959,11 +1009,11 @@ stock int Client_GetWeaponsOffset(int client)
 stock int Client_GetActiveWeapon(int client)
 {
 	int weapon =  GetEntPropEnt(client, Prop_Data, "m_hActiveWeapon");
-	
+
 	if (!Entity_IsValid(weapon)) {
 		return INVALID_ENT_REFERENCE;
 	}
-	
+
 	return weapon;
 }
 
@@ -972,20 +1022,20 @@ stock int Client_GetActiveWeapon(int client)
  *
  * @param client		Client Index.
  * @param buffer		String Buffer to store the weapon's classname.
- * @param size			Max size of String: buffer.
+ * @param size			Max size of char buffer.
  * @return				Weapon Entity Index on success or INVALID_ENT_REFERENCE otherwise 
  */
 stock int Client_GetActiveWeaponName(int client, char[] buffer, int size)
 {
 	int weapon = Client_GetActiveWeapon(client);
-	
+
 	if (weapon == INVALID_ENT_REFERENCE) {
 		buffer[0] = '\0';
 		return INVALID_ENT_REFERENCE;
 	}
-	
+
 	Entity_GetClassName(weapon, buffer, size);
-	
+
 	return weapon;
 }
 
@@ -1000,7 +1050,7 @@ stock int Client_GetActiveWeaponName(int client, char[] buffer, int size)
 stock void Client_SetActiveWeapon(int client, int weapon)
 {
 	SetEntPropEnt(client, Prop_Data, "m_hActiveWeapon", weapon);
-	ChangeEdictState(client, FindDataMapOffs(client, "m_hActiveWeapon"));
+	ChangeEdictState(client, FindDataMapInfo(client, "m_hActiveWeapon"));
 }
 
 /**
@@ -1014,13 +1064,13 @@ stock void Client_SetActiveWeapon(int client, int weapon)
 stock bool Client_ChangeWeapon(int client, const char[] className)
 {
 	int weapon = Client_GetWeapon(client, className);
-	
+
 	if (weapon == INVALID_ENT_REFERENCE) {
 		return false;
 	}
 
 	Client_SetActiveWeapon(client,weapon);
-	
+
 	return true;
 }
 
@@ -1030,27 +1080,27 @@ stock bool Client_ChangeWeapon(int client, const char[] className)
  * If the default weapon can't be found, the first weapon in the list is taken.
  * If the first weapon can't be found, INVALID_ENT_REFERENCEE is returned.
  *
- * @param client 		Client Index.	
+ * @param client 		Client Index.
  * @return				Entity Index or, INVALID_ENT_REFERENCE.
  */
 stock int Client_ChangeToLastWeapon(int client)
 {
 	int weapon = Client_GetLastActiveWeapon(client);
-	
+
 	if (weapon == INVALID_ENT_REFERENCE) {
 		weapon = Client_GetDefaultWeapon(client);
-		
+
 		if (weapon == INVALID_ENT_REFERENCE) {
 			weapon = Client_GetFirstWeapon(client);
-			
+
 			if (weapon == INVALID_ENT_REFERENCE) {
 				return INVALID_ENT_REFERENCE;
 			}
 		}
 	}
-	
+
 	Client_SetActiveWeapon(client, weapon);
-	
+
 	return weapon;
 }
 
@@ -1063,11 +1113,11 @@ stock int Client_ChangeToLastWeapon(int client)
 stock int Client_GetLastActiveWeapon(int client)
 {
 	int weapon = GetEntPropEnt(client, Prop_Data, "m_hLastWeapon");
-	
+
 	if (!Entity_IsValid(weapon)) {
 		return INVALID_ENT_REFERENCE;
 	}
-	
+
 	return weapon;
 }
 
@@ -1076,20 +1126,20 @@ stock int Client_GetLastActiveWeapon(int client)
  *
  * @param client		Client Index.
  * @param buffer		Buffer to store the weapon classname.
- * @param size			Max size of String: buffer.
+ * @param size			Max size of char buffer.
  * @return				True on success, false on failure.
  */
 stock bool Client_GetLastActiveWeaponName(int client, char[] buffer, int size)
 {
 	int weapon = Client_GetLastActiveWeapon(client);
-	
+
 	if (weapon == INVALID_ENT_REFERENCE) {
 		buffer[0] = '\0';
 		return false;
 	}
-	
+
 	Entity_GetClassName(weapon, buffer, size);
-	
+
 	return true;
 }
 
@@ -1103,7 +1153,7 @@ stock bool Client_GetLastActiveWeaponName(int client, char[] buffer, int size)
 stock void Client_SetLastActiveWeapon(int client, int weapon)
 {
 	SetEntPropEnt(client, Prop_Data, "m_hLastWeapon", weapon);
-	ChangeEdictState(client, FindDataMapOffs(client, "m_hLastWeapon"));
+	ChangeEdictState(client, FindDataMapInfo(client, "m_hLastWeapon"));
 }
 
 /**
@@ -1117,17 +1167,17 @@ stock void Client_SetLastActiveWeapon(int client, int weapon)
 stock void Client_EquipWeapon(int client, int weapon, bool switchTo=false)
 {
 	EquipPlayerWeapon(client, weapon);
-	
+
 	if (switchTo) {
 		Client_SetActiveWeapon(client, weapon);
 	}
 }
 
 /**
- * Savly detaches a clients weapon, to remove it as example.
+ * Safely detaches a clients weapon, to remove it as example.
  * The client will select his last weapon when detached.
  *
- * @param client 		Client Index.	
+ * @param client 		Client Index.
  * @param weapon		Entity Index of the weapon, you'd like to detach.
  * @return				True on success, false otherwise.
  */
@@ -1136,11 +1186,11 @@ stock bool Client_DetachWeapon(int client, int weapon)
 	if (!RemovePlayerItem(client, weapon)) {
 		return false;
 	}
-	
+
 	if (Client_GetActiveWeapon(client) == INVALID_ENT_REFERENCE) {
 		Client_ChangeToLastWeapon(client);
 	}
-	
+
 	return true;
 }
 
@@ -1158,7 +1208,7 @@ stock int Client_GiveWeapon(int client, const char[] className, bool switchTo=tr
 
 	if (weapon == INVALID_ENT_REFERENCE) {
 		weapon = Weapon_CreateForOwner(client, className);
-		
+
 		if (weapon == INVALID_ENT_REFERENCE) {
 			return INVALID_ENT_REFERENCE;
 		}
@@ -1184,7 +1234,7 @@ stock int Client_GiveWeapon(int client, const char[] className, bool switchTo=tr
 stock int Client_GiveWeaponAndAmmo(int client, const char[] className, bool switchTo=true, int primaryAmmo=-1, int secondaryAmmo=-1, int primaryClip=-1, int secondaryClip=-1)
 {
 	int weapon = Client_GiveWeapon(client, className, switchTo);
-	
+
 	if (weapon == INVALID_ENT_REFERENCE) {
 		return INVALID_ENT_REFERENCE;
 	}
@@ -1219,27 +1269,27 @@ stock bool Client_RemoveWeapon(int client, const char[] className, bool firstOnl
 		offset += 4;
 
 		int weapon = GetEntDataEnt2(client, offset);
-		
+
 		if (!Weapon_IsValid(weapon)) {
 			continue;
 		}
-		
+
 		if (!Entity_ClassNameMatches(weapon, className)) {
 			continue;
 		}
-		
+
 		if (clearAmmo) {
 			Client_SetWeaponPlayerAmmoEx(client, weapon, 0, 0);
 		}
-		
+
 		if (Client_GetActiveWeapon(client) == weapon) {
 			Client_ChangeToLastWeapon(client);
 		}
-		
+
 		if (RemovePlayerItem(client, weapon)) {
 			Entity_Kill(weapon);
 		}
-		
+
 		if (firstOnly) {
 			return true;
 		}
@@ -1261,22 +1311,22 @@ stock bool Client_RemoveWeapon(int client, const char[] className, bool firstOnl
 stock int Client_RemoveAllWeapons(int client, const char exclude[]="", bool clearAmmo=false)
 {
 	int offset = Client_GetWeaponsOffset(client) - 4;
-	
+
 	int numWeaponsRemoved = 0;
 	for (int i=0; i < MAX_WEAPONS; i++) {
 		offset += 4;
 
 		int weapon = GetEntDataEnt2(client, offset);
-		
+
 		if (!Weapon_IsValid(weapon)) {
 			continue;
 		}
-		
+
 		if (exclude[0] != '\0' && Entity_ClassNameMatches(weapon, exclude)) {
 			Client_SetActiveWeapon(client, weapon);
 			continue;
 		}
-		
+
 		if (clearAmmo) {
 			Client_SetWeaponPlayerAmmoEx(client, weapon, 0, 0);
 		}
@@ -1287,7 +1337,7 @@ stock int Client_RemoveAllWeapons(int client, const char exclude[]="", bool clea
 
 		numWeaponsRemoved++;
 	}
-	
+
 	return numWeaponsRemoved;
 }
 
@@ -1301,7 +1351,7 @@ stock int Client_RemoveAllWeapons(int client, const char exclude[]="", bool clea
 stock bool Client_HasWeapon(int client, const char[] className)
 {
 	int weapon = Client_GetWeapon(client, className);
-	
+
 	return (weapon != INVALID_ENT_REFERENCE);
 }
 
@@ -1315,21 +1365,21 @@ stock bool Client_HasWeapon(int client, const char[] className)
 stock int Client_GetWeapon(int client, const char[] className)
 {
 	int offset = Client_GetWeaponsOffset(client) - 4;
-
+	int weapon = INVALID_ENT_REFERENCE;
 	for (int i=0; i < MAX_WEAPONS; i++) {
 		offset += 4;
 
 		int weapon = GetEntDataEnt2(client, offset);
-		
+
 		if (!Weapon_IsValid(weapon)) {
 			continue;
 		}
-		
+
 		if (Entity_ClassNameMatches(weapon, className)) {
 			return weapon;
 		}
 	}
-	
+
 	return INVALID_ENT_REFERENCE;
 }
 
@@ -1359,7 +1409,7 @@ stock int Client_GetDefaultWeapon(int client)
 	if (Client_GetDefaultWeaponName(client, weaponName, sizeof(weaponName))) {
 		return INVALID_ENT_REFERENCE;
 	}
-	
+
 	return Client_GetWeapon(client, weaponName);
 }
 
@@ -1370,7 +1420,7 @@ stock int Client_GetDefaultWeapon(int client)
  *
  * @param client 		Client Index.
  * @param buffer		Buffer to store the default weapon's classname.
- * @param size			Max size of string: buffer.
+ * @param size			Max size of char buffer.
  * @return				True on success, false otherwise.
  */
 stock bool Client_GetDefaultWeaponName(int client, char[] buffer, int size)
@@ -1379,7 +1429,7 @@ stock bool Client_GetDefaultWeaponName(int client, char[] buffer, int size)
 		buffer[0] = '\0';
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -1387,7 +1437,7 @@ stock bool Client_GetDefaultWeaponName(int client, char[] buffer, int size)
  * Gets the first weapon of the client's weapon list (m_hMyWeapons).
  * Note: This has nothing to do with weapon slots.
  *
- * @param client 		Client Index.	
+ * @param client 		Client Index.
  * @return				Entity Index of the weapon or INVALID_ENT_REFERENCE.
  */
 stock int Client_GetFirstWeapon(int client)
@@ -1398,58 +1448,58 @@ stock int Client_GetFirstWeapon(int client)
 		offset += 4;
 
 		int weapon = GetEntDataEnt2(client, offset);
-		
+
 		if (!Weapon_IsValid(weapon)) {
 			continue;
 		}
-		
+
 		return weapon;
 	}
-	
+
 	return INVALID_ENT_REFERENCE;
 }
 
 /**
  * Gets the number of weapons a client has.
  *
- * @param client 		Client Index.	
+ * @param client 		Client Index.
  * @return				Number of weapons.
  */
 stock int Client_GetWeaponCount(int client)
-{	
+{
 	int numWeapons = 0;
-	
+
 	int offset = Client_GetWeaponsOffset(client) - 4;
 
 	for (new i=0; i < MAX_WEAPONS; i++) {
 		offset += 4;
 
 		int weapon = GetEntDataEnt2(client, offset);
-		
+
 		if (!Weapon_IsValid(weapon)) {
 			continue;
 		}
-		
+
 		numWeapons++;
 	}
-	
+
 	return numWeapons;
 }
 
 /**
- * Checks whether the client is currently reloading his active weapon. 
+ * Checks whether the client is currently reloading his active weapon.
  *
- * @param client 		Client Index.	
+ * @param client 		Client Index.
  * @return				True if client is reloading, false otherwise.
  */
 stock bool Client_IsReloading(int client)
 {
 	int weapon = Client_GetActiveWeapon(client);
-	
+
 	if (weapon == INVALID_ENT_REFERENCE) {
 		return false;
 	}
-	
+
 	return Weapon_IsReloading(weapon);
 }
 
@@ -1497,20 +1547,44 @@ stock bool Client_GetWeaponPlayerAmmo(int client, const char[] className, int &p
 	if (weapon == INVALID_ENT_REFERENCE) {
 		return false;
 	}
-	
-	int offset_ammo = FindDataMapOffs(client, "m_iAmmo");
-	
+
+	int offset_ammo = FindDataMapInfo(client, "m_iAmmo");
+
 	if (primaryAmmo != -1) {
 		int offset = offset_ammo + (Weapon_GetPrimaryAmmoType(weapon) * 4);
 		primaryAmmo = GetEntData(client, offset);
 	}
-	
+
 	if (secondaryAmmo != -1) {
 		int offset = offset_ammo + (Weapon_GetSecondaryAmmoType(weapon) * 4);
 		secondaryAmmo = GetEntData(client, offset);
 	}
 
 	return true;
+}
+
+/**
+ * Gets the primary and secondary ammo the player carries for a specific weapon index.
+ *
+ * @param client		Client Index.
+ * @param weapon		Weapon Entity Index.
+ * @param primaryAmmo	Primary ammo stock value from the client, if -1 the value is untouched.
+ * @param secondaryAmmo	Secondary ammo stock value from the client, if -1 the value is untouched.
+ * @noreturn
+ */
+stock void Client_GetWeaponPlayerAmmoEx(int client, int weapon, int &primaryAmmo=-1, int &secondaryAmmo=-1)
+{
+	int offset_ammo = FindDataMapInfo(client, "m_iAmmo");
+
+	if (primaryAmmo != -1) {
+		int offset = offset_ammo + (Weapon_GetPrimaryAmmoType(weapon) * 4);
+		primaryAmmo = GetEntData(client, offset);
+	}
+
+	if (secondaryAmmo != -1) {
+		int offset = offset_ammo + (Weapon_GetSecondaryAmmoType(weapon) * 4);
+		secondaryAmmo = GetEntData(client, offset);
+	}
 }
 
 /**
@@ -1542,11 +1616,11 @@ stock bool Client_SetWeaponPlayerAmmo(int client, const char[] className, int pr
  * @param weapon		Weapon Entity Index.
  * @param primaryAmmo	Primary ammo stock value from the client, if -1 the value is untouched.
  * @param secondaryAmmo	Secondary ammo stock value from the client, if -1 the value is untouched.
- * @noreturn		
+ * @noreturn
  */
 stock void Client_SetWeaponPlayerAmmoEx(int client, int weapon, int primaryAmmo=-1, int secondaryAmmo=-1)
 {
-	int offset_ammo = FindDataMapOffs(client, "m_iAmmo");
+	int offset_ammo = FindDataMapInfo(client, "m_iAmmo");
 
 	if (primaryAmmo != -1) {
 		int offset = offset_ammo + (Weapon_GetPrimaryAmmoType(weapon) * 4);
@@ -1561,7 +1635,7 @@ stock void Client_SetWeaponPlayerAmmoEx(int client, int weapon, int primaryAmmo=
 
 /**
  * Sets the value from primary and secondary ammo stock, of a client.
- * 
+ *
  * @param client		Client Index.
  * @param className		Classname of a weapon.
  * @param primaryAmmo	Primary ammo stock value from the client, if -1 the value is untouched.
@@ -1573,14 +1647,19 @@ stock void Client_SetWeaponPlayerAmmoEx(int client, int weapon, int primaryAmmo=
 stock bool Client_SetWeaponAmmo(int client, const char[] className, int primaryAmmo=-1, int secondaryAmmo=-1, int primaryClip=-1, int secondaryClip=-1)
 {
 	int weapon = Client_GetWeapon(client, className);
-	
+
 	if (weapon == INVALID_ENT_REFERENCE) {
 		return false;
 	}
-	
-	Weapon_SetClips(weapon, primaryClip, secondaryClip);
+
+	if (primaryClip != -1) {
+		Weapon_SetPrimaryClip(weapon, primaryClip);
+	}
+	if (secondaryClip != -1) {
+		Weapon_SetSecondaryClip(weapon, secondaryClip);
+	}
 	Client_SetWeaponPlayerAmmoEx(client, weapon, primaryAmmo, secondaryAmmo);
-	
+
 	return true;
 }
 
@@ -1615,7 +1694,7 @@ stock int Client_GetNextWeapon(int client, int &index = 0)
  * Prints white text to the bottom center of the screen
  * for one client. Does not work in all games.
  * Line Breaks can be done with "\n".
- * 
+ *
  * @param client		Client Index.
  * @param format		Formatting rules.
  * @param ...			Variable number of format parameters.
@@ -1624,8 +1703,8 @@ stock int Client_GetNextWeapon(int client, int &index = 0)
 stock bool Client_PrintHintText(int client, const char[] format, any ...)
 {
 	Handle userMessage = StartMessageOne("HintText", client);
-	
-	if (userMessage == INVALID_HANDLE) {
+
+	if (userMessage == null) {
 		return false;
 	}
 
@@ -1634,11 +1713,18 @@ stock bool Client_PrintHintText(int client, const char[] format, any ...)
 	SetGlobalTransTarget(client);
 	VFormat(buffer, sizeof(buffer), format, 3);
 
-	BfWriteByte(userMessage, 1); 
-	BfWriteString(userMessage, buffer); 
+	if (GetFeatureStatus(FeatureType_Native, "GetUserMessageType") == FeatureStatus_Available
+		&& GetUserMessageType() == UM_Protobuf) {
+
+		PbSetString(userMessage, "text", buffer);
+	}
+	else {
+		BfWriteByte(userMessage, 1);
+		BfWriteString(userMessage, buffer);
+	}
 
 	EndMessage();
-	
+
 	return true;
 }
 
@@ -1646,7 +1732,7 @@ stock bool Client_PrintHintText(int client, const char[] format, any ...)
  * Prints white text to the bottom center of the screen
  * for all clients. Does not work in all games.
  * Line Breaks can be done with "\n".
- * 
+ *
  * @param format		Formatting rules.
  * @param ...			Variable number of format parameters.
  * @noreturn
@@ -1654,7 +1740,7 @@ stock bool Client_PrintHintText(int client, const char[] format, any ...)
 stock void Client_PrintHintTextToAll(const char[] format, any ...)
 {
 	char buffer[254];
-	
+
 	for (int client=1; client <= MaxClients; client++) {
 
 		if (!IsClientInGame(client)) {
@@ -1671,7 +1757,7 @@ stock void Client_PrintHintTextToAll(const char[] format, any ...)
  * Prints white text to the right-center side of the screen
  * for one client. Does not work in all games.
  * Line Breaks can be done with "\n".
- * 
+ *
  * @param client		Client Index.
  * @param format		Formatting rules.
  * @param ...			Variable number of format parameters.
@@ -1680,8 +1766,8 @@ stock void Client_PrintHintTextToAll(const char[] format, any ...)
 stock bool Client_PrintKeyHintText(int client, const char[] format, any ...)
 {
 	Handle userMessage = StartMessageOne("KeyHintText", client);
-	
-	if (userMessage == INVALID_HANDLE) {
+
+	if (userMessage == null) {
 		return false;
 	}
 
@@ -1690,11 +1776,18 @@ stock bool Client_PrintKeyHintText(int client, const char[] format, any ...)
 	SetGlobalTransTarget(client);
 	VFormat(buffer, sizeof(buffer), format, 3);
 
-	BfWriteByte(userMessage, 1); 
-	BfWriteString(userMessage, buffer); 
+	if (GetFeatureStatus(FeatureType_Native, "GetUserMessageType") == FeatureStatus_Available
+		&& GetUserMessageType() == UM_Protobuf) {
+
+		PbAddString(userMessage, "hints", buffer);
+	}
+	else {
+		BfWriteByte(userMessage, 1);
+		BfWriteString(userMessage, buffer);
+	}
 
 	EndMessage();
-	
+
 	return true;
 }
 
@@ -1702,7 +1795,7 @@ stock bool Client_PrintKeyHintText(int client, const char[] format, any ...)
  * Prints white text to the right-center side of the screen
  * for all clients. Does not work in all games.
  * Line Breaks can be done with "\n".
- * 
+ *
  * @param format		Formatting rules.
  * @param ...			Variable number of format parameters.
  * @noreturn
@@ -1710,7 +1803,7 @@ stock bool Client_PrintKeyHintText(int client, const char[] format, any ...)
 stock void Client_PrintKeyHintTextToAll(const char[] format, any ...)
 {
 	char buffer[254];
-	
+
 	for (int client=1; client <= MaxClients; client++) {
 
 		if (!IsClientInGame(client)) {
@@ -1736,7 +1829,7 @@ stock void Client_PrintKeyHintTextToAll(const char[] format, any ...)
 stock void Client_PrintToChatRaw(int client, const char[] message, int subject=0, bool isChat=false)
 {
 	if (client == 0) {
-		decl String:buffer[253];
+		char buffer[253];
 		Color_StripFromChatText(message, buffer, sizeof(buffer));
 		PrintToServer(buffer);
 		return;
@@ -1754,22 +1847,48 @@ stock void Client_PrintToChatRaw(int client, const char[] message, int subject=0
 		sayText2_checked = true;
 	}
 
-	Handle userMessage = INVALID_HANDLE;
+	Handle userMessage = null;
 
 	if (sayText2_supported) {
 		userMessage = StartMessageOne("SayText2", client, USERMSG_RELIABLE);
-		
-		BfWriteByte(userMessage		, subject);
-		BfWriteByte(userMessage		, isChat);
-		BfWriteString(userMessage	, message);
+
+		if (GetFeatureStatus(FeatureType_Native, "GetUserMessageType") == FeatureStatus_Available
+			&& GetUserMessageType() == UM_Protobuf) {
+
+			PbSetInt(userMessage,    "ent_idx",  subject);
+			PbSetBool(userMessage,   "chat",     isChat);
+			PbSetString(userMessage, "msg_name", message);
+
+			// psychonic: Furthermore, some usermessages with repeated field,
+			// such as the commonly-used SayText2, expected an undocumented
+			// specific number of values added, else the client will crash when receiving.
+			PbAddString(userMessage, "params", "");
+			PbAddString(userMessage, "params", "");
+			PbAddString(userMessage, "params", "");
+			PbAddString(userMessage, "params", "");
+		}
+		else {
+			BfWriteByte(userMessage		, subject);
+			BfWriteByte(userMessage		, isChat);
+			BfWriteString(userMessage	, message);
+		}
 	}
 	else {
 		userMessage = StartMessageOne("SayText", client, USERMSG_RELIABLE);
 
-		BfWriteByte(userMessage		, subject);
-		BfWriteString(userMessage	, message);
-		// For DoD:S nickname coloring
-		BfWriteByte(userMessage		, -1);
+		if (GetFeatureStatus(FeatureType_Native, "GetUserMessageType") == FeatureStatus_Available
+			&& GetUserMessageType() == UM_Protobuf) {
+
+			PbSetInt(userMessage, "ent_idx", subject);
+			PbSetString(userMessage, "text", message);
+			PbSetBool(userMessage, "chat", isChat);
+		}
+		else {
+			BfWriteByte(userMessage		, subject);
+			BfWriteString(userMessage	, message);
+			// For DoD:S nickname coloring
+			BfWriteByte(userMessage		, -1);
+		}
 	}
 
 	EndMessage();
@@ -1803,7 +1922,7 @@ static int printToChat_excludeclient = -1;
 
 /**
  * Exclude a client from the next call to a Client_PrintToChat function.
- * 
+ *
  * @param client		Client Index.
  * @noreturn
  */
@@ -1816,7 +1935,7 @@ stock void Client_PrintToChatExclude(int client)
  * Prints a reliable chat message to all clients in the chat area.
  * Allows up to 253 Characters (including \0) to be printed.
  * Supports chat color tags (see: colors.inc).
- * 
+ *
  * @param isChat		Tells the game to handle the chat as normal (false) or chat message (true, plays a sound), only works if SayText2 is supported.
  * @param format		Formatting rules String.
  * @param ...			Variable number of format parameters.
@@ -1844,7 +1963,7 @@ stock void Client_PrintToChatAll(bool isChat, const char[] format, any ...)
 			SetGlobalTransTarget(client);
 			VFormat(buffer, sizeof(buffer), format, 3);
 			subject = Color_ParseChatText(buffer, buffer2, sizeof(buffer2));
-			
+
 			lastLanguage = language;
 		}
 
@@ -1885,15 +2004,15 @@ stock void Client_PrintToChatEx(int[] clients, int numClients, bool isChat, cons
 		}
 
 		language = GetClientLanguage(client);
-		
+
 		if (language != lastLanguage) {
 			SetGlobalTransTarget(client);
 			VFormat(buffer, sizeof(buffer), format, 5);
 			subject = Color_ParseChatText(buffer, buffer2, sizeof(buffer2));
-			
+
 			lastLanguage = language;
 		}
-		
+
 		Client_PrintToChatRaw(client, buffer2, subject, isChat);
 	}
 
@@ -1921,7 +2040,7 @@ enum ClientHudPrint {
 stock void Client_PrintToConsole(int client, const char[] format, any ...)
 {
 	char buffer[512];
-	
+
 	SetGlobalTransTarget(client);
 	VFormat(buffer, sizeof(buffer), format, 3);
 
@@ -1954,12 +2073,13 @@ stock void Client_Print(int client, ClientHudPrint destination, const char[] for
 		return;
 	}
 
+	EngineVersion engineVersion = GetEngineVersion();
 	if (client == 0 ||
-		(destination != ClientHudPrint_Console) ||
-		(destination == ClientHudPrint_Console && GuessSDKVersion() < SOURCE_SDK_LEFT4DEAD))
+		destination != ClientHudPrint_Console ||
+		(destination == ClientHudPrint_Console
+			&& engineVersion != Engine_Left4Dead && engineVersion != Engine_Left4Dead2))
 	{
-		Color_StripFromChatText(buffer, buffer2, sizeof(buffer2));
-		strcopy(buffer, sizeof(buffer), buffer2);
+		Color_StripFromChatText(buffer2, buffer2, sizeof(buffer2));
 
 		if (client == 0) {
 			PrintToServer(buffer2);
@@ -1967,11 +2087,23 @@ stock void Client_Print(int client, ClientHudPrint destination, const char[] for
 		}
 	}
 
-	Handle userMessage = INVALID_HANDLE;
+	Handle userMessage = null;
 	userMessage = StartMessageOne("TextMsg", client, USERMSG_RELIABLE);
 
-	BfWriteByte(userMessage		, view_as<int>(ClientHudPrint_Console));
-	BfWriteString(userMessage	, buffer);
+	if (GetFeatureStatus(FeatureType_Native, "GetUserMessageType") == FeatureStatus_Available
+		&& GetUserMessageType() == UM_Protobuf) {
+
+		PbSetInt(userMessage,    "msg_dst", view_as<int>(destination));
+		PbAddString(userMessage, "params",  buffer2);
+		PbAddString(userMessage, "params",  "");
+		PbAddString(userMessage, "params",  "");
+		PbAddString(userMessage, "params",  "");
+		PbAddString(userMessage, "params",  "");
+	}
+	else {
+		BfWriteByte(userMessage		, view_as<int>(destination));
+		BfWriteString(userMessage	, buffer2);
+	}
 
 	EndMessage();
 }
@@ -1980,7 +2112,7 @@ stock void Client_Print(int client, ClientHudPrint destination, const char[] for
  * Replies to a message in a command.
  * A client index of 0 will use PrintToServer().
  * If the command was from the console, Client_PrintToConsole() is used.
- * If the command was from chat, Client_PrintToChat() is used. 
+ * If the command was from chat, Client_PrintToChat() is used.
  *
  * @param client		Client Index.
  * @param format		Formatting rules String.
@@ -1990,7 +2122,7 @@ stock void Client_Print(int client, ClientHudPrint destination, const char[] for
 stock void Client_Reply(int client, const char[] format, any ...)
 {
 	char buffer[255];
-	
+
 	SetGlobalTransTarget(client);
 	VFormat(buffer, sizeof(buffer), format, 3);
 
@@ -2012,7 +2144,7 @@ stock void Client_Reply(int client, const char[] format, any ...)
 /**
  * Shakes a client's screen with the specified amptitude,
  * frequency & duration.
- * 
+ *
  * @param client		Client Index.
  * @param command		Shake Mode, use one of the SHAKE_ definitions.
  * @param amplitude		Shake magnitude/amplitude.
@@ -2022,23 +2154,34 @@ stock void Client_Reply(int client, const char[] format, any ...)
  */
 stock bool Client_Shake(int client, int command=SHAKE_START, float amplitude=50.0, float frequency=150.0, float duration=3.0)
 {
-	Handle userMessage = StartMessageOne("Shake", client);
-	
-	if (userMessage == INVALID_HANDLE) {
-		return false;
-	}
-	
 	if (command == SHAKE_STOP) {
 		amplitude = 0.0;
 	}
 	else if (amplitude <= 0.0) {
 		return false;
 	}
-	
-	BfWriteByte(userMessage,	command);	// Shake Command
-	BfWriteFloat(userMessage,	amplitude);	// shake magnitude/amplitude
-	BfWriteFloat(userMessage,	frequency);	// shake noise frequency
-	BfWriteFloat(userMessage,	duration);	// shake lasts this long
+
+	Handle userMessage = StartMessageOne("Shake", client);
+
+	if (userMessage == null) {
+		return false;
+	}
+
+	if (GetFeatureStatus(FeatureType_Native, "GetUserMessageType") == FeatureStatus_Available
+		&& GetUserMessageType() == UM_Protobuf) {
+
+		PbSetInt(userMessage,   "command",         command);
+		PbSetFloat(userMessage, "local_amplitude", amplitude);
+		PbSetFloat(userMessage, "frequency",       frequency);
+		PbSetFloat(userMessage, "duration",        duration);
+	}
+	else {
+		BfWriteByte(userMessage,	command);	// Shake Command
+		BfWriteFloat(userMessage,	amplitude);	// shake magnitude/amplitude
+		BfWriteFloat(userMessage,	frequency);	// shake noise frequency
+		BfWriteFloat(userMessage,	duration);	// shake lasts this long
+	}
+
 	EndMessage();
 
 	return true;
@@ -2053,11 +2196,11 @@ stock bool Client_Shake(int client, int command=SHAKE_START, float amplitude=50.
 stock bool Client_IsAdmin(int client)
 {
 	AdminId adminId = GetUserAdmin(client);
-	
+
 	if (adminId == INVALID_ADMIN_ID) {
 		return false;
 	}
-	
+
 	return GetAdminFlag(adminId, Admin_Generic);
 }
 
@@ -2070,11 +2213,11 @@ stock bool Client_IsAdmin(int client)
 stock bool Client_HasAdminFlags(int client, int flags=ADMFLAG_GENERIC)
 {
 	AdminId adminId = GetUserAdmin(client);
-	
+
 	if (adminId == INVALID_ADMIN_ID) {
 		return false;
 	}
-	
+
 	return view_as<bool>(GetAdminFlags(adminId, Access_Effective) & flags);
 }
 
@@ -2109,7 +2252,7 @@ stock bool Client_IsInAdminGroup(int client, const char[] groupName, bool caseSe
 	for (int i = 0; i < count; i++) {
 		// Get group name.
 		GetAdminGroup(adminId, i, groupname, sizeof(groupname));
-		
+
 		// Compare names.
 		if (StrEqual(groupName, groupname, caseSensitive)) {
 			return true;
@@ -2123,7 +2266,7 @@ stock bool Client_IsInAdminGroup(int client, const char[] groupName, bool caseSe
 /**
  * Checks if the client is currently looking at the wall in front
  * of him with the given distance as max value.
- * 
+ *
  * @param client		Client Index.
  * @param distance		Max Distance as Float value.
  * @return				True if he is looking at a wall, false otherwise.
@@ -2132,32 +2275,32 @@ stock bool Client_IsLookingAtWall(int client, float distance=40.0) {
 
 	float posEye[3], posEyeAngles[3];
 	bool isClientLookingAtWall = false;
-	
+
 	GetClientEyePosition(client,	posEye);
 	GetClientEyeAngles(client,		posEyeAngles);
-	
+
 	posEyeAngles[0] = 0.0;
 
 	Handle trace = TR_TraceRayFilterEx(posEye, posEyeAngles, CONTENTS_SOLID, RayType_Infinite, _smlib_TraceEntityFilter);
-	
+
 	if (TR_DidHit(trace)) {
-		
+
 		if (TR_GetEntityIndex(trace) > 0) {
-			CloseHandle(trace);
+			delete trace;
 			return false;
 		}
-		
+
 		float posEnd[3];
 
 		TR_GetEndPosition(posEnd, trace);
-		
-		if (GetVectorDistance(posEye, posEnd) <= distance) {
+
+		if (GetVectorDistance(posEye, posEnd, true) <= (distance * distance)) {
 			isClientLookingAtWall = true;
 		}
 	}
-	
-	CloseHandle(trace);
-	
+
+	delete trace;
+
 	return isClientLookingAtWall;
 }
 
@@ -2170,14 +2313,14 @@ public bool _smlib_TraceEntityFilter(int entity, int contentsMask)
  * Gets a client's class.
  * Currently supported games are: TF2, Dark Messiah.
  * Other games maybe work too, but are not tested.
- * 
+ *
  * @param client		Client Index.
  * @return				Class Index.
  */
 stock int Client_GetClass(int client)
 {
-	if (GuessSDKVersion() == SOURCE_SDK_DARKMESSIAH) {
-		GetEntProp(client, Prop_Send, "m_iPlayerClass");
+	if (GetEngineVersion() == Engine_DarkMessiah) {
+		return GetEntProp(client, Prop_Send, "m_iPlayerClass");
 	}
 
 	return GetEntProp(client, Prop_Send, "m_iClass");
@@ -2187,40 +2330,40 @@ stock int Client_GetClass(int client)
  * Sets a client's class.
  * Currently supported games are: TF2, Dark Messiah.
  * Other games maybe work too, but are not tested.
- * 
+ *
  * @param client		Client Index.
+ * @param playerClass	The class number to set the player to. Depends on game.
  * @param persistant	If true changes the players desired class so the change stays after death (probably TF2 only).
  * @return				Class Index.
  */
-stock int Client_SetClass(int client, int class, bool persistant=false)
+stock int Client_SetClass(int client, int playerClass, bool persistant=false)
 {
-	if (GuessSDKVersion() == SOURCE_SDK_DARKMESSIAH) {
-		GetEntProp(client, Prop_Send, "m_iPlayerClass");
-	}
-	else {
-		SetEntProp(client, Prop_Send, "m_iClass", class);
-		
+	if (GetEngineVersion() == Engine_DarkMessiah) {
+		SetEntProp(client, Prop_Send, "m_iPlayerClass", playerClass);
+	} else {
+		SetEntProp(client, Prop_Send, "m_iClass", playerClass);
+
 		if (persistant) {
-			SetEntProp(client, Prop_Send, "m_iDesiredPlayerClass", class);
+			SetEntProp(client, Prop_Send, "m_iDesiredPlayerClass", playerClass);
 		}
 	}
 }
 
 /**
  * Returns what buttons are currently pressed by the client.
- * 
+ *
  * @param client		Client Index.
  * @return				Buttons as bitflag.
  */
 stock int Client_GetButtons(int client)
-{	
+{
 	return GetClientButtons(client);
 }
 
 /**
  * Sets the client buttons.
  * Note: This will only work OnPreThink (sdkhooks) or OnPlayerRunCmd.
- * 
+ *
  * @param client		Client Index.
  * @param buttons		Buttons as bitflag.
  * @noreturn
@@ -2269,12 +2412,12 @@ stock void Client_RemoveButtons(int client, int buttons)
  */
 stock void Client_ClearButtons(int client)
 {
-	Client_SetButtons(client, 0);
+	Client_SetButtons(client,0);
 }
 
 /**
  * Returns if the given buttons are pressed by the client or not.
- * 
+ *
  * @param client		Client Index.
  * @param buttons		Buttons as bitflag.
  * @return				True if the buttons are pressed otherwise false.
@@ -2287,7 +2430,7 @@ stock bool Client_HasButtons(int client, int buttons)
 /**
  * Returns only the buttons that have changed since the last call of this.
  * Example usage: Within OnPlayerRunCmd use this function to call another function only once when a player pressed or released a button.
- * 
+ *
  * @param client		Client Index.
  * @param buttons		Buttons as bitflag.
  * @return				Return changed buttons
@@ -2295,12 +2438,12 @@ stock bool Client_HasButtons(int client, int buttons)
 stock int Client_GetChangedButtons(int client)
 {
 	static int oldButtons[MAXPLAYERS+1] = {0,...};
-	
+
 	int buttons = Client_GetButtons(client);
 	int changedButtons = buttons ^ oldButtons[client];
-	
+
 	oldButtons[client] = buttons;
-	
+
 	return changedButtons;
 }
 
@@ -2368,7 +2511,7 @@ stock void Client_Mute(int client)
  */
 stock void Client_UnMute(int client)
 {
-	static ConVar cvDeadTalk = null;
+	static ConVar cvDeadTalk;
 
 	if (cvDeadTalk == null) {
 		cvDeadTalk = FindConVar("sm_deadtalk");
@@ -2393,7 +2536,7 @@ stock void Client_UnMute(int client)
 /**
  * Checks if a client's voice is muted
  *
- * @param Client		Client Index.
+ * @param client		Client Index.
  * @return				True if the client is muted, false otherwise.
  */
 stock bool Client_IsMuted(int client)
@@ -2408,7 +2551,7 @@ stock bool Client_IsMuted(int client)
  * so you don't have to do that yourself.
  * This function is optimized to make as less native calls as possible :)
  *
- * @param Client		Client Index.
+ * @param client		Client Index.
  * @param flags			Client Filter Flags (Use the CLIENTFILTER_ constants).
  * @return				True if the client if the client matches, false otherwise.
  */
@@ -2505,7 +2648,7 @@ stock bool Client_MatchesFilter(int client, int flags)
 /**
  * Gets all clients matching the specified flags filter.
  *
- * @param Client		Client Array, size should be MaxClients or MAXPLAYERS
+ * @param client		Client Array, size should be MaxClients or MAXPLAYERS
  * @param flags			Client Filter Flags (Use the CLIENTFILTER_ constants).
  * @return				The number of clients stored in the array
  */
@@ -2532,7 +2675,7 @@ stock int Client_Get(int[] clients, int flags=CLIENTFILTER_ALL)
  */
 stock int Client_GetRandom(int flags=CLIENTFILTER_ALL)
 {
-	int clients[MaxClients];
+	int[] clients = new int[MaxClients];
 	int num = Client_Get(clients, flags);
 
 	if (num == 0) {
@@ -2578,4 +2721,376 @@ stock float Client_GetMapTime(int client)
 	float fGameTime = GetGameTime();
 
 	return (fClientTime < fGameTime) ? fClientTime : fGameTime;
+}
+
+/**
+ * Gets client money value (for games like Counter-Strike:Source).
+ *
+ * @param client		Client Index.
+ * @return				Money value from the client.
+ */
+stock int Client_GetMoney(int client)
+{
+	return GetEntProp(client, Prop_Send, "m_iAccount");
+}
+
+/**
+ * Sets client money value (for games like Counter-Strike:Source).
+ *
+ * @param client		Client Index.
+ * @param value			Money value to set.
+ * @noreturn
+ */
+stock void Client_SetMoney(int client, any value)
+{
+	SetEntProp(client, Prop_Send, "m_iAccount", value);
+}
+
+/**
+ * Gets a client's observers.
+ *
+ * @param client		Client Index.
+ * @param observers		Array with size of MaxClients or MAXPLAYERS.
+ * @param flags			Client Filter Flags (Use the CLIENTFILTER_ constants).
+ * @return				Number of observers found.
+ */
+stock int Client_GetObservers(int client, int[] observers, int flags=CLIENTFILTER_ALL)
+{
+	int count = 0;
+
+	LOOP_CLIENTS(player, CLIENTFILTER_OBSERVERS | flags) {
+
+		if (Client_GetObserverTarget(player) == client) {
+			observers[count++] = player;
+		}
+	}
+
+	return count;
+}
+
+static float getPlayersInRadius_distances[MAXPLAYERS+1];
+
+/**
+ * Gets all players near a player in a certain radius and
+ * orders the players by distance (optional).
+ *
+ * @param client			Client Index.
+ * @param clients			Array with size of MaxClients or MAXPLAYERS.
+ * @param radius			radius Float (max distance)
+ * @param orderByDistance	Set to true to order the clients by distance, false otherwise.
+ * @return					Number of clients found.
+ */
+stock int Client_GetPlayersInRadius(int client, int[] clients, float radius, bool orderByDistance=true)
+{
+	float origin_client[3], distance;
+	int count=0;
+
+	Entity_GetAbsOrigin(client, origin_client);
+
+	LOOP_CLIENTS(player, CLIENTFILTER_INGAME) {
+
+		if (player == client) {
+			continue;
+		}
+
+		distance = Entity_GetDistanceOrigin(player, origin_client);
+
+		if (distance <= radius) {
+			clients[count++] = player;
+
+			if (orderByDistance) {
+				getPlayersInRadius_distances[player] = distance;
+			}
+		}
+	}
+
+	if (orderByDistance) {
+		SortCustom1D(clients, count, __smlib_GetPlayersInRadius_Sort);
+	}
+
+	return count;
+}
+
+public int __smlib_GetPlayersInRadius_Sort(int player1, int player2, const int[] clients, Handle hndl)
+{
+	return FloatCompare(getPlayersInRadius_distances[player1], getPlayersInRadius_distances[player2]);
+}
+
+/**
+ * Gets the next player observing client starting at start.
+ *
+ * @param client		Client Index (Observer Target)
+ * @param start			Start Index.
+ * @param flags			Client Filter Flags (Use the CLIENTFILTER_ constants).
+ * @return				Client Index or -1 if no client was found
+ */
+stock int Client_GetNextObserver(int client, int start=1, int flags=CLIENTFILTER_ALL)
+{
+	for (int player=start; player <= MaxClients; player++) {
+
+		if (Client_MatchesFilter(player, CLIENTFILTER_OBSERVERS | flags)) {
+
+			if (Client_GetObserverTarget(player) == client) {
+				return player;
+			}
+		}
+	}
+
+	return -1;
+}
+
+/**
+ * Searchs and returns the game's player_manager entity.
+ * This should be called on every map start.
+ *
+ * @return				player_manager entity or INVALID_ENT_REFERENCE if not found.
+ */
+stock int Client_GetPlayerManager()
+{
+	static int player_manager = INVALID_ENT_REFERENCE;
+
+	if (player_manager != INVALID_ENT_REFERENCE) {
+
+		if (Entity_IsValid(player_manager)) {
+			return player_manager;
+		}
+		else {
+			player_manager = INVALID_ENT_REFERENCE;
+		}
+	}
+
+	int maxEntities = GetMaxEntities();
+
+	for (int entity=0; entity < maxEntities; entity++) {
+
+		if (!Entity_IsValid(entity)) {
+			continue;
+		}
+
+		if (Entity_ClassNameMatches(entity, "player_manager", true)) {
+			player_manager = EntIndexToEntRef(entity);
+
+			return player_manager;
+		}
+	}
+
+	return INVALID_ENT_REFERENCE;
+}
+
+/**
+ * Sets the client's ping as displayed in the scoreboards.
+ * Should be called OnGameFrame.
+ *
+ * @param client		Client Index
+ * @param start			New ping value.
+ * @return				True on sucess, false otherwise.
+ */
+stock bool Client_SetPing(client, value)
+{
+	int player_manager = Client_GetPlayerManager();
+
+	static int offset = -1;
+
+	if (offset== -1) {
+		offset = GetEntSendPropOffs(player_manager, "m_iPing", true);
+
+		if (offset == -1) {
+			return false;
+		}
+	}
+
+	SetEntData(player_manager, offset + (client * 4), value, 4, true);
+
+	return true;
+}
+
+static int printToTop_excludeclient = -1;
+
+/**
+ * Exclude a client from the next call to a Client_PrintToTop function.
+ *
+ * @param client		Client Index.
+ * @noreturn
+ */
+stock void Client_PrintToTopExclude(int client)
+{
+	printToTop_excludeclient = client;
+}
+
+/**
+ * Prints colored text to the top left of the screen
+ * for one client. Does not work in all games.
+ * Line Breaks can't be done.
+ *
+ * @param client		Client Index.
+ * @param r				Red amount.
+ * @param g				Green amount.
+ * @param b				Blue amount.
+ * @param a				Transparency.
+ * @param duration		Duration in seconds the text stays (min 10 - max 200 seconds).
+ * @param text			Text to print to.
+ * @return				True on success, false if the key value for the dialog couldn't be created or closed.
+ */
+stock bool Client_PrintToTopRaw(int client, int r=255, int g=255, int b=255, int a=255, float duration=10.0, const char[] text)
+{
+	//message line max 50
+	//overline: 	39*_
+	//underline: 	44*T
+	KeyValues keyValue = new KeyValues("Stuff", "title", text);
+
+	if (keyValue == null) {
+		return false;
+	}
+
+	keyValue.SetColor("color", r, g, b, a);
+	keyValue.SetNum("level", 1);
+	keyValue.SetNum("time", RoundToFloor(duration));
+
+	CreateDialog(client, keyValue, DialogType_Msg);
+
+	delete keyValue;
+	if (keyValue != null) {
+		return false;
+	}
+	return true;
+}
+
+/**
+ * Prints colored text to the top left of the screen
+ * for one client. Does not work in all games.
+ * Line Breaks can't be done.
+ *
+ * @param client		Client Index.
+ * @param r				Red amount.
+ * @param g				Green amount.
+ * @param b				Blue amount.
+ * @param a				Transparency.
+ * @param duration		Duration in seconds the text stays (min 10 - max 200 seconds).
+ * @param format		Formatting rules.
+ * @param ...			Variable number of format parameters.
+ * @return				True on success, false if the key value for the dialog couldn't be created or closed.
+ */
+stock bool Client_PrintToTop(int client, int r=255, int g=255, int b=255, int a=255, float duration=10.0, const char[] format, any ...)
+{
+	char buffer[150];
+	SetGlobalTransTarget(client);
+	VFormat(buffer, sizeof(buffer), format, 8);
+
+	return Client_PrintToTopRaw(client, r, g, b, a, duration, buffer);
+}
+
+/**
+ * Prints colored text to the top left of the screen
+ * to all clients. Does not work in all games.
+ * Line Breaks can't be done.
+ *
+ * @param r				Red amount.
+ * @param g				Green amount.
+ * @param b				Blue amount.
+ * @param a				Transparency.
+ * @param duration		Duration in seconds the text stays (min 10 - max 200 seconds).
+ * @param format		Formatting rules.
+ * @param ...			Variable number of format parameters.
+ * @noreturn
+ */
+stock void Client_PrintToTopAll(int r=255, int g=255, int b=255, int a=255, float duration=10.0, const char[] format, any ...)
+{
+	char buffer[150];
+	int language, lastLanguage = -1;
+
+	for (int client=1; client <= MaxClients; client++) {
+
+		if (!IsClientInGame(client)) {
+			continue;
+		}
+
+		if (client == printToTop_excludeclient) {
+			printToTop_excludeclient = -1;
+			continue;
+		}
+
+		language = GetClientLanguage(client);
+
+		if (language != lastLanguage) {
+			SetGlobalTransTarget(client);
+			VFormat(buffer, sizeof(buffer), format, 7);
+
+			lastLanguage = language;
+		}
+
+		Client_PrintToTopRaw(client, r, g, b, a, duration, buffer);
+	}
+}
+
+/**
+ * Prints colored text to the top left of the screen
+ * to specified clients. Does not work in all games.
+ * Line Breaks can't be done.
+ *
+ * @param clients		Client Array.
+ * @param numClients	Number of clients in the clients array.
+ * @param r				Red amount.
+ * @param g				Green amount.
+ * @param b				Blue amount.
+ * @param a				Transparency.
+ * @param duration		Duration in seconds the text stays (min 10 - max 200 seconds).
+ * @param format		Formatting rules.
+ * @param ...			Variable number of format parameters.
+ * @noreturn
+ */
+stock void Client_PrintToTopEx(int[] clients, int numClients, int r=255, int g=255, int b=255, int a=255, float duration=10.0, const char[] format, any ...)
+{
+	char buffer[150];
+	int client, language, lastLanguage = -1;
+
+	for (int i=0; i < numClients; i++) {
+
+		client = clients[i];
+
+		if (!IsClientInGame(client)) {
+			continue;
+		}
+
+		if (client == printToTop_excludeclient) {
+			printToTop_excludeclient = -1;
+			continue;
+		}
+
+		language = GetClientLanguage(client);
+
+		if (language != lastLanguage) {
+			SetGlobalTransTarget(client);
+			VFormat(buffer, sizeof(buffer), format, 9);
+
+			lastLanguage = language;
+		}
+
+		Client_PrintToTopRaw(client, r, g, b, a, duration, buffer);
+	}
+}
+
+/**
+ * Opens the scoreboard for a specific client
+ *
+ * @tested csgo
+ * @param client	Client index
+ * @noreturn
+ */
+stock void Client_ShowScoreboard(int client, int flags=USERMSG_RELIABLE | USERMSG_BLOCKHOOKS)
+{
+	Handle handle = StartMessageOne("VGUIMenu", client, flags);
+
+	if (GetFeatureStatus(FeatureType_Native, "GetUserMessageType") == FeatureStatus_Available &&
+			GetUserMessageType() == UM_Protobuf) {
+
+		PbSetString(handle, "name", "scores");
+		PbSetBool(handle, "show", true);
+	}
+	else {
+		BfWriteString(handle, "scores");
+		BfWriteByte(handle, 1); // Show
+		BfWriteByte(handle, 0); // subkeys count
+	}
+
+	EndMessage();
 }

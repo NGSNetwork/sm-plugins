@@ -10,7 +10,7 @@
  * Base64 Encoding/Decoding Functions
  * All Credits to to SirLamer & ScriptCoderPro
  * Taken from http://forums.alliedmods.net/showthread.php?t=101764
- * 
+ *
  ***********************************************************************************/
 
 // The Base64 encoding table
@@ -69,7 +69,7 @@ static const char base64_url_chars[]	= "-_.";
  * @param sourcelen 	(optional): The number of characters or length in bytes to be read from the input source.
  *						This is not needed for a text string, but is important for binary data since there is no end-of-line character.
  * @return				The length of the written Base64 string, in bytes.
- */			
+ */
 stock int Crypt_Base64Encode(const char[] sString, char[] sResult, int len, int sourcelen=0)
 {
 	int nLength;	// The string length to be read from the input
@@ -198,10 +198,10 @@ stock int Crypt_Base64MimeToUrl(const char[] sString, char[] sResult, int len)
 
 	nLength = strlen(sString);
 
-	char sTemp[nLength+1]; // Buffer string
+	char[] sTemp = new char[nLength+1]; // Buffer string
 
 	// Loop through string
-	for (new i = 0; i < nLength; i++) {
+	for (int i = 0; i < nLength; i++) {
 		temp_char = sString[i];
 
 		for (int j = 0; j < chars_len; j++) {
@@ -221,7 +221,7 @@ stock int Crypt_Base64MimeToUrl(const char[] sString, char[] sResult, int len)
 }
 
 /*
- * Base64UrlToMime(String:sResult[], len, const String:sString[], sourcelen)
+ * Base64UrlToMime(char[] sResult, int len, const char[] sString, int sourcelen)
  * Converts a URL-compliant Base64 string to the standards-compliant version.
  * Note: The result will be the same length as the input string as long as the output buffer is large enough.
  *
@@ -238,8 +238,8 @@ stock int Crypt_Base64UrlToMime(const char[] sString, char[] sResult, int len)
 
 	nLength = strlen(sString);
 
-	char sTemp[nLength+1]; // Buffer string
-	
+	char[] sTemp = new char[nLength+1]; // Buffer string
+
 	// Loop through string
 	for (int i = 0; i < nLength; i++) {
 		temp_char = sString[i];
@@ -264,12 +264,12 @@ stock int Crypt_Base64UrlToMime(const char[] sString, char[] sResult, int len)
  * All Credits go to sslice
  * RSA Data Security, Inc. MD5 Message Digest Algorithm
  * Taken from http://forums.alliedmods.net/showthread.php?t=67683
- * 
+ *
  ***********************************************************************************/
 
 /*
  * Calculate the md5 hash of a string.
- * 
+ *
  * @param str			Input String
  * @param output		Output String Buffer
  * @param maxlen		Size of the Output String Buffer
@@ -292,10 +292,10 @@ stock void Crypt_MD5(const char[] str, char[] output, int maxlen)
 	buf[3] = 0x10325476;
 
 	// MD5Update
-	int in[16];
+	int update[16];
 
-	in[14] = x[0];
-	in[15] = x[1];
+	update[14] = x[0];
+	update[15] = x[1];
 
 	int mdi = (x[0] >>> 3) & 0x3F;
 
@@ -311,17 +311,17 @@ stock void Crypt_MD5(const char[] str, char[] output, int maxlen)
 		input[mdi] = str[c];
 		mdi += 1;
 		c += 1;
-		
+
 		if (mdi == 0x40) {
 
 			for (i = 0, ii = 0; i < 16; ++i, ii += 4)
 			{
-				in[i] = (input[ii + 3] << 24) | (input[ii + 2] << 16) | (input[ii + 1] << 8) | input[ii];
+				update[i] = (input[ii + 3] << 24) | (input[ii + 2] << 16) | (input[ii + 1] << 8) | input[ii];
 			}
 
 			// Transform
-			MD5Transform(buf, in);
-			
+			MD5Transform(buf, update);
+
 			mdi = 0;
 		}
 	}
@@ -345,8 +345,8 @@ stock void Crypt_MD5(const char[] str, char[] output, int maxlen)
 	mdi = (x[0] >>> 3) & 0x3F;
 
 	len = (mdi < 56) ? (56 - mdi) : (120 - mdi);
-	in[14] = x[0];
-	in[15] = x[1];
+	update[14] = x[0];
+	update[15] = x[1];
 
 	mdi = (x[0] >>> 3) & 0x3F;
 
@@ -362,16 +362,16 @@ stock void Crypt_MD5(const char[] str, char[] output, int maxlen)
 		input[mdi] = padding[c];
 		mdi += 1;
 		c += 1;
-		
+
 		if (mdi == 0x40) {
 
 			for (i = 0, ii = 0; i < 16; ++i, ii += 4) {
-				in[i] = (input[ii + 3] << 24) | (input[ii + 2] << 16) | (input[ii + 1] << 8) | input[ii];
+				update[i] = (input[ii + 3] << 24) | (input[ii + 2] << 16) | (input[ii + 1] << 8) | input[ii];
 			}
 
 			// Transform
-			MD5Transform(buf, in);
-			
+			MD5Transform(buf, update);
+
 			mdi = 0;
 		}
 	}
@@ -423,8 +423,7 @@ static stock void MD5Transform_II(int &a, int &b, int &c, int &d, int x, int s, 
 	a += b;
 }
 
-static stock void MD5Transform(int[] buf, int[] input)
-{
+static stock void MD5Transform(int[] buf, int[] input){
 	int a = buf[0];
 	int b = buf[1];
 	int c = buf[2];
@@ -509,7 +508,7 @@ static stock void MD5Transform(int[] buf, int[] input)
  * RC4 Encoding Functions
  * All Credits go to SirLamer and Raydan
  * Taken from http://forums.alliedmods.net/showthread.php?t=101834
- * 
+ *
  ***********************************************************************************/
 
 /*

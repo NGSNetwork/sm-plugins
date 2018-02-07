@@ -3,6 +3,7 @@
 
 #include <sourcemod>
 #include <sdktools>
+#include <multicolors>
 #include <regex>
 
 public Plugin myinfo =
@@ -28,7 +29,6 @@ public void OnClientPutInServer(int Client)
 	SpriteTrail[Client] = -1;
 }
 
-
 public Action Command_Trail(int Client, int Args)
 {
 	if (Args < 1 || Args > 1)
@@ -37,8 +37,11 @@ public Action Command_Trail(int Client, int Args)
 		return Plugin_Handled;
 	}
 	
-	char TrailColor[32];
+	char arg[64];
+	char TrailColor[64];
 	char ClientName[128];
+	int trailcolornum;
+	
 	Format(ClientName, sizeof(ClientName), "customname_%i", Client);
 	DispatchKeyValue(Client, "targetname", ClientName);
 	int Trail = CreateEntityByName("env_spritetrail");
@@ -49,44 +52,13 @@ public Action Command_Trail(int Client, int Args)
 	DispatchKeyValue(Trail, "startwidth", "8.0");
 	DispatchKeyValue(Trail, "endwidth", "0.1");
 	
-	GetCmdArg(1, TrailColor, sizeof(TrailColor));
+	GetCmdArgString(arg, sizeof(arg));
+	StrToLowerRemoveBlanks(arg, TrailColor, sizeof(TrailColor));
 	
 	if (SpriteTrail[Client] != -1)
 		AcceptEntityInput(SpriteTrail[Client], "Kill");
-	
-	if (StrEqual(TrailColor, "red", false))
-	{
-		DispatchKeyValue(Trail, "rendercolor", "255 0 0");
-	}
-	else if(StrEqual(TrailColor, "blue", false))
-	{
-		DispatchKeyValue(Trail, "rendercolor", "0 0 255");
-	}
-	else if(StrEqual(TrailColor, "yellow", false))
-	{
-		DispatchKeyValue(Trail, "rendercolor", "255 255 0");
-	}
-	else if(StrEqual(TrailColor, "green", false))
-	{
-		DispatchKeyValue(Trail, "rendercolor", "0 255 0");
-	}
-	else if(StrEqual(TrailColor, "purple", false))
-	{
-		DispatchKeyValue(Trail, "rendercolor", "255 0 255");
-	}
-	else if(StrEqual(TrailColor, "orange", false))
-	{
-		DispatchKeyValue(Trail, "rendercolor", "255 153 0");
-	}
-	else if(StrEqual(TrailColor, "cyan", false))
-	{
-		DispatchKeyValue(Trail, "rendercolor", "0 255 255");
-	}
-	else if(StrEqual(TrailColor, "pink", false))
-	{
-		DispatchKeyValue(Trail, "rendercolor", "255 0 102");
-	}
-	else if(StrEqual(TrailColor, "off", false))
+		
+	if (StrEqual(TrailColor, "off", false))
 	{
 		if (SpriteTrail[Client] != -1)
 		{
@@ -94,6 +66,18 @@ public Action Command_Trail(int Client, int Args)
 			SpriteTrail[Client] = -1;
 		}
 		return Plugin_Handled;
+	}
+	else if (MC_Trie != null && MC_Trie.GetValue(TrailColor, trailcolornum))
+	{
+		int rgbFromHex[3];
+		rgbFromHex[0] = (trailcolornum >> 16) & 255;
+		rgbFromHex[1] = (trailcolornum >> 8) & 255;
+		rgbFromHex[2] = trailcolornum & 255;
+		
+		char rgbString[16];
+		
+		Format(rgbString, 16, "%d %d %d", rgbFromHex[0], rgbFromHex[1], rgbFromHex[2]);
+		DispatchKeyValue(Trail, "rendercolor", rgbString);
 	}
 	else
 	{
@@ -121,9 +105,16 @@ public Action Command_Trail(int Client, int Args)
 	AcceptEntityInput(Trail, "SetParent", -1, -1);
 	AcceptEntityInput(Trail, "showsprite", -1, -1);
 	
-	PrintToChat(Client, "[SM] You've been given a %s trail!", TrailColor);
+	CReplyToCommand(Client, "{GREEN}[SM]{DEFAULT} You've been given a %s trail!", arg);
 	
 	return Plugin_Handled;
+}
+
+public void OnPluginEnd()
+{
+	for (int i = 1; i <= MaxClients; i++)
+		if (SpriteTrail[i] != -1)
+			AcceptEntityInput(SpriteTrail[i], "Kill");
 }
 
 // Stock converted from:
@@ -147,4 +138,29 @@ stock int HexToBase16Int(char[] hex)
 	
 	return StringToInt(splitString, 16);
 }
+
+
+// Credit to berni: https://forums.alliedmods.net/showpost.php?p=1008853&postcount=4
+stock int StrToLowerRemoveBlanks(const char[] str, char[] dest, int destsize) {
+
+    int n=0, x=0;
+    while (str[n] != '\0' && x < (destsize - 1)) { // Make sure we are inside bounds
+
+        int character = str[n++]; // Caching
+    
+        if (character == ' ') { // Am I nothing ?
+            // Let's do nothing !
+            continue;
+        }
+        else if (IsCharUpper(character)) { // Am I big ?
+            character = CharToLower(character); // Big becomes low
+        }
+
+        dest[x++] = character; // Write into our new string
+    }
+
+    dest[x++] = '\0'; // Finalize with the end ( = always 0 for strings)
+
+    return x; // return number of bytes written for later proove
+} 
 	

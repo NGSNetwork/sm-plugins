@@ -6,6 +6,8 @@
 #include <sourcemod>
 #include <sdktools_entinput>
 #include <sdktools_functions>
+// Sourcemod 1.9+ compatibility
+#tryinclude <sdktools_variant_t>
 
 /**
  * Macro for iterating trough all children (entities it is parent of) of an entity.

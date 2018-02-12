@@ -245,10 +245,10 @@ public Action CommandSpawnMonoculusCenter(int client, int args)
 		int currentTime = GetTime();
 		if (currentTime - SpawnCooldown < 900)
 	    {
-	   		CPrintToChat(target, "%tYou must wait {PURPLE}%d{DEFAULT} seconds to spawn this.", "Store Tag Colored", 900 - (currentTime - SpawnCooldown));
-	   		Store_GiveItem(GetSteamAccountID(target), 405);
-	   		return Plugin_Handled;
-	  	}
+			CPrintToChat(target, "%tYou must wait {PURPLE}%d{DEFAULT} seconds to spawn this.", "Store Tag Colored", 900 - (currentTime - SpawnCooldown));
+			Store_GiveItem(GetSteamAccountID(target), 405);
+			return Plugin_Handled;
+		}
 	
 		SpawnCooldown = currentTime;
 		CPrintToChatAll("%t{OLIVE}%N{DEFAULT} spawned in {PURPLE}MONOCULUS{DEFAULT}!", "Store Tag Colored", target);
@@ -282,15 +282,15 @@ public Action CommandTeamMonoculus(int client, int args)
 	int playerTeam = view_as<int>(GetClientTeam(target));
 	int currentTime = GetTime();
 	if (currentTime - SpecMonoculusCooldown[playerTeam - 2] < 90)
-    {
-   		CPrintToChat(target, "%tYou must wait {PURPLE}%d{DEFAULT} seconds to spawn this.", "Store Tag Colored", 90 - (currentTime - SpecMonoculusCooldown[playerTeam - 2]));
-   		Store_GiveItem(GetSteamAccountID(target), 406);
-   		return Plugin_Handled;
-  	}
+	{
+		CPrintToChat(target, "%tYou must wait {PURPLE}%d{DEFAULT} seconds to spawn this.", "Store Tag Colored", 90 - (currentTime - SpecMonoculusCooldown[playerTeam - 2]));
+		Store_GiveItem(GetSteamAccountID(target), 406);
+		return Plugin_Handled;
+	}
 	SpecMonoculusCooldown[playerTeam - 2] = currentTime;
 	
-	int BaseHealth = GetConVarInt(cvarHealth), HealthPerPlayer = GetConVarInt(cvarHealthPerPlayer), HealthPerLevel = GetConVarInt(cvarHealthPerLevel);
-	SetConVarInt(cvarHealth, 4200), SetConVarInt(cvarHealthPerPlayer, 300), SetConVarInt(cvarHealthPerLevel, 2000);
+	int BaseHealth = cvarHealth.IntValue, HealthPerPlayer = cvarHealthPerPlayer.IntValue, HealthPerLevel = cvarHealthPerLevel.IntValue;
+	cvarHealth.IntValue = 4200, cvarHealthPerPlayer.IntValue = 300, cvarHealthPerLevel.IntValue = 2000;
 	int Ent = CreateEntityByName("eyeball_boss");
 	SetEntProp(Ent, Prop_Data, "m_iTeamNum", playerTeam);
 	SetEntProp(Ent, Prop_Send, "m_CollisionGroup", 2);
@@ -299,9 +299,9 @@ public Action CommandTeamMonoculus(int client, int args)
 	GetClientEyePosition(target, start); 
 	GetClientEyeAngles(target, angle); 
 	TR_TraceRayFilter(start, angle, MASK_SOLID, RayType_Infinite, TraceEntityFilterPlayer, target); 
-	if (TR_DidHit(INVALID_HANDLE)) 
+	if (TR_DidHit())
 	{ 
-		TR_GetEndPosition(end, INVALID_HANDLE); 
+		TR_GetEndPosition(end); 
 	}
 	if (NearSpawn(end))
 	{
@@ -310,13 +310,26 @@ public Action CommandTeamMonoculus(int client, int args)
 		return Plugin_Handled;
 	}
 	
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (!IsValidClient(i) || !IsPlayerAlive(i) || target == i) continue;
+		float clientPos[3];
+		GetEntPropVector(i, Prop_Send, "m_vecOrigin", clientPos);
+		if (GetVectorDistance(clientPos, end) < 175.0)
+		{
+			CPrintToChat(target, "%tSorry, you can't spawn this near players.", "Store Tag Colored");
+			Store_GiveItem(GetSteamAccountID(target), 406);
+			return Plugin_Handled;
+		}
+	}
+	
 	CPrintToChatAll("%t{OLIVE}%N{DEFAULT} spawned in %sSPECTRAL MONOCULUS{DEFAULT}!", "Store Tag Colored", target, (GetClientTeam(target) == view_as<int>(TFTeam_Blue)) ? "{BLUE}" : "{RED}");
 	
 	end[2] += 50;
 	TeleportEntity(Ent, end, NULL_VECTOR, NULL_VECTOR);
 	DispatchSpawn(Ent);
 	EmitSoundToAll("ui/halloween_boss_summoned_fx.wav", SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_HOME);
-	SetConVarInt(cvarHealth, BaseHealth), SetConVarInt(cvarHealthPerPlayer, HealthPerPlayer), SetConVarInt(cvarHealthPerLevel, HealthPerLevel);
+	cvarHealth.IntValue = BaseHealth, cvarHealthPerPlayer.IntValue = HealthPerPlayer, cvarHealthPerLevel.IntValue = HealthPerLevel;
 	return Plugin_Handled;
 }
 
@@ -338,10 +351,10 @@ public Action CommandUltimateNecromash(int client, int args)
 		int currentTime = GetTime();
 		if (currentTime - uNecromashCooldown < 900)
 	    {
-	   		CReplyToCommand(target, "%tYou must wait {PURPLE}%d{DEFAULT} seconds to use this.", "Store Tag Colored", 900 - (currentTime - uNecromashCooldown));
-	   		Store_GiveItem(GetSteamAccountID(target), 365); // Gives hammer back after unsuccessful usage. So unfutureproof
-	   		return Plugin_Handled;
-	  	}
+			CReplyToCommand(target, "%tYou must wait {PURPLE}%d{DEFAULT} seconds to use this.", "Store Tag Colored", 900 - (currentTime - uNecromashCooldown));
+			Store_GiveItem(GetSteamAccountID(target), 365); // Gives hammer back after unsuccessful usage. So unfutureproof
+			return Plugin_Handled;
+		}
 	
 		uNecromashCooldown = currentTime;
 		CPrintToChatAll("%t{OLIVE}%N{DEFAULT} called the power of {GREEN}THE ULTIMATE NECROMASH{DEFAULT}!", "Store Tag Colored", target);
@@ -439,7 +452,7 @@ public void EventItemFound(Event event, const char[] name, bool dontBroadcast)
 	}
 }
 
-public Action Command_warpTime(int client, int args )
+public Action Command_warpTime(int client, int args)
 {
 	if (args < 1) return Plugin_Handled;
 	
@@ -584,11 +597,11 @@ stock void KillMerasmusKillTimer()
 public Action Timer_unWarpTimeInc( Handle timer ) {
 
 	current_timescale += 0.03;
-	SetConVarFloat( host_timescale, current_timescale );
+	host_timescale.FloatValue = current_timescale;
 	
 	if( current_timescale <= 1.0 )
 	{
-		SetConVarFloat(host_timescale, 1.0);
+		host_timescale.FloatValue = 1.0;
 		for( int i = 1; i <= MaxClients; i++ ) {
 			if( IsClientInGame(i) && !IsFakeClient(i) ) {
 				fakeCheats(i,false);

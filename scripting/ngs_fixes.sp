@@ -40,7 +40,7 @@ public void OnClientConnected(int client)
 public Action AuthCheckTimer(Handle timer, int userid)
 {
 	int client = GetClientOfUserId(userid);
-	if (client == 0 || !IsClientInGame(client)) return Plugin_Continue;
+	if (client == 0 || !IsClientInGame(client)) return Plugin_Stop;
 	char auth[24];
 	if (!GetClientAuthId(client, AuthId_Engine, auth, sizeof(auth)))
 	{
@@ -69,7 +69,6 @@ stock void KillTimerDelete(int client)
 {
 	if (authClientTimer[client] != null)
 	{
-		KillTimer(authClientTimer[client]);
-		authClientTimer[client] = null;
+		delete authClientTimer[client];
 	}
 }

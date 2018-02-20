@@ -50,11 +50,23 @@ methodmap SMTimer < Handle
 	 *
 	 * @param autoClose			If autoClose is true, the data that was passed to CreateTimer() will
 	 *							be closed as a handle if TIMER_DATA_HNDL_CLOSE was not specified.
-	 * @error				Invalid handles will cause a run time error.
+	 * @error					Invalid handles will cause a run time error.
 	 */
 	public void Kill(bool autoClose=false)
 	{
-		KillTimer(view_as<Handle>(this));
+		KillTimer(this, autoClose);
+	}
+	
+	/**
+	 * Kills a timer. Alias for Kill()
+	 *
+	 * @param autoClose			If autoClose is true, the data that was passed to CreateTimer() will
+	 *							be closed as a handle if TIMER_DATA_HNDL_CLOSE was not specified.
+	 * @error					Invalid handles will cause a run time error.
+	 */
+	public void Close(bool autoClose=false)
+	{
+		KillTimer(this, autoClose);
 	}
 	
 	/**
@@ -65,6 +77,28 @@ methodmap SMTimer < Handle
 	 */
 	public void Trigger(bool reset=false)
 	{
-		TriggerTimer(view_as<Handle>(this), reset);
+		TriggerTimer(this, reset);
+	}
+}
+
+methodmap SMDataTimer < SMTimer
+{
+	/**
+	 * Creates a timer associated with a new datapack, and returns the datapack.
+	 * @note The datapack is automatically freed when the timer ends.
+	 * @note The position of the datapack is not reset or changed for the timer function.
+	 *
+	 * @param interval			Interval from the current game time to execute the given function.
+	 * @param func				Function to execute once the given interval has elapsed.
+	 * @param datapack			The newly created datapack is passed though this by-reference 
+	 *							parameter to the timer callback function.
+	 * @param flags				Timer flags.
+	 * @return					Handle to the timer object.  You do not need to call CloseHandle().
+	 */
+	public SMDataTimer(float interval, Timer func, DataPack &datapack, int flags=0)
+	{
+		datapack = new DataPack();
+		flags |= TIMER_DATA_HNDL_CLOSE;
+		return view_as<SMDataTimer>(new SMTimer(interval, func, datapack, flags));
 	}
 }

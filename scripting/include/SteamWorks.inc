@@ -424,7 +424,7 @@ methodmap SWHTTPRequest < Handle
 	
 	public bool WriteResponseToFile(const char[] sFileName)
 	{
-		SteamWorks_WriteHTTPResponseBodyToFile(this, sFileName);
+		return SteamWorks_WriteHTTPResponseBodyToFile(this, sFileName);
 	}
 }
 

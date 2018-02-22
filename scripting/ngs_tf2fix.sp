@@ -20,7 +20,7 @@ public Plugin myinfo = {
 	url = "http://mstr.ca/"
 }
 
-enum 
+enum
 { // TF2_IsPlayerInCondition seems to be a little bit expensive, so we track these conditions internally.
 	Condition_Taunting,
 	Condition_Cloaked,
@@ -104,7 +104,7 @@ public void OnPluginStart()
 	CreateConVar("sm_tf2fix_version", PLUGIN_VERSION, "Plugin version smoke! Don't touch this!", FCVAR_NOTIFY|FCVAR_SPONLY);
 	cvarEnabled = CreateConVar("tf_fix_enable","1","Enable or disable TF2Fix entirely.", FIX_CONVAR_FLAGS, true, 0.0, true, 1.0);
 	cvarLogClassName = CreateConVar("tf_fix_killicon_logclassname", "0", "When TF2Fix fixes a weapon's kill icon, it will also update that weapon's logged console name.", FIX_CONVAR_FLAGS, true, 0.0, true, 1.0);
-	
+
 	/* Create cvar for each fix */
 	cvarNonCritBackstabs = CreateConVar("tf_fix_spy_backstab_noncrit", "0", "Fix backstabs not behaving properly when tf_weapon_criticals is 0.\nAdd up the numbers to fix the various elements of it:\n1 = Animation\n2 = Crit status/damage\n4 = Sound", FIX_CONVAR_FLAGS, true, 0.0, true, 7.0);
 	cvarWaterDoves = CreateConVar("tf_fix_taunt_medic_doves", "1", "Fix Taunt: The Meet the Medic spawning doves in water, where they made loud sounds.", FIX_CONVAR_FLAGS, true, 0.0, true, 1.0);
@@ -164,7 +164,7 @@ public void OnPluginStart()
 	cvarEurekaSapped = CreateConVar("tf_fix_engineer_eurekasapped", "1", "Fix being able to teleport to a sapped Teleporter Exit using the Eureka Effect.", FIX_CONVAR_FLAGS, true, 0.0, true, 1.0);
 	cvarEngiHighFive = CreateConVar("tf_fix_taunt_engineer_highfive", "1", "Fix Engineers being stuck momentarily after high fiving.", FIX_CONVAR_FLAGS, true, 0.0, true, 1.0);
 	cvarDetonatorCritSound = CreateConVar("tf_fix_pyro_detonator_critsound", "1", "Fix the Detonator sounding like the Flare Gun when firing crits.", FIX_CONVAR_FLAGS, true, 0.0, true, 1.0);
-	
+
 	// We only hook cvars if their values would otherwise be checked extremely often. Unfortunately, there are quite a few in this plugin.
 	HookConVarChange(cvarEnabled, OnConVarChanged);
 	HookConVarChange(cvarTomislavAnnounce, OnConVarChanged);
@@ -186,13 +186,13 @@ public void OnPluginStart()
 	HookConVarChange(cvarInvulnDiamondback, OnConVarChanged);
 	HookConVarChange(cvarTeleporterTaunt, OnConVarChanged);
 	HookConVarChange(cvarDetonatorCritSound, OnConVarChanged);
-	
+
 	char CfgPath[PLATFORM_MAX_PATH];
 	Format(CfgPath, sizeof(CfgPath), "./cfg/sourcemod/tf2fix.cfg");
 	if (FileExists(CfgPath)) ServerCommand("exec sourcemod/tf2fix");
-	
+
 	AutoExecConfig(true, "tf2fix");
-	
+
 	Enabled = GetConVarBool(cvarEnabled);
 	TomislavAnnounce = GetConVarBool(cvarTomislavAnnounce);
 	Gunslinger = GetConVarBool(cvarGunslinger);
@@ -213,7 +213,7 @@ public void OnPluginStart()
 	InvulnDiamondback = GetConVarBool(cvarInvulnDiamondback);
 	TeleporterTaunt = GetConVarBool(cvarTeleporterTaunt);
 	DetonatorCritSound = GetConVarBool(cvarDetonatorCritSound);
-	
+
 	HookEvent("player_hurt", Event_Hurt, EventHookMode_Pre);
 	HookEvent("player_death", Event_Death, EventHookMode_Pre);
 	HookEvent("player_spawn", Event_Spawn, EventHookMode_Pre);
@@ -222,25 +222,25 @@ public void OnPluginStart()
 	HookEvent("player_teleported", Event_Teleport, EventHookMode_Pre);
 	HookEvent("player_upgradedobject", Event_Upgrade, EventHookMode_Pre);
 	HookEvent("item_found", Event_Item, EventHookMode_Pre);
-	
+
 	AddCommandListener(Listener_voicemenu, "voicemenu");
 	AddCommandListener(Listener_destroy, "destroy");
 	AddCommandListener(Listener_taunt, "taunt");
 	AddCommandListener(Listener_taunt, "+taunt");
 	AddCommandListener(Listener_eurekaeffect, "eureka_teleport");
-	
+
 	HookUserMessage(GetUserMessageId("SpawnFlyingBird"), UserMsg_SpawnBird, true);
-	
+
 	AddNormalSoundHook(SoundHook);
-	
+
 	CreateTimer(0.5, Timer_EveryHalfSecond, _, TIMER_REPEAT);
 	CreateTimer(0.1, Timer_EveryDeciSecond, _, TIMER_REPEAT);
 
 	hudDeadRinger = CreateHudSynchronizer();
 	hudHeads = CreateHudSynchronizer();
-	
+
 	aBuildings = CreateArray();
-	
+
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (!IsClientInGame(i)) continue;
@@ -252,10 +252,10 @@ public void OnPluginStart()
 		InCond[i][Condition_UberCharged] = TF2_IsPlayerInCondition(i, TFCond_Ubercharged);
 		InCond[i][Condition_WinCrits] = TF2_IsPlayerInCondition(i, TFCond_CritOnWin);
 	}
-	
+
 	extSDKHooks = LibraryExists("sdkhooks");
 	extTF2Attributes = LibraryExists("tf2attributes");
-	
+
 	if (extSDKHooks)
 	{
 		for (int i = 1; i <= MaxClients; i++)
@@ -296,7 +296,7 @@ public void OnClientPutInServer(int client)
 		InCond[client][i] = false;
 	for (int i = 0; i < 6; i++)
 		PrevWeapons[client][i] = -1;
-	
+
 	RageMeter[client] = 0.0;
 	DeathTime[client] = 0.0;
 	HitCount[client] = 0;
@@ -307,7 +307,7 @@ public void OnClientPutInServer(int client)
 	NextDecalTime[client] = 0.0;
 	ForceAttack[client] = false;
 	hStopHighFiveTimer[client] = INVALID_HANDLE;
-	
+
 	if (extSDKHooks)
 	{
 		SDKHook(client, SDKHook_OnTakeDamage, OnTakeDamage);
@@ -333,7 +333,7 @@ public Action Event_Hurt(Handle event, const char[] name, bool dontBroadcast)
 	int victim = GetClientOfUserId(GetEventInt(event, "userid")), attacker = GetClientOfUserId(GetEventInt(event, "attacker"));
 	int custom = GetEventInt(event, "custom");
 	int damage = GetEventInt(event, "damageamount");
-	
+
 	int stabfix = GetConVarInt(cvarNonCritBackstabs);
 	if (attacker && custom == TF_CUSTOM_BACKSTAB && !GetConVarBool(cvarWeaponCrits) && stabfix)
 	{
@@ -361,7 +361,7 @@ public Action Event_Hurt(Handle event, const char[] name, bool dontBroadcast)
 		}
 //		action = Plugin_Changed; // Breaks it? O.o
 	}
-	
+
 	if (GetEntProp(victim, Prop_Send, "m_bFeignDeathReady") && GetConVarBool(cvarDeadRingerTaunt) && InCond[victim][Condition_Taunting])
 	{
 		TF2_RemoveCondition(victim, TFCond_Taunting);
@@ -518,10 +518,10 @@ public Action Event_Death(Handle event, const char[] name, bool dontBroadcast)
 		for (int i = 0; i <= MaxConds; i++)
 			InCond[victim][i] = false;
 		DeathTime[victim] = GetTickedTime();
-		
+
 		if (attacker && GetConVarBool(cvarBazaarHeadsSteal) && 402 == GetPlayerWeaponIndex(victim, 0) && (StrEqual(weapon, "sword") || StrEqual(weapon, "headtaker") || StrEqual(weapon, "nessieclub")))
 			SetEntProp(attacker, Prop_Send, "m_iDecapitations", GetEntProp(attacker, Prop_Send, "m_iDecapitations") - GetEntProp(victim, Prop_Send, "m_iDecapitations"));
-		
+
 		if (InvulnDiamondback && attacker)
 		{
 			if (GetEventInt(event, "damagebits") & (DMG_CLUB|DMG_NEVERGIB|DMG_CRIT|DMG_BLAST_SURFACE) == (DMG_CLUB|DMG_NEVERGIB|DMG_CRIT|DMG_BLAST_SURFACE))
@@ -541,13 +541,13 @@ public Action Event_Spawn(Handle event, const char[] name, bool dontBroadcast)
 {
 	if (!Enabled) return;
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
-	
+
 	for (int i = 0; i <= MaxConds; i++)
 		InCond[client][i] = false;
-	
+
 	RageMeter[client] = 0.0;
 	hStopHighFiveTimer[client] = INVALID_HANDLE;
-	
+
 	if (GetConVarBool(cvarVitaRounding))
 	{
 		if (173 == GetPlayerWeaponIndex(client, 2))
@@ -571,7 +571,7 @@ public Action Event_Inventory(Handle event, const char[] name, bool dontBroadcas
 	int NewWeapons[6];
 	for (int i = 0; i < 6; i++)
 		NewWeapons[i] = GetPlayerWeaponIndex(client, i);
-	
+
 	if (PrevWeapons[client][0] != NewWeapons[0] && GetConVarBool(cvarHypeMeterSwitch))
 		SetEntPropFloat(client, Prop_Send, "m_flHypeMeter", 0.0);
 	if (PrevWeapons[client][1] != NewWeapons[1] && NewWeapons[0] != 594 && GetConVarBool(cvarRageMeterSwitch))
@@ -581,9 +581,9 @@ public Action Event_Inventory(Handle event, const char[] name, bool dontBroadcas
 		TF2_RemoveCondition(client, TFCond_Slowed);
 		TF2_RecalculateSpeed(client);
 	}
-	
+
 	if (GetConVarBool(cvarFanOResupply)) TF2_RemoveCondition(client, TFCond_MarkedForDeath);
-	
+
 	/*if (GetConVarBool(cvarItemCooldown))
 	{
 		float time = GetGameTime();
@@ -732,11 +732,11 @@ public Action Listener_taunt(int client, const char[] command, int args)
 {
 	if (!Enabled) return Plugin_Continue;
 	if (!GetConVarBool(cvarBonkTaunt)) return Plugin_Continue; // shusdivhivdshvsdudvshuidvsuhivsduihdvshuisdvhuihuidvisdvuhihdvu // <- .....Why did I put this again? Because Valve is silly? Probably.
-	
+
 	int active = GetPlayerWeaponIndex(client, -1);
 	if (46 == active || 163 == active)
 		ForceAttack[client] = true;
-	
+
 	return Plugin_Continue;
 }
 
@@ -744,7 +744,7 @@ public Action Listener_eurekaeffect(int client, const char[] command, int args)
 {
 	if (!Enabled) return Plugin_Continue;
 	if (!GetConVarBool(cvarEurekaSapped)) return Plugin_Continue;
-	
+
 	int j = -1;
 	while ((j = FindEntityByClassname(j, "obj_teleporter")) != -1)
 	{
@@ -753,7 +753,7 @@ public Action Listener_eurekaeffect(int client, const char[] command, int args)
 		if (!GetEntProp(j, Prop_Send, "m_bHasSapper")) continue;
 		return Plugin_Stop;
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -764,7 +764,7 @@ public Action UserMsg_SpawnBird(UserMsg msg_id, Handle bf, const int[] players, 
 	{
 		float Pos[3];
 		BfReadVecCoord(bf, Pos);
-		int closestPlayer; 
+		int closestPlayer;
 		float closestDist;
 		for (int i = 1; i <= MaxClients; i++)
 		{
@@ -871,7 +871,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 {
 	if (!Enabled) return Plugin_Continue;
 	Action action;
-	
+
 	if (PhlogAmmo)
 	{
 		if (buttons & IN_ATTACK2)
@@ -891,7 +891,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 			}
 		}
 	}
-	
+
 	if (BazookaHumiliation)
 	{
 		if (buttons & IN_ATTACK && !InCond[client][Condition_WinCrits])
@@ -911,20 +911,20 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 			}
 		}
 	}
-	
+
 	if (BotTaunts && InCond[client][Condition_Taunting] && IsFakeClient(client))
 		SetEntPropFloat(client, Prop_Send, "m_flMaxspeed", 1.0);
-	
+
 	if (DecalRespawn && (impulse == 201 || impulse == 202))
 		CreateTimer(0.0, Timer_CheckDecalTime, GetClientUserId(client), TIMER_FLAG_NO_MAPCHANGE);
-	
+
 	if (ForceAttack[client])
 	{
 		buttons |= IN_ATTACK;
 		action = Plugin_Changed;
 		ForceAttack[client] = false;
 	}
-	
+
 	return action;
 }
 
@@ -939,7 +939,7 @@ public void OnEntityCreated(int ent, const char[] cls)
 {
 	if (!Enabled) return;
 	if (ent <= MaxClients || ent > 2048) return;
-	
+
 	if (StrEqual(cls, "tf_flame", false))
 		SDKHook(ent, SDKHook_Spawn, OnPomsonShotSpawned);
 	else if (StrEqual(cls, "tf_projectile_sentryrocket", false))
@@ -950,9 +950,9 @@ public void OnEntityDestroyed(int ent)
 {
 	if (ent <= MaxClients || ent > 2048) return;
 	if (GetGameTime() <= 1.5) return;
-	
+
 	IsSentryRocketWrangled[ent] = false;
-	
+
 	if (TankDestroySound)
 	{
 		char cls[6];
@@ -960,7 +960,7 @@ public void OnEntityDestroyed(int ent)
 		if (!StrContains(cls, "tank", false))
 			StopSound(ent, SNDCHAN_STATIC, "mvm/mvm_tank_deploy.wav");
 	}
-	
+
 	if (extTF2Attributes && TeleporterTaunt)
 	{
 		char cls[5];
@@ -976,16 +976,16 @@ public void OnEntityDestroyed(int ent)
 					if (GetEntProp(i, Prop_Send, "m_bIsReadyToHighFive")) continue; // inb4 tons more ~~press-and-hold~~ toggle taunts that won't have an easy way to detect them like this
 					if (ent != GetEntPropEnt(i, Prop_Send, "m_hGroundEntity")) continue;
 					if (!TF2_IsPlayerInCondition(i, TFCond_Taunting)) continue;
-					
+
 					Address aSpeed = TF2Attrib_GetByName(i, "gesture speed increase");
-					
+
 					bool hadOldValue = aSpeed != Address_Null;
 					float oldSpeed;
-					if (hadOldValue) 
+					if (hadOldValue)
 						oldSpeed = TF2Attrib_GetValue(aSpeed);
-					
+
 					TF2Attrib_SetByName(i, "gesture speed increase", 1000.0);
-					
+
 					Handle data;
 					CreateDataTimer(0.1, Timer_UndoGestureSpeed, data, TIMER_FLAG_NO_MAPCHANGE);
 					WritePackCell(data, GetClientUserId(i));
@@ -1065,20 +1065,20 @@ public void OnPomsonShotThink_Hitbox(int ent)
 {
 	int launcher = GetEntPropEnt(ent, Prop_Send, "m_hOwnerEntity");
 	if (launcher == -1) return;
-	
+
 	int owner = GetEntPropEnt(launcher, Prop_Send, "m_hOwnerEntity");
 	if (owner == -1) return;
-	
+
 	float mins[3], maxs[3];
 	GetEntPropVector(ent, Prop_Send, "m_vecMins", mins);
 	GetEntPropVector(ent, Prop_Send, "m_vecMaxs", maxs);
-	
+
 	for (int i = 0; i <= 2; i++)
 	{
 		mins[i] *= 0.2;
 		maxs[i] *= 0.2;
 	}
-	
+
 	SetEntPropVector(ent, Prop_Send, "m_vecMins", mins);
 	SetEntPropVector(ent, Prop_Send, "m_vecMaxs", maxs);
 }
@@ -1087,7 +1087,7 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 {
 	if (!Enabled) return Plugin_Continue;
 	Action action;
-	
+
 	if (attacker > 0 && attacker <= MaxClients)
 	{
 		if (Gunslinger && inflictor == attacker && weapon > MaxClients && weapon != 4095 && IsValidEntity(weapon))
@@ -1106,7 +1106,7 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 					if (time < LastHitTime[attacker]+0.86) HitCount[attacker]++;
 					else HitCount[attacker] = 1;
 					if (HitCount[attacker] < 1) HitCount[attacker] = 1;
-					
+
 					if (!InCond[attacker][Condition_Kritz] && !InCond[attacker][Condition_CritCandy])
 					{
 						damagetype &= ~DMG_CRIT;
@@ -1136,7 +1136,7 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 			if (GetClientHealth(victim)*2.0 == damage && StrEqual(wpncls, "tf_weapon_knife", false))
 			{
 				BackstabValidated[attacker][victim] = false;
-				
+
 				Handle data;
 				CreateDataTimer(0.1, Timer_CheckBackstab, data, TIMER_FLAG_NO_MAPCHANGE);
 				WritePackCell(data, GetClientUserId(attacker));
@@ -1154,7 +1154,7 @@ public Action Timer_CheckBackstab(Handle timer, Handle data)
 	if (!attacker) return;
 	int victim = GetClientOfUserId(ReadPackCell(data));
 	if (!victim) return;
-	
+
 	if (!BackstabValidated[attacker][victim])
 		SetEntProp(attacker, Prop_Send, "m_iRevengeCrits", GetEntProp(attacker, Prop_Send, "m_iRevengeCrits") - 1);
 }
@@ -1164,16 +1164,16 @@ public Action OnTraceAttack(int victim, int &attacker, int &inflictor, float &da
 	if (!Enabled) return;
 	if (attacker <= 0 || attacker > MaxClients) return;
 	if (GetClientTeam(victim) == GetClientTeam(attacker)) return;
-	
+
 	int weapon = GetEntPropEnt(attacker, Prop_Send, "m_hActiveWeapon");
 	if (weapon == -1) return;
-	
+
 	if (GetConVarBool(cvarWeaponCrits) || !GetConVarBool(cvarBazaarNoCrit)) return;
-	
+
 	char cls[15];
 	GetEdictClassname(weapon, cls, sizeof(cls));
 	if (StrContains(cls, "tf_weapon_snip", false)) return;
-	
+
 	if ((hitbox || hitgroup != 1) || !GetEntPropFloat(weapon, Prop_Send, "m_flChargedDamage"))
 	{
 		int heads = GetEntProp(attacker, Prop_Send, "m_iDecapitations");
@@ -1186,7 +1186,7 @@ public void TF2Items_OnGiveNamedItem_Post(int client, char[] classname, int inde
 	if (!Enabled) return;
 	if (!extTF2Attributes) return;
 	if (!GetConVarBool(cvarSpecialTaunts)) return;
-	
+
 	switch (index)
 	{
 		case 12, // Pyro's Shotgun
@@ -1226,18 +1226,18 @@ public Action Timer_EveryHalfSecond(Handle timer)
 	{
 		if (!IsClientInGame(client)) continue;
 		int activeWeapon = GetPlayerWeaponIndex(client, -1);
-		
+
 		for (int i = 0; i < 6; i++)
 			PrevWeapons[client][i] = GetPlayerWeaponIndex(client, i);
 		RageMeter[client] = GetEntPropFloat(client, Prop_Send, "m_flRageMeter");
-		
+
 		if (BazaarHeadsMeter || EyelanderHeadsMeter)
 		{
-			int heads = GetEntProp(client, Prop_Send, "m_iDecapitations"), melee = PrevWeapons[client][2]; 
+			int heads = GetEntProp(client, Prop_Send, "m_iDecapitations"), melee = PrevWeapons[client][2];
 			bool showMeter;
 			if (heads > 6 && 402 == PrevWeapons[client][0]) showMeter = true;
 			else if (heads > 127 && (melee == 132 || melee == 266 || melee == 482)) showMeter = true;
-			
+
 			if (showMeter && IsPlayerAlive(client))
 			{
 				SetHudTextParams(1.0, 1.0, 0.7, 255, 255, 255, 255);
@@ -1250,7 +1250,7 @@ public Action Timer_EveryHalfSecond(Handle timer)
 				SetEntProp(GetEntPropEnt(client, Prop_Send, "m_hActiveWeapon"), Prop_Send, "m_bArrowAlight", 0);
 		}
 		if (DeadRingerIndicator && !IsFakeClient(client) && GetEntProp(client, Prop_Send, "m_bFeignDeathReady"))
-		{	
+		{
 			if (GetEntProp(client, Prop_Send, "m_nForceTauntCam"))
 				ShowDeadRingerNotice(client);
 			QueryClientConVar(client, "r_drawviewmodel", Query_Viewmodel);
@@ -1258,7 +1258,7 @@ public Action Timer_EveryHalfSecond(Handle timer)
 			if (IsMedieval()) QueryClientConVar(client, "tf_medieval_thirdperson", Query_MedievalThirdperson);
 		}
 	}
-	
+
 	if (PomsonPenetration)
 	{
 		ClearArray(aBuildings);
@@ -1332,7 +1332,7 @@ public void TF2_OnConditionAdded(int client, TFCond cond)
 		}
 	}
 	if (!Enabled) return;
-	
+
 	switch (cond)
 	{
 		case TFCond_Taunting:
@@ -1355,7 +1355,7 @@ public void TF2_OnConditionAdded(int client, TFCond cond)
 				if (players[0] > -1)
 				{
 					players[1] = client; // Partner
-					
+
 					for (int i = 0; i <= 1; i++)
 					{
 						int player = players[i];
@@ -1545,7 +1545,7 @@ stock void TF2_RecalculateSpeed(int client)
 {
 	TF2_AddCondition(client, TFCond_SpeedBuffAlly, 0.01);
 }
-	
+
 public bool IsValidClient (int client)
 {
 	if(client > 4096) client = EntRefToEntIndex(client);

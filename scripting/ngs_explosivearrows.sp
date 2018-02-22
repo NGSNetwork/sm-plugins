@@ -21,7 +21,7 @@ Handle g_Delay = null;
 float g_pos[3], deathpos[MAXPLAYERS + 1][3];
 bool g_Arrows[MAXPLAYERS+1];
 
-public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max) 
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
 	char Game[32];
 	GetGameFolderName(Game, sizeof(Game));
@@ -60,7 +60,7 @@ public void OnPluginStart() {
 	AutoExecConfig(true, "explosivearrows");
 }
 
-public void OnMapStart() 
+public void OnMapStart()
 {
 	PrecacheModel(spirite, true);
 }
@@ -80,7 +80,7 @@ public Action Player_Death(Handle event, const char[] name, bool dontBroadcast) 
 	}
 }
 
-public void OnClientPostAdminCheck(int client) 
+public void OnClientPostAdminCheck(int client)
 {
 	g_Arrows[client] = false;
 	deathpos[client][0] = 0.0;
@@ -107,7 +107,7 @@ public Action Command_ArrowsMe(int client, int args)
 	return Plugin_Handled;
 }
 
-public Action Command_Arrows(int client, int args) 
+public Action Command_Arrows(int client, int args)
 {
 	if(!g_Enabled)
 		return Plugin_Handled;

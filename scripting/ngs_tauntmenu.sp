@@ -22,29 +22,29 @@ Handle hPlayTaunt;
 public void OnPluginStart()
 {
 	Handle conf = LoadGameConfigFile("tf2.tauntem");
-	
+
 	if (conf == null)
 	{
 		SetFailState("Unable to load gamedata/tf2.tauntem.txt. Good luck figuring that out.");
 		return;
 	}
-	
+
 	StartPrepSDKCall(SDKCall_Player);
 	PrepSDKCall_SetFromConf(conf, SDKConf_Signature, "CTFPlayer::PlayTauntSceneFromItem");
 	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
 	PrepSDKCall_SetReturnInfo(SDKType_Bool, SDKPass_Plain);
 	hPlayTaunt = EndPrepSDKCall();
-	
+
 	if (hPlayTaunt == null)
 	{
 		SetFailState("Unable to initialize call to CTFPlayer::PlayTauntSceneFromItem. Wait patiently for a fix.");
 		delete conf;
 		return;
 	}
-	
+
 	RegConsoleCmd("sm_taunt", Cmd_TauntMenu, "Taunt Menu");
 	RegConsoleCmd("sm_taunts", Cmd_TauntMenu, "Taunt Menu");
-	
+
 	delete conf;
 	LoadTranslations("common.phrases");
 	CreateConVar("tf_tauntmenu_version", PLUGIN_VERSION, "[NGS] Taunt Menu Version");
@@ -79,7 +79,7 @@ public void ShowMenu(int client, int itemNum)
 	TFClassType class = TF2_GetPlayerClass(client);
 	Menu menu = new Menu(Taunt_MenuSelected);
 	menu.SetTitle("===== NGS Taunt Menu =====");
-	
+
 	switch(class)
 	{
 		case TFClass_Scout:
@@ -126,7 +126,7 @@ public void ShowMenu(int client, int itemNum)
 			menu.AddItem("1109", "Taunt: Results Are In");
 			menu.AddItem("30918", "Taunt: Surgeon's Squeezebox");
 		}
-		
+
 		case TFClass_Pyro:
 		{
 			menu.AddItem("1112", "Taunt: Party Trick");
@@ -150,7 +150,7 @@ public void ShowMenu(int client, int itemNum)
 			menu.AddItem("30845", "Taunt: The Jumping Jack");
 		}
 	}
-	
+
 	menu.AddItem("167", "Taunt: The High Five!");
 	menu.AddItem("438", "Taunt: The Director's Vision");
 	menu.AddItem("463", "Taunt: The Schadenfreude");
@@ -168,7 +168,7 @@ public void ShowMenu(int client, int itemNum)
 	menu.AddItem("30816", "Taunt: Second Rate Sorcery");
 	menu.AddItem("1182", "Taunt: Yeti Punch");
 	menu.AddItem("1183", "Taunt: Yeti Smash");
-	
+
 	char itemBuffer[24];
 	if (itemNum > -1 && menu.GetItem(itemNum, itemBuffer, sizeof(itemBuffer)))
 	{
@@ -187,11 +187,11 @@ public int Taunt_MenuSelected(Menu menu, MenuAction action, int iClient, int par
 	{
 		delete menu;
 	}
-	
+
 	if (action == MenuAction_Select)
 	{
 		char info[12];
-		
+
 		menu.GetItem(param2, info, sizeof(info));
 		ExecuteTaunt(iClient, StringToInt(info));
 	}
@@ -204,16 +204,16 @@ public void ExecuteTaunt(int client, int itemdef)
 		TF2_RemovePlayerDisguise(client);
 	}
 	TF2Item hItem = new TF2Item(OVERRIDE_ALL|PRESERVE_ATTRIBUTES|FORCE_GENERATION);
-	
+
 	hItem.SetClassname("tf_wearable_vm");
 	hItem.Quality = 6;
 	hItem.Level = 1;
 	hItem.NumAttributes = 0;
 	hItem.DefIndex = itemdef;
-	
+
 	int ent = hItem.GiveNamedItem(client);
 	Address pEconItemView = GetEntityAddress(ent) + view_as<Address>(FindSendPropInfo("CTFWearable", "m_Item"));
-	
+
 	SDKCall(hPlayTaunt, client, pEconItemView) ? 1 : 0;
 	AcceptEntityInput(ent, "Kill");
 }

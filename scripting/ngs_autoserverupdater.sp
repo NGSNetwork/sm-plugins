@@ -1,18 +1,18 @@
 //  Automatic Steam Update (SteamWorks) (C) 2014-2014 Sarabveer Singh <me@sarabveer.me>
-//  
+//
 //  Automatic Steam Update (SteamWorks) is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
 //  the Free Software Foundation, per version 3 of the License.
-//  
+//
 //  Automatic Steam Update (SteamWorks) is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
-//  
+//
 //  You should have received a copy of the GNU General Public License
 //  along with Automatic Steam Update (SteamWorks). If not, see <http://www.gnu.org/licenses/>.
 //
-//  This file is based off work(s) covered by the following copyright(s):   
+//  This file is based off work(s) covered by the following copyright(s):
 //
 //   [TF2] Automatic Steam Update
 //   Copyright (C) 2011-2012 Dr. McKay
@@ -59,13 +59,13 @@ public Plugin myinfo = {
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max) {
-	MarkNativeAsOptional("Updater_AddPlugin"); 
+	MarkNativeAsOptional("Updater_AddPlugin");
 	return APLRes_Success;
-} 
+}
 
 public void OnPluginStart() {
 	AutoExecConfig(true, "plugin.autosteamupdate");
-	
+
 	delayCvar = CreateConVar("auto_steam_update_delay", "5", "How long in minutes the server should wait before starting another countdown after being postponed.");
 	timerCvar = CreateConVar("auto_steam_update_timer", "5", "How long in minutes the server should count down before restarting.");
 	messageTimeCvar = CreateConVar("auto_steam_update_message_display_time", "5", "At how much time in minutes left on the timer should the timer be displayed?");
@@ -79,19 +79,19 @@ public void OnPluginStart() {
 	hudGCvar = CreateConVar("auto_steam_update_hud_text_green", "255", "Amount of red for the HUD timer (only on supported games)", _, true, 0.0, true, 255.0);
 	hudBCvar = CreateConVar("auto_steam_update_hud_text_blue", "0", "Amount of red for the HUD timer (only on supported games)", _, true, 0.0, true, 255.0);
 	updaterCvar = CreateConVar("auto_steam_update_auto_update", "1", "Enables automatic plugin updating (has no effect if Updater is not installed)");
-	
+
 	sv_password = FindConVar("sv_password");
-	
+
 	RegAdminCmd("sm_postponeupdate", Command_PostponeUpdate, ADMFLAG_RCON, "Postpone a pending server restart for a Steam update");
 	RegAdminCmd("sm_updatetimer", Command_ForceRestart, ADMFLAG_RCON, "Force the server update timer to start immediately");
-	
+
 	hudText = CreateHudSynchronizer();
 	if(hudText == INVALID_HANDLE) {
 		LogMessage("HUD text is not supported on this mod. The persistant timer will not display.");
 	} else {
 		LogMessage("HUD text is supported on this mod. The persistant timer will display.");
 	}
-	
+
 	char folder[16];
 	GetGameFolderName(folder, sizeof(folder));
 	if(StrEqual(folder, "tf", false)) {
@@ -247,7 +247,7 @@ public void OnAllPluginsLoaded() {
 		Format(newVersion, sizeof(newVersion), "%sA", PLUGIN_VERSION);
 		convar = CreateConVar("sw_auto_steam_update_version", newVersion, "Automatic Steam Update Version", FCVAR_DONTRECORD|FCVAR_NOTIFY|FCVAR_CHEAT);
 	} else {
-		convar = CreateConVar("sw_auto_steam_update_version", PLUGIN_VERSION, "Automatic Steam Update Version", FCVAR_DONTRECORD|FCVAR_NOTIFY|FCVAR_CHEAT);	
+		convar = CreateConVar("sw_auto_steam_update_version", PLUGIN_VERSION, "Automatic Steam Update Version", FCVAR_DONTRECORD|FCVAR_NOTIFY|FCVAR_CHEAT);
 	}
 	convar.AddChangeHook(Callback_VersionConVarChanged);
 }

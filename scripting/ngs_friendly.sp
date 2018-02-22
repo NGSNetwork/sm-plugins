@@ -188,7 +188,7 @@ public Plugin myinfo = {
 }
 
 public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] strError, int iErr_Max)
-{ 
+{
 	char strGame[32];
 	GetGameFolderName(strGame, sizeof(strGame));
 	if (!StrEqual(strGame, "tf")) {
@@ -219,7 +219,7 @@ public void OnPluginStart()
 			OnClientPutInServer(client);
 		}
 	}
-	
+
 	cvar_enabled = CreateConVar("sm_friendly_enabled", "1", "(0/1) Enables/Disables Friendly Mode", _, true, 0.0, true, 1.0);
 
 	cvar_logging = CreateConVar("sm_friendly_logging", "2", "(0/1/2/3) 0 = No logging, 1 = Log admins targeting others, 2 = (1 + Log players using sm_friendly), 3 = (2 + list all players affected by admin commands).", _, true, 0.0, true, 3.0);
@@ -237,7 +237,7 @@ public void OnPluginStart()
 	cvar_blockrtd = CreateConVar("sm_friendly_blockrtd", "1", "(0/1) If enabled, Friendly players will be unable to activate Roll The Dice.", _, true, 0.0, true, 1.0);
 	//cvar_botignore = CreateConVar("sm_friendly_botignore", "1", "(0/1) If enabled, friendly players will be invisible to bots.", _, true, 0.0, true, 1.0);
 	//cvar_settransmit = CreateConVar("sm_friendly_settransmit", "0", "(0/1/2) 0 = Disabled, 1 = Friendlies will be invisible to non-Friendlies, 2 = No visibility between Friendlies and non-Friendlies", _);
-	
+
 	cvar_stopcap = CreateConVar("sm_friendly_stopcap", "1", "(0/1) If enabled, Friendly players will be unable to cap points or push carts.", _, true, 0.0, true, 1.0);
 	cvar_stopintel = CreateConVar("sm_friendly_stopintel", "1", "(0/1) If enabled, Friendly players will be unable to grab the intel.", _, true, 0.0, true, 1.0);
 	cvar_ammopack = CreateConVar("sm_friendly_ammopack", "1", "(0/1) If enabled, Friendly players will be unable to pick up ammo boxes, dropped weapons, or Sandman balls.", _, true, 0.0, true, 1.0);
@@ -286,7 +286,7 @@ public void OnPluginStart()
 	cvar_nobuild_s = CreateConVar("sm_friendly_nobuild_s", "0", "(0/1) When enabled, a Friendly engineer will not be able to build sentries.", _, true, 0.0, true, 1.0);
 	cvar_nobuild_d = CreateConVar("sm_friendly_nobuild_d", "1", "(0/1) When enabled, a Friendly engineer will not be able to build dispensers.", _, true, 0.0, true, 1.0);
 	cvar_nobuild_t = CreateConVar("sm_friendly_nobuild_t", "0", "(0/1) a Friendly engineer will not be able to build teleporters.", _, true, 0.0, true, 1.0);
-	
+
 	RegAdminCmd("sm_friendly", UseFriendlyCmd, 0, "Toggles Friendly Mode");
 	RegAdminCmd("sm_unfriendly", UseFriendlyCmd, 0, "Toggles Friendly Mode, made for the confused");
 	RegAdminCmd("sm_friendly_admin", UseAdminCmd, ADMFLAG_BAN, "Toggles Friendly Admin Mode");
@@ -309,7 +309,7 @@ public void OnPluginStart()
 
 	AddCommandListener(OnClientSpeaks, "say");
 	AddCommandListener(OnClientSpeaks, "say_team");
-	
+
 	AddMultiTargetFilter("@friendly", TargetFriendlies, "Friendly players", false);
 	AddMultiTargetFilter("@friendlies", TargetFriendlies, "Friendly players", false);
 	AddMultiTargetFilter("@!friendly", TargetHostiles, "non-Friendly players", false);
@@ -318,7 +318,7 @@ public void OnPluginStart()
 	AddMultiTargetFilter("@!friendlyadmins", TargetFriendlyNonAdmins, "players not in Friendly Admin mode", false);
 	AddMultiTargetFilter("@friendlylocked", TargetFriendlyLocked, "Friendly-locked players", false);
 	AddMultiTargetFilter("@!friendlylocked", TargetFriendlyUnlocked, "non Friendly-locked players", false);
-	
+
 	hfwd_CanToggleFriendly = CreateGlobalForward("TF2Friendly_CanToggleFriendly", ET_Event, Param_Cell);
 	hfwd_FriendlyPre = CreateGlobalForward("TF2Friendly_OnEnableFriendly_Pre", ET_Ignore, Param_Cell);
 	hfwd_Friendly = CreateGlobalForward("TF2Friendly_OnEnableFriendly", ET_Ignore, Param_Cell);
@@ -334,7 +334,7 @@ public void OnPluginStart()
 	hfwd_FriendlyDisable = CreateGlobalForward("TF2Friendly_OnPluginDisabled", ET_Ignore);
 	hfwd_FriendlyLoad = CreateGlobalForward("TF2Friendly_OnPluginLoaded", ET_Ignore);
 	hfwd_FriendlyUnload = CreateGlobalForward("TF2Friendly_OnPluginUnloaded", ET_Ignore);
-	
+
 	g_hFriendlyEnabled = RegClientCookie("friendly", "If in friendly or not.", CookieAccess_Private);
 	g_hFriendlyLockEnabled = RegClientCookie("friendlylocked", "If in friendly lock or not.", CookieAccess_Private);
 
@@ -361,7 +361,7 @@ public void OnPluginStart()
         {
             continue;
         }
-        
+
         OnClientCookiesCached(i);
     }
 }
@@ -370,10 +370,10 @@ public void OnClientCookiesCached(int client)
 {
 	char sFriendlyValue[8];
 	char sFriendlyLockValue[8];
-	
+
 	GetClientCookie(client, g_hFriendlyEnabled, sFriendlyValue, sizeof(sFriendlyValue));
 	GetClientCookie(client, g_hFriendlyLockEnabled, sFriendlyLockValue, sizeof(sFriendlyLockValue));
-	
+
 	if (StringToInt(sFriendlyValue) == 1) IsFriendly[client] = true;
 	if (StringToInt(sFriendlyLockValue) == 1) IsLocked[client] = true;
 }
@@ -604,7 +604,7 @@ void UseFriendlyOnSelf(const int client) {
 	if (time < ToggleTimer[client]) {
 		CReplyToCommand(client, "%s You must wait %d seconds.", CHAT_PREFIX, RoundToCeil(ToggleTimer[client] - time));
 		return;
-	}		
+	}
 	if (IsPlayerAlive(client)) {
 		if (RequestedChange[client]) {
 			RequestedChange[client] = false;
@@ -1064,7 +1064,7 @@ public void OnPlayerSpawned(Handle event, const char[] name, bool dontBroadcast)
 	char sValue[8];
 	GetClientCookie(client, g_hFriendlyLockEnabled, sValue, sizeof(sValue));
 	if (StringToInt(sValue) == 1) IsLocked[client] = true;
-	
+
 	if (RFETRIZ[client] || (IsLocked[client] && IsFriendly[client])) {
 		CPrintToChat(client, "%s You are still Friendly.", CHAT_PREFIX);
 		RequestedChange[client] = false;
@@ -1140,7 +1140,7 @@ public Action OnClientSpeaks(int client, const char[] strCommand, int iArgs) {
 	AfkTime[client] = 0.0;
 	return Plugin_Continue;
 }
-	
+
 public void OnClientPutInServer(int client) {
 	SDKHook(client, SDKHook_OnTakeDamage, OnTakeDamage);
 	SDKHook(client, SDKHook_WeaponSwitch, OnWeaponSwitch);
@@ -1178,7 +1178,7 @@ void MakeClientHostile(const int client) {
 		Call_PushCell(client);
 		Call_Finish();
 	}
-	
+
 	FriendlyPlayerCount--;
 	IsFriendly[client] = false;
 	RequestedChange[client] = false;
@@ -1213,7 +1213,7 @@ void MakeClientHostile(const int client) {
 		Call_PushCell(client);
 		Call_Finish();
 	}
-	
+
 	if (AreClientCookiesCached(client))
 	{
 		SetClientCookie(client, g_hFriendlyEnabled, "0");
@@ -1254,7 +1254,7 @@ void MakeClientFriendly(const int client) {
 		Call_PushCell(client);
 		Call_Finish();
 	}
-	
+
 	if (AreClientCookiesCached(client))
 	{
 		SetClientCookie(client, g_hFriendlyEnabled, "1");
@@ -1458,7 +1458,7 @@ void MakeStickiesFriendly(const int client) {
 	int sticky = -1;
 	while ((sticky = FindEntityByClassname(sticky, "tf_projectile_pipe_remote"))!=INVALID_ENT_REFERENCE) {
 		if (IsValidEntity(sticky) && (GetEntPropEnt(sticky, Prop_Send, "m_hThrower") == client)) {
-			if (cvar_alpha_proj.IntValue >= 0 && cvar_alpha_proj.IntValue <= 255) {	
+			if (cvar_alpha_proj.IntValue >= 0 && cvar_alpha_proj.IntValue <= 255) {
 				SetEntityRenderMode(sticky, RENDER_TRANSCOLOR);
 				SetEntityRenderColor(sticky, 255, 0, 255, _);
 			}
@@ -1936,7 +1936,7 @@ public Action Object_Built(Handle event, const char[] name, bool dontBroadcast) 
 				if (cvar_notarget_d.BoolValue) {
 					SetNotarget(building, true);
 				}
-				if (cvar_alpha_d.IntValue > -1) {	
+				if (cvar_alpha_d.IntValue > -1) {
 					SetEntityRenderMode(building, RENDER_TRANSCOLOR);
 					SetEntityRenderColor(building, 255, 0, 255, _);
 				}
@@ -1957,7 +1957,7 @@ public Action Object_Built(Handle event, const char[] name, bool dontBroadcast) 
 				if (cvar_notarget_t.BoolValue) {
 					SetNotarget(building, true);
 				}
-				if (cvar_alpha_t.IntValue > -1) {	
+				if (cvar_alpha_t.IntValue > -1) {
 					SetEntityRenderMode(building, RENDER_TRANSCOLOR);
 					SetEntityRenderColor(building, 255, 0, 255, _);
 				}
@@ -1990,7 +1990,7 @@ void MakeBuildingsFriendly(const int client) {
 				if (cvar_notarget_s.BoolValue) {
 					SetNotarget(sentrygun, true);
 				}
-				if (cvar_alpha_s.IntValue > -1) {	
+				if (cvar_alpha_s.IntValue > -1) {
 					SetEntityRenderMode(sentrygun, RENDER_TRANSCOLOR);
 					SetEntityRenderColor(sentrygun, 255, 0, 255, _);
 				}
@@ -2016,7 +2016,7 @@ void MakeBuildingsFriendly(const int client) {
 				if (cvar_notarget_d.BoolValue) {
 					SetNotarget(dispenser, true);
 				}
-				if (cvar_alpha_d.IntValue > -1) {	
+				if (cvar_alpha_d.IntValue > -1) {
 					SetEntityRenderMode(dispenser, RENDER_TRANSCOLOR);
 					SetEntityRenderColor(dispenser, 255, 0, 255, _);
 				}
@@ -2042,7 +2042,7 @@ void MakeBuildingsFriendly(const int client) {
 				if (cvar_notarget_t.BoolValue) {
 					SetNotarget(teleporter, true);
 				}
-				if (cvar_alpha_t.IntValue > -1) {	
+				if (cvar_alpha_t.IntValue > -1) {
 					SetEntityRenderMode(teleporter, RENDER_TRANSCOLOR);
 					SetEntityRenderColor(teleporter, 255, 0, 255, _);
 				}
@@ -2071,7 +2071,7 @@ void MakeBuildingsHostile(const int client) {
 				if (cvar_notarget_s.BoolValue) {
 					SetNotarget(sentrygun, false);
 				}
-				if (cvar_alpha_s.IntValue != -1) {	
+				if (cvar_alpha_s.IntValue != -1) {
 					SetEntityRenderMode(sentrygun, RENDER_NORMAL);
 					SetEntityRenderColor(sentrygun, _, _, _, _);
 				}
@@ -2093,7 +2093,7 @@ void MakeBuildingsHostile(const int client) {
 				if (cvar_notarget_d.BoolValue) {
 					SetNotarget(dispenser, false);
 				}
-				if (cvar_alpha_d.IntValue != -1) {	
+				if (cvar_alpha_d.IntValue != -1) {
 					SetEntityRenderMode(dispenser, RENDER_NORMAL);
 					SetEntityRenderColor(dispenser, _, _, _, _);
 				}
@@ -2115,7 +2115,7 @@ void MakeBuildingsHostile(const int client) {
 				if (cvar_notarget_t.BoolValue) {
 					SetNotarget(teleporter, false);
 				}
-				if (cvar_alpha_t.IntValue != -1) {	
+				if (cvar_alpha_t.IntValue != -1) {
 					SetEntityRenderMode(teleporter, RENDER_NORMAL);
 					SetEntityRenderColor(teleporter, _, _, _, _);
 				}
@@ -2220,7 +2220,7 @@ public void RemoveActiveSapper(int building, bool ignoreadmin) {
 				AcceptEntityInput(sapper, "Kill");
 			}
 		}
-	}	
+	}
 }
 
 public void RemoveMySappers(int client) {
@@ -2375,7 +2375,7 @@ void ForceWeaponSwitches(const int client) {
 	if (!IsValidEntity(curwep) || !IsWeaponBlocked(curwep)) {
 		return;
 	}
-	
+
 	if (g_minigunoffsetstate > 0) {
 		char curwepclass[32];
 		GetEntityClassname(curwep, curwepclass, sizeof(curwepclass));
@@ -2386,7 +2386,7 @@ void ForceWeaponSwitches(const int client) {
 			}
 		}
 	}
-	
+
 	for (int i = 0; i <= 5; i++) {
 		int weapon = GetPlayerWeaponSlot(client, i);
 		if (!IsValidEdict(weapon)) {
@@ -2400,7 +2400,7 @@ void ForceWeaponSwitches(const int client) {
 		}
 		char classname[64];
 		if (GetEntityClassname(weapon, classname, sizeof(classname))) {
-			if (StrEqual(classname, "tf_weapon_invis") 
+			if (StrEqual(classname, "tf_weapon_invis")
 			||  StrEqual(classname, "tf_weapon_builder")) {
 				continue;
 			}
@@ -2482,7 +2482,7 @@ Natives */
 
 public int Native_CheckIfFriendly(Handle plugin, int numParams) {
 	int client = GetNativeCell(1);
-	
+
 	if (client < 1 || client > MaxClients) {
 		ThrowNativeError(SP_ERROR_PARAM, "Invalid client or client index %i", client);
 		return false;
@@ -2501,7 +2501,7 @@ public int Native_CheckIfFriendly(Handle plugin, int numParams) {
 
 public int Native_CheckIfFriendlyLocked(Handle plugin, int numParams) {
 	int client = GetNativeCell(1);
-	
+
 	if (client < 1 || client > MaxClients) {
 		ThrowNativeError(SP_ERROR_PARAM, "Invalid client or client index %i", client);
 		return false;
@@ -2520,7 +2520,7 @@ public int Native_CheckIfFriendlyLocked(Handle plugin, int numParams) {
 
 public int Native_CheckIfFriendlyAdmin(Handle plugin, int numParams) {
 	int client = GetNativeCell(1);
-	
+
 	if (client < 1 || client > MaxClients) {
 		ThrowNativeError(SP_ERROR_PARAM, "Invalid client or client index %i", client);
 		return false;
@@ -2541,7 +2541,7 @@ public int Native_SetFriendly(Handle plugin, int numParams) {
 	int client = GetNativeCell(1);
 	int direction = GetNativeCell(2);
 	int action = GetNativeCell(3);
-	
+
 	if (client < 1 || client > MaxClients) {
 		ThrowNativeError(SP_ERROR_PARAM, "Invalid client or client index %i", client);
 		return -3;
@@ -2583,7 +2583,7 @@ public int Native_SetFriendly(Handle plugin, int numParams) {
 				}
 				return 3;
 			}
-			
+
 		}
 		return 1;
 	}
@@ -2593,7 +2593,7 @@ public int Native_SetFriendly(Handle plugin, int numParams) {
 public int Native_SetFriendlyLock(Handle plugin, int numParams) {
 	int client = GetNativeCell(1);
 	int direction = GetNativeCell(2);
-	
+
 	if (client < 1 || client > MaxClients) {
 		ThrowNativeError(SP_ERROR_PARAM, "Invalid client or client index %i", client);
 		return -3;
@@ -2620,7 +2620,7 @@ public int Native_SetFriendlyLock(Handle plugin, int numParams) {
 public int Native_SetFriendlyAdmin(Handle plugin, int numParams) {
 	int client = GetNativeCell(1);
 	int direction = GetNativeCell(2);
-	
+
 	if (client < 1 || client > MaxClients) {
 		ThrowNativeError(SP_ERROR_PARAM, "Invalid client or client index %i", client);
 		return -3;
@@ -2646,7 +2646,7 @@ public int Native_SetFriendlyAdmin(Handle plugin, int numParams) {
 
 public int Native_RefreshFriendly(Handle plugin, int numParams) {
 	int client = GetNativeCell(1);
-	
+
 	if (client < 1 || client > MaxClients) {
 		ThrowNativeError(SP_ERROR_PARAM, "Invalid client or client index %i", client);
 		return -3;

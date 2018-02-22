@@ -8,9 +8,9 @@
  * Remove a weapon unusual effect.
  *
  * @param SteamID	Client SteamID.
- * @param WeaponID	Weapon Index.			
+ * @param WeaponID	Weapon Index.
  */
-native bool:UE_RemoveEffect(String:SteamID[], WeaponID);
+native bool UE_RemoveEffect(char[] SteamID, int WeaponID);
 
 
 /**
@@ -18,7 +18,7 @@ native bool:UE_RemoveEffect(String:SteamID[], WeaponID);
  *
  * @param SteamID	Client SteamID.
  */
-native bool:UE_RemovePlayerEffects(String:SteamID[]);
+native bool UE_RemovePlayerEffects(char[] SteamID);
 
 
 /**
@@ -27,21 +27,21 @@ native bool:UE_RemovePlayerEffects(String:SteamID[]);
  * @param flag		FlagBit (ex : ADMINFLAG_ROOT), -1 = without flag.
  * @return 			Unusual effect flag number limit, -1 = no limit, -2 if invalid FlagBit
  */
-native UE_GetUnusualEffectPermission(flag);
+native int UE_GetUnusualEffectPermission(int flag);
 
 
 /**
  * Set flag unusual effect number limit.
  *
  * @param flag		FlagBit (ex : ADMINFLAG_ROOT), -1 = without flag.
- * @param limit		limit. 
+ * @param limit		limit.
  * @return 			false if invalid FlagBit, true on success.
  */
-native bool:UE_SetUnusualEffectPermission(flag, limit);
+native bool UE_SetUnusualEffectPermission(int flag, int limit);
 
 
 
-public SharedPlugin:__pl_unusual = 
+public SharedPlugin __pl_unusual =
 {
 	name = "unusual",
 	file = "ngs_unusualweapons.smx",

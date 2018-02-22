@@ -61,13 +61,13 @@ public void OnPluginStart()
 	RegAdminCmd("sm_judgingnecromash", CommandJudgingNecromash, ADMFLAG_SLAY, "Judges a random person with the blessed hammer!");
 	host_timescale = FindConVar("host_timescale");
 	current_timescale = 1.0;
-	
+
 	RegAdminCmd("sm_warptime", Command_warpTime, ADMFLAG_RCON);
 	sm_timewarp_cooldown = CreateConVar("sm_timewarp_cooldown", "180", "The serverwide cooldown for the timewarp item.");
-	
+
 	dailyLoginTimeCookie = RegClientCookie("dailycreditloginreward", "Timestamp to check credit reward against.", CookieAccess_Private);
 	dailyTradeTimeCookie = RegClientCookie("dailytradereward", "Timestamp to check trade reward against.", CookieAccess_Private);
-    
+
 	sm_timewarp_cooldown.AddChangeHook(OnConVarChanged);
 	LoadTranslations("store.phrases");
 	PrecacheMonoculus();
@@ -114,7 +114,7 @@ public void OnMapStart()
 	findSpawnPoints();
 	SetConVarFloat( host_timescale, 1.0 );
 	g_lastwarp = -c_timewarp_cooldown;
-	
+
 	PrecacheSound("ui/halloween_loot_spawn.wav", true);
 	PrecacheSound("ui/halloween_loot_found.wav", true);
 }
@@ -182,7 +182,7 @@ public void OnPostInventoryApplication(Event hEvent, const char[] szName, bool b
 	 		if (loginCookiesJustMade[client] || currentTime > (cookieValue + 86400))
 			{
 				Store_GiveCredits(accountID, 200);
-				CPrintToChat(client, "%tCongrats, you have been awarded {PURPLE}200{DEFAULT} credits for logging in today. We hope you enjoy the NGS family!", "Store Tag Colored");		
+				CPrintToChat(client, "%tCongrats, you have been awarded {PURPLE}200{DEFAULT} credits for logging in today. We hope you enjoy the NGS family!", "Store Tag Colored");
 				IntToString(currentTime, newCookieValue, sizeof(newCookieValue));
 				SetClientCookie(client, dailyLoginTimeCookie, newCookieValue);
 				if (loginCookiesJustMade[client]) loginCookiesJustMade[client] = false;
@@ -198,7 +198,7 @@ public Action CommandSpawnMerasmusCenter(int client, int args)
 	{
 		char arg1[32];
 		GetCmdArg(1, arg1, sizeof(arg1));
-		
+
 		int target = FindTarget(client, arg1, false, false);
 		if (target == -1) return Plugin_Handled;
 		if (TF2Friendly_IsFriendly(target))
@@ -213,11 +213,11 @@ public Action CommandSpawnMerasmusCenter(int client, int args)
 	   		Store_GiveItem(GetSteamAccountID(target), 485);
 	   		return Plugin_Handled;
 	  	}
-	
+
 		SpawnCooldown = currentTime;
 		CPrintToChatAll("%t{OLIVE}%N{DEFAULT} spawned in {GREY}MERASMUS{DEFAULT}!", "Store Tag Colored", target);
 	}
-	
+
 	int BaseHealth = GetConVarInt(cvarHealth), HealthPerPlayer = GetConVarInt(cvarHealthPerPlayer), HealthPerLevel = GetConVarInt(cvarHealthPerLevel);
 	SetConVarInt(cvarHealth, 4200), SetConVarInt(cvarHealthPerPlayer, 300), SetConVarInt(cvarHealthPerLevel, 2000);
 	int ent = CreateEntityByName("merasmus");
@@ -234,7 +234,7 @@ public Action CommandSpawnMonoculusCenter(int client, int args)
 	{
 		char arg1[32];
 		GetCmdArg(1, arg1, sizeof(arg1));
-		
+
 		int target = FindTarget(client, arg1, false, false);
 		if (target == -1) return Plugin_Handled;
 		if (TF2Friendly_IsFriendly(target))
@@ -249,11 +249,11 @@ public Action CommandSpawnMonoculusCenter(int client, int args)
 			Store_GiveItem(GetSteamAccountID(target), 405);
 			return Plugin_Handled;
 		}
-	
+
 		SpawnCooldown = currentTime;
 		CPrintToChatAll("%t{OLIVE}%N{DEFAULT} spawned in {PURPLE}MONOCULUS{DEFAULT}!", "Store Tag Colored", target);
 	}
-	
+
 	int BaseHealth = GetConVarInt(cvarHealth), HealthPerPlayer = GetConVarInt(cvarHealthPerPlayer), HealthPerLevel = GetConVarInt(cvarHealthPerLevel);
 	SetConVarInt(cvarHealth, 4200), SetConVarInt(cvarHealthPerPlayer, 300), SetConVarInt(cvarHealthPerLevel, 2000);
 	int Ent = CreateEntityByName("eyeball_boss");
@@ -268,10 +268,10 @@ public Action CommandSpawnMonoculusCenter(int client, int args)
 public Action CommandTeamMonoculus(int client, int args)
 {
 	if (args < 1) return Plugin_Handled;
-	
+
 	char arg1[MAX_BUFFER_LENGTH];
 	GetCmdArg(1, arg1, sizeof(arg1));
-	
+
 	int target = FindTarget(client, arg1, false, false);
 	if (target == -1) return Plugin_Handled;
 	if (TF2Friendly_IsFriendly(target))
@@ -288,20 +288,20 @@ public Action CommandTeamMonoculus(int client, int args)
 		return Plugin_Handled;
 	}
 	SpecMonoculusCooldown[playerTeam - 2] = currentTime;
-	
+
 	int BaseHealth = cvarHealth.IntValue, HealthPerPlayer = cvarHealthPerPlayer.IntValue, HealthPerLevel = cvarHealthPerLevel.IntValue;
 	cvarHealth.IntValue = 4200, cvarHealthPerPlayer.IntValue = 300, cvarHealthPerLevel.IntValue = 2000;
 	int Ent = CreateEntityByName("eyeball_boss");
 	SetEntProp(Ent, Prop_Data, "m_iTeamNum", playerTeam);
 	SetEntProp(Ent, Prop_Send, "m_CollisionGroup", 2);
-	
-	float start[3], angle[3], end[3]; 
-	GetClientEyePosition(target, start); 
-	GetClientEyeAngles(target, angle); 
-	TR_TraceRayFilter(start, angle, MASK_SOLID, RayType_Infinite, TraceEntityFilterPlayer, target); 
+
+	float start[3], angle[3], end[3];
+	GetClientEyePosition(target, start);
+	GetClientEyeAngles(target, angle);
+	TR_TraceRayFilter(start, angle, MASK_SOLID, RayType_Infinite, TraceEntityFilterPlayer, target);
 	if (TR_DidHit())
-	{ 
-		TR_GetEndPosition(end); 
+	{
+		TR_GetEndPosition(end);
 	}
 	if (NearSpawn(end))
 	{
@@ -309,7 +309,7 @@ public Action CommandTeamMonoculus(int client, int args)
 		Store_GiveItem(GetSteamAccountID(target), 406);
 		return Plugin_Handled;
 	}
-	
+
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (!IsValidClient(i) || !IsPlayerAlive(i) || target == i) continue;
@@ -322,9 +322,9 @@ public Action CommandTeamMonoculus(int client, int args)
 			return Plugin_Handled;
 		}
 	}
-	
+
 	CPrintToChatAll("%t{OLIVE}%N{DEFAULT} spawned in %sSPECTRAL MONOCULUS{DEFAULT}!", "Store Tag Colored", target, (GetClientTeam(target) == view_as<int>(TFTeam_Blue)) ? "{BLUE}" : "{RED}");
-	
+
 	end[2] += 50;
 	TeleportEntity(Ent, end, NULL_VECTOR, NULL_VECTOR);
 	DispatchSpawn(Ent);
@@ -340,7 +340,7 @@ public Action CommandUltimateNecromash(int client, int args)
 	{
 		char arg1[32];
 		GetCmdArg(1, arg1, sizeof(arg1));
-		
+
 		int target = FindTarget(client, arg1, false, false);
 		if (target == -1) return Plugin_Handled;
 		if (TF2Friendly_IsFriendly(target))
@@ -355,7 +355,7 @@ public Action CommandUltimateNecromash(int client, int args)
 			Store_GiveItem(GetSteamAccountID(target), 365); // Gives hammer back after unsuccessful usage. So unfutureproof
 			return Plugin_Handled;
 		}
-	
+
 		uNecromashCooldown = currentTime;
 		CPrintToChatAll("%t{OLIVE}%N{DEFAULT} called the power of {GREEN}THE ULTIMATE NECROMASH{DEFAULT}!", "Store Tag Colored", target);
 	}
@@ -391,7 +391,7 @@ public Action CommandJudgingNecromash(int client, int args)
 	{
 		char arg1[32];
 		GetCmdArg(1, arg1, sizeof(arg1));
-		
+
 		int target = FindTarget(client, arg1, false, false);
 		if (target == -1) return Plugin_Handled;
 		if (TF2Friendly_IsFriendly(target))
@@ -406,7 +406,7 @@ public Action CommandJudgingNecromash(int client, int args)
 	   		Store_GiveItem(GetSteamAccountID(target), 369);
 	   		return Plugin_Handled;
 	  	}
-	
+
 		jNecromashCooldown = currentTime;
 		CPrintToChatAll("%t{OLIVE}%N{DEFAULT} called the power of {GREEN}THE JUDGING NECROMASH{DEFAULT}!", "Store Tag Colored", target);
 	}
@@ -444,7 +444,7 @@ public void EventItemFound(Event event, const char[] name, bool dontBroadcast)
  		if (tradeCookiesJustMade[client] || currentTime > (cookieValue + 86400))
 		{
 			Store_GiveCredits(accountID, 500);
-			CPrintToChat(client, "%tCongrats, you have been awarded {PURPLE}500{DEFAULT} credits for trading an item today.", "Store Tag Colored");		
+			CPrintToChat(client, "%tCongrats, you have been awarded {PURPLE}500{DEFAULT} credits for trading an item today.", "Store Tag Colored");
 			IntToString(currentTime, newCookieValue, sizeof(newCookieValue));
 			SetClientCookie(client, dailyTradeTimeCookie, newCookieValue);
 			if (tradeCookiesJustMade[client]) tradeCookiesJustMade[client] = false;
@@ -455,13 +455,13 @@ public void EventItemFound(Event event, const char[] name, bool dontBroadcast)
 public Action Command_warpTime(int client, int args)
 {
 	if (args < 1) return Plugin_Handled;
-	
+
 	char arg1[MAX_BUFFER_LENGTH];
 	GetCmdArg(1, arg1, sizeof(arg1));
-	
+
 	int target = FindTarget(client, arg1, false, false);
 	if (target == -1) return Plugin_Handled;
-	
+
 	warpTime(target);
 	return Plugin_Handled;
 }
@@ -473,31 +473,31 @@ bool warpTime(int client)
 		CPrintToChat(client,"%tTime is already warped!", "Store Tag Colored");
 		return false;
 	}
-	
+
 	float time = GetGameTime();
 	if( time < g_lastwarp + c_timewarp_cooldown )
 	{
 		CPrintToChat( client, "%tTime has recently been warped. Please try again in {PURPLE}%d{DEFAULT} seconds.", "Store Tag Colored", RoundToCeil(g_lastwarp + c_timewarp_cooldown - time) );
 		return false;
 	}
-	
+
 	g_lastwarp = time;
 	EmitSoundToAll( "ui/halloween_loot_spawn.wav", SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_HOME );
 	TFTeam client_team = view_as<TFTeam>(GetClientTeam(client));
-	
+
 	char name[32];
 	GetClientName( client, name, sizeof name );
-	
+
 	if (client_team == TFTeam_Blue) CPrintToChatAll("%t{BLUE}%s{DEFAULT} has warped time!", "Store Tag Colored", name);
 	else CPrintToChatAll("%t{RED}%s{DEFAULT} has warped time!", "Store Tag Colored", name);
-	
+
 	time_warped = true;
 	for( int i = 1; i <= MaxClients; i++ ) {
 		if( IsClientInGame(i) && !IsFakeClient(i) ) {
 			fakeCheats( i, true );
 		}
 	}
-	
+
 	CreateTimer( 0.1, Timer_warpTimeInc, _, TIMER_REPEAT );
 	CreateTimer( 15.0, Timer_unWarpTime );
 	return true;
@@ -519,9 +519,9 @@ bool NearSpawn(float end[3])
 	return false;
 }
 
-public bool TraceEntityFilterPlayer(int entity, int contentsMask, any data)  
-{ 
-	return entity > MaxClients; 
+public bool TraceEntityFilterPlayer(int entity, int contentsMask, any data)
+{
+	return entity > MaxClients;
 }
 
 void fakeCheats(int client, bool on_off ){
@@ -540,7 +540,7 @@ void findSpawnPoints() {
 public Action Timer_warpTimeInc( Handle timer )
 {
 	current_timescale -= 0.03;
-	
+
 	SetConVarFloat(host_timescale, current_timescale);
 	if( current_timescale <= 0.5 ){
 		SetConVarFloat(host_timescale, 0.5);
@@ -598,7 +598,7 @@ public Action Timer_unWarpTimeInc( Handle timer ) {
 
 	current_timescale += 0.03;
 	host_timescale.FloatValue = current_timescale;
-	
+
 	if( current_timescale <= 1.0 )
 	{
 		host_timescale.FloatValue = 1.0;
@@ -658,7 +658,7 @@ void PrecacheMerasmus()
 	PrecacheModel("models/bots/merasmus/merasmus.mdl", true);
 	PrecacheModel("models/prop_lakeside_event/bomb_temp.mdl", true);
 	PrecacheModel("models/prop_lakeside_event/bomb_temp_hat.mdl", true);
-	
+
 	for(int i = 1; i <= 17; i++) {
 		char iString[PLATFORM_MAX_PATH];
 		if(i < 10) Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_appears0%d.wav", i);
@@ -667,7 +667,7 @@ void PrecacheMerasmus()
 			PrecacheSound(iString, true);
 		}
 	}
-	
+
 	for(int i = 1; i <= 11; i++) {
 		char iString[PLATFORM_MAX_PATH];
 		if(i < 10) Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_attacks0%d.wav", i);
@@ -676,7 +676,7 @@ void PrecacheMerasmus()
 			PrecacheSound(iString, true);
 		}
 	}
-	
+
 	for(int i = 1; i <= 54; i++) {
 		char iString[PLATFORM_MAX_PATH];
 		if(i < 10) Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_bcon_headbomb0%d.wav", i);
@@ -685,7 +685,7 @@ void PrecacheMerasmus()
 			PrecacheSound(iString, true);
 		}
 	}
-	
+
 	for(int i = 1; i <= 33; i++) {
 		char iString[PLATFORM_MAX_PATH];
 		if(i < 10) Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_bcon_held_up0%d.wav", i);
@@ -694,13 +694,13 @@ void PrecacheMerasmus()
 			PrecacheSound(iString, true);
 		}
 	}
-	
+
 	for(int i = 2; i <= 4; i++) {
 		char iString[PLATFORM_MAX_PATH];
 		Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_bcon_island0%d.wav", i);
 		PrecacheSound(iString, true);
 	}
-	
+
 	for(int i = 1; i <= 3; i++) {
 		char iString[PLATFORM_MAX_PATH];
 		Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_bcon_skullhat0%d.wav", i);
@@ -712,7 +712,7 @@ void PrecacheMerasmus()
 		Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_combat_idle0%d.wav", i);
 		PrecacheSound(iString, true);
 	}
-	
+
 	for(int i = 1; i <= 12; i++) {
 		char iString[PLATFORM_MAX_PATH];
 		if(i < 10) Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_defeated0%d.wav", i);
@@ -721,7 +721,7 @@ void PrecacheMerasmus()
 			PrecacheSound(iString, true);
 		}
 	}
-	
+
 	for(int i = 1; i <= 9; i++) {
 		char iString[PLATFORM_MAX_PATH];
 		Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_found0%d.wav", i);
@@ -733,7 +733,7 @@ void PrecacheMerasmus()
 		Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_grenades0%d.wav", i);
 		PrecacheSound(iString, true);
 	}
-	
+
 	for(int i = 1; i <= 26; i++) {
 		char iString[PLATFORM_MAX_PATH];
 		if(i < 10) Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_headbomb_hit0%d.wav", i);
@@ -742,7 +742,7 @@ void PrecacheMerasmus()
 			PrecacheSound(iString, true);
 		}
 	}
-	
+
 	for(int i = 1; i <= 19; i++) {
 		char iString[PLATFORM_MAX_PATH];
 		if(i < 10) Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_hide_heal10%d.wav", i);
@@ -751,7 +751,7 @@ void PrecacheMerasmus()
 			PrecacheSound(iString, true);
 		}
 	}
-	
+
 	for(int i = 1; i <= 49; i++) {
 		char iString[PLATFORM_MAX_PATH];
 		if(i < 10) Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_hide_idles0%d.wav", i);
@@ -760,7 +760,7 @@ void PrecacheMerasmus()
 			PrecacheSound(iString, true);
 		}
 	}
-	
+
 	for(int i = 1; i <= 16; i++) {
 		char iString[PLATFORM_MAX_PATH];
 		if(i < 10) Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_leaving0%d.wav", i);
@@ -769,19 +769,19 @@ void PrecacheMerasmus()
 			PrecacheSound(iString, true);
 		}
 	}
-	
+
 	for(int i = 1; i <= 5; i++) {
 		char iString[PLATFORM_MAX_PATH];
 		Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_pain0%d.wav", i);
 		PrecacheSound(iString, true);
 	}
-	
+
 	for(int i = 4; i <= 8; i++) {
 		char iString[PLATFORM_MAX_PATH];
 		Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_ranged_attack0%d.wav", i);
 		PrecacheSound(iString, true);
 	}
-	
+
 	for(int i = 2; i <= 13; i++) {
 		char iString[PLATFORM_MAX_PATH];
 		if(i < 10) Format(iString, sizeof(iString), "vo/halloween_merasmus/sf12_staff_magic0%d.wav", i);
@@ -790,14 +790,14 @@ void PrecacheMerasmus()
 			PrecacheSound(iString, true);
 		}
 	}
-	
+
 	PrecacheSound("vo/halloween_merasmus/sf12_hide_idles_demo01.wav", true);
 	PrecacheSound("vo/halloween_merasmus/sf12_magic_backfire06.wav", true);
 	PrecacheSound("vo/halloween_merasmus/sf12_magic_backfire07.wav", true);
 	PrecacheSound("vo/halloween_merasmus/sf12_magic_backfire23.wav", true);
 	PrecacheSound("vo/halloween_merasmus/sf12_magic_backfire29.wav", true);
 	PrecacheSound("vo/halloween_merasmus/sf12_magicwords11.wav", true);
-	
+
 	PrecacheSound("misc/halloween/merasmus_appear.wav", true);
 	PrecacheSound("misc/halloween/merasmus_death.wav", true);
 	PrecacheSound("misc/halloween/merasmus_disappear.wav", true);

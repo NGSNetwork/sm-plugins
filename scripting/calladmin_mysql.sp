@@ -5,24 +5,24 @@
  * License     GPLv3
  * Web         http://gugyclan.eu, http://popoklopsi.de
  * -----------------------------------------------------
- * 
+ *
  * CallAdmin
  * Copyright (C) 2013 Impact, Popoklopsi
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>
  */
- 
+
 #include <sourcemod>
 #include <autoexecconfig>
 #include "calladmin"
@@ -73,7 +73,7 @@ Database g_hDbHandle;
 #define UPDATER_URL "http://plugins.gugyclan.eu/calladmin/calladmin_mysql.txt"
 
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "CallAdmin: Mysql module",
 	author = "Impact, Popoklopsi",
@@ -90,7 +90,7 @@ public void OnConfigsExecuted()
 	{
 		// This convar is the only one which isn't hooked, we only fetch its content once before the connection to the database is made
 		g_hTableName.GetString(g_sTableName, sizeof(g_sTableName));
-		
+
 		InitDB();
 		g_bDbInitTriggered = true;
 	}
@@ -103,21 +103,21 @@ public void OnConfigsExecuted()
 public void OnPluginStart()
 {
 	AutoExecConfig_SetFile("plugin.calladmin_mysql");
-	
+
 	g_hVersion                = AutoExecConfig_CreateConVar("sm_calladmin_mysql_version", CALLADMIN_VERSION, "Plugin version", FCVAR_NOTIFY|FCVAR_DONTRECORD);
 	g_hTableName              = AutoExecConfig_CreateConVar("sm_calladmin_table_name", "CallAdmin", "Name of the CallAdmin table", FCVAR_PROTECTED);
 	g_hServerKey              = AutoExecConfig_CreateConVar("sm_calladmin_server_key", "", "Server key to identify this server (Max. 64 allowed!)", FCVAR_PROTECTED);
 	g_hEntryPruning           = AutoExecConfig_CreateConVar("sm_calladmin_entrypruning", "25", "Entries older than given minutes will be deleted, 0 deactivates the feature", FCVAR_NONE, true, 0.0);
 	g_hOhphanedEntryPruning   = AutoExecConfig_CreateConVar("sm_calladmin_entrypruning_ohphaned", "4320", "Entries older than given minutes will be recognized as orphaned and will be deleted globally (serverIP and serverPort won't be checked)", FCVAR_NONE, true, 0.0);
-	
-	
+
+
 	AutoExecConfig(true, "plugin.calladmin_mysql");
 	AutoExecConfig_CleanFile();
-	
-	
+
+
 	LoadTranslations("calladmin.phrases");
-	
-	
+
+
 	g_hVersion.SetString(CALLADMIN_VERSION, false, false);
 	HookConVarChange(g_hVersion, OnCvarChanged);
 
@@ -126,7 +126,7 @@ public void OnPluginStart()
 
 	g_hServerKey.GetString(g_sServerKey, sizeof(g_sServerKey));
 	HookConVarChange(g_hServerKey, OnCvarChanged);
-	
+
 	g_iOhphanedEntryPruning = g_hOhphanedEntryPruning.IntValue;
 	HookConVarChange(g_hOhphanedEntryPruning, OnCvarChanged);
 
@@ -145,7 +145,7 @@ void InitDB()
 		CallAdmin_LogMessage("Couldn't find database config");
 		SetFailState("Couldn't find database config");
 	}
-	
+
 	Database.Connect(SQLT_ConnectCallback, SQL_CheckConfig(SQL_DB_CONF) ? SQL_DB_CONF : "default");
 }
 
@@ -191,7 +191,7 @@ public Action Timer_PruneEntries(Handle timer)
 	{
 		PruneDatabase();
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -212,10 +212,10 @@ public void CallAdmin_OnReportHandled(int client, int id)
 	if (g_hDbHandle != null && g_bAllLoaded)
 	{
 		char query[1024];
-		
+
 		char sHostName[(sizeof(g_sServerName) + 1) * 2];
 		g_hDbHandle.Escape(g_sServerName, sHostName, sizeof(sHostName));
-		
+
 		// Update the servername
 		Format(query, sizeof(query), "UPDATE IGNORE `%s` SET serverName = '%s', serverKey = '%s' WHERE serverIP = '%s' AND serverPort = %d", g_sTableName, sHostName, g_sServerKey, g_sHostIP, g_iHostPort);
 		g_hDbHandle.Query(SQLT_ErrorCheckCallback, query);
@@ -252,17 +252,17 @@ void PruneDatabase()
 		char sHostIP[16];
 		int iHostPort = CallAdmin_GetHostPort();
 		CallAdmin_GetHostIP(sHostIP, sizeof(sHostIP));
-		
+
 		// Prune main table (this server)
 		Format(query, sizeof(query), "DELETE FROM `%s` WHERE serverIP = '%s' AND serverPort = %d AND TIMESTAMPDIFF(MINUTE, FROM_UNIXTIME(reportedAt), NOW()) > %d", g_sTableName, sHostIP, iHostPort, g_iEntryPruning);
 		g_hDbHandle.Query(SQLT_ErrorCheckCallback, query);
-		
-		
+
+
 		// Prune trackers table (global)
 		Format(query, sizeof(query), "DELETE FROM `%s_Trackers` WHERE TIMESTAMPDIFF(MINUTE, FROM_UNIXTIME(lastView), NOW()) >= %d", g_sTableName, PRUNE_TRACKERS_TIME);
 		g_hDbHandle.Query(SQLT_ErrorCheckCallback, query);
-		
-		
+
+
 		// Prune ohphaned entries (global)
 		Format(query, sizeof(query), "DELETE FROM `%s` WHERE TIMESTAMPDIFF(MINUTE, FROM_UNIXTIME(reportedAt), NOW()) > %d", g_sTableName, g_iOhphanedEntryPruning);
 		g_hDbHandle.Query(SQLT_ErrorCheckCallback, query);
@@ -277,10 +277,10 @@ void UpdateServerData()
 	if (g_hDbHandle != null && g_bAllLoaded)
 	{
 		char query[1024];
-		
+
 		char sHostName[(sizeof(g_sServerName) + 1) * 2];
 		g_hDbHandle.Escape(g_sServerName, sHostName, sizeof(sHostName));
-		
+
 		// Update the servername
 		Format(query, sizeof(query), "UPDATE IGNORE `%s` SET serverName = '%s', serverKey = '%s' WHERE serverIP = '%s' AND serverPort = %d", g_sTableName, sHostName, g_sServerKey, g_sHostIP, g_iHostPort);
 		g_hDbHandle.Query(SQLT_ErrorCheckCallback, query);
@@ -308,7 +308,7 @@ public void OnCvarChanged(Handle cvar, const char[] oldValue, const char[] newVa
 	{
 		g_hVersion.SetString(CALLADMIN_VERSION, false, false);
 	}
-	
+
 	UpdateServerData();
 }
 
@@ -327,7 +327,7 @@ public void CallAdmin_OnReportPost(int client, int target, const char[] reason)
 	char clientNameBuf[MAX_NAME_LENGTH];
 	char clientName[(MAX_NAME_LENGTH + 1) * 2];
 	char clientAuth[21];
-	
+
 	char targetNameBuf[MAX_NAME_LENGTH];
 	char targetName[(MAX_NAME_LENGTH + 1) * 2];
 	char targetAuth[21];
@@ -337,8 +337,8 @@ public void CallAdmin_OnReportPost(int client, int target, const char[] reason)
 
 	char sReason[(REASON_MAX_LENGTH + 1) * 2];
 	g_hDbHandle.Escape(reason, sReason, sizeof(sReason));
-	
-	
+
+
 	// Reporter wasn't a real client (initiated by a module)
 	if (client == REPORTER_CONSOLE)
 	{
@@ -351,15 +351,15 @@ public void CallAdmin_OnReportPost(int client, int target, const char[] reason)
 		g_hDbHandle.Escape(clientNameBuf, clientName, sizeof(clientName));
 		GetClientAuthId(client, AuthId_Steam2, clientAuth, sizeof(clientAuth));
 	}
-	
-	
+
+
 	GetClientName(target, targetNameBuf, sizeof(targetNameBuf));
 	g_hDbHandle.Escape(targetNameBuf, targetName, sizeof(targetName));
 	GetClientAuthId(target, AuthId_Steam2, targetAuth, sizeof(targetAuth));
-	
+
 	char serverName[(sizeof(g_sServerName) + 1) * 2];
 	g_hDbHandle.Escape(g_sServerName, serverName, sizeof(serverName));
-	
+
 	char query[1024];
 	Format(query, sizeof(query), "INSERT INTO `%s`\
 												(serverIP, serverPort, serverName, serverKey, targetName, targetID, targetReason, clientName, clientID, callHandled, reportedAt)\
@@ -382,10 +382,10 @@ public void SQLT_ConnectCallback(Database db, const char[] error, any data)
 	else
 	{
 		g_hDbHandle = db;
-		
+
 		// Set utf-8 encodings
 		g_hDbHandle.Query(SQLT_ErrorCheckCallback, "SET NAMES 'utf8'");
-		
+
 		// Create main Table
 		char query[1024];
 		Format(query, sizeof(query), "CREATE TABLE IF NOT EXISTS `%s` (\
@@ -409,7 +409,7 @@ public void SQLT_ConnectCallback(Database db, const char[] error, any data)
 															COLLATE='utf8_unicode_ci'\
 														", g_sTableName, REASON_MAX_LENGTH);
 		g_hDbHandle.Query(SQLT_ErrorCheckCallback, query);
-														
+
 		// Create trackers Table
 		Format(query, sizeof(query), "CREATE TABLE IF NOT EXISTS `%s_Trackers` (\
 															`trackerIP` VARCHAR(15) NOT NULL,\
@@ -421,7 +421,7 @@ public void SQLT_ConnectCallback(Database db, const char[] error, any data)
 															COLLATE='utf8_unicode_ci'\
 														", g_sTableName);
 		g_hDbHandle.Query(SQLT_ErrorCheckCallback, query);
-														
+
 		// Create Access Table
 		Format(query, sizeof(query), "CREATE TABLE IF NOT EXISTS `%s_Access` (\
 															`serverKey` VARCHAR(32) NOT NULL,\
@@ -430,14 +430,14 @@ public void SQLT_ConnectCallback(Database db, const char[] error, any data)
 															COLLATE='utf8_unicode_ci'\
 														", g_sTableName);
 		g_hDbHandle.Query(SQLT_ErrorCheckCallback, query);
-										
+
 		// Create Version Table
 		Format(query, sizeof(query), "CREATE TABLE IF NOT EXISTS `%s_Settings` (\
 															`version` VARCHAR(12) NOT NULL)\
 															COLLATE='utf8_unicode_ci'\
 														", g_sTableName);
 		g_hDbHandle.Query(SQLT_ErrorCheckCallback, query);
-		
+
 		// Get current version
 		Format(query, sizeof(query), "SELECT \
 											`version` \
@@ -497,7 +497,7 @@ public void SQLT_CurrentVersion(Database db, DBResultSet result, const char[] er
 			return;
 		}
 	}
-	else 
+	else
 	{
 		CallAdmin_LogMessage("VersionErr: %s", error);
 		SetFailState("VersionErr: %s", error);
@@ -566,7 +566,7 @@ public Action Timer_UpdateTrackersCount(Handle timer)
 {
 	// Get current trackers
 	GetCurrentTrackers();
-	
+
 	return Plugin_Continue;
 }
 
@@ -582,7 +582,7 @@ int GetCurrentTrackers()
 
 		char sKey[(32 + 1) * 2];
 		SQL_EscapeString(g_hDbHandle, g_sServerKey, sKey, sizeof(sKey));
-		
+
 		// Get current trackers (last 2 minutes)
 		Format(query, sizeof(query), "SELECT \
 											COUNT(`trackerID`) as currentTrackers \
@@ -632,7 +632,7 @@ void OnAllLoaded()
 	{
 		PruneDatabase();
 	}
-	
+
 	// Get Current trackers
 	GetCurrentTrackers();
 

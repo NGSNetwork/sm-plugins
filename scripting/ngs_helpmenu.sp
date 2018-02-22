@@ -28,25 +28,25 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_vip", CommandVIP, "Usage: sm_vip");
 	RegConsoleCmd("sm_commands", CommandCmdList, "Usage: sm_commands");
 	LoadTranslations("common.phrases");
-	
+
 	HookEvent("post_inventory_application", OnPlayerFirstSpawn);
-	
+
 	helpMenu = new Menu(HelpMenuHandler);
 	helpMenu.SetTitle("=== NGS Help Menu ===");
 	helpMenu.AddItem("serverrules", "Server rules!");
 	helpMenu.AddItem("servercommands", "Server commands!");
 	helpMenu.AddItem("extrasettings", "Change some extra settings!");
-	
+
 	serverRulesMenu = new Menu(ServerRulesMenuHandler);
 	serverRulesMenu.SetTitle("=== NGS Server Rules ===");
 	serverRulesMenu.ExitBackButton = true;
-	
+
 	serverCommandsMainMenu = new Menu(ServerCommandsMenuHandler);
 	serverCommandsMainMenu.SetTitle("=== NGS Server Commands ===");
 	serverCommandsMainMenu.AddItem("players", "Player Commands!");
 	serverCommandsMainMenu.AddItem("donors", "Donor Commands!");
 	serverCommandsMainMenu.ExitBackButton = true;
-	
+
 	serverCommandsSubMenu = new Menu(ServerCommandsSubMenuHandler);
 }
 

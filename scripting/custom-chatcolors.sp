@@ -59,11 +59,11 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("CCC_SetTag", Native_SetTag);
 	CreateNative("CCC_ResetColor", Native_ResetColor);
 	CreateNative("CCC_ResetTag", Native_ResetTag);
-	
+
 	RegPluginLibrary("ccc");
-	
+
 	return APLRes_Success;
-} 
+}
 
 public void OnPluginStart() {
 	RegAdminCmd("sm_reloadccc", Command_ReloadConfig, ADMFLAG_CONFIG, "Reloads Custom Chat Colors config file");
@@ -111,7 +111,7 @@ void ClearValues(int client) {
 	Format(tagColor[client], sizeof(tagColor[]), "");
 	Format(usernameColor[client], sizeof(usernameColor[]), "");
 	Format(chatColor[client], sizeof(chatColor[]), "");
-	
+
 	Format(defaultTag[client], sizeof(defaultTag[]), "");
 	Format(defaultTagColor[client], sizeof(defaultTagColor[]), "");
 	Format(defaultUsernameColor[client], sizeof(defaultUsernameColor[]), "");
@@ -239,9 +239,9 @@ public Action OnChatMessage(int &author, Handle recipients, char[] name, char[] 
 			}
 		}
 	}
-	
+
 	int MaxMessageLength = MAXLENGTH_MESSAGE - strlen(name) - 5; // MAXLENGTH_MESSAGE = maximum characters in a chat message, including name. Subtract the characters in the name, and 5 to account for the colon, spaces, and null terminator
-	
+
 	if(strlen(chatColor[author]) > 0 && CheckForward(author, message, CCC_ChatColor)) {
 		if(StrEqual(chatColor[author], "T", false)) {
 			Format(message, MaxMessageLength, "\x03%s", message);
@@ -260,13 +260,13 @@ public Action OnChatMessage(int &author, Handle recipients, char[] name, char[] 
 	if(StrEqual(game, "csgo")) {
 		Format(name, MAXLENGTH_NAME, "\x01\x0B%s", name);
 	}
-	
+
 	Call_StartForward(messageForward);
 	Call_PushCell(author);
 	Call_PushStringEx(message, MaxMessageLength, SM_PARAM_STRING_UTF8|SM_PARAM_STRING_COPY, SM_PARAM_COPYBACK);
 	Call_PushCell(MaxMessageLength);
 	Call_Finish();
-	
+
 	return Plugin_Changed;
 }
 
@@ -280,14 +280,14 @@ bool CheckForward(int author, const char[] message, CCC_ColorType type) {
 	if(result >= Plugin_Handled) {
 		return false;
 	}
-	
+
 	// Compatibility
 	switch(type) {
 		case CCC_TagColor: return TagForward(author);
 		case CCC_NameColor: return NameForward(author);
 		case CCC_ChatColor: return ColorForward(author);
 	}
-	
+
 	return true;
 }
 
@@ -299,7 +299,7 @@ bool ColorForward(int author) {
 	if(result >= Plugin_Handled) {
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -311,7 +311,7 @@ bool NameForward(int author) {
 	if(result >= Plugin_Handled) {
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -323,7 +323,7 @@ bool TagForward(int author) {
 	if(result >= Plugin_Handled) {
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -335,7 +335,7 @@ bool ConfigForward(int client) {
 	if(result >= Plugin_Handled) {
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -435,7 +435,7 @@ public int Native_SetColor(Handle plugin, int numParams) {
 	if(strlen(color) != 6 && strlen(color) != 8 && !StrEqual(color, "G", false) && !StrEqual(color, "O", false) && !StrEqual(color, "T", false)) {
 		return false;
 	}
-	switch(GetNativeCell(2)) {	
+	switch(GetNativeCell(2)) {
 		case CCC_TagColor: {
 			strcopy(tagColor[client], sizeof(tagColor[]), color);
 		}

@@ -9,7 +9,7 @@
 ConVar cvarDisableDoveSpawn, cvarDisableNonAuthedSpam;
 Handle authClientTimer[MAXPLAYERS + 1];
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "[NGS] Game Fixes",
 	author = "TheXeon",
@@ -40,7 +40,8 @@ public void OnClientConnected(int client)
 public Action AuthCheckTimer(Handle timer, int userid)
 {
 	int client = GetClientOfUserId(userid);
-	if (client == 0 || !IsClientInGame(client)) return Plugin_Stop;
+	if (client == 0) return Plugin_Stop;
+	if (!IsClientInGame(client)) return Plugin_Continue;
 	char auth[24];
 	if (!GetClientAuthId(client, AuthId_Engine, auth, sizeof(auth)))
 	{
@@ -69,6 +70,7 @@ stock void KillTimerDelete(int client)
 {
 	if (authClientTimer[client] != null)
 	{
-		delete authClientTimer[client];
+		KillTimer(authClientTimer[client]);
+		authClientTimer[client] = null;
 	}
 }

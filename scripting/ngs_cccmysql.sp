@@ -56,7 +56,7 @@ public void OnDatabaseConnected(Database db, const char[] error, any data) {
 
 public void OnTableCreated(Database db, DBResultSet results, const char[] error, any data) {
 	if(results == null) {
-		delete db;
+		if (db != null) delete db;
 		SetFailState("Error creating database table. %s", error);
 	}
 	db.Query(OnDataReceived, "SELECT * FROM `custom_chatcolors` ORDER BY `index` ASC");
@@ -259,7 +259,7 @@ public void OnAllPluginsLoaded() {
 		Format(version, sizeof(version), "%sA", PLUGIN_VERSION);
 		convar = CreateConVar("custom_chat_colors_mysql_version", version, "Custom Chat Colors MySQL Module Version", FCVAR_DONTRECORD|FCVAR_NOTIFY|FCVAR_CHEAT);
 	} else {
-		convar = CreateConVar("custom_chat_colors_mysql_version", PLUGIN_VERSION, "Custom Chat Colors MySQL Module Version", FCVAR_DONTRECORD|FCVAR_NOTIFY|FCVAR_CHEAT);	
+		convar = CreateConVar("custom_chat_colors_mysql_version", PLUGIN_VERSION, "Custom Chat Colors MySQL Module Version", FCVAR_DONTRECORD|FCVAR_NOTIFY|FCVAR_CHEAT);
 	}
 	convar.AddChangeHook(Callback_VersionConVarChanged);
 	Callback_VersionConVarChanged(convar, "", ""); // Check the cvar value

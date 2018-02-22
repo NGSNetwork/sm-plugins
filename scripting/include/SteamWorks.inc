@@ -130,6 +130,7 @@ enum EHTTPMethod
 	k_EHTTPMethodPUT,
 	k_EHTTPMethodDELETE,
 	k_EHTTPMethodOPTIONS,
+	k_EHTTPMethodPATCH,
 
 	// The remaining HTTP methods are not yet supported, per rfc2616 section 5.1.1 only GET and HEAD are required for 
 	// a compliant general purpose server.  We'll likely add more as we find uses for them.
@@ -234,6 +235,8 @@ native bool SteamWorks_GetStatCell(int client, const char[] sKey, int &value);
 native bool SteamWorks_GetStatAuthIDCell(int authid, const char[] sKey, int &value);
 native bool SteamWorks_GetStatFloat(int client, const char[] sKey, float &value);
 native bool SteamWorks_GetStatAuthIDFloat(int authid, const char[] sKey, float &value);
+
+// https://partner.steamgames.com/doc/api/ISteamHTTP
 
 native Handle SteamWorks_CreateHTTPRequest(EHTTPMethod method, const char[] sURL);
 native bool SteamWorks_SetHTTPRequestContextValue(Handle hHandle, any data1, any data2=0);

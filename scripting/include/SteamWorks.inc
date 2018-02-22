@@ -249,6 +249,10 @@ typeset SteamWorksHTTPRequestCompleted
 	function void(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode);
 	function void(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, any data1);
 	function void(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, any data1, any data2);
+	
+	function void(SWHTTPRequest hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode);
+	function void(SWHTTPRequest hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, any data1);
+	function void(SWHTTPRequest hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, any data1, any data2);
 };
 
 typeset SteamWorksHTTPHeadersReceived
@@ -256,6 +260,10 @@ typeset SteamWorksHTTPHeadersReceived
 	function void(Handle hRequest, bool bFailure);
 	function void(Handle hRequest, bool bFailure, any data1);
 	function void(Handle hRequest, bool bFailure, any data1, any data2);
+	
+	function void(SWHTTPRequest hRequest, bool bFailure);
+	function void(SWHTTPRequest hRequest, bool bFailure, any data1);
+	function void(SWHTTPRequest hRequest, bool bFailure, any data1, any data2);
 };
 
 typeset SteamWorksHTTPDataReceived
@@ -263,6 +271,10 @@ typeset SteamWorksHTTPDataReceived
 	function void(Handle hRequest, bool bFailure, int offset, int bytesreceived);
 	function void(Handle hRequest, bool bFailure, int offset, int bytesreceived, any data1);
 	function void(Handle hRequest, bool bFailure, int offset, int bytesreceived, any data1, any data2);
+	
+	function void(SWHTTPRequest hRequest, bool bFailure, int offset, int bytesreceived);
+	function void(SWHTTPRequest hRequest, bool bFailure, int offset, int bytesreceived, any data1);
+	function void(SWHTTPRequest hRequest, bool bFailure, int offset, int bytesreceived, any data1, any data2);
 };
 
 native bool SteamWorks_SetHTTPCallbacks(Handle hHandle, SteamWorksHTTPRequestCompleted fCompleted = INVALID_FUNCTION, SteamWorksHTTPHeadersReceived fHeaders = INVALID_FUNCTION, SteamWorksHTTPDataReceived fData = INVALID_FUNCTION, Handle hCalling = INVALID_HANDLE);
@@ -286,8 +298,135 @@ typeset SteamWorksHTTPBodyCallback
 	function void(const int[] data, any value, int datalen);
 };
 
-native bool SteamWorks_GetHTTPResponseBodyCallback(Handle hRequest, SteamWorksHTTPBodyCallback fCallback, any data = 0, Handle hPlugin = INVALID_HANDLE);
+native bool SteamWorks_GetHTTPResponseBodyCallback(Handle hRequest, SteamWorksHTTPBodyCallback fCallback, any data = 0, Handle hPlugin = null);
 native bool SteamWorks_WriteHTTPResponseBodyToFile(Handle hRequest, const char[] sFileName);
+
+methodmap SWHTTPRequest < Handle
+{
+	public SWHTTPRequest(EHTTPMethod method, const char[] sURL)
+	{
+		return view_as<SWHTTPRequest>(SteamWorks_CreateHTTPRequest(method, sURL));
+	}
+	
+	public bool SetContextValue(any data1, any data2=0)
+	{
+		return SteamWorks_SetHTTPRequestContextValue(this, data1, data2);
+	}
+	
+	property int RequestTimeout
+	{
+		public set(int timeout)
+		{
+			SteamWorks_SetHTTPRequestNetworkActivityTimeout(this, timeout);
+		}
+	}
+	
+	public bool SetHeaderValue(const char[] sName, const char[] sValue)
+	{
+		return SteamWorks_SetHTTPRequestHeaderValue(this, sName, sValue);
+	}
+	
+	public bool SetParam(const char[] sName, const char[] sValue)
+	{
+		return SteamWorks_SetHTTPRequestGetOrPostParameter(this, sName, sValue);
+	}
+	
+	public bool SetUserAgent(const char[] sUserAgentInfo)
+	{
+		return SteamWorks_SetHTTPRequestUserAgentInfo(this, sUserAgentInfo);
+	}
+	
+	property bool RequiresVerifiedCert
+	{
+		public set(bool bRequireVerifiedCertificate)
+		{
+			SteamWorks_SetHTTPRequestRequiresVerifiedCertificate(this, bRequireVerifiedCertificate);
+		}
+	}
+	
+	property int AbsTimeout
+	{
+		public set(int unMilliseconds)
+		{
+			SteamWorks_SetHTTPRequestAbsoluteTimeoutMS(this, unMilliseconds);
+		}
+	}
+	
+	public bool SetCallbacks(SteamWorksHTTPRequestCompleted fCompleted = INVALID_FUNCTION, SteamWorksHTTPHeadersReceived fHeaders = INVALID_FUNCTION, SteamWorksHTTPDataReceived fData = INVALID_FUNCTION, Handle hCalling = null)
+	{
+		return SteamWorks_SetHTTPCallbacks(this, fCompleted, fHeaders, fData, hCalling);
+	}
+	
+	public bool Send()
+	{
+		return SteamWorks_SendHTTPRequest(this);
+	}
+	
+	public bool SendAndStream()
+	{
+		return SteamWorks_SendHTTPRequestAndStreamResponse(this);
+	}
+	
+	public bool Defer()
+	{
+		return SteamWorks_DeferHTTPRequest(this);
+	}
+	
+	public bool Prioritize()
+	{
+		return SteamWorks_PrioritizeHTTPRequest(this);
+	}
+	
+	public bool GetHeaderSize(const char[] sHeader, int &size)
+	{
+		return SteamWorks_GetHTTPResponseHeaderSize(this, sHeader, size);
+	}
+	
+	public bool GetHeaderValue(const char[] sHeader, char[] sValue, int size)
+	{
+		return SteamWorks_GetHTTPResponseHeaderValue(this, sHeader, sValue, size);
+	}
+	
+	public bool GetResponseSize(int &size)
+	{
+		return SteamWorks_GetHTTPResponseBodySize(this, size);
+	}
+	
+	public bool GetBodyData(char[] sBody, int length)
+	{
+		return SteamWorks_GetHTTPResponseBodyData(this, sBody, length);
+	}
+	
+	public bool GetStreamingBodyData(int cOffset, char[] sBody, int length)
+	{
+		return SteamWorks_GetHTTPStreamingResponseBodyData(this, cOffset, sBody, length);
+	}
+	
+	public bool GetDownloadPercent(float &percent)
+	{
+		return SteamWorks_GetHTTPDownloadProgressPct(this, percent);
+	}
+	
+	public bool GetRequestTimedOut(bool &bWasTimedOut)
+	{
+		return SteamWorks_GetHTTPRequestWasTimedOut(this, bWasTimedOut);
+	}
+	
+	public bool SetRawPostBody(const char[] sContentType, const char[] sBody, int bodylen)
+	{
+		return SteamWorks_SetHTTPRequestRawPostBody(this, sContentType, sBody, bodylen);
+	}
+	
+	public bool GetBodyCallback(SteamWorksHTTPBodyCallback fCallback, any data = 0, Handle hPlugin = null)
+	{
+		return SteamWorks_GetHTTPResponseBodyCallback(this, fCallback, data, hPlugin);
+	}
+	
+	public bool WriteResponseToFile(const char[] sFileName)
+	{
+		SteamWorks_WriteHTTPResponseBodyToFile(this, sFileName);
+	}
+}
 
 forward void SW_OnValidateClient(int ownerauthid, int authid);
 forward void SteamWorks_OnValidateClient(int ownerauthid, int authid);

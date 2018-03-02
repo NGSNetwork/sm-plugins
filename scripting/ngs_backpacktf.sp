@@ -11,12 +11,11 @@
 
 #include <sourcemod>
 #include <sdktools>
-#include <steamtools>
-//#include <webfix>
+#include <SteamWorks>
 #include <advanced_motd>
 
-#define PLUGIN_VERSION		"2.11.2"
-#define BACKPACK_TF_URL		"http://backpack.tf/api/IGetPrices/v3/"
+#define PLUGIN_VERSION		"2.11.3"
+#define BACKPACK_TF_URL		"https://backpack.tf/api/IGetPrices/v4"
 #define ITEM_EARBUDS		143
 #define ITEM_REFINED		5002
 #define ITEM_KEY			5021
@@ -38,10 +37,10 @@ public Plugin myinfo = {
 
 int lastCacheTime;
 int cacheTime;
-Handle backpackTFPricelist;
+KeyValues backpackTFPricelist;
 
-Handle qualityNameTrie;
-Handle unusualNameTrie;
+StringMap qualityNameTrie;
+StringMap unusualNameTrie;
 
 ConVar cvarBPCommand;
 ConVar cvarDisplayUpdateNotification;
@@ -57,7 +56,7 @@ ConVar cvarAPIKey;
 ConVar cvarTag;
 
 Handle hudText;
-Handle sv_tags;
+ConVar sv_tags;
 
 float budsToKeys;
 float keysToRef;
@@ -77,158 +76,158 @@ public void OnPluginStart() {
 	cvarAPIKey = CreateConVar("backpack_tf_api_key", "", "API key obtained at http://backpack.tf/api/register/", FCVAR_PROTECTED);
 	cvarTag = CreateConVar("backpack_tf_add_tag", "1", "If 1, adds the backpack.tf tag to your server's sv_tags, which is required to be listed on http://backpack.tf/servers", _, true, 0.0, true, 1.0);
 	AutoExecConfig();
-	
+
 	LoadTranslations("backpack-tf.phrases");
-	
+
 	sv_tags = FindConVar("sv_tags");
-	
+
 	RegConsoleCmd("sm_bp", Command_Backpack, "Usage: sm_bp <player>");
 	RegConsoleCmd("sm_backpack", Command_Backpack, "Usage: sm_backpack <player>");
-	
+
 	RegConsoleCmd("sm_pc", Command_PriceCheck, "Usage: sm_pc <item>");
 	RegConsoleCmd("sm_pricecheck", Command_PriceCheck, "Usage: sm_pricecheck <item>");
-	
+
 	RegAdminCmd("sm_updateprices", Command_UpdatePrices, ADMFLAG_ROOT, "Updates backpack.tf prices");
-	
-	qualityNameTrie = CreateTrie();
-	SetTrieString(qualityNameTrie, "0", "Normal");
-	SetTrieString(qualityNameTrie, "1", "Genuine");
-	SetTrieString(qualityNameTrie, "2", "rarity2");
-	SetTrieString(qualityNameTrie, "3", "Vintage");
-	SetTrieString(qualityNameTrie, "4", "rarity3");
-	SetTrieString(qualityNameTrie, "5", "Unusual");
-	SetTrieString(qualityNameTrie, "6", "Unique");
-	SetTrieString(qualityNameTrie, "7", "Community");
-	SetTrieString(qualityNameTrie, "8", "Valve");
-	SetTrieString(qualityNameTrie, "9", "Self-Made");
-	SetTrieString(qualityNameTrie, "10", "Customized");
-	SetTrieString(qualityNameTrie, "11", "Strange");
-	SetTrieString(qualityNameTrie, "12", "Completed");
-	SetTrieString(qualityNameTrie, "13", "Haunted");
-	SetTrieString(qualityNameTrie, "14", "Collector's");
-	SetTrieString(qualityNameTrie, "300", "Uncraftable Vintage"); // custom for backpack.tf
-	SetTrieString(qualityNameTrie, "600", "Uncraftable"); // custom for backpack.tf
-	SetTrieString(qualityNameTrie, "1100", "Uncraftable Strange"); // custom for backpack.tf
-	SetTrieString(qualityNameTrie, "1300", "Uncraftable Haunted"); // custom for backpack.tf
-	
-	unusualNameTrie = CreateTrie();
+
+	qualityNameTrie = new StringMap();
+	qualityNameTrie.SetString("0", "Normal");
+	qualityNameTrie.SetString("1", "Genuine");
+	qualityNameTrie.SetString("2", "rarity2");
+	qualityNameTrie.SetString("3", "Vintage");
+	qualityNameTrie.SetString("4", "rarity3");
+	qualityNameTrie.SetString("5", "Unusual");
+	qualityNameTrie.SetString("6", "Unique");
+	qualityNameTrie.SetString("7", "Community");
+	qualityNameTrie.SetString("8", "Valve");
+	qualityNameTrie.SetString("9", "Self-Made");
+	qualityNameTrie.SetString("10", "Customized");
+	qualityNameTrie.SetString("11", "Strange");
+	qualityNameTrie.SetString("12", "Completed");
+	qualityNameTrie.SetString("13", "Haunted");
+	qualityNameTrie.SetString("14", "Collector's");
+	qualityNameTrie.SetString("300", "Uncraftable Vintage"); // custom for backpack.tf
+	qualityNameTrie.SetString("600", "Uncraftable"); // custom for backpack.tf
+	qualityNameTrie.SetString("1100", "Uncraftable Strange"); // custom for backpack.tf
+	qualityNameTrie.SetString("1300", "Uncraftable Haunted"); // custom for backpack.tf
+
+	unusualNameTrie = new StringMap();
 	// Original effects
-	SetTrieString(unusualNameTrie, "6", "Green Confetti");
-	SetTrieString(unusualNameTrie, "7", "Purple Confetti");
-	SetTrieString(unusualNameTrie, "8", "Haunted Ghosts");
-	SetTrieString(unusualNameTrie, "9", "Green Energy");
-	SetTrieString(unusualNameTrie, "10", "Purple Energy");
-	SetTrieString(unusualNameTrie, "11", "Circling TF Logo");
-	SetTrieString(unusualNameTrie, "12", "Massed Flies");
-	SetTrieString(unusualNameTrie, "13", "Burning Flames");
-	SetTrieString(unusualNameTrie, "14", "Scorching Flames");
-	SetTrieString(unusualNameTrie, "15", "Searing Plasma");
-	SetTrieString(unusualNameTrie, "16", "Vivid Plasma");
-	SetTrieString(unusualNameTrie, "17", "Sunbeams");
-	SetTrieString(unusualNameTrie, "18", "Circling Peace Sign");
-	SetTrieString(unusualNameTrie, "19", "Circling Heart");
+	unusualNameTrie.SetString("6", "Green Confetti");
+	unusualNameTrie.SetString("7", "Purple Confetti");
+	unusualNameTrie.SetString("8", "Haunted Ghosts");
+	unusualNameTrie.SetString("9", "Green Energy");
+	unusualNameTrie.SetString("10", "Purple Energy");
+	unusualNameTrie.SetString("11", "Circling TF Logo");
+	unusualNameTrie.SetString("12", "Massed Flies");
+	unusualNameTrie.SetString("13", "Burning Flames");
+	unusualNameTrie.SetString("14", "Scorching Flames");
+	unusualNameTrie.SetString("15", "Searing Plasma");
+	unusualNameTrie.SetString("16", "Vivid Plasma");
+	unusualNameTrie.SetString("17", "Sunbeams");
+	unusualNameTrie.SetString("18", "Circling Peace Sign");
+	unusualNameTrie.SetString("19", "Circling Heart");
 	// Batch 2
-	SetTrieString(unusualNameTrie, "29", "Stormy Storm");
-	SetTrieString(unusualNameTrie, "30", "Blizzardy Storm");
-	SetTrieString(unusualNameTrie, "31", "Nuts n' Bolts");
-	SetTrieString(unusualNameTrie, "32", "Orbiting Planets");
-	SetTrieString(unusualNameTrie, "33", "Orbiting Fire");
-	SetTrieString(unusualNameTrie, "34", "Bubbling");
-	SetTrieString(unusualNameTrie, "35", "Smoking");
-	SetTrieString(unusualNameTrie, "36", "Steaming");
+	unusualNameTrie.SetString("29", "Stormy Storm");
+	unusualNameTrie.SetString("30", "Blizzardy Storm");
+	unusualNameTrie.SetString("31", "Nuts n' Bolts");
+	unusualNameTrie.SetString("32", "Orbiting Planets");
+	unusualNameTrie.SetString("33", "Orbiting Fire");
+	unusualNameTrie.SetString("34", "Bubbling");
+	unusualNameTrie.SetString("35", "Smoking");
+	unusualNameTrie.SetString("36", "Steaming");
 	// Halloween
-	SetTrieString(unusualNameTrie, "37", "Flaming Lantern");
-	SetTrieString(unusualNameTrie, "38", "Cloudy Moon");
-	SetTrieString(unusualNameTrie, "39", "Cauldron Bubbles");
-	SetTrieString(unusualNameTrie, "40", "Eerie Orbiting Fire");
-	SetTrieString(unusualNameTrie, "43", "Knifestorm");
-	SetTrieString(unusualNameTrie, "44", "Misty Skull");
-	SetTrieString(unusualNameTrie, "45", "Harvest Moon");
-	SetTrieString(unusualNameTrie, "46", "It's A Secret To Everybody");
-	SetTrieString(unusualNameTrie, "47", "Stormy 13th Hour");
+	unusualNameTrie.SetString("37", "Flaming Lantern");
+	unusualNameTrie.SetString("38", "Cloudy Moon");
+	unusualNameTrie.SetString("39", "Cauldron Bubbles");
+	unusualNameTrie.SetString("40", "Eerie Orbiting Fire");
+	unusualNameTrie.SetString("43", "Knifestorm");
+	unusualNameTrie.SetString("44", "Misty Skull");
+	unusualNameTrie.SetString("45", "Harvest Moon");
+	unusualNameTrie.SetString("46", "It's A Secret To Everybody");
+	unusualNameTrie.SetString("47", "Stormy 13th Hour");
 	// Batch 3
-	SetTrieString(unusualNameTrie, "56", "Kill-a-Watt");
-	SetTrieString(unusualNameTrie, "57", "Terror-Watt");
-	SetTrieString(unusualNameTrie, "58", "Cloud 9");
-	SetTrieString(unusualNameTrie, "59", "Aces High");
-	SetTrieString(unusualNameTrie, "60", "Dead Presidents");
-	SetTrieString(unusualNameTrie, "61", "Miami Nights");
-	SetTrieString(unusualNameTrie, "62", "Disco Beat Down");
+	unusualNameTrie.SetString("56", "Kill-a-Watt");
+	unusualNameTrie.SetString("57", "Terror-Watt");
+	unusualNameTrie.SetString("58", "Cloud 9");
+	unusualNameTrie.SetString("59", "Aces High");
+	unusualNameTrie.SetString("60", "Dead Presidents");
+	unusualNameTrie.SetString("61", "Miami Nights");
+	unusualNameTrie.SetString("62", "Disco Beat Down");
 	// Robo-effects
-	SetTrieString(unusualNameTrie, "63", "Phosphorous");
-	SetTrieString(unusualNameTrie, "64", "Sulphurous");
-	SetTrieString(unusualNameTrie, "65", "Memory Leak");
-	SetTrieString(unusualNameTrie, "66", "Overclocked");
-	SetTrieString(unusualNameTrie, "67", "Electrostatic");
-	SetTrieString(unusualNameTrie, "68", "Power Surge");
-	SetTrieString(unusualNameTrie, "69", "Anti-Freeze");
-	SetTrieString(unusualNameTrie, "70", "Time Warp");
-	SetTrieString(unusualNameTrie, "71", "Green Black Hole");
-	SetTrieString(unusualNameTrie, "72", "Roboactive");
+	unusualNameTrie.SetString("63", "Phosphorous");
+	unusualNameTrie.SetString("64", "Sulphurous");
+	unusualNameTrie.SetString("65", "Memory Leak");
+	unusualNameTrie.SetString("66", "Overclocked");
+	unusualNameTrie.SetString("67", "Electrostatic");
+	unusualNameTrie.SetString("68", "Power Surge");
+	unusualNameTrie.SetString("69", "Anti-Freeze");
+	unusualNameTrie.SetString("70", "Time Warp");
+	unusualNameTrie.SetString("71", "Green Black Hole");
+	unusualNameTrie.SetString("72", "Roboactive");
 	// Halloween 2013
-	SetTrieString(unusualNameTrie, "73", "Arcana");
-	SetTrieString(unusualNameTrie, "74", "Spellbound");
-	SetTrieString(unusualNameTrie, "75", "Chiroptera Venenata");
-	SetTrieString(unusualNameTrie, "76", "Poisoned Shadows");
-	SetTrieString(unusualNameTrie, "77", "Something Burning This Way Comes");
-	SetTrieString(unusualNameTrie, "78", "Hellfire");
-	SetTrieString(unusualNameTrie, "79", "Darkblaze");
-	SetTrieString(unusualNameTrie, "80", "Demonflame");
+	unusualNameTrie.SetString("73", "Arcana");
+	unusualNameTrie.SetString("74", "Spellbound");
+	unusualNameTrie.SetString("75", "Chiroptera Venenata");
+	unusualNameTrie.SetString("76", "Poisoned Shadows");
+	unusualNameTrie.SetString("77", "Something Burning This Way Comes");
+	unusualNameTrie.SetString("78", "Hellfire");
+	unusualNameTrie.SetString("79", "Darkblaze");
+	unusualNameTrie.SetString("80", "Demonflame");
 	// Halloween 2014
-	SetTrieString(unusualNameTrie, "81", "Bonzo The All-Gnawing");
-	SetTrieString(unusualNameTrie, "82", "Amaranthine");
-	SetTrieString(unusualNameTrie, "83", "Stare From Beyond");
-	SetTrieString(unusualNameTrie, "84", "The Ooze");
-	SetTrieString(unusualNameTrie, "85", "Ghastly Ghosts Jr");
-	SetTrieString(unusualNameTrie, "86", "Haunted Phantasm Jr");
+	unusualNameTrie.SetString("81", "Bonzo The All-Gnawing");
+	unusualNameTrie.SetString("82", "Amaranthine");
+	unusualNameTrie.SetString("83", "Stare From Beyond");
+	unusualNameTrie.SetString("84", "The Ooze");
+	unusualNameTrie.SetString("85", "Ghastly Ghosts Jr");
+	unusualNameTrie.SetString("86", "Haunted Phantasm Jr");
 	// EOTL
-	SetTrieString(unusualNameTrie, "87", "Frostbite");
-	SetTrieString(unusualNameTrie, "88", "Molten Mallard");
-	SetTrieString(unusualNameTrie, "89", "Morning Glory");
-	SetTrieString(unusualNameTrie, "90", "Death at Dusk");
+	unusualNameTrie.SetString("87", "Frostbite");
+	unusualNameTrie.SetString("88", "Molten Mallard");
+	unusualNameTrie.SetString("89", "Morning Glory");
+	unusualNameTrie.SetString("90", "Death at Dusk");
 	// Invasion effects
-	SetTrieString(unusualNameTrie, "91", "Abduction");
-	SetTrieString(unusualNameTrie, "92", "Atomic");
-	SetTrieString(unusualNameTrie, "93", "Subatomic");
-	SetTrieString(unusualNameTrie, "94", "Electric Hat Protector");
-	SetTrieString(unusualNameTrie, "95", "Magnetic Hat Protector");
-	SetTrieString(unusualNameTrie, "96", "Voltaic Hat Protector");
-	SetTrieString(unusualNameTrie, "97", "Galactic Codex");
-	SetTrieString(unusualNameTrie, "98", "Ancient Codex");
-	SetTrieString(unusualNameTrie, "99", "Nebula");
+	unusualNameTrie.SetString("91", "Abduction");
+	unusualNameTrie.SetString("92", "Atomic");
+	unusualNameTrie.SetString("93", "Subatomic");
+	unusualNameTrie.SetString("94", "Electric Hat Protector");
+	unusualNameTrie.SetString("95", "Magnetic Hat Protector");
+	unusualNameTrie.SetString("96", "Voltaic Hat Protector");
+	unusualNameTrie.SetString("97", "Galactic Codex");
+	unusualNameTrie.SetString("98", "Ancient Codex");
+	unusualNameTrie.SetString("99", "Nebula");
 	// Halloween 2015
-	SetTrieString(unusualNameTrie, "100", "Death by Disco");
-	SetTrieString(unusualNameTrie, "101", "It's a mystery to everyone");
-	SetTrieString(unusualNameTrie, "102", "It's a puzzle to me");
-	SetTrieString(unusualNameTrie, "103", "Ether Trail");
-	SetTrieString(unusualNameTrie, "104", "Nether Trail");
-	SetTrieString(unusualNameTrie, "105", "Ancient Eldritch");
-	SetTrieString(unusualNameTrie, "106", "Eldritch Flame");
+	unusualNameTrie.SetString("100", "Death by Disco");
+	unusualNameTrie.SetString("101", "It's a mystery to everyone");
+	unusualNameTrie.SetString("102", "It's a puzzle to me");
+	unusualNameTrie.SetString("103", "Ether Trail");
+	unusualNameTrie.SetString("104", "Nether Trail");
+	unusualNameTrie.SetString("105", "Ancient Eldritch");
+	unusualNameTrie.SetString("106", "Eldritch Flame");
 	// Halloween 2016
-	SetTrieString(unusualNameTrie, "107", "Neutron Star");
-	SetTrieString(unusualNameTrie, "108", "Tesla Coil");
-	SetTrieString(unusualNameTrie, "109", "Sandstorm Insomnia");
-	SetTrieString(unusualNameTrie, "110", "Sandstorm Slumber");
+	unusualNameTrie.SetString("107", "Neutron Star");
+	unusualNameTrie.SetString("108", "Tesla Coil");
+	unusualNameTrie.SetString("109", "Sandstorm Insomnia");
+	unusualNameTrie.SetString("110", "Sandstorm Slumber");
 	// Taunt effects
-	SetTrieString(unusualNameTrie, "3001", "Showstopper");
-	SetTrieString(unusualNameTrie, "3002", "Showstopper");
-	SetTrieString(unusualNameTrie, "3003", "Holy Grail");
-	SetTrieString(unusualNameTrie, "3004", "'72");
-	SetTrieString(unusualNameTrie, "3005", "Fountain of Delight");
-	SetTrieString(unusualNameTrie, "3006", "Screaming Tiger");
-	SetTrieString(unusualNameTrie, "3007", "Skill Gotten Gains");
-	SetTrieString(unusualNameTrie, "3008", "Midnight Whirlwind");
-	SetTrieString(unusualNameTrie, "3009", "Silver Cyclone");
-	SetTrieString(unusualNameTrie, "3010", "Mega Strike");
+	unusualNameTrie.SetString("3001", "Showstopper");
+	unusualNameTrie.SetString("3002", "Showstopper");
+	unusualNameTrie.SetString("3003", "Holy Grail");
+	unusualNameTrie.SetString("3004", "'72");
+	unusualNameTrie.SetString("3005", "Fountain of Delight");
+	unusualNameTrie.SetString("3006", "Screaming Tiger");
+	unusualNameTrie.SetString("3007", "Skill Gotten Gains");
+	unusualNameTrie.SetString("3008", "Midnight Whirlwind");
+	unusualNameTrie.SetString("3009", "Silver Cyclone");
+	unusualNameTrie.SetString("3010", "Mega Strike");
 	// Halloween 2014 taunt effects
-	SetTrieString(unusualNameTrie, "3011", "Haunted Phantasm");
-	SetTrieString(unusualNameTrie, "3012", "Ghastly Ghosts");
+	unusualNameTrie.SetString("3011", "Haunted Phantasm");
+	unusualNameTrie.SetString("3012", "Ghastly Ghosts");
 	// Halloween 2016 taunt effects
-	SetTrieString(unusualNameTrie, "3013", "Hellish Inferno");
-	SetTrieString(unusualNameTrie, "3014", "Spectral Swirl");
-	SetTrieString(unusualNameTrie, "3015", "Infernal Flames");
-	SetTrieString(unusualNameTrie, "3016", "Infernal Smoke");
-	
+	unusualNameTrie.SetString("3013", "Hellish Inferno");
+	unusualNameTrie.SetString("3014", "Spectral Swirl");
+	unusualNameTrie.SetString("3015", "Infernal Flames");
+	unusualNameTrie.SetString("3016", "Infernal Smoke");
+
 	hudText = CreateHudSynchronizer();
 }
 
@@ -237,14 +236,14 @@ public void OnConfigsExecuted() {
 }
 
 public Action Timer_AddTag(Handle timer) {
-	if(!GetConVarBool(cvarTag)) {
+	if(!cvarTag.BoolValue) {
 		return;
 	}
 	char value[512];
-	GetConVarString(sv_tags, value, sizeof(value));
+	sv_tags.GetString(value, sizeof(value));
 	TrimString(value);
 	if(strlen(value) == 0) {
-		SetConVarString(sv_tags, "backpack.tf");
+		sv_tags.SetString("backpack.tf");
 		return;
 	}
 	char tags[64][64];
@@ -255,7 +254,7 @@ public Action Timer_AddTag(Handle timer) {
 		}
 	}
 	StrCat(value, sizeof(value), ",backpack.tf");
-	SetConVarString(sv_tags, value);
+	sv_tags.SetString(value);
 }
 
 public void OnMapStart() {
@@ -272,14 +271,14 @@ int GetCachedPricesAge() {
 	if(!FileExists(path)) {
 		return -1;
 	}
-	Handle kv = CreateKeyValues("Response");
-	if(!FileToKeyValues(kv, path)) {
-		CloseHandle(kv);
+	KeyValues kv = new KeyValues("response");
+	if(!kv.ImportFromFile(path)) {
+		delete kv;
 		return -1;
 	}
-	int offset = KvGetNum(kv, "time_offset", 1337); // The actual offset can be positive, negative, or zero, so we'll just use 1337 as a default since that's unlikely
-	int time = KvGetNum(kv, "current_time");
-	CloseHandle(kv);
+	int offset = kv.GetNum("time_offset", 1337); // The actual offset can be positive, negative, or zero, so we'll just use 1337 as a default since that's unlikely
+	int time = kv.GetNum("current_time");
+	delete kv;
 	if(offset == 1337 || time == 0) {
 		return -1;
 	}
@@ -290,99 +289,222 @@ public Action Timer_Update(Handle timer) {
 	int age = GetCachedPricesAge();
 	if(age != -1 && age < 900) { // 15 minutes
 		LogMessage("Locally saved pricing data is %d minutes old, bypassing backpack.tf query", age / 60);
-		if(backpackTFPricelist != INVALID_HANDLE) {
-			CloseHandle(backpackTFPricelist);
+		if(backpackTFPricelist != null) {
+			delete backpackTFPricelist;
 		}
 		char path[PLATFORM_MAX_PATH];
 		BuildPath(Path_SM, path, sizeof(path), "data/backpack-tf.txt");
-		backpackTFPricelist = CreateKeyValues("Response");
-		FileToKeyValues(backpackTFPricelist, path);
-		
-		budsToKeys = GetConversion(ITEM_EARBUDS);
-		keysToRef = GetConversion(ITEM_KEY);
-		KvRewind(backpackTFPricelist);
-		refToUsd = KvGetFloat(backpackTFPricelist, "refined_usd_value");
-		
+		backpackTFPricelist = new KeyValues("response");
+		if (backpackTFPricelist.ImportFromFile(path))
+		{
+			budsToKeys = GetConversion(ITEM_EARBUDS);
+			keysToRef = GetConversion(ITEM_KEY);
+			backpackTFPricelist.Rewind();
+			refToUsd = backpackTFPricelist.GetFloat("raw_usd_value");
+		}
 		CreateTimer(float(3600 - age), Timer_Update);
 		return;
 	}
-	
+
 	char key[32];
-	GetConVarString(cvarAPIKey, key, sizeof(key));
+	cvarAPIKey.GetString(key, sizeof(key));
 	if(strlen(key) == 0) {
 		LogError("No API key set. Fill in your API key and reload the plugin.");
 		return;
 	}
-	HTTPRequestHandle request = Steam_CreateHTTPRequest(HTTPMethod_GET, BACKPACK_TF_URL);
-	Steam_SetHTTPRequestGetOrPostParameter(request, "key", key);
-	Steam_SetHTTPRequestGetOrPostParameter(request, "format", "vdf");
-	Steam_SetHTTPRequestGetOrPostParameter(request, "names", "1");
-	Steam_SendHTTPRequest(request, OnBackpackTFComplete);
+	SWHTTPRequest request = new SWHTTPRequest(k_EHTTPMethodGET, BACKPACK_TF_URL);
+	request.SetParam("key", key);
+	request.SetParam("format", "vdf");
+	request.SetParam("names", "1");
+	request.SetCallbacks(OnBackpackTFComplete);
+	request.Send();
 }
 
-public int OnBackpackTFComplete(HTTPRequestHandle request, bool successful, HTTPStatusCode status) {
-	if(status != HTTPStatusCode_OK || !successful) {
-		if(status == HTTPStatusCode_BadRequest) {
+public int OnBackpackTFComplete(SWHTTPRequest request, bool bFailure, bool successful, EHTTPStatusCode status) {
+	if(status != k_EHTTPStatusCode200OK || !successful) {
+		if(status == k_EHTTPStatusCode400BadRequest) {
 			LogError("backpack.tf API failed: You have not set an API key");
-			Steam_ReleaseHTTPRequest(request);
+			delete request;
 			CreateTimer(600.0, Timer_Update); // Set this for 10 minutes instead of 1 minute
 			return;
-		} else if(status == HTTPStatusCode_Forbidden) {
+		} else if(status == k_EHTTPStatusCode403Forbidden) {
 			LogError("backpack.tf API failed: Your API key is invalid");
-			Steam_ReleaseHTTPRequest(request);
+			delete request;
 			CreateTimer(600.0, Timer_Update); // Set this for 10 minutes instead of 1 minute
 			return;
-		} else if(status == HTTPStatusCode_PreconditionFailed) {
+		} else if(status == k_EHTTPStatusCode412PreconditionFailed) {
 			char retry[16];
-			Steam_GetHTTPResponseHeaderValue(request, "Retry-After", retry, sizeof(retry));
+			SteamWorks_GetHTTPResponseHeaderValue(request, "Retry-After", retry, sizeof(retry));
 			LogError("backpack.tf API failed: We are being rate-limited by backpack.tf, next request allowed in %s seconds", retry);
-		} else if(status >= HTTPStatusCode_InternalServerError) {
+		} else if(status >= k_EHTTPStatusCode500InternalServerError) {
 			LogError("backpack.tf API failed: An internal server error occurred");
-		} else if(status == HTTPStatusCode_OK && !successful) {
+		} else if(status == k_EHTTPStatusCode200OK && !successful) {
 			LogError("backpack.tf API failed: backpack.tf returned an OK response but no data");
-		} else if(status != HTTPStatusCode_Invalid) {
+		} else if(status != k_EHTTPStatusCodeInvalid) {
 			LogError("backpack.tf API failed: Unknown error (status code %d)", view_as<int>(status));
 		} else {
 			LogError("backpack.tf API failed: Unable to connect to server or server returned no data");
 		}
-		Steam_ReleaseHTTPRequest(request);
+		delete request;
 		CreateTimer(60.0, Timer_Update); // try again!
 		return;
 	}
 	char path[256];
 	BuildPath(Path_SM, path, sizeof(path), "data/backpack-tf.txt");
-	
-	Steam_WriteHTTPResponseBody(request, path);
-	Steam_ReleaseHTTPRequest(request);
+
+	request.WriteResponseToFile(path);
+	delete request;
 	LogMessage("backpack.tf price list successfully downloaded!");
-	
+
 	CreateTimer(3600.0, Timer_Update);
-	
-	if(backpackTFPricelist != INVALID_HANDLE) {
-		CloseHandle(backpackTFPricelist);
+
+	if(backpackTFPricelist != null) {
+		delete backpackTFPricelist;
 	}
-	backpackTFPricelist = CreateKeyValues("Response");
-	FileToKeyValues(backpackTFPricelist, path);
-	lastCacheTime = cacheTime;
-	cacheTime = KvGetNum(backpackTFPricelist, "current_time");
-	
-	int offset = GetTime() - cacheTime;
-	KvSetNum(backpackTFPricelist, "time_offset", offset);
-	KeyValuesToFile(backpackTFPricelist, path);
-	
-	budsToKeys = GetConversion(ITEM_EARBUDS);
-	keysToRef = GetConversion(ITEM_KEY);
-	KvRewind(backpackTFPricelist);
-	refToUsd = KvGetFloat(backpackTFPricelist, "refined_usd_value");
-	
-	if(!GetConVarBool(cvarDisplayUpdateNotification)) {
-		return;
-	}
-	
-	if(lastCacheTime == 0) { // first download
-		Handle array = CreateArray(128);
-		PushArrayString(array, "#Type_command");
-		SetHudTextParams(GetConVarFloat(cvarHudXPos), GetConVarFloat(cvarHudYPos), GetConVarFloat(cvarHudHoldTime), GetConVarInt(cvarHudRed), GetConVarInt(cvarHudGreen), GetConVarInt(cvarHudBlue), 255);
+	backpackTFPricelist = new KeyValues("response");
+	if (backpackTFPricelist.ImportFromFile(path))
+	{
+		lastCacheTime = cacheTime;
+		cacheTime = backpackTFPricelist.GetNum("current_time");
+
+		int offset = GetTime() - cacheTime;
+		backpackTFPricelist.SetNum("time_offset", offset);
+		backpackTFPricelist.ExportToFile(path);
+
+		budsToKeys = GetConversion(ITEM_EARBUDS);
+		keysToRef = GetConversion(ITEM_KEY);
+		backpackTFPricelist.Rewind();
+		refToUsd = backpackTFPricelist.GetFloat("raw_usd_value");
+
+		if(!cvarDisplayUpdateNotification.BoolValue) {
+			return;
+		}
+
+		if(lastCacheTime == 0) { // first download
+			ArrayList array = new ArrayList(128);
+			array.PushString("#Type_command");
+			SetHudTextParams(cvarHudXPos.FloatValue, cvarHudYPos.FloatValue, cvarHudHoldTime.FloatValue, cvarHudRed.IntValue, cvarHudGreen.IntValue, cvarHudBlue.IntValue, 255);
+			for(int i = 1; i <= MaxClients; i++) {
+				if(!IsClientInGame(i)) {
+					continue;
+				}
+				ShowSyncHudText(i, hudText, "%t", "Price list updated");
+				EmitSoundToClient(i, NOTIFICATION_SOUND);
+			}
+			CreateTimer(cvarHudHoldTime.FloatValue, Timer_DisplayHudText, array, TIMER_REPEAT);
+			return;
+		}
+
+		PrepPriceKv();
+		backpackTFPricelist.GotoFirstSubKey();
+		bool isNegative = false;
+		int lastUpdate;
+		float valueOld, valueOldHigh, value, valueHigh, difference;
+		char defindex[16], qualityIndex[32], quality[32], name[64], message[128], currency[32], currencyOld[32], oldPrice[64], newPrice[64];
+		ArrayList array = new ArrayList(128);
+		array.PushString("#Type_command");
+		if(cvarDisplayChangedPrices.BoolValue) {
+			do {
+				// loop through items
+				backpackTFPricelist.GetSectionName(defindex, sizeof(defindex));
+				if(StringToInt(defindex) == ITEM_REFINED) {
+					continue; // Skip over refined price changes
+				}
+				backpackTFPricelist.GotoFirstSubKey();
+				do {
+					// loop through qualities
+					backpackTFPricelist.GetSectionName(qualityIndex, sizeof(qualityIndex));
+					if(StrEqual(qualityIndex, "item_info"))  {
+						backpackTFPricelist.GetString("item_name", name, sizeof(name));
+						continue;
+					}
+					backpackTFPricelist.GotoFirstSubKey();
+					do {
+						// loop through instances (series #s, effects)
+						lastUpdate = backpackTFPricelist.GetNum("last_change");
+						if(lastUpdate == 0 || lastUpdate < lastCacheTime) {
+							continue; // hasn't updated
+						}
+						valueOld = backpackTFPricelist.GetFloat("value_old");
+						valueOldHigh = backpackTFPricelist.GetFloat("value_high_old");
+						value = backpackTFPricelist.GetFloat("value");
+						valueHigh = backpackTFPricelist.GetFloat("value_high");
+
+						backpackTFPricelist.GetString("currency", currency, sizeof(currency));
+						backpackTFPricelist.GetString("currency_old", currencyOld, sizeof(currencyOld));
+
+						if(strlen(currency) == 0 || strlen(currencyOld) == 0) {
+							continue;
+						}
+
+						FormatPriceRange(valueOld, valueOldHigh, currency, oldPrice, sizeof(oldPrice), StrEqual(qualityIndex, QUALITY_UNUSUAL));
+						FormatPriceRange(value, valueHigh, currency, newPrice, sizeof(newPrice), StrEqual(qualityIndex, QUALITY_UNUSUAL));
+
+						// Get an average so we can determine if it went up or down
+						if(valueOldHigh != 0.0) {
+							valueOld = FloatDiv(FloatAdd(valueOld, valueOldHigh), 2.0);
+						}
+
+						if(valueHigh != 0.0) {
+							value = FloatDiv(FloatAdd(value, valueHigh), 2.0);
+						}
+
+						// Get prices in terms of refined now so we can determine if it went up or down
+						if(StrEqual(currencyOld, "earbuds")) {
+							valueOld = FloatMul(FloatMul(valueOld, budsToKeys), keysToRef);
+						} else if(StrEqual(currencyOld, "keys")) {
+							valueOld = FloatMul(valueOld, keysToRef);
+						}
+
+						if(StrEqual(currency, "earbuds")) {
+							value = FloatMul(FloatMul(value, budsToKeys), keysToRef);
+						} else if(StrEqual(currency, "keys")) {
+							value = FloatMul(value, keysToRef);
+						}
+
+						difference = FloatSub(value, valueOld);
+						if(difference < 0.0) {
+							isNegative = true;
+							difference = FloatMul(difference, -1.0);
+						} else {
+							isNegative = false;
+						}
+
+						// Format a quality name
+						if(StrEqual(qualityIndex, QUALITY_UNIQUE)) {
+							Format(quality, sizeof(quality), ""); // if quality is unique, don't display a quality
+						} else if(StrEqual(qualityIndex, QUALITY_UNUSUAL) && (StringToInt(defindex) != ITEM_HAUNTED_SCRAP && StringToInt(defindex) != ITEM_HEADTAKER)) {
+							char effect[16];
+							backpackTFPricelist.GetSectionName(effect, sizeof(effect));
+							if(!unusualNameTrie.GetString(effect, quality, sizeof(quality))) {
+								LogError("Unknown unusual effect: %s in OnBackpackTFComplete. Please report this!", effect);
+								char kvPath[PLATFORM_MAX_PATH];
+								BuildPath(Path_SM, kvPath, sizeof(kvPath), "data/backpack-tf.%d.txt", GetTime());
+								if(!FileExists(kvPath)) {
+									backpackTFPricelist.ExportToFile(kvPath);
+								}
+								continue;
+							}
+						} else {
+							if(!qualityNameTrie.GetString(qualityIndex, quality, sizeof(quality))) {
+								LogError("Unknown quality index: %s. Please report this!", qualityIndex);
+								continue;
+							}
+						}
+
+						Format(message, sizeof(message), "%s%s%s: %s #From %s #To %s", quality, StrEqual(quality, "") ? "" : " ", name, isNegative ? "#Down" : "#Up", oldPrice, newPrice);
+						array.PushString(message);
+
+					} while(backpackTFPricelist.GotoNextKey()); // end: instances
+					backpackTFPricelist.GoBack();
+
+				} while(backpackTFPricelist.GotoNextKey()); // end: qualities
+				backpackTFPricelist.GoBack();
+
+			} while(backpackTFPricelist.GotoNextKey()); // end: items
+		}
+
+		SetHudTextParams(cvarHudXPos.FloatValue, cvarHudYPos.FloatValue, cvarHudHoldTime.FloatValue, cvarHudRed.IntValue, cvarHudGreen.IntValue, cvarHudBlue.IntValue, 255);
 		for(int i = 1; i <= MaxClients; i++) {
 			if(!IsClientInGame(i)) {
 				continue;
@@ -390,139 +512,19 @@ public int OnBackpackTFComplete(HTTPRequestHandle request, bool successful, HTTP
 			ShowSyncHudText(i, hudText, "%t", "Price list updated");
 			EmitSoundToClient(i, NOTIFICATION_SOUND);
 		}
-		CreateTimer(GetConVarFloat(cvarHudHoldTime), Timer_DisplayHudText, array, TIMER_REPEAT);
-		return;
+		CreateTimer(cvarHudHoldTime.FloatValue, Timer_DisplayHudText, array, TIMER_REPEAT);
 	}
-	
-	PrepPriceKv();
-	KvGotoFirstSubKey(backpackTFPricelist);
-	bool isNegative = false;
-	int lastUpdate; 
-	float valueOld, valueOldHigh, value, valueHigh, difference;
-	char defindex[16], qualityIndex[32], quality[32], name[64], message[128], currency[32], currencyOld[32], oldPrice[64], newPrice[64];
-	Handle array = CreateArray(128);
-	PushArrayString(array, "#Type_command");
-	if(GetConVarBool(cvarDisplayChangedPrices)) {
-		do {
-			// loop through items
-			KvGetSectionName(backpackTFPricelist, defindex, sizeof(defindex));
-			if(StringToInt(defindex) == ITEM_REFINED) {
-				continue; // Skip over refined price changes
-			}
-			KvGotoFirstSubKey(backpackTFPricelist);
-			do {
-				// loop through qualities
-				KvGetSectionName(backpackTFPricelist, qualityIndex, sizeof(qualityIndex));
-				if(StrEqual(qualityIndex, "item_info"))  {
-					KvGetString(backpackTFPricelist, "item_name", name, sizeof(name));
-					continue;
-				}
-				KvGotoFirstSubKey(backpackTFPricelist);
-				do {
-					// loop through instances (series #s, effects)
-					lastUpdate = KvGetNum(backpackTFPricelist, "last_change");
-					if(lastUpdate == 0 || lastUpdate < lastCacheTime) {
-						continue; // hasn't updated
-					}
-					valueOld = KvGetFloat(backpackTFPricelist, "value_old");
-					valueOldHigh = KvGetFloat(backpackTFPricelist, "value_high_old");
-					value = KvGetFloat(backpackTFPricelist, "value");
-					valueHigh = KvGetFloat(backpackTFPricelist, "value_high");
-					
-					KvGetString(backpackTFPricelist, "currency", currency, sizeof(currency));
-					KvGetString(backpackTFPricelist, "currency_old", currencyOld, sizeof(currencyOld));
-					
-					if(strlen(currency) == 0 || strlen(currencyOld) == 0) {
-						continue;
-					}
-					
-					FormatPriceRange(valueOld, valueOldHigh, currency, oldPrice, sizeof(oldPrice), StrEqual(qualityIndex, QUALITY_UNUSUAL));
-					FormatPriceRange(value, valueHigh, currency, newPrice, sizeof(newPrice), StrEqual(qualityIndex, QUALITY_UNUSUAL));
-					
-					// Get an average so we can determine if it went up or down
-					if(valueOldHigh != 0.0) {
-						valueOld = FloatDiv(FloatAdd(valueOld, valueOldHigh), 2.0);
-					}
-					
-					if(valueHigh != 0.0) {
-						value = FloatDiv(FloatAdd(value, valueHigh), 2.0);
-					}
-					
-					// Get prices in terms of refined now so we can determine if it went up or down
-					if(StrEqual(currencyOld, "earbuds")) {
-						valueOld = FloatMul(FloatMul(valueOld, budsToKeys), keysToRef);
-					} else if(StrEqual(currencyOld, "keys")) {
-						valueOld = FloatMul(valueOld, keysToRef);
-					}
-					
-					if(StrEqual(currency, "earbuds")) {
-						value = FloatMul(FloatMul(value, budsToKeys), keysToRef);
-					} else if(StrEqual(currency, "keys")) {
-						value = FloatMul(value, keysToRef);
-					}
-					
-					difference = FloatSub(value, valueOld);
-					if(difference < 0.0) {
-						isNegative = true;
-						difference = FloatMul(difference, -1.0);
-					} else {
-						isNegative = false;
-					}
-					
-					// Format a quality name
-					if(StrEqual(qualityIndex, QUALITY_UNIQUE)) {
-						Format(quality, sizeof(quality), ""); // if quality is unique, don't display a quality
-					} else if(StrEqual(qualityIndex, QUALITY_UNUSUAL) && (StringToInt(defindex) != ITEM_HAUNTED_SCRAP && StringToInt(defindex) != ITEM_HEADTAKER)) {
-						char effect[16];
-						KvGetSectionName(backpackTFPricelist, effect, sizeof(effect));
-						if(!GetTrieString(unusualNameTrie, effect, quality, sizeof(quality))) {
-							LogError("Unknown unusual effect: %s in OnBackpackTFComplete. Please report this!", effect);
-							char kvPath[PLATFORM_MAX_PATH];
-							BuildPath(Path_SM, kvPath, sizeof(kvPath), "data/backpack-tf.%d.txt", GetTime());
-							if(!FileExists(kvPath)) {
-								KeyValuesToFile(backpackTFPricelist, kvPath);
-							}
-							continue;
-						}
-					} else {
-						if(!GetTrieString(qualityNameTrie, qualityIndex, quality, sizeof(quality))) {
-							LogError("Unknown quality index: %s. Please report this!", qualityIndex);
-							continue;
-						}
-					}
-					
-					Format(message, sizeof(message), "%s%s%s: %s #From %s #To %s", quality, StrEqual(quality, "") ? "" : " ", name, isNegative ? "#Down" : "#Up", oldPrice, newPrice);
-					PushArrayString(array, message);
-					
-				} while(KvGotoNextKey(backpackTFPricelist)); // end: instances
-				KvGoBack(backpackTFPricelist);
-				
-			} while(KvGotoNextKey(backpackTFPricelist)); // end: qualities
-			KvGoBack(backpackTFPricelist);
-			
-		} while(KvGotoNextKey(backpackTFPricelist)); // end: items
-	}
-	
-	SetHudTextParams(GetConVarFloat(cvarHudXPos), GetConVarFloat(cvarHudYPos), GetConVarFloat(cvarHudHoldTime), GetConVarInt(cvarHudRed), GetConVarInt(cvarHudGreen), GetConVarInt(cvarHudBlue), 255);
-	for(int i = 1; i <= MaxClients; i++) {
-		if(!IsClientInGame(i)) {
-			continue;
-		}
-		ShowSyncHudText(i, hudText, "%t", "Price list updated");
-		EmitSoundToClient(i, NOTIFICATION_SOUND);
-	}
-	CreateTimer(GetConVarFloat(cvarHudHoldTime), Timer_DisplayHudText, array, TIMER_REPEAT);
 }
 
 float GetConversion(int defindex) {
 	char buffer[32];
 	PrepPriceKv();
 	IntToString(defindex, buffer, sizeof(buffer));
-	KvJumpToKey(backpackTFPricelist, buffer);
-	KvJumpToKey(backpackTFPricelist, "6");
-	KvJumpToKey(backpackTFPricelist, "0");
-	float value = KvGetFloat(backpackTFPricelist, "value");
-	float valueHigh = KvGetFloat(backpackTFPricelist, "value_high");
+	backpackTFPricelist.JumpToKey(buffer);
+	backpackTFPricelist.JumpToKey("6");
+	backpackTFPricelist.JumpToKey("0");
+	float value = backpackTFPricelist.GetFloat("value");
+	float valueHigh = backpackTFPricelist.GetFloat("value_high");
 	if(valueHigh == 0.0) {
 		return value;
 	}
@@ -545,17 +547,17 @@ void FormatPrice(float price, const char[] currency, char[] output, int maxlen, 
 	} else {
 		ThrowError("Unknown currency: %s", currency);
 	}
-	
+
 	if(FloatIsInt(price)) {
 		Format(output, maxlen, "%d", RoundToFloor(price));
 	} else {
 		Format(output, maxlen, "%.2f", price);
 	}
-	
+
 	if(!includeCurrency) {
 		return;
 	}
-	
+
 	if(StrEqual(output, "1") || StrEqual(currency, "metal")) {
 		Format(output, maxlen, "%s %s", output, outputCurrency);
 	} else {
@@ -590,14 +592,14 @@ bool FloatIsInt(float input) {
 	return float(RoundToFloor(input)) == input;
 }
 
-public Action Timer_DisplayHudText(Handle timer, any array) {
-	if(GetArraySize(array) == 0) {
-		CloseHandle(array);
+public Action Timer_DisplayHudText(Handle timer, ArrayList array) {
+	if(array.Length == 0) {
+		delete array;
 		return Plugin_Stop;
 	}
 	char text[128], display[128];
-	GetArrayString(array, 0, text, sizeof(text));
-	SetHudTextParams(GetConVarFloat(cvarHudXPos), GetConVarFloat(cvarHudYPos), GetConVarFloat(cvarHudHoldTime), GetConVarInt(cvarHudRed), GetConVarInt(cvarHudGreen), GetConVarInt(cvarHudBlue), 255);
+	array.GetString(0, text, sizeof(text));
+	SetHudTextParams(cvarHudXPos.FloatValue, cvarHudYPos.FloatValue, cvarHudHoldTime.FloatValue, cvarHudRed.IntValue, cvarHudGreen.IntValue, cvarHudBlue.IntValue, 255);
 	for(int i = 1; i <= MaxClients; i++) {
 		if(!IsClientInGame(i)) {
 			continue;
@@ -613,32 +615,32 @@ void PerformTranslationTokenReplacement(int client, const char[] message, char[]
 	SetGlobalTransTarget(client);
 	strcopy(output, maxlen, message);
 	char buffer[64];
-	
+
 	Format(buffer, maxlen, "%t", "Type !pc for a price check");
 	ReplaceString(output, maxlen, "#Type_command", buffer);
-	
+
 	Format(buffer, maxlen, "%t", "Up");
 	ReplaceString(output, maxlen, "#Up", buffer);
-	
+
 	Format(buffer, maxlen, "%t", "Down");
 	ReplaceString(output, maxlen, "#Down", buffer);
-	
+
 	Format(buffer, maxlen, "%t", "From");
 	ReplaceString(output, maxlen, "#From", buffer);
-	
+
 	Format(buffer, maxlen, "%t", "To");
 	ReplaceString(output, maxlen, "#To", buffer);
 }
 
 void PrepPriceKv() {
-	KvRewind(backpackTFPricelist);
-	KvJumpToKey(backpackTFPricelist, "prices");
+	backpackTFPricelist.Rewind();
+	backpackTFPricelist.JumpToKey("prices");
 }
 
 public Action Command_PriceCheck(int client, int args) {
-	if(backpackTFPricelist == INVALID_HANDLE) {
+	if(backpackTFPricelist == null) {
 		char key[32];
-		GetConVarString(cvarAPIKey, key, sizeof(key));
+		cvarAPIKey.GetString(key, sizeof(key));
 		if(strlen(key) == 0) {
 			ReplyToCommand(client, "\x04[SM] \x01The server administrator has not filled in their API key yet. Please contact the server administrator.");
 		} else {
@@ -647,23 +649,23 @@ public Action Command_PriceCheck(int client, int args) {
 		return Plugin_Handled;
 	}
 	if(args == 0) {
-		Handle menu = CreateMenu(Handler_ItemSelection);
-		SetMenuTitle(menu, "Price Check");
+		Menu menu = new Menu(Handler_ItemSelection);
+		menu.SetTitle("Price Check");
 		PrepPriceKv();
-		KvGotoFirstSubKey(backpackTFPricelist);
+		backpackTFPricelist.GotoFirstSubKey();
 		char name[128];
 		do {
-			if(!KvJumpToKey(backpackTFPricelist, "item_info")) {
+			if(!backpackTFPricelist.JumpToKey("item_info")) {
 				continue;
 			}
-			KvGetString(backpackTFPricelist, "item_name", name, sizeof(name));
-			if(KvGetNum(backpackTFPricelist, "proper_name") == 1) {
+			backpackTFPricelist.GetString("item_name", name, sizeof(name));
+			if(backpackTFPricelist.GetNum("proper_name") == 1) {
 				Format(name, sizeof(name), "The %s", name);
 			}
-			AddMenuItem(menu, name, name);
-			KvGoBack(backpackTFPricelist);
-		} while(KvGotoNextKey(backpackTFPricelist));
-		DisplayMenu(menu, client, GetConVarInt(cvarMenuHoldTime));
+			menu.AddItem(name, name);
+			backpackTFPricelist.GoBack();
+		} while(backpackTFPricelist.GotoNextKey());
+		menu.Display(client, cvarMenuHoldTime.IntValue);
 		return Plugin_Handled;
 	}
 	int resultDefindex = -1;
@@ -671,21 +673,21 @@ public Action Command_PriceCheck(int client, int args) {
 	GetCmdArgString(name, sizeof(name));
 	bool exact = StripQuotes(name);
 	PrepPriceKv();
-	KvGotoFirstSubKey(backpackTFPricelist);
-	Handle matches;
+	backpackTFPricelist.GotoFirstSubKey();
+	ArrayList matches;
 	if(!exact) {
-		matches = CreateArray(128);
+		matches = new ArrayList(128);
 	}
 	do {
-		KvGetSectionName(backpackTFPricelist, defindex, sizeof(defindex));
-		if(!KvJumpToKey(backpackTFPricelist, "item_info")) {
+		backpackTFPricelist.GetSectionName(defindex, sizeof(defindex));
+		if(!backpackTFPricelist.JumpToKey("item_info")) {
 			continue;
 		}
-		KvGetString(backpackTFPricelist, "item_name", itemName, sizeof(itemName));
-		if(KvGetNum(backpackTFPricelist, "proper_name") == 1) {
+		backpackTFPricelist.GetString("item_name", itemName, sizeof(itemName));
+		if(backpackTFPricelist.GetNum("proper_name") == 1) {
 			Format(itemName, sizeof(itemName), "The %s", itemName);
 		}
-		KvGoBack(backpackTFPricelist);
+		backpackTFPricelist.GoBack();
 		if(exact) {
 			if(StrEqual(itemName, name, false)) {
 				resultDefindex = StringToInt(defindex);
@@ -697,21 +699,21 @@ public Action Command_PriceCheck(int client, int args) {
 				PushArrayString(matches, itemName);
 			}
 		}
-	} while(KvGotoNextKey(backpackTFPricelist));
-	if(!exact && GetArraySize(matches) > 1) {
-		Handle menu = CreateMenu(Handler_ItemSelection);
-		SetMenuTitle(menu, "Search Results");
-		int size = GetArraySize(matches);
+	} while(backpackTFPricelist.GotoNextKey());
+	if(!exact && matches.Length > 1) {
+		Menu menu = new Menu(Handler_ItemSelection);
+		menu.SetTitle("Search Results");
+		int size = matches.Length;
 		for(int i = 0; i < size; i++) {
-			GetArrayString(matches, i, itemName, sizeof(itemName));
-			AddMenuItem(menu, itemName, itemName);
+			matches.GetString(i, itemName, sizeof(itemName));
+			menu.AddItem(itemName, itemName);
 		}
-		DisplayMenu(menu, client, GetConVarInt(cvarMenuHoldTime));
-		CloseHandle(matches);
+		menu.Display(client, GetConVarInt(cvarMenuHoldTime));
+		delete matches;
 		return Plugin_Handled;
 	}
 	if(!exact) {
-		CloseHandle(matches);
+		delete matches;
 	}
 	if(resultDefindex == -1) {
 		ReplyToCommand(client, "\x04[SM] \x01No matching item was found.");
@@ -721,56 +723,56 @@ public Action Command_PriceCheck(int client, int args) {
 	// defindex was used to store the defindex of every item as we searched it, so it's not reliable
 	if(resultDefindex == ITEM_REFINED) {
 		SetGlobalTransTarget(client);
-		Handle menu = CreateMenu(Handler_PriceListMenu);
-		SetMenuTitle(menu, "%t\n%t\n%t\n ", "Price check", itemName, "Prices are estimates only", "Prices courtesy of backpack.tf");
+		Menu menu = new Menu(Handler_PriceListMenu);
+		menu.SetTitle("%t\n%t\n%t\n ", "Price check", itemName, "Prices are estimates only", "Prices courtesy of backpack.tf");
 		char buffer[32];
 		Format(buffer, sizeof(buffer), "Unique: $%.2f USD", refToUsd);
-		AddMenuItem(menu, "", buffer);
-		DisplayMenu(menu, client, GetConVarInt(cvarMenuHoldTime));
+		menu.AddItem("", buffer);
+		menu.Display(client, GetConVarInt(cvarMenuHoldTime));
 		return Plugin_Handled;
 	}
 	bool isCrate = (resultDefindex == ITEM_CRATE || resultDefindex == ITEM_SALVAGED_CRATE);
 	bool onlyOneUnusual = (resultDefindex == ITEM_HEADTAKER || resultDefindex == ITEM_HAUNTED_SCRAP);
 	PrepPriceKv();
 	IntToString(resultDefindex, defindex, sizeof(defindex));
-	KvJumpToKey(backpackTFPricelist, defindex);
-	KvJumpToKey(backpackTFPricelist, "item_info");
-	KvGetString(backpackTFPricelist, "item_name", itemName, sizeof(itemName));
-	if(KvGetNum(backpackTFPricelist, "proper_name") == 1) {
+	backpackTFPricelist.JumpToKey(defindex);
+	backpackTFPricelist.JumpToKey("item_info");
+	backpackTFPricelist.GetString("item_name", itemName, sizeof(itemName));
+	if(backpackTFPricelist.GetNum("proper_name") == 1) {
 		Format(itemName, sizeof(itemName), "The %s", itemName);
 	}
-	KvGotoNextKey(backpackTFPricelist);
-	
+	backpackTFPricelist.GotoNextKey();
+
 	SetGlobalTransTarget(client);
-	Handle menu = CreateMenu(Handler_PriceListMenu);
-	SetMenuTitle(menu, "%t\n%t\n%t\n ", "Price check", itemName, "Prices are estimates only", "Prices courtesy of backpack.tf");
+	Menu menu = new Menu(Handler_PriceListMenu);
+	menu.SetTitle("%t\n%t\n%t\n ", "Price check", itemName, "Prices are estimates only", "Prices courtesy of backpack.tf");
 	bool unusualDisplayed = false;
 	float value, valueHigh;
 	char currency[32], qualityIndex[16], quality[16], series[8], price[32], buffer[64];
 	do {
-		KvGetSectionName(backpackTFPricelist, qualityIndex, sizeof(qualityIndex));
+		backpackTFPricelist.GetSectionName(qualityIndex, sizeof(qualityIndex));
 		if(StrEqual(qualityIndex, "item_info") || StrEqual(qualityIndex, "alt_defindex")) {
 			continue;
 		}
-		KvGotoFirstSubKey(backpackTFPricelist);
+		backpackTFPricelist.GotoFirstSubKey();
 		do {
 			if(StrEqual(qualityIndex, QUALITY_UNUSUAL) && !onlyOneUnusual) {
 				if(!unusualDisplayed) {
-					AddMenuItem(menu, defindex, "Unusual: View Effects");
+					menu.AddItem(defindex, "Unusual: View Effects");
 					unusualDisplayed = true;
 				}
 			} else {
-				value = KvGetFloat(backpackTFPricelist, "value");
-				valueHigh = KvGetFloat(backpackTFPricelist, "value_high");
-				KvGetString(backpackTFPricelist, "currency", currency, sizeof(currency));
+				value = backpackTFPricelist.GetFloat("value");
+				valueHigh = backpackTFPricelist.GetFloat("value_high");
+				backpackTFPricelist.GetString("currency", currency, sizeof(currency));
 				FormatPriceRange(value, valueHigh, currency, price, sizeof(price));
-				
-				if(!GetTrieString(qualityNameTrie, qualityIndex, quality, sizeof(quality))) {
+
+				if(!qualityNameTrie.GetString(qualityIndex, quality, sizeof(quality))) {
 					LogError("Unknown quality index: %s. Please report this!", qualityIndex);
 					continue;
 				}
 				if(isCrate) {
-					KvGetSectionName(backpackTFPricelist, series, sizeof(series));
+					backpackTFPricelist.GetSectionName(series, sizeof(series));
 					if(StrEqual(series, "0")) {
 						continue;
 					}
@@ -782,83 +784,84 @@ public Action Command_PriceCheck(int client, int args) {
 				} else {
 					Format(buffer, sizeof(buffer), "%s: %s", quality, price);
 				}
-				AddMenuItem(menu, "", buffer, ITEMDRAW_DISABLED);
+				menu.AddItem("", buffer, ITEMDRAW_DISABLED);
 			}
-		} while(KvGotoNextKey(backpackTFPricelist));
-		KvGoBack(backpackTFPricelist);
-	} while(KvGotoNextKey(backpackTFPricelist));
-	DisplayMenu(menu, client, GetConVarInt(cvarMenuHoldTime));
+		} while(backpackTFPricelist.GotoNextKey());
+		backpackTFPricelist.GoBack();
+	} while(backpackTFPricelist.GotoNextKey());
+	menu.Display(client, GetConVarInt(cvarMenuHoldTime));
 	return Plugin_Handled;
 }
 
-public int Handler_ItemSelection(Handle menu, MenuAction action, int client, int param) {
+public int Handler_ItemSelection(Menu menu, MenuAction action, int client, int param) {
 	if(action == MenuAction_End) {
-		CloseHandle(menu);
+		delete menu;
 	}
 	if(action != MenuAction_Select) {
 		return;
 	}
 	char selection[128];
-	GetMenuItem(menu, param, selection, sizeof(selection));
-	FakeClientCommand(client, "sm_pricecheck \"%s\"", selection);
+	if(menu.GetItem(param, selection, sizeof(selection)))
+		FakeClientCommand(client, "sm_pricecheck \"%s\"", selection);
 }
 
-public int Handler_PriceListMenu(Handle menu, MenuAction action, int client, int param) {
+public int Handler_PriceListMenu(Menu menu, MenuAction action, int client, int param) {
 	if(action == MenuAction_End) {
-		CloseHandle(menu);
+		delete menu;
 	}
 	if(action != MenuAction_Select) {
 		return;
 	}
 	char defindex[32];
-	GetMenuItem(menu, param, defindex, sizeof(defindex));
+	if (menu.GetItem(param, defindex, sizeof(defindex)))
+	{
+		char name[64];
+		PrepPriceKv();
+		backpackTFPricelist.JumpToKey(defindex);
+		backpackTFPricelist.JumpToKey("item_info");
+		backpackTFPricelist.GetString("item_name", name, sizeof(name));
+		if(backpackTFPricelist.GetNum("proper_name") == 1) {
+			Format(name, sizeof(name), "The Unusual %s", name);
+		} else {
+			Format(name, sizeof(name), "Unusual %s", name);
+		}
+		backpackTFPricelist.GoBack();
 	
-	char name[64];
-	PrepPriceKv();
-	KvJumpToKey(backpackTFPricelist, defindex);
-	KvJumpToKey(backpackTFPricelist, "item_info");
-	KvGetString(backpackTFPricelist, "item_name", name, sizeof(name));
-	if(KvGetNum(backpackTFPricelist, "proper_name") == 1) {
-		Format(name, sizeof(name), "The Unusual %s", name);
-	} else {
-		Format(name, sizeof(name), "Unusual %s", name);
-	}
-	KvGoBack(backpackTFPricelist);
+		if(!backpackTFPricelist.JumpToKey(QUALITY_UNUSUAL)) {
+			return;
+		}
 	
-	if(!KvJumpToKey(backpackTFPricelist, QUALITY_UNUSUAL)) {
-		return;
-	}
+		backpackTFPricelist.GotoFirstSubKey();
 	
-	KvGotoFirstSubKey(backpackTFPricelist);
-	
-	SetGlobalTransTarget(client);
-	Handle menu2 = CreateMenu(Handler_PriceListMenu);
-	SetMenuTitle(menu2, "%t\n%t\n%t\n ", "Price check", name, "Prices are estimates only", "Prices courtesy of backpack.tf");
-	char effect[8], effectName[64], message[128], price[64], currency[32];
-	float value, valueHigh;
-	do {
-		KvGetSectionName(backpackTFPricelist, effect, sizeof(effect));
-		if(!GetTrieString(unusualNameTrie, effect, effectName, sizeof(effectName))) {
-			LogError("Unknown unusual effect: %s in Handler_PriceListMenu. Please report this!", effect);
-			char path[PLATFORM_MAX_PATH];
-			BuildPath(Path_SM, path, sizeof(path), "data/backpack-tf.%d.txt", GetTime());
-			if(!FileExists(path)) {
-				KeyValuesToFile(backpackTFPricelist, path);
+		SetGlobalTransTarget(client);
+		Menu menu2 = new Menu(Handler_PriceListMenu);
+		SetMenuTitle(menu2, "%t\n%t\n%t\n ", "Price check", name, "Prices are estimates only", "Prices courtesy of backpack.tf");
+		char effect[8], effectName[64], message[128], price[64], currency[32];
+		float value, valueHigh;
+		do {
+			backpackTFPricelist.GetSectionName(effect, sizeof(effect));
+			if(!unusualNameTrie.GetString(effect, effectName, sizeof(effectName))) {
+				LogError("Unknown unusual effect: %s in Handler_PriceListMenu. Please report this!", effect);
+				char path[PLATFORM_MAX_PATH];
+				BuildPath(Path_SM, path, sizeof(path), "data/backpack-tf.%d.txt", GetTime());
+				if(!FileExists(path)) {
+					backpackTFPricelist.ExportToFile(path);
+				}
+				continue;
 			}
-			continue;
-		}
-		value = KvGetFloat(backpackTFPricelist, "value");
-		valueHigh = KvGetFloat(backpackTFPricelist, "value_high");
-		KvGetString(backpackTFPricelist, "currency", currency, sizeof(currency));
-		if(StrEqual(currency, "")) {
-			continue;
-		}
-		FormatPriceRange(value, valueHigh, currency, price, sizeof(price), true);
-		
-		Format(message, sizeof(message), "%s: %s", effectName, price);
-		AddMenuItem(menu2, "", message, ITEMDRAW_DISABLED);
-	} while(KvGotoNextKey(backpackTFPricelist));
-	DisplayMenu(menu2, client, GetConVarInt(cvarMenuHoldTime));
+			value = backpackTFPricelist.GetFloat("value");
+			valueHigh = backpackTFPricelist.GetFloat("value_high");
+			backpackTFPricelist.GetString("currency", currency, sizeof(currency));
+			if(StrEqual(currency, "")) {
+				continue;
+			}
+			FormatPriceRange(value, valueHigh, currency, price, sizeof(price), true);
+	
+			Format(message, sizeof(message), "%s: %s", effectName, price);
+			menu2.AddItem("", message, ITEMDRAW_DISABLED);
+		} while(backpackTFPricelist.GotoNextKey());
+		menu2.Display(client, cvarMenuHoldTime.IntValue);
+	}
 }
 
 public Action Command_Backpack(int client, int args) {
@@ -882,16 +885,15 @@ public Action Command_Backpack(int client, int args) {
 		}
 	}
 	char steamID[64];
-	Steam_GetCSteamIDForClient(target, steamID, sizeof(steamID)); // we could use the regular Steam ID, but we already have SteamTools, so we can just bypass backpack.tf's redirect directly
+	SteamWorks_GetClientSteamID(target, steamID, sizeof(steamID)); // we could use the regular Steam ID, but we already have SteamWorks, so we can just bypass backpack.tf's redirect directly
 	char url[256];
 	Format(url, sizeof(url), "https://backpack.tf/profiles/%s", steamID);
 	AdvMOTD_ShowMOTDPanel(client, "backpack.tf", url, MOTDPANEL_TYPE_URL, true, true, true, OnMOTDFailure);
-//	WebFix_OpenUrl(client, "backpack.tf", url);
 	return Plugin_Handled;
 }
 
 public void OnMOTDFailure(int client, MOTDFailureReason reason) {
-	switch(reason) 
+	switch(reason)
 	{
 		case MOTDFailure_Disabled: PrintToChat(client, "\x04[SM] .\x01You cannot view backpacks with HTML MOTDs disabled.");
 		case MOTDFailure_Matchmaking: PrintToChat(client, "\x04[SM] \x01You cannot view backpacks after joining via Quickplay.");
@@ -900,8 +902,8 @@ public void OnMOTDFailure(int client, MOTDFailureReason reason) {
 }
 
 void DisplayClientMenu(int client) {
-	Handle menu = CreateMenu(Handler_ClientMenu);
-	SetMenuTitle(menu, "Select Player");
+	Menu menu = new Menu(Handler_ClientMenu);
+	menu.SetTitle("Select Player");
 	char name[MAX_NAME_LENGTH], index[8];
 	for(int i = 1; i <= MaxClients; i++) {
 		if(!IsClientInGame(i) || IsFakeClient(i)) {
@@ -909,21 +911,21 @@ void DisplayClientMenu(int client) {
 		}
 		GetClientName(i, name, sizeof(name));
 		IntToString(GetClientUserId(i), index, sizeof(index));
-		AddMenuItem(menu, index, name);
+		menu.AddItem(index, name);
 	}
-	DisplayMenu(menu, client, GetConVarInt(cvarMenuHoldTime));
+	menu.Display(client, GetConVarInt(cvarMenuHoldTime));
 }
 
-public int Handler_ClientMenu(Handle menu, MenuAction action, int client, int param) {
+public int Handler_ClientMenu(Menu menu, MenuAction action, int client, int param) {
 	if(action == MenuAction_End) {
-		CloseHandle(menu);
+		delete menu;
 	}
 	if(action != MenuAction_Select) {
 		return;
 	}
 	char selection[32];
-	GetMenuItem(menu, param, selection, sizeof(selection));
-	FakeClientCommand(client, "sm_backpack #%s", selection);
+	if (menu.GetItem(param, selection, sizeof(selection)))
+		FakeClientCommand(client, "sm_backpack #%s", selection);
 }
 
 public Action Command_UpdatePrices(int client, int args) {
@@ -939,9 +941,9 @@ public Action Command_UpdatePrices(int client, int args) {
 
 int FindTargetEx(int client, const char[] target, bool nobots = false, bool immunity = true, bool replyToError = true) {
 	char target_name[MAX_TARGET_LENGTH];
-	int target_list[1], target_count; 
+	int target_list[1], target_count;
 	bool tn_is_ml;
-	
+
 	int flags = COMMAND_FILTER_NO_MULTI;
 	if(nobots) {
 		flags |= COMMAND_FILTER_NO_BOTS;
@@ -949,12 +951,12 @@ int FindTargetEx(int client, const char[] target, bool nobots = false, bool immu
 	if(!immunity) {
 		flags |= COMMAND_FILTER_NO_IMMUNITY;
 	}
-	
+
 	if((target_count = ProcessTargetString(
 			target,
-			client, 
-			target_list, 
-			1, 
+			client,
+			target_list,
+			1,
 			flags,
 			target_name,
 			sizeof(target_name),

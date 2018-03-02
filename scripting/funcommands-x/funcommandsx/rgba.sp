@@ -14,7 +14,7 @@
 
 *****************************************************************/
 // Basic color arrays for temp entities
-new g_iTColors[23][4]         = {{255, 255, 255, 255}, {0, 255, 0, 192}, {255, 255, 0, 192}, {255, 0, 255, 192}, {0, 255, 255, 192}, {255, 128, 0, 192}, {255, 0, 128, 192}, {128, 255, 0, 192}, {0, 255, 128, 192}, {128, 0, 255, 192}, {0, 128, 255, 192}, {192, 192, 192}, {210, 105, 30}, {139, 69, 19}, {75, 0, 130}, {248, 248, 255}, {216, 191, 216}, {240, 248, 255}, {70, 130, 180}, {0, 128, 128},	{255, 215, 0}, {210, 180, 140}, {255, 99, 71}};
+new g_iTColors[22][4]         = {{255, 255, 255, 255}, {0, 255, 0, 192}, {255, 255, 0, 192}, {0, 255, 255, 192}, {255, 128, 0, 192}, {255, 0, 128, 192}, {128, 255, 0, 192}, {0, 255, 128, 192}, {128, 0, 255, 192}, {0, 128, 255, 192}, {192, 192, 192}, {210, 105, 30}, {139, 69, 19}, {75, 0, 130}, {248, 248, 255}, {216, 191, 216}, {240, 248, 255}, {70, 130, 180}, {0, 128, 128},	{255, 215, 0}, {210, 180, 140}, {255, 99, 71}};
 new String:g_sTColors[26][32];
 
 new g_PlayerColor[MAXPLAYERS+1][4];			//remembers players color/alpha settings
@@ -54,46 +54,44 @@ public SetupRGBA()
 	g_sTColors[1] = colorTemp;	
 	Format(colorTemp, sizeof(colorTemp), "%t", "color_yellow");
 	g_sTColors[2] = colorTemp;	
-	Format(colorTemp, sizeof(colorTemp), "%t", "color_purple");
-	g_sTColors[3] = colorTemp;	
 	Format(colorTemp, sizeof(colorTemp), "%t", "color_cyan");
-	g_sTColors[4] = colorTemp;	
+	g_sTColors[3] = colorTemp;	
 	Format(colorTemp, sizeof(colorTemp), "%t", "color_orange");
-	g_sTColors[5] = colorTemp;	
+	g_sTColors[4] = colorTemp;	
 	Format(colorTemp, sizeof(colorTemp), "%t", "color_pink");
-	g_sTColors[6] = colorTemp;	
+	g_sTColors[5] = colorTemp;	
 	Format(colorTemp, sizeof(colorTemp), "%t", "color_olive");
-	g_sTColors[7] = colorTemp;	
+	g_sTColors[6] = colorTemp;	
 	Format(colorTemp, sizeof(colorTemp), "%t", "color_lime");
-	g_sTColors[8] = colorTemp;	
+	g_sTColors[7] = colorTemp;	
 	Format(colorTemp, sizeof(colorTemp), "%t", "color_violet");
-	g_sTColors[9] = colorTemp;	
+	g_sTColors[8] = colorTemp;	
 	Format(colorTemp, sizeof(colorTemp), "%t", "color_lightblue");
-	g_sTColors[10] = colorTemp;
+	g_sTColors[9] = colorTemp;
 	Format(colorTemp, sizeof(colorTemp), "%t", "color_silver");
-	g_sTColors[11] = colorTemp;
+	g_sTColors[10] = colorTemp;
 	Format(colorTemp, sizeof(colorTemp), "%t", "color_chocolate");
-	g_sTColors[12] = colorTemp;
+	g_sTColors[11] = colorTemp;
 	Format(colorTemp, sizeof(colorTemp), "%t", "color_saddlebrown");
-	g_sTColors[13] = colorTemp;
+	g_sTColors[12] = colorTemp;
 	Format(colorTemp, sizeof(colorTemp), "%t", "color_indigo");
-	g_sTColors[14] = colorTemp;
+	g_sTColors[13] = colorTemp;
 	Format(colorTemp, sizeof(colorTemp), "%t", "color_ghostwhite");
-	g_sTColors[15] = colorTemp;
+	g_sTColors[14] = colorTemp;
 	Format(colorTemp, sizeof(colorTemp), "%t", "color_thistle");
-	g_sTColors[16] = colorTemp;
+	g_sTColors[15] = colorTemp;
 	Format(colorTemp, sizeof(colorTemp), "%t", "color_aliceblue");
-	g_sTColors[17] = colorTemp;
+	g_sTColors[16] = colorTemp;
 	Format(colorTemp, sizeof(colorTemp), "%t", "color_steelblue");
-	g_sTColors[18] = colorTemp;
+	g_sTColors[17] = colorTemp;
 	Format(colorTemp, sizeof(colorTemp), "%t", "color_teal");
-	g_sTColors[19] = colorTemp;
+	g_sTColors[18] = colorTemp;
 	Format(colorTemp, sizeof(colorTemp), "%t", "color_gold");
-	g_sTColors[20] = colorTemp;
+	g_sTColors[19] = colorTemp;
 	Format(colorTemp, sizeof(colorTemp), "%t", "color_tan");
-	g_sTColors[21] = colorTemp;
+	g_sTColors[20] = colorTemp;
 	Format(colorTemp, sizeof(colorTemp), "%t", "color_tomato");
-	g_sTColors[22] = colorTemp;
+	g_sTColors[21] = colorTemp;
 	 
 	//set all player colors to normal
 	for( int i = 0; i < sizeof(g_PlayerColor); i++ )

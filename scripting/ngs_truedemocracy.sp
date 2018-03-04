@@ -19,12 +19,11 @@ int resultCount[5] = {0, 0, 0, 0, 0};
 int numOptions = 0;
 
 char question[1024], options[5][2][48], baseoptions[5][48];
-//new Handle:BleedTime;
 
 public Plugin myinfo = {
-	name            = "[NGS] Randomized Votes - True Democracy",
+	name            = "[NGS] True Democracy",
 	author          = "TheXeon",
-	description     = "Chance for bottles to break.",
+	description     = "True democracy through smart votes.",
 	version         = PLUGIN_VERSION,
 	url             = "https://www.neogenesisnetwork.net/"
 };
@@ -43,6 +42,12 @@ public void OnPluginStart( )
 	LoadTranslations("common.phrases");
 }
 
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
+{
+   CreateNative("TrueDemocracy_StartVote", Native_StartRandomizedVote);
+   return APLRes_Success;
+}
+
 public Action CommandRandomVote(int client, int args)
 {
 	if (voteEnabled)
@@ -57,7 +62,6 @@ public Action CommandRandomVote(int client, int args)
 	}
 	voteEnabled = true;
 	numOptions = args - 1;
-	char voteTitle[64];
 	
 	ClearVoteResults();
 	
@@ -69,7 +73,13 @@ public Action CommandRandomVote(int client, int args)
 		strcopy(baseoptions[place], 48, options[place][0]);
 		Format(options[place][1], 48, "option%d", (place + 1));
 	}
-	
+	DisplayRandomVoteToAll(30.0);
+	return Plugin_Handled;
+}
+
+void DisplayRandomVoteToAll(float time)
+{
+	char voteTitle[64];	
 	Format(voteTitle, sizeof(voteTitle), "%s (random options)", question);
 	for (int i = 1; i <= MaxClients; i++)
 	{
@@ -77,8 +87,7 @@ public Action CommandRandomVote(int client, int args)
 		PrepareVoteMenu(i, voteTitle);
 		voteMenu[i].Display(i, 30);
 	}
-	CreateTimer(30.0, OnVoteTimerEnd);
-	return Plugin_Handled;
+	CreateTimer(time, OnVoteTimerEnd);
 }
 
 public void RandomizeOptions()
@@ -94,6 +103,25 @@ public void RandomizeOptions()
 		strcopy(options[randPos][0], 48, tmpQuestion);
 		strcopy(options[randPos][1], 48, tmpOption);
 	}
+}
+
+public int Native_StartRandomizedVote(Handle plugin, int numParams)
+{
+	if (voteEnabled)
+		return ThrowNativeError(1, "There is currently a vote already happening!");
+	if (numParams < 4) // at least question, two options, and a time
+		return ThrowNativeError(2, "There are not enough options in this vote!");
+	voteEnabled = true;
+	GetNativeString(1, question, sizeof(question));
+	numOptions = numParams - 2;
+	for (int i = 2; i <= numParams - 1; i++)
+	{
+		int place = i - 2;
+		GetNativeString(i, options[place][0], 48);
+		strcopy(baseoptions[place], 48, options[place][0]);
+		Format(options[place][1], 48, "option%d", (place + 1));
+	}
+	DisplayRandomVoteToAll(GetNativeCell(numParams));
 }
 
 public Action OnVoteTimerEnd(Handle timer, any data)

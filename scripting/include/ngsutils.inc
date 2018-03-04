@@ -2,7 +2,7 @@
 * NGS Utils
 * For use in NGS plugins. Provides common functions as well as checks.
 * Released under Unlicense License.
-*/	
+*/
 
 
 /**
@@ -15,7 +15,7 @@
 * @param ingameTest			If true, clients not in-game will return FALSE.
 * @return					TRUE or FALSE, based on checks.
 */
-stock bool IsValidClient(int client, bool aliveTest=false, bool botTest=true, bool rangeTest=true, 
+stock bool IsValidClient(int client, bool aliveTest=false, bool botTest=true, bool rangeTest=true,
 	bool ingameTest=true)
 {
 	if (client > 4096) client = EntRefToEntIndex(client);
@@ -40,13 +40,13 @@ methodmap SMTimer < Handle
 	 * @return					Handle to the timer object.  You do not need to call CloseHandle().
 	 *							If the timer could not be created, INVALID_HANDLE will be returned.
 	 */
-	public SMTimer(float interval, Timer func, any data=null, int flags=0)
+	public SMTimer(float interval, Timer func, any data=INVALID_HANDLE, int flags=0)
 	{
 		return view_as<SMTimer>(CreateTimer(interval, func, data, flags));
 	}
-	
+
 	/**
-	 * Kills a timer.  Use this instead of CloseHandle() if you need more options.
+	 * Kills a timer.  Use this instead of CloseHandle() if you need more options. Set to null after!
 	 *
 	 * @param autoClose			If autoClose is true, the data that was passed to CreateTimer() will
 	 *							be closed as a handle if TIMER_DATA_HNDL_CLOSE was not specified.
@@ -56,9 +56,9 @@ methodmap SMTimer < Handle
 	{
 		KillTimer(this, autoClose);
 	}
-	
+
 	/**
-	 * Kills a timer. Alias for Kill()
+	 * Kills a timer. Clone of SMTimer.Kill. Set to null after!
 	 *
 	 * @param autoClose			If autoClose is true, the data that was passed to CreateTimer() will
 	 *							be closed as a handle if TIMER_DATA_HNDL_CLOSE was not specified.
@@ -68,7 +68,7 @@ methodmap SMTimer < Handle
 	{
 		KillTimer(this, autoClose);
 	}
-	
+
 	/**
 	 * Manually triggers a timer so its function will be called.
 	 *
@@ -90,14 +90,17 @@ methodmap SMDataTimer < SMTimer
 	 *
 	 * @param interval			Interval from the current game time to execute the given function.
 	 * @param func				Function to execute once the given interval has elapsed.
-	 * @param datapack			The newly created datapack is passed though this by-reference 
+	 * @param datapack			The newly created datapack is passed through this by-reference
 	 *							parameter to the timer callback function.
 	 * @param flags				Timer flags.
 	 * @return					Handle to the timer object.  You do not need to call CloseHandle().
 	 */
 	public SMDataTimer(float interval, Timer func, DataPack &datapack, int flags=0)
 	{
-		datapack = new DataPack();
+		if (datapack == null)
+		{
+			datapack = new DataPack();
+		}
 		flags |= TIMER_DATA_HNDL_CLOSE;
 		return view_as<SMDataTimer>(new SMTimer(interval, func, datapack, flags));
 	}

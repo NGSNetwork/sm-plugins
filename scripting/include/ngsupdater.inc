@@ -47,7 +47,9 @@
 
 #tryinclude <updater>
 
-#define UPDATER_BASE_URL "https://raw.githubusercontent.com/NGSNetwork/sm-plugins/master/updater"
+#if !defined UPDATER_BASE_URL
+  #define UPDATER_BASE_URL "https://raw.githubusercontent.com/NGSNetwork/sm-plugins/master/updater"
+#endif
 
 ConVar cvarEnableUpdater;
 ConVar cvarVersion;
@@ -83,7 +85,8 @@ public void OnAllPluginsLoaded()
 #endif
 }
 
-public void OnLibraryAdded(const char[] name) {
+public void OnLibraryAdded(const char[] name)
+{
 	CheckUpdaterStatus(null, "", "");
 
 #if defined LIBRARY_ADDED_FUNC
@@ -91,7 +94,8 @@ public void OnLibraryAdded(const char[] name) {
 #endif
 }
 
-public void OnLibraryRemoved(const char[] name) {
+public void OnLibraryRemoved(const char[] name)
+{
 	CheckUpdaterStatus(null, "", "");
 
 #if defined LIBRARY_REMOVED_FUNC
@@ -99,8 +103,10 @@ public void OnLibraryRemoved(const char[] name) {
 #endif
 }
 
-public void CheckUpdaterStatus(ConVar convar, const char[] name, const char[] value) {
-	if(cvarVersion == null) {
+public void CheckUpdaterStatus(ConVar convar, const char[] name, const char[] value)
+{
+	if(cvarVersion == null)
+	{
 		return; // Version cvar not created yet
 	}
 
@@ -126,28 +132,34 @@ public void CheckUpdaterStatus(ConVar convar, const char[] name, const char[] va
 	}
 }
 
-public Action Updater_OnPluginChecking() {
-	if(!cvarEnableUpdater.BoolValue) {
+public Action Updater_OnPluginChecking()
+{
+	if(!cvarEnableUpdater.BoolValue)
+	{
 		return Plugin_Handled;
 	}
 	return Plugin_Continue;
 }
 
 #if defined RELOAD_ON_UPDATE
-public Updater_OnPluginUpdated() {
+public Updater_OnPluginUpdated()
+{
 	ReloadPlugin();
 }
 #endif
 
 //command listener which prints information to the chat, ALL plugins with this include will respond
-public Action print_ngsupdater_include_version(int client, const char[] cmdname, int Args) {
-	if (CheckCommandAccess(client, "dev_ngsupdater_include_versions", ADMFLAG_ROOT, true)) {
+public Action print_ngsupdater_include_version(int client, const char[] cmdname, int Args)
+{
+	if (CheckCommandAccess(client, "dev_ngsupdater_include_versions", ADMFLAG_ROOT, true))
+	{
 
 		char pluginFilename[PLATFORM_MAX_PATH];
 		GetPluginFilename(null, pluginFilename, sizeof(pluginFilename));
 
 		char pluginName[64];
-		if (GetPluginInfo(null, PlInfo_Name, pluginName, sizeof(pluginName))) {
+		if (GetPluginInfo(null, PlInfo_Name, pluginName, sizeof(pluginName)))
+		{
 			Format(pluginName, sizeof(pluginName), "%s%s", pluginName, " -");
 		}
 

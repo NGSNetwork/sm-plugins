@@ -42,7 +42,6 @@ methodmap SMTimer < Handle
 	 */
 	public SMTimer(float interval, Timer func, any data=INVALID_HANDLE, int flags=0)
 	{
-		if (data == null) data = INVALID_HANDLE;
 		Handle hTimer = CreateTimer(interval, func, data, flags);
 		if (hTimer != INVALID_HANDLE)
 			return view_as<SMTimer>(hTimer);

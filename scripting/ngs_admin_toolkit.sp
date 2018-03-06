@@ -1,16 +1,29 @@
 #pragma newdecls required
 #pragma semicolon 1
 
+/**
+* TheXeon
+* ngs_admin_toolkit.sp
+*
+* Files:
+* addons/sourcemod/plugins/ngs_admin_toolkit.smx
+*
+* Dependencies:
+* sourcemod.inc, sdktools.inc, sdkhooks.inc, tf2_stocks.inc, tf2.inc,
+* multicolors.inc, clientprefs.inc, basecomm.inc, sourcecomms.inc, 
+* ngsutils.inc
+*/
 #include <sourcemod>
 #include <sdktools>
 #include <sdkhooks>
 #include <tf2_stocks>
 #include <tf2>
-#include <morecolors>
+#include <multicolors>
 #include <clientprefs>
 #undef REQUIRE_PLUGIN
 #include <basecomm>
 #include <sourcecomms>
+#include <ngsutils>
 
 #define PLUGIN_VERSION "1.2.5"
 
@@ -18,9 +31,9 @@ bool basecommExists = false;
 bool sourcecommsExists = false;
 bool muteNonAdminsEnabled = false;
 bool isPlayerNameBanned[MAXPLAYERS + 1];
-int playerSpecingID[MAXPLAYERS + 1];
+// int playerSpecingID[MAXPLAYERS + 1];
 
-Handle nameBannedCookie = INVALID_HANDLE;
+Cookie nameBannedCookie = null;
 
 //--------------------//
 
@@ -53,7 +66,7 @@ public void OnPluginStart()
 	
 	LoadTranslations("common.phrases");
 	
-	nameBannedCookie = RegClientCookie("NameBanned", "Is the player name-banned?", CookieAccess_Private);
+	nameBannedCookie = new Cookie("NameBanned", "Is the player name-banned?", CookieAccess_Private);
 	
 	//HookEvent("player_spawn", OnPlayerSpawn);
 	//HookEvent("player_team", OnPlayerTeam);
@@ -87,7 +100,7 @@ public void OnLibraryRemoved(const char[] name)
 public void OnClientCookiesCached(int client)
 {
     char sValue[8];
-    GetClientCookie(client, nameBannedCookie, sValue, sizeof(sValue));
+    nameBannedCookie.GetValue(client, sValue, sizeof(sValue));
     
     isPlayerNameBanned[client] = (sValue[0] != '\0' && StringToInt(sValue));
 }  
@@ -132,7 +145,7 @@ public Action CommandNameBan(int client, int args)
 		ServerCommand("sm_rename #%d IHaveANameNow#%d", userid, userid);
 		if (CommandExists("sm_namelock"))
 			ServerCommand("sm_namelock #%d 1", userid);
-		SetClientCookie(target, nameBannedCookie, "1");
+		nameBannedCookie.SetValue(target, "1");
   	}
   	
   	LogAction(client, target, "%N banned %N's name!", client, target);
@@ -163,7 +176,7 @@ public Action CommandNameUnban(int client, int args)
     {
 		int userid = GetClientUserId(target);
 		ServerCommand("sm_namelock #%d 0", userid);
-		SetClientCookie(target, nameBannedCookie, "0");
+		nameBannedCookie.SetValue(target, "0");
 		CPrintToChat(client, "{GREEN}[SM]{DEFAULT} Your name has been unlocked, feel free to change it.");
   	}
   	
@@ -503,6 +516,11 @@ public Action CommandQueryClientConVar(int client, int args)
 
 void ClientConVar(QueryCookie cookie, int client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue, any value)
 {
+	if (cookie == QUERYCOOKIE_FAILED)
+	{
+		CReplyToCommand(value, "{GREEN}[SM]{DEFAULT} {LIGHTGREEN}%N{DEFAULT}\'s query was invalid!", client);
+		return;
+	}
 	switch (result)
 	{
 		case ConVarQuery_Okay:
@@ -512,14 +530,4 @@ void ClientConVar(QueryCookie cookie, int client, ConVarQueryResult result, cons
 		default:
 			CReplyToCommand(value, "{GREEN}[SM]{DEFAULT} Invalid ConVar or ConVar not found for {LIGHTGREEN}%N{DEFAULT}!", client);
 	}
-}
-
-public bool IsValidClient(int client)
-{
-	if(client > 4096) client = EntRefToEntIndex(client);
-	if(client < 1 || client > MaxClients) return false;
-	if(!IsClientInGame(client)) return false;
-	if(IsFakeClient(client)) return false;
-	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
-	return true;
 }

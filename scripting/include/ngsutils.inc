@@ -108,3 +108,146 @@ methodmap SMDataTimer < SMTimer
 		return view_as<SMDataTimer>(new SMTimer(interval, func, datapack, flags));
 	}
 }
+
+#if defined _clientprefs_included
+// Cookie Methodmaps!
+methodmap Cookie < Handle
+{
+	/**
+	 * Creates a new Client preference cookie.
+	 *
+	 * Cookies can be closed via delete when
+	 * no longer needed.
+	 *
+	 * @param name			Name of the new preference cookie.
+	 * @param description	Optional description of the preference cookie.
+	 * @param access		What CookieAccess level to assign to this cookie.
+	 * @return				A handle to the newly created cookie. If the cookie already
+	 *                      exists, a handle to it will still be returned.
+	 * @error				Cookie name is blank.
+	 */
+	public Cookie(const char[] name, const char[] description, CookieAccess access)
+	{
+		return view_as<Cookie>(RegClientCookie(name, description, access));
+	}
+
+	/**
+	 * Searches for a Client preference cookie. Use as Cookie.Find
+	 *
+	 * Cookies can be closed via delete when
+	 * no longer needed.
+	 *
+	 * @param name			Name of cookie to find.
+	 * @return				A cookie if it is found. null otherwise.
+	 */
+	public static Cookie Find(const char[] name)
+	{
+		Handle cookie = FindClientCookie(name);
+		if (cookie == INVALID_HANDLE) return null;
+		return view_as<Cookie>(cookie);
+	}
+
+	/**
+	 * Set the value of a Client preference cookie.
+	 *
+	 * @param client		Client index.
+	 * @param value			String value to set.
+	 * @error				Invalid cookie handle or invalid client index.
+	 */
+	public void SetValue(int client, const char[] value)
+	{
+		SetClientCookie(client, this, value);
+	}
+
+	/**
+	 * Retrieve the value of a Client preference cookie.
+	 *
+	 * @param client		Client index.
+	 * @param buffer		Copyback buffer for value.
+	 * @param maxlen		Maximum length of the buffer.
+	 * @error				Invalid cookie handle or invalid client index.
+	 */
+	 public void GetValue(int client, char[] buffer, int maxlen)
+	 {
+	 	GetClientCookie(client, this, buffer, maxlen);
+	 }
+
+	/**
+	 * Sets the value of a Client preference cookie based on an authID string.
+	 *
+	 * @param authID		String Auth/STEAM ID of player to set.
+	 * @param value			String value to set.
+	 * @error			Invalid cookie handle.
+	 */
+	public void SetByAuth(const char[] authID, const char[] value)
+	{
+		SetAuthIdCookie(authID, this, value);
+	}
+
+	/**
+	 * Add a new prefab item to the client cookie settings menu.
+	 *
+	 * Note: This handles everything automatically and does not require a callback
+	 *
+	 * @param type			A CookieMenu prefab menu type.
+	 * @param display		Text to show on the menu.
+	 * @param handler		Optional handler callback for translations and output on selection
+	 * @param info			Info data to pass to the callback.
+	 * @error				Invalid cookie handle.
+	 */
+	public void SetMenu(CookieMenu type, const char[] display, CookieMenuHandler handler=INVALID_FUNCTION, any info=0)
+	{
+		SetCookiePrefabMenu(this, type, display, handler, info);
+	}
+
+	/**
+	 * Returns the access level of a cookie
+	 *
+	 * @return				CookieAccess access level.
+	 * @error				Invalid cookie handle.
+	 */
+	property CookieAccess Access
+	{
+		public get() {return GetCookieAccess(this);}
+	}
+
+	/**
+	 * Returns the last updated timestamp for a client cookie
+	 *
+	 * @param client		Client index.
+	 * @return			Last updated timestamp.
+	 */
+	public int GetTime(int client)
+	{
+		return GetClientCookieTime(client, this);
+	}
+}
+
+methodmap CookieIterator < Handle
+{
+	/**
+	 * Gets a cookie iterator.  Must be freed with CloseHandle().
+	 *
+	 * @return				A new cookie iterator.
+	 */
+	 public CookieIterator()
+	 {
+	 	return view_as<Cookie_Iterator>(GetCookieIterator());
+	 }
+
+	 /**
+	 * Reads a cookie iterator, then advances to the next cookie if any.
+	 *
+	 * @param name			Name buffer.
+	 * @param nameLen		Name buffer size.
+	 * @param access		Access level of the cookie.
+	 * @param desc			Cookie description buffer.
+	 * @param descLen		Cookie description buffer size.
+	 * @return				True on success, false if there are no more commands.
+	 */
+	 public bool Read(char[] name, int nameLen, CookieAccess &access, char[] desc="", int descLen=0)
+	 {
+	 	return ReadCookieIterator(this, name, nameLen, access, desc, descLen);
+	 }
+}
+#endif

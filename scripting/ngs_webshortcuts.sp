@@ -1,6 +1,3 @@
-/** Commented as steamtools isnt using new-style syntax yet.
-#pragma newdecls required
-*/
 #pragma newdecls required
 #pragma semicolon 1
 
@@ -25,10 +22,11 @@ enum States {
 	big_MOTD = (1<<8)
 };
 
-int g_iGameMode;
+States g_iGameMode;
 
 enum FieldCheckFlags
 {
+	flag_Dummy_Zero			=	0,
 	flag_Steam_ID			=	(1<<0),
 	flag_User_ID			=	(1<<1),
 	flag_Friend_ID			=	(1<<2),
@@ -55,23 +53,23 @@ enum FieldCheckFlags
 	#endif  /* _steamtools_included	 */
 }; 
 
-#define isTeamFortress2() (g_iGameMode & game_TF2)
-#define isLeftForDead() (g_iGameMode & game_L4D)
-#define goLargeOrGoHome() (isTeamFortress2() && (g_iGameMode & big_MOTD))
+stock bool isTeamFortress2() {return view_as<bool>(g_iGameMode & game_TF2);}
+stock bool isLeftForDead() {return view_as<bool>(g_iGameMode & game_L4D);}
+stock bool goLargeOrGoHome() {return (isTeamFortress2() && view_as<bool>(g_iGameMode & big_MOTD));}
 
 /*#include "Duck"*/
 
-Handle g_hIndexArray = null;
-Handle g_hFastLookupTrie = null;
+ArrayList g_hIndexArray;
+StringMap g_hFastLookupTrie;
 
-Handle g_hCurrentTrie = null;
+StringMap g_hCurrentTrie;
 char g_sCurrentSection[128];
 
 public void OnPluginStart()
 {
-	g_hIndexArray = CreateArray(); /* We'll only use this for cleanup to prevent handle leaks and what not.
+	g_hIndexArray = new ArrayList(); /* We'll only use this for cleanup to prevent handle leaks and what not.
 									  Our friend below doesn't have iteration, so we have to do this... */
-	g_hFastLookupTrie = CreateTrie();
+	g_hFastLookupTrie = new StringMap();
 	
 	AddCommandListener(Client_Say, "say");
 	AddCommandListener(Client_Say, "say_team");
@@ -82,7 +80,7 @@ public void OnPluginStart()
 	ConVar cvarVersion = CreateConVar("webshortcutsredux_version", PLUGIN_VERSION, "Redux of Web Shortcuts with Large/Small MOTD Support", FCVAR_NOTIFY);
 	
 	/* On a reload, this will be set to the old version. Let's update it. */
-	SetConVarString(cvarVersion, PLUGIN_VERSION);
+	cvarVersion.SetString(PLUGIN_VERSION);
 }
 
 public Action Client_Say(int iClient, char[] sCommand, int argc)
@@ -96,48 +94,50 @@ public Action Client_Say(int iClient, char[] sCommand, int argc)
 	GetCmdArg(1, sFirstArg, sizeof(sFirstArg));
 	TrimString(sFirstArg);
 	
-	Handle hStoredTrie = null;
-	if (!GetTrieValue(g_hFastLookupTrie, sFirstArg, hStoredTrie) || hStoredTrie == null) /* L -> R. Strings are R -> L, but that can change. */
+	StringMap hStoredTrie;
+	if (!g_hFastLookupTrie.GetValue(sFirstArg, hStoredTrie) || hStoredTrie == null) /* L -> R. Strings are R -> L, but that can change. */
 	{
 		return Plugin_Continue; /* Didn't find anything. Bug out! */
 	}
 	
 	if (DealWithOurTrie(iClient, sFirstArg, hStoredTrie))
 	{
+		if (sFirstArg[0] == '/') // Detect if using the default silent character
+			return Plugin_Continue;
 		return Plugin_Handled; /* We want other hooks to be called, I guess. We just don't want it to go to the game. */
 	}
 	
 	return Plugin_Continue; /* Well this is embarasing. We didn't actually hook this. Or atleast didn't intend to. */
 }
 
-public bool DealWithOurTrie(int iClient, char[] sHookedString, Handle hStoredTrie)
+public bool DealWithOurTrie(int iClient, char[] sHookedString, StringMap hStoredTrie)
 {
 	char sUrl[256];
-	if (!GetTrieString(hStoredTrie, "Url", sUrl, sizeof(sUrl)))
+	if (!hStoredTrie.GetString("Url", sUrl, sizeof(sUrl)))
 	{
 		LogError("Unable to find a Url for: \"%s\".", sHookedString);
 		return false;
 	}
 	
-	int iUrlBits;
+	FieldCheckFlags iUrlBits;
 	
-	if (!GetTrieValue(hStoredTrie, "UrlBits", iUrlBits))
+	if (!hStoredTrie.GetValue("UrlBits", iUrlBits))
 	{
-		iUrlBits = 0; /* That's fine, there are no replacements! Less work for us. */
+		iUrlBits = flag_Dummy_Zero; /* That's fine, there are no replacements! Less work for us. */
 	}
 	
 	char sTitle[256];
-	int iTitleBits;
-	if (!GetTrieString(hStoredTrie, "Title", sTitle, sizeof(sTitle)))
+	FieldCheckFlags iTitleBits;
+	if (!hStoredTrie.GetString("Title", sTitle, sizeof(sTitle)))
 	{
 		sTitle[0] = '\0'; /* We don't really need a title. Don't worry, it's cool. */
-		iTitleBits = 0;
+		iTitleBits = flag_Dummy_Zero;
 	}
 	else
 	{
-		if (!GetTrieValue(hStoredTrie, "TitleBits", iTitleBits))
+		if (!hStoredTrie.GetValue("TitleBits", iTitleBits))
 		{
-			iTitleBits = 0; /* That's fine, there are no replacements! Less work for us. */
+			iTitleBits = flag_Dummy_Zero; /* That's fine, there are no replacements! Less work for us. */
 		}
 	}
 	
@@ -146,21 +146,21 @@ public bool DealWithOurTrie(int iClient, char[] sHookedString, Handle hStoredTri
 	bool bBig;
 	bool bNotSilent = true;
 	
-	GetTrieValue(hStoredTrie, "Silent", bNotSilent);
+	hStoredTrie.GetValue("Silent", bNotSilent);
 	if (goLargeOrGoHome())
 	{
-		GetTrieValue(hStoredTrie, "Big", bBig);
+		hStoredTrie.GetValue("Big", bBig);
 	}
 
 	char sMessage[256];
-	if (GetTrieString(hStoredTrie, "Msg", sMessage, sizeof(sMessage)))
+	if (hStoredTrie.GetString("Msg", sMessage, sizeof(sMessage)))
 	{
-		int iMsgBits;
-		GetTrieValue(hStoredTrie, "MsgBits", iMsgBits);
+		FieldCheckFlags iMsgBits;
+		hStoredTrie.GetValue("MsgBits", iMsgBits);
 		
-		if (iMsgBits != 0)
+		if (iMsgBits != flag_Dummy_Zero)
 		{
-			Duck_DoReplacements(iClient, sMessage, iMsgBits, sMessage, 0); /* Lame Hack for now */
+			Duck_DoReplacements(iClient, sMessage, iMsgBits, sMessage, flag_Dummy_Zero); /* Lame Hack for now */
 		}
 		
 		CPrintToChatAll("%s", sMessage);
@@ -182,20 +182,20 @@ public void OnMOTDFailure(int client, MOTDFailureReason reason)
 public void ClearExistingData()
 {
 	Handle hHandle = null;
-	for (int i = (GetArraySize(g_hIndexArray) - 1); i >= 0; i--)
+	for (int i = (g_hIndexArray.Length - 1); i >= 0; i--)
 	{
-		hHandle = GetArrayCell(g_hIndexArray, i);
+		hHandle = g_hIndexArray.Get(i);
 		
 		if (hHandle == null)
 		{
 			continue;
 		}
 		
-		CloseHandle(hHandle);
+		delete hHandle;
 	}
 	
-	ClearArray(g_hIndexArray);
-	ClearTrie(g_hFastLookupTrie);
+	g_hIndexArray.Clear();
+	g_hFastLookupTrie.Clear();
 }
 
 public void OnConfigsExecuted()
@@ -214,30 +214,32 @@ public void OnConfigsExecuted()
 
 public void ProcessFile(char[] sPathToFile)
 {
-	Handle hSMC = SMC_CreateParser();
-	SMC_SetReaders(hSMC, SMC_NewSection, SMC_KeyValue, SMC_EndSection);
+	SMCParser hSMC = new SMCParser();
+	hSMC.OnEnterSection = SMC_NewSection;
+	hSMC.OnKeyValue = SMC_KeyValue;
+	hSMC.OnLeaveSection = SMC_EndSection;
 	
 	int iLine;
-	SMCError ReturnedError = SMC_ParseFile(hSMC, sPathToFile, iLine); /* Calls the below functions, then execution continues. */
+	SMCError ReturnedError = hSMC.ParseFile(sPathToFile, iLine); /* Calls the below functions, then execution continues. */
 	
 	if (ReturnedError != SMCError_Okay)
 	{
 		char sError[256];
-		SMC_GetErrorString(ReturnedError, sError, sizeof(sError));
+		hSMC.GetErrorString(ReturnedError, sError, sizeof(sError));
 		if (iLine > 0)
 		{
 			LogError("Could not parse file (Line: %d, File \"%s\"): %s.", iLine, sPathToFile, sError);
-			CloseHandle(hSMC); /* Sneaky Handles. */
+			delete hSMC; /* Sneaky Handles. */
 			return;
 		}
 		
 		LogError("Parser encountered error (File: \"%s\"): %s.", sPathToFile, sError);
 	}
 
-	CloseHandle(hSMC);
+	delete hSMC;
 }
 
-public SMCResult SMC_NewSection(Handle smc, const char[] name, bool opt_quotes)
+public SMCResult SMC_NewSection(SMCParser smc, const char[] name, bool opt_quotes)
 {
 	if (!opt_quotes)
 	{
@@ -246,22 +248,22 @@ public SMCResult SMC_NewSection(Handle smc, const char[] name, bool opt_quotes)
 	
 	strcopy(g_sCurrentSection, sizeof(g_sCurrentSection), name);
 	
-	if (GetTrieValue(g_hFastLookupTrie, name, g_hCurrentTrie))
+	if (g_hFastLookupTrie.GetValue(name, g_hCurrentTrie))
 	{
 		return SMCParse_Continue;
 	}
 	else /* That's cool. Sounds like an initial insertion. Just wanted to make sure! */
 	{
-		g_hCurrentTrie = CreateTrie();
-		PushArrayCell(g_hIndexArray, g_hCurrentTrie); /* Don't be leakin */
-		SetTrieValue(g_hFastLookupTrie, name, g_hCurrentTrie);
-		SetTrieString(g_hCurrentTrie, "Name", name);
+		g_hCurrentTrie = new StringMap();
+		g_hIndexArray.Push(g_hCurrentTrie); /* Don't be leakin */
+		g_hFastLookupTrie.SetValue(name, g_hCurrentTrie);
+		g_hCurrentTrie.SetString("Name", name);
 	}
 	
 	return SMCParse_Continue;
 }
 
-public SMCResult SMC_KeyValue(Handle smc, char[] key, char[] value, bool key_quotes, bool value_quotes)
+public SMCResult SMC_KeyValue(SMCParser smc, char[] key, char[] value, bool key_quotes, bool value_quotes)
 {
 	if (!key_quotes)
 	{
@@ -286,30 +288,30 @@ public SMCResult SMC_KeyValue(Handle smc, char[] key, char[] value, bool key_quo
 			}
 			
 			int iFindValue;
-			iFindValue = FindValueInArray(g_hIndexArray, g_hCurrentTrie);
+			iFindValue = g_hIndexArray.FindValue(g_hCurrentTrie);
 			
 			if (iFindValue > -1)
 			{
-				RemoveFromArray(g_hIndexArray, iFindValue);
+				g_hIndexArray.Erase(iFindValue);
 			}
 			
 			if (g_sCurrentSection[0] != '\0')
 			{
-				RemoveFromTrie(g_hFastLookupTrie, g_sCurrentSection);
+				g_hFastLookupTrie.Remove(g_sCurrentSection);
 			}
 			
-			CloseHandle(g_hCurrentTrie); /* We're about to invalidate below */
+			delete g_hCurrentTrie; /* We're about to invalidate below */
 
-			if (GetTrieValue(g_hFastLookupTrie, value, g_hCurrentTrie))
+			if (g_hFastLookupTrie.GetValue(value, g_hCurrentTrie))
 			{
-				SetTrieValue(g_hFastLookupTrie, g_sCurrentSection, g_hCurrentTrie, true);
+				g_hFastLookupTrie.SetValue(g_sCurrentSection, g_hCurrentTrie, true);
 				return SMCParse_Continue;
 			}
 
-			g_hCurrentTrie = CreateTrie(); /* Ruhro, the thing this points to doesn't actually exist. Should we error or what? Nah, lets try and recover. */
-			PushArrayCell(g_hIndexArray, g_hCurrentTrie); /* Don't be losin handles */
-			SetTrieValue(g_hFastLookupTrie, g_sCurrentSection, g_hCurrentTrie, true);
-			SetTrieString(g_hCurrentTrie, "Name", g_sCurrentSection, true);
+			g_hCurrentTrie = new StringMap(); /* Ruhro, the thing this points to doesn't actually exist. Should we error or what? Nah, lets try and recover. */
+			g_hIndexArray.Push(g_hCurrentTrie); /* Don't be losin handles */
+			g_hFastLookupTrie.SetValue(g_sCurrentSection, g_hCurrentTrie, true);
+			g_hCurrentTrie.SetString("Name", g_sCurrentSection, true);
 		}
 		
 		case 'u','U':
@@ -319,11 +321,11 @@ public SMCResult SMC_KeyValue(Handle smc, char[] key, char[] value, bool key_quo
 				return SMCParse_Continue;
 			}
 			
-			SetTrieString(g_hCurrentTrie, "Url", value, true);
+			g_hCurrentTrie.SetString("Url", value, true);
 			
-			int iBits;
+			FieldCheckFlags iBits;
 			Duck_CalcBits(value, iBits); /* Passed by Ref */
-			SetTrieValue(g_hCurrentTrie, "UrlBits", iBits, true);
+			g_hCurrentTrie.SetValue("UrlBits", iBits, true);
 		}
 		
 		case 'T','t':
@@ -333,11 +335,11 @@ public SMCResult SMC_KeyValue(Handle smc, char[] key, char[] value, bool key_quo
 				return SMCParse_Continue;
 			}
 			
-			SetTrieString(g_hCurrentTrie, "Title", value, true);
+			g_hCurrentTrie.SetString("Title", value, true);
 			
-			int iBits;
+			FieldCheckFlags iBits;
 			Duck_CalcBits(value, iBits); /* Passed by Ref */
-			SetTrieValue(g_hCurrentTrie, "TitleBits", iBits, true);
+			g_hCurrentTrie.SetValue("TitleBits", iBits, true);
 		}
 		
 		case 'b','B':
@@ -347,7 +349,7 @@ public SMCResult SMC_KeyValue(Handle smc, char[] key, char[] value, bool key_quo
 				return SMCParse_Continue;
 			}
 			
-			SetTrieValue(g_hCurrentTrie, "Big", TranslateToBool(value), true);
+			g_hCurrentTrie.SetValue("Big", TranslateToBool(value), true);
 		}
 	
 		case 'h','H':
@@ -357,7 +359,7 @@ public SMCResult SMC_KeyValue(Handle smc, char[] key, char[] value, bool key_quo
 				return SMCParse_Continue;
 			}
 			
-			SetTrieValue(g_hFastLookupTrie, value, g_hCurrentTrie, true);
+			g_hFastLookupTrie.SetValue(value, g_hCurrentTrie, true);
 		}
 		
 		case 's', 'S':
@@ -367,7 +369,7 @@ public SMCResult SMC_KeyValue(Handle smc, char[] key, char[] value, bool key_quo
 				return SMCParse_Continue;
 			}
 			
-			SetTrieValue(g_hCurrentTrie, "Silent", !TranslateToBool(value), true);
+			g_hCurrentTrie.SetValue("Silent", !TranslateToBool(value), true);
 		}
 		
 		case 'M', 'm':
@@ -377,19 +379,19 @@ public SMCResult SMC_KeyValue(Handle smc, char[] key, char[] value, bool key_quo
 				return SMCParse_Continue;
 			}
 			
-			SetTrieString(g_hCurrentTrie, "Msg", value, true);
+			g_hCurrentTrie.SetString("Msg", value, true);
 			
-			int iBits;
+			FieldCheckFlags iBits;
 			Duck_CalcBits(value, iBits); /* Passed by Ref */
 			
-			SetTrieValue(g_hCurrentTrie, "MsgBits", iBits, true);
+			g_hCurrentTrie.SetValue("MsgBits", iBits, true);
 		}
 	}
 	
 	return SMCParse_Continue;
 }
 
-public SMCResult SMC_EndSection(Handle smc)
+public SMCResult SMC_EndSection(SMCParser smc)
 {
 	g_hCurrentTrie = null;
 	g_sCurrentSection[0] = '\0';
@@ -445,7 +447,7 @@ if (StrContains(source, %1) != -1) { field |= %2; }
 #define TOKEN_VACSTATUS		   "{VAC_STATUS}"
 #define TOKEN_SERVER_PUB_IP    "{SERVER_PUB_IP}"
 #define TOKEN_STEAM_CONNSTATUS "{STEAM_CONNSTATUS}"	
-int g_bSteamTools;
+bool g_bSteamTools;
 #endif  /* _steamtools_included */
 
 /* Cached values */
@@ -497,31 +499,31 @@ public void Duck_OnPluginStart()
 		/* AddCommandListener(Duck_TF2OnClose, "closed_htmlpage"); */
 	}	
 	
-	LongIPToString(GetConVarInt(FindConVar("hostip")), g_szServerIp);	
-	GetConVarString(FindConVar("hostport"), g_szServerPort, sizeof(g_szServerPort));
+	LongIPToString(FindConVar("hostip").IntValue, g_szServerIp);	
+	FindConVar("hostport").GetString(g_szServerPort, sizeof(g_szServerPort));
 	
-	Handle hostname = FindConVar("hostname");
+	ConVar hostname = FindConVar("hostname");
 	char szHostname[256];
-	GetConVarString(hostname, szHostname, sizeof(szHostname));
+	hostname.GetString(szHostname, sizeof(szHostname));
 	Duck_UrlEncodeString(g_szServerName, sizeof(g_szServerName), szHostname);
-	HookConVarChange(hostname, OnCvarHostnameChange);
+	hostname.AddChangeHook(OnCvarHostnameChange);
 	
 	char szCustom[256];
-	Handle hCVARCustom = CreateConVar("WebShortcuts_Custom", "", "Custom String for this server.");
-	GetConVarString(hCVARCustom, szCustom, sizeof(szCustom));
+	ConVar hCVARCustom = CreateConVar("WebShortcuts_Custom", "", "Custom String for this server.");
+	hCVARCustom.GetString(szCustom, sizeof(szCustom));
 	Duck_UrlEncodeString(g_szServerCustom, sizeof(g_szServerCustom), szCustom);
-	HookConVarChange(hCVARCustom, OnCvarCustomChange);
+	hCVARCustom.AddChangeHook(OnCvarCustomChange);
 	
 	/* new iSDKVersion = GuessSDKVersion(); */
 	EngineVersion iSDKVersion = GetEngineVersion();
 	if (iSDKVersion == Engine_Left4Dead || iSDKVersion == Engine_Left4Dead2)
 	{
 		g_iGameMode |= game_L4D;
-		Handle hGameMode = FindConVar("mp_gamemode");
+		ConVar hGameMode = FindConVar("mp_gamemode");
 		char szGamemode[256];
-		GetConVarString(hGameMode, szGamemode, sizeof(szGamemode));
+		hGameMode.GetString(szGamemode, sizeof(szGamemode));
 		Duck_UrlEncodeString(g_szL4DGameMode, sizeof(g_szL4DGameMode), szGamemode);
-		HookConVarChange(hGameMode, OnCvarGamemodeChange);
+		hGameMode.AddChangeHook(OnCvarGamemodeChange);
 	}
 	
 	Duck_UrlEncodeString(g_szGameDir, sizeof(g_szGameDir), sGameDir);
@@ -535,7 +537,7 @@ public void OnMapStart()
 	Duck_UrlEncodeString(g_szCurrentMap, sizeof(g_szCurrentMap), sTempMap);
 }
 
-stock void Duck_DoReplacements(int iClient, char sUrl[256], int iUrlBits, char sTitle[256], int iTitleBits) /* Huge thanks to Psychonic */
+stock void Duck_DoReplacements(int iClient, char sUrl[256], FieldCheckFlags iUrlBits, char sTitle[256], FieldCheckFlags iTitleBits) /* Huge thanks to Psychonic */
 {
 	if (iUrlBits & flag_Steam_ID || iTitleBits & flag_Steam_ID)
 	{
@@ -814,7 +816,7 @@ stock bool GetClientFriendID(int client, char[] sFriendID, int size)
 	Steam_GetCSteamIDForClient(client, sFriendID, size);
 #else
 	char sSteamID[64];
-	if (!GetClientAuthId(iClient, AuthId_Steam2, sSteamID, sizeof(sSteamID), true))
+	if (!GetClientAuthId(client, AuthId_Steam2, sSteamID, sizeof(sSteamID), true))
 	{
 		sFriendID[0] = '\0'; /* Sanitize incase the return isn't checked. */
 		return false;
@@ -855,9 +857,9 @@ stock bool GetClientFriendID(int client, char[] sFriendID, int size)
 	return true;
 }
 
-void Duck_CalcBits(char[] source, int &field)
+void Duck_CalcBits(char[] source, FieldCheckFlags &field)
 {
-	field = 0;
+	field = flag_Dummy_Zero;
 	
 	FIELD_CHECK(TOKEN_STEAM_ID,    flag_Steam_ID);
 	FIELD_CHECK(TOKEN_USER_ID,     flag_User_ID);
@@ -950,7 +952,7 @@ public void OnCvarGamemodeChange(ConVar convar, char[] oldValue, char[] newValue
 	Duck_UrlEncodeString(g_szL4DGameMode, sizeof(g_szL4DGameMode), newValue);
 }
 
-public void OnCvarCustomChange(Handle convar, char[] oldValue, char[] newValue)
+public void OnCvarCustomChange(ConVar convar, char[] oldValue, char[] newValue)
 {
 	Duck_UrlEncodeString(g_szServerCustom, sizeof(g_szServerCustom), newValue);
 }

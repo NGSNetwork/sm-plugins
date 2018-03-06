@@ -31,18 +31,22 @@ stock bool IsValidClient(int client, bool aliveTest=false, bool botTest=true, bo
 methodmap SMTimer < Handle
 {
 	/**
-	 * Creates a basic timer.  Calling CloseHandle() on a timer will end the timer.
+	 * Creates a basic timer.  Calling KillTimer() on a timer will kill the timer.
 	 *
 	 * @param interval			Interval from the current game time to execute the given function.
 	 * @param func				Function to execute once the given interval has elapsed.
 	 * @param data				Handle or value to pass through to the timer callback function.
 	 * @param flags				Flags to set (such as repeatability or auto-Handle closing).
 	 * @return					Handle to the timer object.  You do not need to call CloseHandle().
-	 *							If the timer could not be created, INVALID_HANDLE will be returned.
+	 *							If the timer could not be created, null will be returned.
 	 */
 	public SMTimer(float interval, Timer func, any data=INVALID_HANDLE, int flags=0)
 	{
-		return view_as<SMTimer>(CreateTimer(interval, func, data, flags));
+		if (data == null) data = INVALID_HANDLE;
+		Handle hTimer = CreateTimer(interval, func, data, flags);
+		if (hTimer != INVALID_HANDLE)
+			return view_as<SMTimer>(hTimer);
+		return null;
 	}
 
 	/**

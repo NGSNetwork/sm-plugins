@@ -62,7 +62,8 @@ float budsToKeys;
 float keysToRef;
 float refToUsd;
 
-public void OnPluginStart() {
+public void OnPluginStart()
+{
 	cvarBPCommand = CreateConVar("backpack_tf_bp_command", "1", "Enables the !bp command for use with backpack.tf");
 	cvarDisplayUpdateNotification = CreateConVar("backpack_tf_display_update_notification", "1", "Display a notification to clients when the cached price list has been updated?");
 	cvarDisplayChangedPrices = CreateConVar("backpack_tf_display_changed_prices", "1", "If backpack_tf_display_update_notification is set to 1, display all prices that changed since the last update?");
@@ -231,25 +232,31 @@ public void OnPluginStart() {
 	hudText = CreateHudSynchronizer();
 }
 
-public void OnConfigsExecuted() {
+public void OnConfigsExecuted()
+{
 	CreateTimer(2.0, Timer_AddTag); // Let everything load first
 }
 
-public Action Timer_AddTag(Handle timer) {
-	if(!cvarTag.BoolValue) {
+public Action Timer_AddTag(Handle timer)
+{
+	if(!cvarTag.BoolValue)
+	{
 		return;
 	}
 	char value[512];
 	sv_tags.GetString(value, sizeof(value));
 	TrimString(value);
-	if(strlen(value) == 0) {
+	if(strlen(value) == 0)
+	{
 		sv_tags.SetString("backpack.tf");
 		return;
 	}
 	char tags[64][64];
 	int total = ExplodeString(value, ",", tags, sizeof(tags), sizeof(tags[]));
-	for(int i = 0; i < total; i++) {
-		if(StrEqual(tags[i], "backpack.tf")) {
+	for(int i = 0; i < total; i++)
+	{
+		if(StrEqual(tags[i], "backpack.tf"))
+		{
 			return; // Tag found, nothing to do here
 		}
 	}
@@ -257,39 +264,48 @@ public Action Timer_AddTag(Handle timer) {
 	sv_tags.SetString(value);
 }
 
-public void OnMapStart() {
+public void OnMapStart()
+{
 	PrecacheSound(NOTIFICATION_SOUND);
 }
 
-public void Steam_FullyLoaded() {
+public void Steam_FullyLoaded()
+{
 	CreateTimer(1.0, Timer_Update); // In case of late-loads
 }
 
-int GetCachedPricesAge() {
+int GetCachedPricesAge()
+{
 	char path[PLATFORM_MAX_PATH];
 	BuildPath(Path_SM, path, sizeof(path), "data/backpack-tf.txt");
-	if(!FileExists(path)) {
+	if(!FileExists(path))
+	{
 		return -1;
 	}
 	KeyValues kv = new KeyValues("response");
-	if(!kv.ImportFromFile(path)) {
+	if(!kv.ImportFromFile(path))
+	{
 		delete kv;
 		return -1;
 	}
 	int offset = kv.GetNum("time_offset", 1337); // The actual offset can be positive, negative, or zero, so we'll just use 1337 as a default since that's unlikely
 	int time = kv.GetNum("current_time");
 	delete kv;
-	if(offset == 1337 || time == 0) {
+	if(offset == 1337 || time == 0)
+	{
 		return -1;
 	}
 	return GetTime() - time;
 }
 
-public Action Timer_Update(Handle timer) {
+public Action Timer_Update(Handle timer)
+{
 	int age = GetCachedPricesAge();
-	if(age != -1 && age < 900) { // 15 minutes
+	if(age != -1 && age < 900)  // 15 minutes
+	{
 		LogMessage("Locally saved pricing data is %d minutes old, bypassing backpack.tf query", age / 60);
-		if(backpackTFPricelist != null) {
+		if(backpackTFPricelist != null)
+		{
 			delete backpackTFPricelist;
 		}
 		char path[PLATFORM_MAX_PATH];
@@ -308,7 +324,8 @@ public Action Timer_Update(Handle timer) {
 
 	char key[32];
 	cvarAPIKey.GetString(key, sizeof(key));
-	if(strlen(key) == 0) {
+	if(strlen(key) == 0)
+	{
 		LogError("No API key set. Fill in your API key and reload the plugin.");
 		return;
 	}
@@ -320,29 +337,44 @@ public Action Timer_Update(Handle timer) {
 	request.Send();
 }
 
-public int OnBackpackTFComplete(SWHTTPRequest request, bool bFailure, bool successful, EHTTPStatusCode status) {
-	if(status != k_EHTTPStatusCode200OK || !successful) {
-		if(status == k_EHTTPStatusCode400BadRequest) {
+public int OnBackpackTFComplete(SWHTTPRequest request, bool bFailure, bool successful, EHTTPStatusCode status)
+{
+	if(status != k_EHTTPStatusCode200OK || !successful)
+	{
+		if(status == k_EHTTPStatusCode400BadRequest)
+		{
 			LogError("backpack.tf API failed: You have not set an API key");
 			delete request;
 			CreateTimer(600.0, Timer_Update); // Set this for 10 minutes instead of 1 minute
 			return;
-		} else if(status == k_EHTTPStatusCode403Forbidden) {
+		}
+		else if(status == k_EHTTPStatusCode403Forbidden)
+		{
 			LogError("backpack.tf API failed: Your API key is invalid");
 			delete request;
 			CreateTimer(600.0, Timer_Update); // Set this for 10 minutes instead of 1 minute
 			return;
-		} else if(status == k_EHTTPStatusCode412PreconditionFailed) {
+		}
+		else if(status == k_EHTTPStatusCode412PreconditionFailed)
+		{
 			char retry[16];
-			SteamWorks_GetHTTPResponseHeaderValue(request, "Retry-After", retry, sizeof(retry));
+			request.GetHeaderValue("Retry-After", retry, sizeof(retry));
 			LogError("backpack.tf API failed: We are being rate-limited by backpack.tf, next request allowed in %s seconds", retry);
-		} else if(status >= k_EHTTPStatusCode500InternalServerError) {
+		}
+		else if(status >= k_EHTTPStatusCode500InternalServerError)
+		{
 			LogError("backpack.tf API failed: An internal server error occurred");
-		} else if(status == k_EHTTPStatusCode200OK && !successful) {
+		}
+		else if(status == k_EHTTPStatusCode200OK && !successful)
+		{
 			LogError("backpack.tf API failed: backpack.tf returned an OK response but no data");
-		} else if(status != k_EHTTPStatusCodeInvalid) {
+		}
+		else if(status != k_EHTTPStatusCodeInvalid)
+		{
 			LogError("backpack.tf API failed: Unknown error (status code %d)", view_as<int>(status));
-		} else {
+		}
+		else
+		{
 			LogError("backpack.tf API failed: Unable to connect to server or server returned no data");
 		}
 		delete request;
@@ -358,7 +390,8 @@ public int OnBackpackTFComplete(SWHTTPRequest request, bool bFailure, bool succe
 
 	CreateTimer(3600.0, Timer_Update);
 
-	if(backpackTFPricelist != null) {
+	if(backpackTFPricelist != null)
+	{
 		delete backpackTFPricelist;
 	}
 	backpackTFPricelist = new KeyValues("response");
@@ -376,16 +409,20 @@ public int OnBackpackTFComplete(SWHTTPRequest request, bool bFailure, bool succe
 		backpackTFPricelist.Rewind();
 		refToUsd = backpackTFPricelist.GetFloat("raw_usd_value");
 
-		if(!cvarDisplayUpdateNotification.BoolValue) {
+		if(!cvarDisplayUpdateNotification.BoolValue)
+		{
 			return;
 		}
 
-		if(lastCacheTime == 0) { // first download
+		if(lastCacheTime == 0)
+		{ // first download
 			ArrayList array = new ArrayList(128);
 			array.PushString("#Type_command");
 			SetHudTextParams(cvarHudXPos.FloatValue, cvarHudYPos.FloatValue, cvarHudHoldTime.FloatValue, cvarHudRed.IntValue, cvarHudGreen.IntValue, cvarHudBlue.IntValue, 255);
-			for(int i = 1; i <= MaxClients; i++) {
-				if(!IsClientInGame(i)) {
+			for(int i = 1; i <= MaxClients; i++)
+			{
+				if(!IsClientInGame(i))
+				{
 					continue;
 				}
 				ShowSyncHudText(i, hudText, "%t", "Price list updated");
@@ -400,29 +437,40 @@ public int OnBackpackTFComplete(SWHTTPRequest request, bool bFailure, bool succe
 		bool isNegative = false;
 		int lastUpdate;
 		float valueOld, valueOldHigh, value, valueHigh, difference;
-		char defindex[16], qualityIndex[32], quality[32], name[64], message[128], currency[32], currencyOld[32], oldPrice[64], newPrice[64];
+		char defindex[16], qualityIndex[32], quality[32], name[64], message[128], currency[32], currencyOld[32], oldPrice[64], newPrice[64], tradable[64], craftable[64];
 		ArrayList array = new ArrayList(128);
 		array.PushString("#Type_command");
-		if(cvarDisplayChangedPrices.BoolValue) {
-			do {
+		if(cvarDisplayChangedPrices.BoolValue)
+		{
+			do
+			{
 				// loop through items
-				backpackTFPricelist.GetSectionName(defindex, sizeof(defindex));
-				if(StringToInt(defindex) == ITEM_REFINED) {
+				backpackTFPricelist.GetSectionName(name, sizeof(name));
+				backpackTFPricelist.JumpToKey("defindex");
+				backpackTFPricelist.GetString("0", defindex, sizeof(defindex));
+				backpackTFPricelist.GoBack();
+				if(StringToInt(defindex) == ITEM_REFINED)
+				{
 					continue; // Skip over refined price changes
 				}
+				backpackTFPricelist.JumpToKey("prices");
 				backpackTFPricelist.GotoFirstSubKey();
-				do {
+				do
+				{
 					// loop through qualities
 					backpackTFPricelist.GetSectionName(qualityIndex, sizeof(qualityIndex));
-					if(StrEqual(qualityIndex, "item_info"))  {
-						backpackTFPricelist.GetString("item_name", name, sizeof(name));
-						continue;
-					}
+//					if(StrEqual(qualityIndex, "item_info"))
+//					{
+//						backpackTFPricelist.GetString("item_name", name, sizeof(name));
+//						continue;
+//					}
 					backpackTFPricelist.GotoFirstSubKey();
-					do {
+					do
+					{
 						// loop through instances (series #s, effects)
 						lastUpdate = backpackTFPricelist.GetNum("last_change");
-						if(lastUpdate == 0 || lastUpdate < lastCacheTime) {
+						if(lastUpdate == 0 || lastUpdate < lastCacheTime)
+						{
 							continue; // hasn't updated
 						}
 						valueOld = backpackTFPricelist.GetFloat("value_old");
@@ -433,7 +481,8 @@ public int OnBackpackTFComplete(SWHTTPRequest request, bool bFailure, bool succe
 						backpackTFPricelist.GetString("currency", currency, sizeof(currency));
 						backpackTFPricelist.GetString("currency_old", currencyOld, sizeof(currencyOld));
 
-						if(strlen(currency) == 0 || strlen(currencyOld) == 0) {
+						if(strlen(currency) == 0 || strlen(currencyOld) == 0)
+						{
 							continue;
 						}
 
@@ -441,52 +490,72 @@ public int OnBackpackTFComplete(SWHTTPRequest request, bool bFailure, bool succe
 						FormatPriceRange(value, valueHigh, currency, newPrice, sizeof(newPrice), StrEqual(qualityIndex, QUALITY_UNUSUAL));
 
 						// Get an average so we can determine if it went up or down
-						if(valueOldHigh != 0.0) {
+						if(valueOldHigh != 0.0)
+						{
 							valueOld = FloatDiv(FloatAdd(valueOld, valueOldHigh), 2.0);
 						}
 
-						if(valueHigh != 0.0) {
+						if(valueHigh != 0.0)
+						{
 							value = FloatDiv(FloatAdd(value, valueHigh), 2.0);
 						}
 
 						// Get prices in terms of refined now so we can determine if it went up or down
-						if(StrEqual(currencyOld, "earbuds")) {
+						if(StrEqual(currencyOld, "earbuds"))
+						{
 							valueOld = FloatMul(FloatMul(valueOld, budsToKeys), keysToRef);
-						} else if(StrEqual(currencyOld, "keys")) {
+						}
+						else if(StrEqual(currencyOld, "keys"))
+						{
 							valueOld = FloatMul(valueOld, keysToRef);
 						}
 
-						if(StrEqual(currency, "earbuds")) {
+						if(StrEqual(currency, "earbuds"))
+						{
 							value = FloatMul(FloatMul(value, budsToKeys), keysToRef);
-						} else if(StrEqual(currency, "keys")) {
+						}
+						else if(StrEqual(currency, "keys"))
+						{
 							value = FloatMul(value, keysToRef);
 						}
 
 						difference = FloatSub(value, valueOld);
-						if(difference < 0.0) {
+						if(difference < 0.0)
+						{
 							isNegative = true;
 							difference = FloatMul(difference, -1.0);
-						} else {
+						}
+						else
+						{
 							isNegative = false;
 						}
 
 						// Format a quality name
-						if(StrEqual(qualityIndex, QUALITY_UNIQUE)) {
+						if(StrEqual(qualityIndex, QUALITY_UNIQUE))
+						{
 							Format(quality, sizeof(quality), ""); // if quality is unique, don't display a quality
-						} else if(StrEqual(qualityIndex, QUALITY_UNUSUAL) && (StringToInt(defindex) != ITEM_HAUNTED_SCRAP && StringToInt(defindex) != ITEM_HEADTAKER)) {
+						}
+						else if(StrEqual(qualityIndex, QUALITY_UNUSUAL) && (StringToInt(defindex) != ITEM_HAUNTED_SCRAP
+							&& StringToInt(defindex) != ITEM_HEADTAKER))
+						{
 							char effect[16];
 							backpackTFPricelist.GetSectionName(effect, sizeof(effect));
-							if(!unusualNameTrie.GetString(effect, quality, sizeof(quality))) {
+							if(!unusualNameTrie.GetString(effect, quality, sizeof(quality)))
+							{
 								LogError("Unknown unusual effect: %s in OnBackpackTFComplete. Please report this!", effect);
 								char kvPath[PLATFORM_MAX_PATH];
 								BuildPath(Path_SM, kvPath, sizeof(kvPath), "data/backpack-tf.%d.txt", GetTime());
-								if(!FileExists(kvPath)) {
+								if(!FileExists(kvPath))
+								{
 									backpackTFPricelist.ExportToFile(kvPath);
 								}
 								continue;
 							}
-						} else {
-							if(!qualityNameTrie.GetString(qualityIndex, quality, sizeof(quality))) {
+						}
+						else
+						{
+							if(!qualityNameTrie.GetString(qualityIndex, quality, sizeof(quality)))
+							{
 								LogError("Unknown quality index: %s. Please report this!", qualityIndex);
 								continue;
 							}
@@ -495,18 +564,23 @@ public int OnBackpackTFComplete(SWHTTPRequest request, bool bFailure, bool succe
 						Format(message, sizeof(message), "%s%s%s: %s #From %s #To %s", quality, StrEqual(quality, "") ? "" : " ", name, isNegative ? "#Down" : "#Up", oldPrice, newPrice);
 						array.PushString(message);
 
-					} while(backpackTFPricelist.GotoNextKey()); // end: instances
+					}
+					while(backpackTFPricelist.GotoNextKey()); // end: instances
 					backpackTFPricelist.GoBack();
 
-				} while(backpackTFPricelist.GotoNextKey()); // end: qualities
+				}
+				while(backpackTFPricelist.GotoNextKey()); // end: qualities
 				backpackTFPricelist.GoBack();
 
-			} while(backpackTFPricelist.GotoNextKey()); // end: items
+			}
+			while(backpackTFPricelist.GotoNextKey()); // end: items
 		}
 
 		SetHudTextParams(cvarHudXPos.FloatValue, cvarHudYPos.FloatValue, cvarHudHoldTime.FloatValue, cvarHudRed.IntValue, cvarHudGreen.IntValue, cvarHudBlue.IntValue, 255);
-		for(int i = 1; i <= MaxClients; i++) {
-			if(!IsClientInGame(i)) {
+		for(int i = 1; i <= MaxClients; i++)
+		{
+			if(!IsClientInGame(i))
+			{
 				continue;
 			}
 			ShowSyncHudText(i, hudText, "%t", "Price list updated");
@@ -516,7 +590,8 @@ public int OnBackpackTFComplete(SWHTTPRequest request, bool bFailure, bool succe
 	}
 }
 
-float GetConversion(int defindex) {
+float GetConversion(int defindex)
+{
 	char buffer[32];
 	PrepPriceKv();
 	IntToString(defindex, buffer, sizeof(buffer));
@@ -525,48 +600,69 @@ float GetConversion(int defindex) {
 	backpackTFPricelist.JumpToKey("0");
 	float value = backpackTFPricelist.GetFloat("value");
 	float valueHigh = backpackTFPricelist.GetFloat("value_high");
-	if(valueHigh == 0.0) {
+	if(valueHigh == 0.0)
+	{
 		return value;
 	}
 	return FloatDiv(FloatAdd(value, valueHigh), 2.0);
 }
 
-void FormatPrice(float price, const char[] currency, char[] output, int maxlen, bool includeCurrency = true, bool forceBuds = false) {
+void FormatPrice(float price, const char[] currency, char[] output, int maxlen, bool includeCurrency = true, bool forceBuds = false)
+{
 	char outputCurrency[32];
-	if(StrEqual(currency, "metal")) {
+	if(StrEqual(currency, "metal"))
+	{
 		Format(outputCurrency, sizeof(outputCurrency), "refined");
-	} else if(StrEqual(currency, "keys")) {
+	}
+	else if(StrEqual(currency, "keys"))
+	{
 		Format(outputCurrency, sizeof(outputCurrency), "key");
-	} else if(StrEqual(currency, "earbuds")) {
+	}
+	else if(StrEqual(currency, "earbuds"))
+	{
 		Format(outputCurrency, sizeof(outputCurrency), "bud");
-	} else if(StrEqual(currency, "usd")) {
-		if(forceBuds) {
+	}
+	else if(StrEqual(currency, "usd"))
+	{
+		if(forceBuds)
+		{
 			Format(outputCurrency, sizeof(outputCurrency), "earbuds"); // This allows us to force unusual price ranges to display buds only
 		}
 		ConvertUSD(price, outputCurrency, sizeof(outputCurrency));
-	} else {
+	}
+	else
+	{
 		ThrowError("Unknown currency: %s", currency);
 	}
 
-	if(FloatIsInt(price)) {
+	if(FloatIsInt(price))
+	{
 		Format(output, maxlen, "%d", RoundToFloor(price));
-	} else {
+	}
+	else
+	{
 		Format(output, maxlen, "%.2f", price);
 	}
 
-	if(!includeCurrency) {
+	if(!includeCurrency)
+	{
 		return;
 	}
 
-	if(StrEqual(output, "1") || StrEqual(currency, "metal")) {
+	if(StrEqual(output, "1") || StrEqual(currency, "metal"))
+	{
 		Format(output, maxlen, "%s %s", output, outputCurrency);
-	} else {
+	}
+	else
+	{
 		Format(output, maxlen, "%s %ss", output, outputCurrency);
 	}
 }
 
-void FormatPriceRange(float low, float high, const char[] currency, char[] output, int maxlen, bool forceBuds = false) {
-	if(high == 0.0) {
+void FormatPriceRange(float low, float high, const char[] currency, char[] output, int maxlen, bool forceBuds = false)
+{
+	if(high == 0.0)
+	{
 		FormatPrice(low, currency, output, maxlen, true, forceBuds);
 		return;
 	}
@@ -576,32 +672,41 @@ void FormatPriceRange(float low, float high, const char[] currency, char[] outpu
 	Format(output, maxlen, "%s-%s", output, buffer);
 }
 
-void ConvertUSD(float &price, char[] outputCurrency, int maxlen) {
+void ConvertUSD(float &price, char[] outputCurrency, int maxlen)
+{
 	float budPrice = FloatMul(FloatMul(refToUsd, keysToRef), budsToKeys);
-	if(price < budPrice && !StrEqual(outputCurrency, "earbuds")) {
+	if(price < budPrice && !StrEqual(outputCurrency, "earbuds"))
+	{
 		float keyPrice = FloatMul(refToUsd, keysToRef);
 		price = FloatDiv(price, keyPrice);
 		Format(outputCurrency, maxlen, "key");
-	} else {
+	}
+	else
+	{
 		price = FloatDiv(price, budPrice);
 		Format(outputCurrency, maxlen, "bud");
 	}
 }
 
-bool FloatIsInt(float input) {
+bool FloatIsInt(float input)
+{
 	return float(RoundToFloor(input)) == input;
 }
 
-public Action Timer_DisplayHudText(Handle timer, ArrayList array) {
-	if(array.Length == 0) {
+public Action Timer_DisplayHudText(Handle timer, ArrayList array)
+{
+	if(array.Length == 0)
+	{
 		delete array;
 		return Plugin_Stop;
 	}
 	char text[128], display[128];
 	array.GetString(0, text, sizeof(text));
 	SetHudTextParams(cvarHudXPos.FloatValue, cvarHudYPos.FloatValue, cvarHudHoldTime.FloatValue, cvarHudRed.IntValue, cvarHudGreen.IntValue, cvarHudBlue.IntValue, 255);
-	for(int i = 1; i <= MaxClients; i++) {
-		if(!IsClientInGame(i)) {
+	for(int i = 1; i <= MaxClients; i++)
+	{
+		if(!IsClientInGame(i))
+		{
 			continue;
 		}
 		PerformTranslationTokenReplacement(i, text, display, sizeof(display));
@@ -611,7 +716,8 @@ public Action Timer_DisplayHudText(Handle timer, ArrayList array) {
 	return Plugin_Continue;
 }
 
-void PerformTranslationTokenReplacement(int client, const char[] message, char[] output, int maxlen) {
+void PerformTranslationTokenReplacement(int client, const char[] message, char[] output, int maxlen)
+{
 	SetGlobalTransTarget(client);
 	strcopy(output, maxlen, message);
 	char buffer[64];
@@ -632,39 +738,50 @@ void PerformTranslationTokenReplacement(int client, const char[] message, char[]
 	ReplaceString(output, maxlen, "#To", buffer);
 }
 
-void PrepPriceKv() {
+void PrepPriceKv()
+{
 	backpackTFPricelist.Rewind();
-	backpackTFPricelist.JumpToKey("prices");
+	backpackTFPricelist.JumpToKey("items");
 }
 
-public Action Command_PriceCheck(int client, int args) {
-	if(backpackTFPricelist == null) {
+public Action Command_PriceCheck(int client, int args)
+{
+	if(backpackTFPricelist == null)
+	{
 		char key[32];
 		cvarAPIKey.GetString(key, sizeof(key));
-		if(strlen(key) == 0) {
+		if(strlen(key) == 0)
+		{
 			ReplyToCommand(client, "\x04[SM] \x01The server administrator has not filled in their API key yet. Please contact the server administrator.");
-		} else {
+		}
+		else
+		{
 			ReplyToCommand(client, "\x04[SM] \x01%t.", "The price list has not loaded yet");
 		}
 		return Plugin_Handled;
 	}
-	if(args == 0) {
+	if(args == 0)
+	{
 		Menu menu = new Menu(Handler_ItemSelection);
 		menu.SetTitle("Price Check");
 		PrepPriceKv();
 		backpackTFPricelist.GotoFirstSubKey();
 		char name[128];
-		do {
-			if(!backpackTFPricelist.JumpToKey("item_info")) {
+		do
+		{
+			if(!backpackTFPricelist.JumpToKey("item_info"))
+			{
 				continue;
 			}
 			backpackTFPricelist.GetString("item_name", name, sizeof(name));
-			if(backpackTFPricelist.GetNum("proper_name") == 1) {
+			if(backpackTFPricelist.GetNum("proper_name") == 1)
+			{
 				Format(name, sizeof(name), "The %s", name);
 			}
 			menu.AddItem(name, name);
 			backpackTFPricelist.GoBack();
-		} while(backpackTFPricelist.GotoNextKey());
+		}
+		while(backpackTFPricelist.GotoNextKey());
 		menu.Display(client, cvarMenuHoldTime.IntValue);
 		return Plugin_Handled;
 	}
@@ -675,60 +792,75 @@ public Action Command_PriceCheck(int client, int args) {
 	PrepPriceKv();
 	backpackTFPricelist.GotoFirstSubKey();
 	ArrayList matches;
-	if(!exact) {
+	if(!exact)
+	{
 		matches = new ArrayList(128);
 	}
-	do {
+	do
+	{
 		backpackTFPricelist.GetSectionName(defindex, sizeof(defindex));
-		if(!backpackTFPricelist.JumpToKey("item_info")) {
+		if(!backpackTFPricelist.JumpToKey("item_info"))
+		{
 			continue;
 		}
 		backpackTFPricelist.GetString("item_name", itemName, sizeof(itemName));
-		if(backpackTFPricelist.GetNum("proper_name") == 1) {
+		if(backpackTFPricelist.GetNum("proper_name") == 1)
+		{
 			Format(itemName, sizeof(itemName), "The %s", itemName);
 		}
 		backpackTFPricelist.GoBack();
-		if(exact) {
-			if(StrEqual(itemName, name, false)) {
+		if(exact)
+		{
+			if(StrEqual(itemName, name, false))
+			{
 				resultDefindex = StringToInt(defindex);
 				break;
 			}
-		} else {
-			if(StrContains(itemName, name, false) != -1) {
+		}
+		else
+		{
+			if(StrContains(itemName, name, false) != -1)
+			{
 				resultDefindex = StringToInt(defindex); // In case this is the only match, we store the resulting defindex here so that we don't need to search to find it again
 				PushArrayString(matches, itemName);
 			}
 		}
-	} while(backpackTFPricelist.GotoNextKey());
-	if(!exact && matches.Length > 1) {
+	}
+	while(backpackTFPricelist.GotoNextKey());
+	if(!exact && matches.Length > 1)
+	{
 		Menu menu = new Menu(Handler_ItemSelection);
 		menu.SetTitle("Search Results");
 		int size = matches.Length;
-		for(int i = 0; i < size; i++) {
+		for(int i = 0; i < size; i++)
+		{
 			matches.GetString(i, itemName, sizeof(itemName));
 			menu.AddItem(itemName, itemName);
 		}
-		menu.Display(client, GetConVarInt(cvarMenuHoldTime));
+		menu.Display(client, cvarMenuHoldTime.IntValue);
 		delete matches;
 		return Plugin_Handled;
 	}
-	if(!exact) {
+	if(!exact)
+	{
 		delete matches;
 	}
-	if(resultDefindex == -1) {
+	if(resultDefindex == -1)
+	{
 		ReplyToCommand(client, "\x04[SM] \x01No matching item was found.");
 		return Plugin_Handled;
 	}
 	// At this point, we know that we've found our item. Its defindex is stored in resultDefindex as a cell
 	// defindex was used to store the defindex of every item as we searched it, so it's not reliable
-	if(resultDefindex == ITEM_REFINED) {
+	if(resultDefindex == ITEM_REFINED)
+	{
 		SetGlobalTransTarget(client);
 		Menu menu = new Menu(Handler_PriceListMenu);
 		menu.SetTitle("%t\n%t\n%t\n ", "Price check", itemName, "Prices are estimates only", "Prices courtesy of backpack.tf");
 		char buffer[32];
 		Format(buffer, sizeof(buffer), "Unique: $%.2f USD", refToUsd);
 		menu.AddItem("", buffer);
-		menu.Display(client, GetConVarInt(cvarMenuHoldTime));
+		menu.Display(client, cvarMenuHoldTime.IntValue);
 		return Plugin_Handled;
 	}
 	bool isCrate = (resultDefindex == ITEM_CRATE || resultDefindex == ITEM_SALVAGED_CRATE);
@@ -738,7 +870,8 @@ public Action Command_PriceCheck(int client, int args) {
 	backpackTFPricelist.JumpToKey(defindex);
 	backpackTFPricelist.JumpToKey("item_info");
 	backpackTFPricelist.GetString("item_name", itemName, sizeof(itemName));
-	if(backpackTFPricelist.GetNum("proper_name") == 1) {
+	if(backpackTFPricelist.GetNum("proper_name") == 1)
+	{
 		Format(itemName, sizeof(itemName), "The %s", itemName);
 	}
 	backpackTFPricelist.GotoNextKey();
@@ -749,55 +882,75 @@ public Action Command_PriceCheck(int client, int args) {
 	bool unusualDisplayed = false;
 	float value, valueHigh;
 	char currency[32], qualityIndex[16], quality[16], series[8], price[32], buffer[64];
-	do {
+	do
+	{
 		backpackTFPricelist.GetSectionName(qualityIndex, sizeof(qualityIndex));
-		if(StrEqual(qualityIndex, "item_info") || StrEqual(qualityIndex, "alt_defindex")) {
+		if(StrEqual(qualityIndex, "item_info") || StrEqual(qualityIndex, "alt_defindex"))
+		{
 			continue;
 		}
 		backpackTFPricelist.GotoFirstSubKey();
-		do {
-			if(StrEqual(qualityIndex, QUALITY_UNUSUAL) && !onlyOneUnusual) {
-				if(!unusualDisplayed) {
+		do
+		{
+			if(StrEqual(qualityIndex, QUALITY_UNUSUAL) && !onlyOneUnusual)
+			{
+				if(!unusualDisplayed)
+				{
 					menu.AddItem(defindex, "Unusual: View Effects");
 					unusualDisplayed = true;
 				}
-			} else {
+			}
+			else
+			{
 				value = backpackTFPricelist.GetFloat("value");
 				valueHigh = backpackTFPricelist.GetFloat("value_high");
 				backpackTFPricelist.GetString("currency", currency, sizeof(currency));
 				FormatPriceRange(value, valueHigh, currency, price, sizeof(price));
 
-				if(!qualityNameTrie.GetString(qualityIndex, quality, sizeof(quality))) {
+				if(!qualityNameTrie.GetString(qualityIndex, quality, sizeof(quality)))
+				{
 					LogError("Unknown quality index: %s. Please report this!", qualityIndex);
 					continue;
 				}
-				if(isCrate) {
+				if(isCrate)
+				{
 					backpackTFPricelist.GetSectionName(series, sizeof(series));
-					if(StrEqual(series, "0")) {
+					if(StrEqual(series, "0"))
+					{
 						continue;
 					}
-					if(StrEqual(qualityIndex, QUALITY_UNIQUE)) {
+					if(StrEqual(qualityIndex, QUALITY_UNIQUE))
+					{
 						Format(buffer, sizeof(buffer), "Series %s: %s", series, price);
-					} else {
+					}
+					else
+					{
 						Format(buffer, sizeof(buffer), "%s: Series %s: %s", quality, series, price);
 					}
-				} else {
+				}
+				else
+				{
 					Format(buffer, sizeof(buffer), "%s: %s", quality, price);
 				}
 				menu.AddItem("", buffer, ITEMDRAW_DISABLED);
 			}
-		} while(backpackTFPricelist.GotoNextKey());
+		}
+		while(backpackTFPricelist.GotoNextKey());
 		backpackTFPricelist.GoBack();
-	} while(backpackTFPricelist.GotoNextKey());
-	menu.Display(client, GetConVarInt(cvarMenuHoldTime));
+	}
+	while(backpackTFPricelist.GotoNextKey());
+	menu.Display(client, cvarMenuHoldTime.IntValue);
 	return Plugin_Handled;
 }
 
-public int Handler_ItemSelection(Menu menu, MenuAction action, int client, int param) {
-	if(action == MenuAction_End) {
+public int Handler_ItemSelection(Menu menu, MenuAction action, int client, int param)
+{
+	if(action == MenuAction_End)
+	{
 		delete menu;
 	}
-	if(action != MenuAction_Select) {
+	if(action != MenuAction_Select)
+	{
 		return;
 	}
 	char selection[128];
@@ -805,11 +958,14 @@ public int Handler_ItemSelection(Menu menu, MenuAction action, int client, int p
 		FakeClientCommand(client, "sm_pricecheck \"%s\"", selection);
 }
 
-public int Handler_PriceListMenu(Menu menu, MenuAction action, int client, int param) {
-	if(action == MenuAction_End) {
+public int Handler_PriceListMenu(Menu menu, MenuAction action, int client, int param)
+{
+	if(action == MenuAction_End)
+	{
 		delete menu;
 	}
-	if(action != MenuAction_Select) {
+	if(action != MenuAction_Select)
+	{
 		return;
 	}
 	char defindex[32];
@@ -820,31 +976,38 @@ public int Handler_PriceListMenu(Menu menu, MenuAction action, int client, int p
 		backpackTFPricelist.JumpToKey(defindex);
 		backpackTFPricelist.JumpToKey("item_info");
 		backpackTFPricelist.GetString("item_name", name, sizeof(name));
-		if(backpackTFPricelist.GetNum("proper_name") == 1) {
+		if(backpackTFPricelist.GetNum("proper_name") == 1)
+		{
 			Format(name, sizeof(name), "The Unusual %s", name);
-		} else {
+		}
+		else
+		{
 			Format(name, sizeof(name), "Unusual %s", name);
 		}
 		backpackTFPricelist.GoBack();
-	
-		if(!backpackTFPricelist.JumpToKey(QUALITY_UNUSUAL)) {
+
+		if(!backpackTFPricelist.JumpToKey(QUALITY_UNUSUAL))
+		{
 			return;
 		}
-	
+
 		backpackTFPricelist.GotoFirstSubKey();
-	
+
 		SetGlobalTransTarget(client);
 		Menu menu2 = new Menu(Handler_PriceListMenu);
 		SetMenuTitle(menu2, "%t\n%t\n%t\n ", "Price check", name, "Prices are estimates only", "Prices courtesy of backpack.tf");
 		char effect[8], effectName[64], message[128], price[64], currency[32];
 		float value, valueHigh;
-		do {
+		do
+		{
 			backpackTFPricelist.GetSectionName(effect, sizeof(effect));
-			if(!unusualNameTrie.GetString(effect, effectName, sizeof(effectName))) {
+			if(!unusualNameTrie.GetString(effect, effectName, sizeof(effectName)))
+			{
 				LogError("Unknown unusual effect: %s in Handler_PriceListMenu. Please report this!", effect);
 				char path[PLATFORM_MAX_PATH];
 				BuildPath(Path_SM, path, sizeof(path), "data/backpack-tf.%d.txt", GetTime());
-				if(!FileExists(path)) {
+				if(!FileExists(path))
+				{
 					backpackTFPricelist.ExportToFile(path);
 				}
 				continue;
@@ -852,34 +1015,43 @@ public int Handler_PriceListMenu(Menu menu, MenuAction action, int client, int p
 			value = backpackTFPricelist.GetFloat("value");
 			valueHigh = backpackTFPricelist.GetFloat("value_high");
 			backpackTFPricelist.GetString("currency", currency, sizeof(currency));
-			if(StrEqual(currency, "")) {
+			if(StrEqual(currency, ""))
+			{
 				continue;
 			}
 			FormatPriceRange(value, valueHigh, currency, price, sizeof(price), true);
-	
+
 			Format(message, sizeof(message), "%s: %s", effectName, price);
 			menu2.AddItem("", message, ITEMDRAW_DISABLED);
-		} while(backpackTFPricelist.GotoNextKey());
+		}
+		while(backpackTFPricelist.GotoNextKey());
 		menu2.Display(client, cvarMenuHoldTime.IntValue);
 	}
 }
 
-public Action Command_Backpack(int client, int args) {
-	if(!GetConVarBool(cvarBPCommand)) {
+public Action Command_Backpack(int client, int args)
+{
+	if(!cvarBPCommand.BoolValue)
+	{
 		return Plugin_Continue;
 	}
 	int target;
-	if(args == 0) {
+	if(args == 0)
+	{
 		target = GetClientAimTarget(client);
-		if(target <= 0) {
+		if(target <= 0)
+		{
 			DisplayClientMenu(client);
 			return Plugin_Handled;
 		}
-	} else {
+	}
+	else
+	{
 		char arg1[MAX_NAME_LENGTH];
 		GetCmdArg(1, arg1, sizeof(arg1));
 		target = FindTargetEx(client, arg1, true, false, false);
-		if(target == -1) {
+		if(target == -1)
+		{
 			DisplayClientMenu(client);
 			return Plugin_Handled;
 		}
@@ -892,7 +1064,8 @@ public Action Command_Backpack(int client, int args) {
 	return Plugin_Handled;
 }
 
-public void OnMOTDFailure(int client, MOTDFailureReason reason) {
+public void OnMOTDFailure(int client, MOTDFailureReason reason)
+{
 	switch(reason)
 	{
 		case MOTDFailure_Disabled: PrintToChat(client, "\x04[SM] .\x01You cannot view backpacks with HTML MOTDs disabled.");
@@ -901,26 +1074,32 @@ public void OnMOTDFailure(int client, MOTDFailureReason reason) {
 	}
 }
 
-void DisplayClientMenu(int client) {
+void DisplayClientMenu(int client)
+{
 	Menu menu = new Menu(Handler_ClientMenu);
 	menu.SetTitle("Select Player");
 	char name[MAX_NAME_LENGTH], index[8];
-	for(int i = 1; i <= MaxClients; i++) {
-		if(!IsClientInGame(i) || IsFakeClient(i)) {
+	for(int i = 1; i <= MaxClients; i++)
+	{
+		if(!IsClientInGame(i) || IsFakeClient(i))
+		{
 			continue;
 		}
 		GetClientName(i, name, sizeof(name));
 		IntToString(GetClientUserId(i), index, sizeof(index));
 		menu.AddItem(index, name);
 	}
-	menu.Display(client, GetConVarInt(cvarMenuHoldTime));
+	menu.Display(client, cvarMenuHoldTime.IntValue);
 }
 
-public int Handler_ClientMenu(Menu menu, MenuAction action, int client, int param) {
-	if(action == MenuAction_End) {
+public int Handler_ClientMenu(Menu menu, MenuAction action, int client, int param)
+{
+	if(action == MenuAction_End)
+	{
 		delete menu;
 	}
-	if(action != MenuAction_Select) {
+	if(action != MenuAction_Select)
+	{
 		return;
 	}
 	char selection[32];
@@ -928,9 +1107,11 @@ public int Handler_ClientMenu(Menu menu, MenuAction action, int client, int para
 		FakeClientCommand(client, "sm_backpack #%s", selection);
 }
 
-public Action Command_UpdatePrices(int client, int args) {
+public Action Command_UpdatePrices(int client, int args)
+{
 	int age = GetCachedPricesAge();
-	if(age != -1 && age < 900) { // 15 minutes
+	if(age != -1 && age < 900)
+	{ // 15 minutes
 		ReplyToCommand(client, "\x04[SM] \x01The price list cannot be updated more frequently than every 15 minutes. It is currently %d minutes old.", age / 60);
 		return Plugin_Handled;
 	}
@@ -939,16 +1120,19 @@ public Action Command_UpdatePrices(int client, int args) {
 	return Plugin_Handled;
 }
 
-int FindTargetEx(int client, const char[] target, bool nobots = false, bool immunity = true, bool replyToError = true) {
+int FindTargetEx(int client, const char[] target, bool nobots = false, bool immunity = true, bool replyToError = true)
+{
 	char target_name[MAX_TARGET_LENGTH];
 	int target_list[1], target_count;
 	bool tn_is_ml;
 
 	int flags = COMMAND_FILTER_NO_MULTI;
-	if(nobots) {
+	if(nobots)
+	{
 		flags |= COMMAND_FILTER_NO_BOTS;
 	}
-	if(!immunity) {
+	if(!immunity)
+	{
 		flags |= COMMAND_FILTER_NO_IMMUNITY;
 	}
 
@@ -963,8 +1147,11 @@ int FindTargetEx(int client, const char[] target, bool nobots = false, bool immu
 			tn_is_ml)) > 0)
 	{
 		return target_list[0];
-	} else {
-		if(replyToError) {
+	}
+	else
+	{
+		if(replyToError)
+		{
 			ReplyToTargetError(client, target_count);
 		}
 		return -1;

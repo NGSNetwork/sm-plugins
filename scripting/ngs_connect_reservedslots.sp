@@ -108,7 +108,7 @@ int SelectKickClient(int mode)
 			}
 			case 4:
 			{
-				value = AFKM_IsClientAFK(i) ? GetRandomFloat(0.1, 100.0) : 0.0;
+				value = (AFKM_IsClientAFK(i) && AFKM_GetClientAFKTime(i) > 30) ? GetRandomFloat(0.1, 100.0) : 0.0;
 			}
 			default:
 			{
@@ -139,6 +139,6 @@ int SelectKickClient(int mode)
 		return highestSpecValueId;
 	}
 
-	if (highestValueId == 0) return SelectKickClient(3);
+	if (highestValueId == 0) return SelectKickClient(1);
 	return highestValueId;
 }

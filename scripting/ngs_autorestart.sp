@@ -13,6 +13,7 @@
 #pragma semicolon 1
 
 #define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
 
 #include <sourcemod>
 #include <ngsutils>
@@ -24,7 +25,7 @@ public Plugin myinfo = {
 	name = "[NGS] Timed Restart",
 	author = "TheXeon",
 	description = "Restart the server automagically :D",
-	version = "1.0.3",
+	version = "1.0.4",
 	url = "https://neogenesisnetwork.net/"
 }
 
@@ -80,7 +81,7 @@ public void OnClientPostAdminCheck(int client)
 public void OnClientDisconnect_Post(int client)
 {
 	if (cvarEnabled.BoolValue && autoRestartTimer == null && (GetClientCount(false) == 0 ||
-		!NonAFKPlayersExist()) && RoundToZero(GetGameTime() / 3600) > cvarUptimeRequirement.IntValue)
+		!NonAFKPlayersExist()) && RoundToNearest(GetGameTime() / 3600.0) > cvarUptimeRequirement.IntValue)
 	{
 		autoRestartTimer = new SMTimer(30.0, AutoRestartTimer);
 		CPrintToChatAll("{GREEN}[SM]{DEFAULT} The server will be restarting in 30 seconds!");

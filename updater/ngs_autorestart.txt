@@ -4,12 +4,11 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.0.3"
+			"Latest"	"1.0.4"
 		}
 		
-		"Notes"	"Properly kill and/or null timer"
-		"Notes"	"Minor code changes"
-		"Notes"	"Fix updater URL to properly auto-update."
+		"Notes"	"Reload plugin on update"
+		"Notes"	"Divide by float"
 	}
 	
 	"Files"

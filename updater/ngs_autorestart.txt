@@ -1,0 +1,20 @@
+"Updater"
+{
+	"Information"
+	{
+		"Version"
+		{
+			"Latest"	"1.0.2"
+		}
+		
+		"Notes"	"Properly kill and/or null timer"
+		"Notes"	"Minor code changes"
+	}
+	
+	"Files"
+	{
+		"Plugin"	"Path_SM/plugins/ngs_autorestart.smx"
+		
+		"Source"	"Path_SM/scripting/ngs_autorestart.sp"
+	}
+}

@@ -7,24 +7,24 @@
 * cfg/sourcemod/autorestart.cfg
 *
 * Dependencies:
-* sourcemod.inc, ngsutils.inc, ngsupdater.inc, afk_manager.inc, multicolors.inc
+* sourcemod.inc, ngsutils.inc, ngsupdater.inc, multicolors.inc, afk_manager.inc
 */
 #pragma newdecls required
 #pragma semicolon 1
 
+#define CONTENT_URL "https://raw.githubusercontent.com/NGSNetwork/sm-plugins/master"
+
 #include <sourcemod>
 #include <ngsutils>
 #include <ngsupdater>
-#include <afk_manager>
 #include <multicolors>
-
-#define PLUGIN_VERSION  "1.0.1"
+#include <afk_manager>
 
 public Plugin myinfo = {
 	name = "[NGS] Timed Restart",
 	author = "TheXeon",
 	description = "Restart the server automagically :D",
-	version = PLUGIN_VERSION,
+	version = "1.0.2",
 	url = "https://neogenesisnetwork.net/"
 }
 
@@ -34,6 +34,11 @@ SMTimer autoRestartTimer;
 
 public void OnPluginStart()
 {
+	if (GetEngineVersion() == Engine_TF2 && FindConVar("tf_allow_server_hibernation").BoolValue)
+	{
+		LogError("Warning! Timers will be messed up as tf_allow_server_hibernation is enabled!");
+	}
+
 	RegAdminCmd("sm_ngsforcerestart", CommandForceRestart, ADMFLAG_ROOT, "Force a server restart timer.");
 	RegAdminCmd("sm_ngscheckrestarttimer", CommandCheckRestartTimer, ADMFLAG_ROOT, "Check a server restart timer.");
 	cvarEnabled = CreateConVar("sm_ngsar_enabled", "1", "Enable autorestart on no players.", 0, true, 0.0, true, 1.0);
@@ -46,7 +51,7 @@ public Action CommandForceRestart(int client, int args)
 	if (autoRestartTimer == null)
 	{
 		autoRestartTimer = new SMTimer(30.0, AutoRestartTimer);
-		CPrintToChatAll("{GREEN}[SM]{DEFAULT} A forced restart timer has been started, server will be restarting in 30 seconds!");
+		CPrintToChatAll("{GREEN}[SM]{DEFAULT} A forced restart timer has been started, server may be restarting in 30 seconds!");
 	}
 	else
 	{
@@ -57,8 +62,8 @@ public Action CommandForceRestart(int client, int args)
 
 public Action CommandCheckRestartTimer(int client, int args)
 {
-	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} There is %s restart timer going on!",
-		(autoRestartTimer == null) ? "not a" : "a");
+	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} There is %sa restart timer going on!",
+		(autoRestartTimer == null) ? "not " : "");
 	return Plugin_Handled;
 }
 
@@ -66,7 +71,7 @@ public void OnClientPostAdminCheck(int client)
 {
 	if (autoRestartTimer != null && !IsFakeClient(client))
 	{
-		autoRestartTimer.Close();
+		autoRestartTimer.Kill();
 		autoRestartTimer = null;
 		CPrintToChatAll("{GREEN}[SM]{DEFAULT} Server restart aborted (someone joined)!");
 	}
@@ -82,7 +87,7 @@ public void OnClientDisconnect_Post(int client)
 	}
 }
 
-public Action AutoRestartTimer(Handle timer, any dummy)
+public Action AutoRestartTimer(Handle timer)
 {
 	if (GetClientCount(false) == 0 || !NonAFKPlayersExist())
 	{
@@ -92,8 +97,8 @@ public Action AutoRestartTimer(Handle timer, any dummy)
 	else
 	{
 		CPrintToChatAll("{GREEN}[SM]{DEFAULT} Restart aborted!");
+		autoRestartTimer = null;
 	}
-	delete timer;
 }
 
 stock bool NonAFKPlayersExist()

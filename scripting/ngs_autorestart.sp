@@ -12,7 +12,7 @@
 #pragma newdecls required
 #pragma semicolon 1
 
-#define CONTENT_URL "https://raw.githubusercontent.com/NGSNetwork/sm-plugins/master"
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master"
 
 #include <sourcemod>
 #include <ngsutils>
@@ -24,7 +24,7 @@ public Plugin myinfo = {
 	name = "[NGS] Timed Restart",
 	author = "TheXeon",
 	description = "Restart the server automagically :D",
-	version = "1.0.2",
+	version = "1.0.3",
 	url = "https://neogenesisnetwork.net/"
 }
 

@@ -12,7 +12,7 @@
 #pragma newdecls required
 #pragma semicolon 1
 
-#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master"
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
 
 #include <sourcemod>
 #include <ngsutils>

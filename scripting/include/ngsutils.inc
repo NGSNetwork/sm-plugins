@@ -31,7 +31,8 @@ stock bool IsValidClient(int client, bool aliveTest=false, bool botTest=true, bo
 methodmap SMTimer < Handle
 {
 	/**
-	 * Creates a basic timer.  Calling KillTimer() on a timer will kill the timer.
+	 * Creates a basic timer.  Calling .Kill() on a timer will kill the timer. Do not .Kill(), .Close(),
+	 * or delete in a callback! Make sure to null timer in callback if global!
 	 *
 	 * @param interval			Interval from the current game time to execute the given function.
 	 * @param func				Function to execute once the given interval has elapsed.
@@ -42,14 +43,11 @@ methodmap SMTimer < Handle
 	 */
 	public SMTimer(float interval, Timer func, any data=INVALID_HANDLE, int flags=0)
 	{
-		Handle hTimer = CreateTimer(interval, func, data, flags);
-		if (hTimer != null)
-			return view_as<SMTimer>(hTimer);
-		return null;
+		return view_as<SMTimer>(CreateTimer(interval, func, data, flags));
 	}
 
 	/**
-	 * Kills a timer.  Use this instead of CloseHandle() if you need more options. Set to null after!
+	 * Kills a timer.  Use this instead of delete if you need more options. Do not use in a timer's callback!
 	 *
 	 * @param autoClose			If autoClose is true, the data that was passed to CreateTimer() will
 	 *							be closed as a handle if TIMER_DATA_HNDL_CLOSE was not specified.
@@ -57,22 +55,23 @@ methodmap SMTimer < Handle
 	 */
 	public void Kill(bool autoClose=false)
 	{
-		if (this != null)
-		{
-			KillTimer(this, autoClose);
-		}
+		KillTimer(this, autoClose);
+		delete this;
 	}
 
 	/**
-	 * Kills a timer. Clone of SMTimer.Kill. Set to null after!
+	 * Closes a timer. A clone of .Kill() if autoClose is true. Do not use in a timer's callback!
 	 *
-	 * @param autoClose			If autoClose is true, the data that was passed to CreateTimer() will
-	 *							be closed as a handle if TIMER_DATA_HNDL_CLOSE was not specified.
+	 * @param autoClose			If autoClose is true, the data that was passed to new SMTimer() will
+	 *							be deleted as a handle if TIMER_DATA_HNDL_CLOSE was not specified.
 	 * @error					Invalid handles will cause a run time error.
 	 */
 	public void Close(bool autoClose=false)
 	{
-		this.Kill(autoClose);
+		if (autoClose)
+			this.Kill(autoClose);
+		else
+			delete this;
 	}
 
 	/**
@@ -90,7 +89,7 @@ methodmap SMTimer < Handle
 methodmap SMDataTimer < SMTimer
 {
 	/**
-	 * Creates a timer associated with a new datapack, and returns the datapack.
+	 * Creates a timer associated with a new datapack if needed.
 	 * @note The datapack is automatically freed when the timer ends.
 	 * @note The position of the datapack is not reset or changed for the timer function.
 	 *
@@ -145,9 +144,7 @@ methodmap Cookie < Handle
 	 */
 	public static Cookie Find(const char[] name)
 	{
-		Handle cookie = FindClientCookie(name);
-		if (cookie == INVALID_HANDLE) return null;
-		return view_as<Cookie>(cookie);
+		return view_as<Cookie>(FindClientCookie(name));
 	}
 
 	/**
@@ -170,10 +167,10 @@ methodmap Cookie < Handle
 	 * @param maxlen		Maximum length of the buffer.
 	 * @error				Invalid cookie handle or invalid client index.
 	 */
-	 public void GetValue(int client, char[] buffer, int maxlen)
-	 {
-	 	GetClientCookie(client, this, buffer, maxlen);
-	 }
+	public void GetValue(int client, char[] buffer, int maxlen)
+	{
+		GetClientCookie(client, this, buffer, maxlen);
+	}
 
 	/**
 	 * Sets the value of a Client preference cookie based on an authID string.
@@ -229,13 +226,13 @@ methodmap Cookie < Handle
 methodmap CookieIterator < Handle
 {
 	/**
-	 * Gets a cookie iterator.  Must be freed with CloseHandle().
+	 * Gets a cookie iterator.  Must be freed with delete.
 	 *
 	 * @return				A new cookie iterator.
 	 */
 	 public CookieIterator()
 	 {
-	 	return view_as<Cookie_Iterator>(GetCookieIterator());
+	 	return view_as<CookieIterator>(GetCookieIterator());
 	 }
 
 	 /**

@@ -179,7 +179,6 @@ public Action print_ngsupdater_include_version(int client, const char[] cmdname,
 {
 	if (CheckCommandAccess(client, "dev_ngsupdater_include_versions", ADMFLAG_ROOT, true))
 	{
-
 		char pluginFilename[PLATFORM_MAX_PATH];
 		GetPluginFilename(null, pluginFilename, sizeof(pluginFilename));
 

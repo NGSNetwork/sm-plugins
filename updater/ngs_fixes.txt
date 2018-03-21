@@ -1,0 +1,22 @@
+"Updater"
+{
+	"Information"
+	{
+		"Version"
+		{
+			"Latest"	"1.0.2"
+		}
+		
+		"Notes"	"Add updater support"
+		"Notes"	"Generate configuration files (cfg/sm/ngs_fixes.cfg)"
+		"Notes"	"Compatibility for other games"
+		"Notes"	"Properly null all our timers"
+	}
+	
+	"Files"
+	{
+		"Plugin"	"Path_SM/plugins/ngs_fixes.smx"
+		
+		"Source"	"Path_SM/scripting/ngs_fixes.sp"
+	}
+}

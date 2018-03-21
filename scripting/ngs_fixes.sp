@@ -37,7 +37,7 @@ public void OnPluginStart()
 	cvarDisableNonAuthedSpam = CreateConVar("sm_ngsfixes_disable_authspam", "1", "Should players be kicked if they don\'t auth?");
 	if (GetEngineVersion() == Engine_TF2)
 	{
-		cvarDisableDoveSpawn = CreateConVar("sm_ngsfixes_disable_doves", "1", "Should the plugin disable dove spawning.");
+		cvarDisableDoveSpawn = CreateConVar("sm_ngsfixes_disable_doves", "1", "Should the plugin disable dove spawning?");
 		HookUserMessage(GetUserMessageId("SpawnFlyingBird"), UserMsg_SpawnBird, true);
 	}
 	AutoExecConfig(true, "ngs_fixes");
@@ -86,5 +86,5 @@ public Action AuthCheckTimer(Handle timer, int userid)
 
 public void OnClientDisconnect(int client)
 {
-	delete authClientTimer[client];
+	authClientTimer[client].Close();
 }

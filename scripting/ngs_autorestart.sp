@@ -25,7 +25,7 @@ public Plugin myinfo = {
 	name = "[NGS] Timed Restart",
 	author = "TheXeon",
 	description = "Restart the server automagically :D",
-	version = "1.0.4",
+	version = "1.0.5",
 	url = "https://neogenesisnetwork.net/"
 }
 
@@ -35,16 +35,19 @@ SMTimer autoRestartTimer;
 
 public void OnPluginStart()
 {
-	if (GetEngineVersion() == Engine_TF2 && FindConVar("tf_allow_server_hibernation").BoolValue)
-	{
-		LogError("Warning! Timers will be messed up as tf_allow_server_hibernation is enabled!");
-	}
-
-	RegAdminCmd("sm_ngsforcerestart", CommandForceRestart, ADMFLAG_ROOT, "Force a server restart timer.");
-	RegAdminCmd("sm_ngscheckrestarttimer", CommandCheckRestartTimer, ADMFLAG_ROOT, "Check a server restart timer.");
+	RegAdminCmd("sm_forcerestarttimer", CommandForceRestart, ADMFLAG_ROOT, "Force a server restart timer.");
+	RegAdminCmd("sm_checkrestarttimer", CommandCheckRestartTimer, ADMFLAG_ROOT, "Check a server restart timer.");
 	cvarEnabled = CreateConVar("sm_ngsar_enabled", "1", "Enable autorestart on no players.", 0, true, 0.0, true, 1.0);
 	cvarUptimeRequirement = CreateConVar("sm_ngsar_uptime_requirement", "16", "How many hours the server should have since first connection to allow a restart.");
 	AutoExecConfig(true, "autorestart");
+}
+
+public void OnConfigsExecuted()
+{
+	if (GetEngineVersion() == Engine_TF2 && FindConVar("tf_allow_server_hibernation").BoolValue)
+	{
+		LogMessage("Warning! Timers will be messed up as tf_allow_server_hibernation is enabled!");
+	}
 }
 
 public Action CommandForceRestart(int client, int args)
@@ -72,8 +75,7 @@ public void OnClientPostAdminCheck(int client)
 {
 	if (autoRestartTimer != null && !IsFakeClient(client))
 	{
-		autoRestartTimer.Kill();
-		autoRestartTimer = null;
+		autoRestartTimer.Close();
 		CPrintToChatAll("{GREEN}[SM]{DEFAULT} Server restart aborted (someone joined)!");
 	}
 }

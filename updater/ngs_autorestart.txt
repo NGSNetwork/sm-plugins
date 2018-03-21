@@ -4,11 +4,12 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.0.4"
+			"Latest"	"1.0.5"
 		}
 		
-		"Notes"	"Reload plugin on update"
-		"Notes"	"Divide by float"
+		"Notes"	"Use new ngsutils"
+		"Notes"	"Remove ngs from commands."
+		"Notes" "Properly detect hibernate mode."
 	}
 	
 	"Files"

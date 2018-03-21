@@ -43,7 +43,7 @@ methodmap SMTimer < Handle
 	public SMTimer(float interval, Timer func, any data=INVALID_HANDLE, int flags=0)
 	{
 		Handle hTimer = CreateTimer(interval, func, data, flags);
-		if (hTimer != INVALID_HANDLE)
+		if (hTimer != null)
 			return view_as<SMTimer>(hTimer);
 		return null;
 	}
@@ -57,7 +57,10 @@ methodmap SMTimer < Handle
 	 */
 	public void Kill(bool autoClose=false)
 	{
-		KillTimer(this, autoClose);
+		if (this != null)
+		{
+			KillTimer(this, autoClose);
+		}
 	}
 
 	/**
@@ -69,7 +72,7 @@ methodmap SMTimer < Handle
 	 */
 	public void Close(bool autoClose=false)
 	{
-		KillTimer(this, autoClose);
+		this.Kill(autoClose);
 	}
 
 	/**

@@ -26,6 +26,10 @@
  * 		For example, #define LIBRARY_REMOVED_FUNC LibraryRemoved
  * 		LibraryRemoved(const char[] name) { ... }
  *
+ * If you need to specify a different location for where to download files, define CONTENT_URL with the base url of the location.
+ *		For example, #define CONTENT_URL "https://raw.githubusercontent.com/NGSNetwork/sm-plugins/raw/master/"
+ *		Notice that an ending slash is needed as Updater strips it off when querying.
+ *
  * Define RELOAD_ON_UPDATE and the plugin will reload itself upon being updated
  *
  * So in all:
@@ -35,6 +39,7 @@
  * #define ALL_PLUGINS_LOADED_FUNC AllPlugsLoaded (if needed)
  * #define LIBRARY_ADDED_FUNC OnLibAdded (if needed)
  * #define LIBRARY_REMOVED_FUNC OnLibRemoved (if needed)
+ * #define CONTENT_URL (if needed)
  * #define RELOAD_ON_UPDATE (if possible)
  * include <ngsupdater>
  */
@@ -43,7 +48,7 @@
  #endinput
 #endif
 #define _ngs_updater_included
-#define _ngsupdater_version "0.0.1"
+#define _ngsupdater_version "0.0.3"
 
 #tryinclude <updater>
 
@@ -113,14 +118,7 @@ public void CheckUpdaterStatus(ConVar convar, const char[] name, const char[] va
 	if(LibraryExists("updater") && cvarEnableUpdater.BoolValue)
 	{
 		char url[512], version[12];
-		#if defined UPDATE_FILE
-			Format(url, sizeof(url), "%s/%s", UPDATER_BASE_URL, UPDATE_FILE);
-		#else
-			char fileName[PLATFORM_MAX_PATH];
-			GetPluginFilename(null, fileName, sizeof(fileName));
-			ReplaceString(fileName, sizeof(fileName), ".smx", "");
-			Format(url, sizeof(url), "%s/%s.txt", UPDATER_BASE_URL, fileName);
-		#endif
+		Updater_GetPluginURL(url);
 		Updater_AddPlugin(url); // Has no effect if we're already in Updater's pool
 
 		Format(version, sizeof(version), "%sA", updater_plugin_version);
@@ -132,21 +130,49 @@ public void CheckUpdaterStatus(ConVar convar, const char[] name, const char[] va
 	}
 }
 
+stock void Updater_GetPluginURL(char url[512])
+{
+	#if defined UPDATE_FILE
+		Format(url, sizeof(url), "%s/%s", UPDATER_BASE_URL, UPDATE_FILE);
+	#else
+		char fileName[PLATFORM_MAX_PATH];
+		GetPluginFilename(null, fileName, sizeof(fileName));
+		ReplaceString(fileName, sizeof(fileName), ".smx", "");
+		Format(url, sizeof(url), "%s/%s.txt", UPDATER_BASE_URL, fileName);
+	#endif
+}
+
+#if defined CONTENT_URL
+public Action Updater_OnPluginDownloading()
+{
+	Updater_AddPlugin(CONTENT_URL);
+	return Plugin_Continue;
+}
+#endif
+
+#if defined CONTENT_URL || defined RELOAD_ON_UPDATE
+public void Updater_OnPluginUpdated()
+{
+	#if defined RELOAD_ON_UPDATE
+	ReloadPlugin();
+	#endif
+
+	#if defined CONTENT_URL
+	char url[512];
+	Updater_GetPluginURL(url);
+	Updater_AddPlugin(url);
+	#endif
+}
+#endif
+
 public Action Updater_OnPluginChecking()
 {
-	if(!cvarEnableUpdater.BoolValue)
+	if (!cvarEnableUpdater.BoolValue)
 	{
 		return Plugin_Handled;
 	}
 	return Plugin_Continue;
 }
-
-#if defined RELOAD_ON_UPDATE
-public Updater_OnPluginUpdated()
-{
-	ReloadPlugin();
-}
-#endif
 
 //command listener which prints information to the chat, ALL plugins with this include will respond
 public Action print_ngsupdater_include_version(int client, const char[] cmdname, int Args)

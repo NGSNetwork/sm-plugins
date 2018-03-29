@@ -29,7 +29,7 @@ public Plugin myinfo =
 	url = "http://sourcemod.net"
 }
 
-static int SpriteTrail[MAXPLAYERS + 1];
+static int SpriteTrail[MAXPLAYERS + 1] = {INVALID_ENT_REFERENCE, ...};
 
 public void OnPluginStart()
 {
@@ -48,11 +48,7 @@ public void OnClientPutInServer(int client)
 
 public void OnClientDisconnect(int client)
 {
-	if (IsValidEntity(SpriteTrail[client]))
-	{
-		AcceptEntityInput(SpriteTrail[client], "Kill");
-		SpriteTrail[client] = INVALID_ENT_REFERENCE;
-	}
+	KillTrail(client);
 }
 
 public Action Command_Trail(int client, int args)
@@ -65,11 +61,11 @@ public Action Command_Trail(int client, int args)
 
 	char arg[64];
 	char TrailColor[64];
-//	char ClientName[128];
+	char ClientName[128];
 	int trailcolornum;
 
-//	Format(ClientName, sizeof(ClientName), "customname_%i", client);
-//	DispatchKeyValue(client, "targetname", ClientName);
+	Format(ClientName, sizeof(ClientName), "customname_%i", client);
+	DispatchKeyValue(client, "targetname", ClientName);
 	int Trail = CreateEntityByName("env_spritetrail");
 	DispatchKeyValue(Trail, "renderamt", "255");
 	DispatchKeyValue(Trail, "rendermode", "1");
@@ -81,11 +77,7 @@ public Action Command_Trail(int client, int args)
 	GetCmdArgString(arg, sizeof(arg));
 	StrToLowerRemoveBlanks(arg, TrailColor, sizeof(TrailColor));
 
-	if (IsValidEntity(SpriteTrail[client]))
-	{
-		AcceptEntityInput(SpriteTrail[client], "Kill");
-		SpriteTrail[client] = INVALID_ENT_REFERENCE;
-	}
+	KillTrail(client);
 
 	if (StrEqual(TrailColor, "off", false))
 	{
@@ -123,13 +115,13 @@ public Action Command_Trail(int client, int args)
 	}
 
 	DispatchSpawn(Trail);
-	SpriteTrail[client] = Trail;
+	SpriteTrail[client] = EntIndexToEntRef(Trail);
 
 	float CurrentOrigin[3];
 	GetClientAbsOrigin(client, CurrentOrigin);
 	CurrentOrigin[2] += 10.0;
 	TeleportEntity(Trail, CurrentOrigin, NULL_VECTOR, NULL_VECTOR);
-//	SetVariantString(ClientName);
+	SetVariantString(ClientName);
 
 	AcceptEntityInput(Trail, "SetParent", -1, -1);
 	AcceptEntityInput(Trail, "showsprite", -1, -1);
@@ -139,11 +131,25 @@ public Action Command_Trail(int client, int args)
 	return Plugin_Handled;
 }
 
+stock void KillTrail(int client)
+{
+	if (SpriteTrail[client] == INVALID_ENT_REFERENCE) return;
+	int entIndex = EntRefToEntIndex(SpriteTrail[client]);
+	if (IsValidEntity(entIndex))
+	{
+		AcceptEntityInput(entIndex, "Kill");
+		SpriteTrail[client] = INVALID_ENT_REFERENCE;
+	}
+}
+
 public void OnPluginEnd()
 {
 	for (int i = 1; i <= MaxClients; i++)
-		if (IsValidClient(i) && IsValidEntity(SpriteTrail[i]))
-			AcceptEntityInput(SpriteTrail[i], "Kill");
+	{
+		int entIndex = EntRefToEntIndex(SpriteTrail[i]);
+		if (IsValidClient(i) && IsValidEntity(entIndex))
+			AcceptEntityInput(entIndex, "Kill");
+	}
 }
 
 // Stock converted from:

@@ -1,0 +1,23 @@
+"Updater"
+{
+	"Information"
+	{
+		"Version"
+		{
+			"Latest"	"1.0.1"
+		}
+		
+		"Notes"	"Added updater support."
+		"Notes"	"Use multicolors instead of hardcoded values!"
+		"Notes"	"Optionally input a hex number for color!"
+		"Notes" "Fix crashes on reload (was deleting world)"
+		"Notes"	"Print color on output."
+	}
+	
+	"Files"
+	{
+		"Plugin"	"Path_SM/plugins/ngs_lighttrails.smx"
+		
+		"Source"	"Path_SM/scripting/ngs_lighttrails.sp"
+	}
+}

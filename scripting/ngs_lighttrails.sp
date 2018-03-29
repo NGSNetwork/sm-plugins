@@ -1,10 +1,9 @@
 /**
 * TheXeon
-* ngs_autorestart.sp
+* ngs_lighttrails.sp
 *
 * Files:
-* addons/sourcemod/plugins/ngs_autorestart.smx
-* cfg/sourcemod/autorestart.cfg
+* addons/sourcemod/plugins/ngs_lighttrails.smx
 *
 * Dependencies:
 * sourcemod.inc, sdktools.inc, multicolors.inc, ngsutils.inc, ngsupdater.inc
@@ -13,6 +12,7 @@
 #pragma semicolon 1
 
 #define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
 
 #include <sourcemod>
 #include <sdktools>
@@ -25,15 +25,16 @@ public Plugin myinfo =
 	name = "[NGS] Light Trails",
 	author = "bSun Halt / TheXeon",
 	description = "Gives a light trail",
-	version = "1.0.0",
+	version = "1.0.1",
 	url = "http://sourcemod.net"
 }
 
-static int SpriteTrail[MAXPLAYERS + 1] = {INVALID_ENT_REFERENCE, ...};
+int SpriteTrail[MAXPLAYERS + 1] = {INVALID_ENT_REFERENCE, ...};
 
 public void OnPluginStart()
 {
 	RegAdminCmd("sm_trail", Command_Trail, ADMFLAG_GENERIC, "sm_trail <color/hex>");
+	MC_CheckTrie();
 }
 
 public void OnMapStart()
@@ -53,6 +54,7 @@ public void OnClientDisconnect(int client)
 
 public Action Command_Trail(int client, int args)
 {
+	if (!IsValidClient(client)) return Plugin_Handled;
 	if (args == 0)
 	{
 		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_trail <color/hex>");
@@ -97,20 +99,33 @@ public Action Command_Trail(int client, int args)
 
 		char rgbString[16];
 
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You've been given a {%s}%s{DEFAULT} trail!", TrailColor, TrailColor);
+
 		Format(rgbString, sizeof(rgbString), "%d %d %d", rgbFromHex[0], rgbFromHex[1], rgbFromHex[2]);
 		DispatchKeyValue(Trail, "rendercolor", rgbString);
 	}
 	else
 	{
 		int decimalValue = StringToHex(TrailColor);
-		int rgbFromHex[3];
-		rgbFromHex[0] = (decimalValue >> 16) & 255;
-		rgbFromHex[1] = (decimalValue >> 8) & 255;
-		rgbFromHex[2] = decimalValue & 255;
-
 		char rgbString[16];
-
-		Format(rgbString, 16, "%d %d %d", rgbFromHex[0], rgbFromHex[1], rgbFromHex[2]);
+		if (decimalValue == -1)
+		{
+			CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Invalid color/hex! You've been given a {BLACK}black{DEFAULT} trail!");
+			Format(rgbString, sizeof(rgbString), "0 0 0");
+		}
+		else
+		{
+			char printHex[16];
+			int rgbFromHex[3];
+			rgbFromHex[0] = (decimalValue >> 16) & 255;
+			rgbFromHex[1] = (decimalValue >> 8) & 255;
+			rgbFromHex[2] = decimalValue & 255;
+			Format(rgbString, sizeof(rgbString), "%d %d %d", rgbFromHex[0], rgbFromHex[1], rgbFromHex[2]);
+			Format(printHex, sizeof(printHex), "%X%X%X%X%X%X", 
+				(decimalValue >> 20) & 15, (decimalValue >> 16) & 15, (decimalValue >> 12) & 15,
+				(decimalValue >> 8) & 15, (decimalValue >> 4) & 15, decimalValue & 15);
+			CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You've been given a \x07%scolored{DEFAULT} trail!", printHex, decimalValue);
+		}
 		DispatchKeyValue(Trail, "rendercolor", rgbString);
 	}
 
@@ -125,8 +140,6 @@ public Action Command_Trail(int client, int args)
 
 	AcceptEntityInput(Trail, "SetParent", -1, -1);
 	AcceptEntityInput(Trail, "showsprite", -1, -1);
-
-	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You've been given a %s trail!", arg);
 
 	return Plugin_Handled;
 }
@@ -145,26 +158,34 @@ stock void KillTrail(int client)
 public void OnPluginEnd()
 {
 	for (int i = 1; i <= MaxClients; i++)
-	{
-		int entIndex = EntRefToEntIndex(SpriteTrail[i]);
-		if (IsValidClient(i) && IsValidEntity(entIndex))
-			AcceptEntityInput(entIndex, "Kill");
-	}
+		if (IsValidClient(i))
+			KillTrail(i);
 }
 
 // Stock converted from:
 // https://github.com/GabiGrin/hex-to-rgb-string/blob/master/index.js
 stock int StringToHex(char hex[64])
 {
-	Regex hexPattern = new Regex("/^#(?:[0-9a-f]{3}){1,2}$/i");
-	if (!hex || hexPattern.Match(hex) == -1)
-	{
-		delete hexPattern;
-		return 0;
-	}
+	Regex hexPattern = new Regex("^(?:[0-9a-f]{3}){1,2}$", PCRE_CASELESS);
 	ReplaceString(hex, sizeof(hex), "#", "");
 	ReplaceString(hex, sizeof(hex), "0x", "", false);
-	char splitString[6];
+	int match = hexPattern.Match(hex);
+	if (match != -1)
+	{
+		char substring[16];
+		hexPattern.GetSubString(0, substring, sizeof(substring));
+		if (substring[0] == '\0') // All this logic because PCRE_NOTEMPTY doesn't generate properly
+		{
+			delete hexPattern;
+			return -1;
+		}
+	}
+	else
+	{
+		delete hexPattern;
+		return -1;
+	}
+	char splitString[64];
 	if (strlen(hex) == 3)
 	{
 		for (int i = 0; i < 5; i += 2)

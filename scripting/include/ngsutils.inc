@@ -251,3 +251,53 @@ methodmap CookieIterator < Handle
 	 }
 }
 #endif
+
+#if defined _dbi_included
+// Thanks to Shader's Allen (Drixevel) for the idea and code! sourcemod-misc.inc -> methodmaps
+methodmap SmartDB < Database
+{
+	public void QueryF(SQLQueryCallback callback, any data, DBPriority priority = DBPrio_Normal, const char[] format, any ...)
+	{
+		char query[8192];
+		VFormat(query, sizeof(query), format, 5);
+		this.Query(callback, query, data, priority);
+	}
+
+	public void VoidQuery(const char[] query, DBPriority prio = DBPrio_Normal)
+	{
+		DataPack pack = new DataPack();
+		pack.WriteString(query);
+		this.Query(TQuery_Void, query, pack, prio);
+	}
+
+	public void VoidQueryF(DBPriority priority = DBPrio_Normal, const char[] format, any ...)
+	{
+		char query[8192];
+		VFormat(query, sizeof(query), format, 3);
+		this.VoidQuery(query, priority);
+	}
+
+	public void FetchClientName(int client, char[] buffer, int size)
+	{
+		char sName[MAX_NAME_LENGTH];
+		GetClientName(client, sName, sizeof(sName));
+		int size2 = 2 * strlen(sName) + 1;
+		char[] sEscapedName = new char[size2 + 1];
+		this.Escape(sName, sEscapedName, size2 + 1);
+		strcopy(buffer, size, sEscapedName);
+	}
+}
+
+public void TQuery_Void(Database owner, DBResultSet hndl, const char[] error, DataPack data)
+{
+	if (hndl == null)
+	{
+		data.Reset();
+		char sQuery[8192];
+		data.ReadString(sQuery, sizeof(sQuery));
+		LogError("Error executing void query: %s", error);
+		LogError("Query Output: %s", sQuery);
+	}
+	delete data;
+}
+#endif

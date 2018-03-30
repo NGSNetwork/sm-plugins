@@ -1,47 +1,59 @@
+/**
+* TheXeon
+* ngs_explosivearrows.sp
+*
+* Files:
+* addons/sourcemod/plugins/ngs_explosivearrows.smx
+* cfg/sourcemod/explosivearrows.cfg
+*
+* Dependencies:
+* sourcemod.inc, sdktools.inc, sdkhooks.inc, 
+* tf2.inc, tf2_stocks.inc, multicolors.inc, 
+* ngsupdater.inc, ngsutils.inc
+*/
 #pragma newdecls required
 #pragma semicolon 1
 
-#include <sdktools>
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
+
 #include <sourcemod>
+#include <sdktools>
 #include <sdkhooks>
 #include <tf2>
 #include <tf2_stocks>
-#include <morecolors>
+#include <multicolors>
+#include <ngsupdater>
+#include <ngsutils>
 
-#define PLUGIN_VERSION "1.4"
-#define spirite "spirites/zerogxplode.spr"
+#define zerogsprite "spirites/zerogxplode.spr"
 
-Handle g_Enabled = null;
-Handle g_Dmg = null;
-Handle g_Radius = null;
-Handle g_Join = null;
-Handle g_Type = null;
-Handle g_Delay = null;
+ConVar g_Enabled, g_Dmg, g_Radius, g_Join, g_Type, g_Delay;
 
 float g_pos[3], deathpos[MAXPLAYERS + 1][3];
-bool g_Arrows[MAXPLAYERS+1];
+bool g_bArrowsEnabled[MAXPLAYERS + 1];
+bool g_bDisableArrowsOnDeath[MAXPLAYERS + 1];
+
+public Plugin myinfo = {
+	name = "[NGS] Explosive Arrows",
+	author = "Tak (Chaosxk) / TheXeon",
+	description = "Are your arrows too weak? Buff them up (or add cosmetic 'splosions)!",
+	version = "1.0.5",
+	url = "http://forums.alliedmods.net/showthread.php?t=203146"
+}
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
-	char Game[32];
-	GetGameFolderName(Game, sizeof(Game));
-	if(!StrEqual(Game, "tf")) {
+	if (GetEngineVersion() != Engine_TF2)
+	{
 		Format(error, err_max, "This plugin only works for Team Fortress 2");
 		return APLRes_Failure;
 	}
 	return APLRes_Success;
 }
 
-public Plugin myinfo = {
-	name = "[NGS] Explosive Arrows",
-	author = "Tak (Chaosxk) / TheXeon",
-	description = "Are your arrows too weak? Buff them up (or add cosmetic 'splosions)!",
-	version = PLUGIN_VERSION,
-	url = "http://forums.alliedmods.net/showthread.php?t=203146"
-}
-
-public void OnPluginStart() {
-	CreateConVar("explarrows_version", PLUGIN_VERSION, "Version of this plugin", FCVAR_SPONLY|FCVAR_NOTIFY);
+public void OnPluginStart()
+{
 	g_Enabled = CreateConVar("sm_explarrows_enabled", "1", "Enables/Disables explosive arrows.");
 	g_Dmg = CreateConVar("sm_explarrows_damage", "50", "How much damage should the arrows do?");
 	g_Radius = CreateConVar("sm_explarrows_radius", "200", "What should the radius of damage be?");
@@ -49,10 +61,10 @@ public void OnPluginStart() {
 	g_Type = CreateConVar("sm_explarrows_type", "0", "What type of arrows to explode? (0 - Both, 1 - Huntsman arrows, 2 - Crusader's crossbow bolts");
 	g_Delay = CreateConVar("sm_explarrows_delay", "0", "Delay before arrow explodes");
 
-	RegConsoleCmd("sm_explarrowsme", Command_ArrowsMe, "Turn on explosive arrows for yourself.");
-	RegConsoleCmd("sm_explosivearrowsme", Command_ArrowsMe, "Turn on explosive arrows for yourself.");
-	RegAdminCmd("sm_explarrows", Command_Arrows, ADMFLAG_GENERIC, "Usage: sm_explarrows <client> <On: 1 ; Off = 0>.");
-	RegAdminCmd("sm_explosivearrows", Command_Arrows, ADMFLAG_GENERIC, "Usage: sm_explarrows <client> <On: 1 ; Off = 0>.");
+	RegConsoleCmd("sm_explarrowsme", Command_ArrowsMe, "Toggle explosive arrows for yourself.");
+	RegConsoleCmd("sm_explosivearrowsme", Command_ArrowsMe, "Toggle explosive arrows for yourself.");
+	RegAdminCmd("sm_explarrows", Command_Arrows, ADMFLAG_GENERIC, "Usage: sm_explarrows <client> <Ignore (toggle if no persistent): -1 ; On: 1 ; Off = 0> <Persistent: 1 ; 0>.");
+	RegAdminCmd("sm_explosivearrows", Command_Arrows, ADMFLAG_GENERIC, "Usage: sm_explarrows <client> <Ignore (toggle if no persistent): -1 ; On: 1 ; Off = 0> <Persistent: 1 ; 0>.");
 
 	HookEvent("player_death", Player_Death);
 
@@ -62,72 +74,78 @@ public void OnPluginStart() {
 
 public void OnMapStart()
 {
-	PrecacheModel(spirite, true);
+	PrecacheModel(zerogsprite, true);
 }
 
-public Action Player_Death(Handle event, const char[] name, bool dontBroadcast) {
-	if (!g_Enabled)
-		return;
-	int client = GetClientOfUserId(GetEventInt(event, "userid"));
+public Action Player_Death(Event event, const char[] name, bool dontBroadcast)
+{
+	if (!g_Enabled.BoolValue)
+		return Plugin_Continue;
+	int client = GetClientOfUserId(event.GetInt("userid"));
 	if (!IsValidClient(client))
-		return;
+		return Plugin_Continue;
 	GetClientAbsOrigin(client, deathpos[client]);
-	if (CheckCommandAccess(client, "sm_explarrowsme", ADMFLAG_RESERVATION, false)) return;
-	if (g_Arrows[client])
+	if (g_bDisableArrowsOnDeath[client] && g_bArrowsEnabled[client])
 	{
-		g_Arrows[client] = false;
+		g_bDisableArrowsOnDeath[client] = false;
+		g_bArrowsEnabled[client] = false;
 		CPrintToChat(client, "{GREEN}[SM]{DEFAULT} Explosive arrows disabled.");
 	}
+	return Plugin_Continue;
 }
 
 public void OnClientPostAdminCheck(int client)
 {
-	g_Arrows[client] = false;
+	g_bArrowsEnabled[client] = false;
+	g_bDisableArrowsOnDeath[client] = false;
 	deathpos[client][0] = 0.0;
 	deathpos[client][1] = 0.0;
 	deathpos[client][2] = 0.0;
-	int joincvar = GetConVarInt(g_Join);
-	switch (joincvar) {
-		case 2: {
-			g_Arrows[client] = CheckCommandAccess(client, "sm_explarrows_join_access", ADMFLAG_GENERIC, true);
+	switch (g_Join.IntValue)
+	{
+		case 2:
+		{
+			g_bArrowsEnabled[client] = CheckCommandAccess(client, "sm_explarrows_join_access", ADMFLAG_GENERIC, true);
 		}
-		case 1: {
-			g_Arrows[client] = true;
+		case 1:
+		{
+			g_bArrowsEnabled[client] = true;
 		}
 	}
 }
 public Action Command_ArrowsMe(int client, int args)
 {
-	if(!g_Enabled)
+	if (!g_Enabled.BoolValue)
 		return Plugin_Handled;
-	if(!IsValidClient(client))
+	if (!IsValidClient(client))
 		return Plugin_Handled;
-	g_Arrows[client] = !g_Arrows[client];
-	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You have %s explosive arrows.", g_Arrows[client] ? "enabled" : "disabled");
+	g_bArrowsEnabled[client] = !g_bArrowsEnabled[client];
+	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You have %s explosive arrows.", g_bArrowsEnabled[client] ? "enabled" : "disabled");
 	return Plugin_Handled;
 }
 
 public Action Command_Arrows(int client, int args)
 {
-	if(!g_Enabled)
+	if (!g_Enabled.BoolValue)
 		return Plugin_Handled;
-	if(!IsValidClient(client))
-		return Plugin_Handled;
-	char arg1[65], arg2[65];
+	char arg1[65], arg2[16], arg3[16];
 
-	if(args < 1) {
-		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_explarrows <client> (<On: 1 ; Off = 0>)");
+	if (args < 1)
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_explarrows <client> <-1/0/1> <0/1 (persistent)>)");
 		return Plugin_Handled;
 	}
 
 	GetCmdArg(1, arg1, sizeof(arg1));
-	GetCmdArg(2, arg2, sizeof(arg2));
-	bool button = view_as<bool>(StringToInt(arg2));
+	if (args > 1) GetCmdArg(2, arg2, sizeof(arg2));
+	if (args > 2) GetCmdArg(3, arg3, sizeof(arg3));
+	int buttonVal = StringToInt(arg2);
+	bool persistent = view_as<bool>(StringToInt(arg3));
 
 	char target_name[MAX_TARGET_LENGTH];
 	int target_list[MAXPLAYERS], target_count;
 	bool tn_is_ml;
-	if((target_count = ProcessTargetString(
+	if ((target_count = ProcessTargetString(
 			arg1,
 			client,
 			target_list,
@@ -141,69 +159,96 @@ public Action Command_Arrows(int client, int args)
 		return Plugin_Handled;
 	}
 
-	for(int i = 0; i < target_count; i++) {
-		if (args == 1)
-			g_Arrows[target_list[i]] = !g_Arrows[target_list[i]];
-		else
-			g_Arrows[target_list[i]] = button;
+	for(int i = 0; i < target_count; i++)
+	{
+		switch (args)
+		{
+			case 1:
+			{
+				g_bArrowsEnabled[target_list[i]] = !g_bArrowsEnabled[target_list[i]];
+				CPrintToChat(target_list[i], "{GREEN}[SM]{DEFAULT} Your explosive arrows have been toggled %s.", (g_bArrowsEnabled[target_list[i]]) ? "on" : "off");
+			}
+			case 2:
+			{
+				if (buttonVal == -1) 
+				{
+					g_bArrowsEnabled[target_list[i]] = !g_bArrowsEnabled[target_list[i]];
+				}
+				else
+				{
+					g_bArrowsEnabled[target_list[i]] = view_as<bool>(buttonVal);
+				}
+				CPrintToChat(target_list[i], "{GREEN}[SM]{DEFAULT} Your explosive arrows have been turned %s.", (g_bArrowsEnabled[target_list[i]]) ? "on" : "off");
+			}
+			case 3:
+			{
+				if (buttonVal != -1) g_bArrowsEnabled[target_list[i]] = view_as<bool>(buttonVal);
+				g_bDisableArrowsOnDeath[target_list[i]] = !persistent;
+				CPrintToChat(target_list[i], "{GREEN}[SM]{DEFAULT} Your explosive arrows have been toggled %s%s.", (g_bArrowsEnabled[target_list[i]]) ? "on" : "off", (persistent) ? "" : " and will toggle off on death");
+			}
+		}
 	}
-	if (tn_is_ml)
-		CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "{LIGHTGREEN}%N{DEFAULT} has %s {LIGHTGREEN}%t's{DEFAULT} explosive arrows.", client, g_Arrows[client] ? "enabled" : "disabled", target_name);
-	else
-		CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "{LIGHTGREEN}%N{DEFAULT} has %s {LIGHTGREEN}%s's{DEFAULT} explosive arrows.", client, g_Arrows[client] ? "enabled" : "disabled", target_name);
 	return Plugin_Handled;
 }
 
-public void OnEntityCreated(int entity, const char[] classname) {
-	if(!g_Enabled)
+public void OnEntityCreated(int entity, const char[] classname)
+{
+	if (!g_Enabled.BoolValue)
 		return;
 	bool arrow = StrEqual(classname, "tf_projectile_arrow");
 	bool bolt = StrEqual(classname, "tf_projectile_healing_bolt");
 	if (!bolt && !arrow)
 		return;
-	int type = GetConVarInt(g_Type);
-	if (!type || (type == 1 && arrow) || (type == 2 && bolt)) {
+	int type = g_Type.IntValue;
+	if (!type || (type == 1 && arrow) || (type == 2 && bolt))
+	{
 		SDKHook(entity, SDKHook_StartTouchPost, OnEntityTouch);
 	}
 }
 
-public Action OnEntityTouch(int entity, int other) {
+public Action OnEntityTouch(int entity, int other)
+{
 	int client = GetEntPropEnt(entity, Prop_Send, "m_hOwnerEntity");
 	float pos2[3];
-	if(!IsValidClient(client))
+	if (!IsValidClient(client))
 		return Plugin_Continue;
-	if(!g_Arrows[client])
+	if (!g_bArrowsEnabled[client])
 		return Plugin_Continue;
 	GetEntPropVector(entity, Prop_Send, "m_vecOrigin", g_pos);
-	if (other > 0 && other <= MaxClients)
+	if (IsValidClient(other))
 		GetClientAbsOrigin(other, pos2);
-	Handle pack;
-	CreateDataTimer(GetConVarFloat(g_Delay), Timer_Explode, pack, TIMER_FLAG_NO_MAPCHANGE);
-	WritePackCell(pack, GetClientUserId(client));
-	WritePackCell(pack, (other > 0 && other <= MaxClients) ? GetClientUserId(other) : INVALID_ENT_REFERENCE);
-	WritePackCell(pack, (other > 0 && other <= MaxClients) ? GetEntProp(other, Prop_Send, "m_iDeaths") : 0);
-	WritePackFloat(pack, g_pos[0]);
-	WritePackFloat(pack, g_pos[1]);
-	WritePackFloat(pack, g_pos[2]);
-	WritePackFloat(pack, pos2[0]);
-	WritePackFloat(pack, pos2[1]);
-	WritePackFloat(pack, pos2[2]);
+	bool otherValid = IsValidClient(other);
+	DataPack pack;
+	CreateDataTimer(g_Delay.FloatValue, Timer_Explode, pack, TIMER_FLAG_NO_MAPCHANGE);
+	pack.WriteCell(GetClientUserId(client));
+	pack.WriteCell((otherValid) ? GetClientUserId(other) : INVALID_ENT_REFERENCE);
+	pack.WriteCell((otherValid) ? GetEntProp(other, Prop_Send, "m_iDeaths") : 0);
+	pack.WriteFloat(g_pos[0]);
+	pack.WriteFloat(g_pos[1]);
+	pack.WriteFloat(g_pos[2]);
+	pack.WriteFloat(pos2[0]);
+	pack.WriteFloat(pos2[1]);
+	pack.WriteFloat(pos2[2]);
 	return Plugin_Continue;
 }
-public Action Timer_Explode(Handle timer, Handle pack) {
-	ResetPack(pack);
+
+public Action Timer_Explode(Handle timer, DataPack pack)
+{
+	pack.Reset();
 	float pos1[3], pos2[3];
-	int client = GetClientOfUserId(ReadPackCell(pack));
-	int victim = GetClientOfUserId(ReadPackCell(pack));
-	int deaths = ReadPackCell(pack);
-	pos1[0] = ReadPackFloat(pack);
-	pos1[1] = ReadPackFloat(pack);
-	pos1[2] = ReadPackFloat(pack);
-	pos2[0] = ReadPackFloat(pack);
-	pos2[1] = ReadPackFloat(pack);
-	pos2[2] = ReadPackFloat(pack);
-	if (victim > 0 && victim <= MaxClients && IsClientInGame(victim) && IsPlayerAlive(victim)) {
-		if (deaths < GetEntProp(victim, Prop_Send, "m_iDeaths")) { 	//should probably use spawncount instead but whatever
+	int client = GetClientOfUserId(pack.ReadCell());
+	int victim = GetClientOfUserId(pack.ReadCell());
+	int deaths = pack.ReadCell();
+	pos1[0] = pack.ReadFloat();
+	pos1[1] = pack.ReadFloat();
+	pos1[2] = pack.ReadFloat();
+	pos2[0] = pack.ReadFloat();
+	pos2[1] = pack.ReadFloat();
+	pos2[2] = pack.ReadFloat();
+	if (IsValidClient(victim, true))
+	{
+		if (deaths < GetEntProp(victim, Prop_Send, "m_iDeaths"))
+		{ 	//should probably use spawncount instead but whatever
 			pos2[0] = deathpos[victim][0];
 			pos2[1] = deathpos[victim][1];
 			pos2[2] = deathpos[victim][2];
@@ -212,16 +257,18 @@ public Action Timer_Explode(Handle timer, Handle pack) {
 		GetClientAbsOrigin(victim, pos2);
 		AddVectors(pos1, pos2, pos1);
 	}
-	DoExplosion(client, GetConVarInt(g_Dmg), GetConVarInt(g_Radius), pos1);
+	DoExplosion(client, g_Dmg.IntValue, g_Radius.IntValue, pos1);
 }
-stock void DoExplosion(int owner, int damage, int radius, float pos[3]) {
+
+stock void DoExplosion(int owner, int damage, int radius, float pos[3])
+{
 	int explode = CreateEntityByName("env_explosion");
-	if(!IsValidEntity(explode))
+	if (!IsValidEntity(explode))
 		return;
 	DispatchKeyValue(explode, "targetname", "explode");
 	DispatchKeyValue(explode, "spawnflags", "2");
 	DispatchKeyValue(explode, "rendermode", "5");
-	DispatchKeyValue(explode, "fireballsprite", spirite);
+	DispatchKeyValue(explode, "fireballsprite", zerogsprite);
 
 	SetEntPropEnt(explode, Prop_Data, "m_hOwnerEntity", owner);
 	SetEntProp(explode, Prop_Data, "m_iMagnitude", damage);
@@ -232,14 +279,4 @@ stock void DoExplosion(int owner, int damage, int radius, float pos[3]) {
 	ActivateEntity(explode);
 	AcceptEntityInput(explode, "Explode");
 	AcceptEntityInput(explode, "Kill");
-}
-
-public bool IsValidClient (int client)
-{
-	if(client > 4096) client = EntRefToEntIndex(client);
-	if(client < 1 || client > MaxClients) return false;
-	if(!IsClientInGame(client)) return false;
-	if(IsFakeClient(client)) return false;
-	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
-	return true;
 }

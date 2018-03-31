@@ -1,5 +1,5 @@
 /****************************************
- * ngsupdater.sp
+ * ngsupdater.inc
  *
  * This file is an updated version of the one used in Dr. McKay's plugins for Updater integration
  * Some cool ideas from ddhoward's updater have also been added.

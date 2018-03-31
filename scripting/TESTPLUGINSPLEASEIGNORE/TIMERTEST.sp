@@ -13,6 +13,7 @@
 SMTimer timer3, timer4, timer6, timer8;
 Handle nontimer, timer1, timer2, timer5, timer7;
 int timer7iter = 0, timer8iter = 0;
+SmartDB smartdb;
 
 public void OnPluginStart() {
     nontimer = new ArrayList();
@@ -35,7 +36,20 @@ public void OnPluginStart() {
     //delete timer8;
     PrintToServer("%i, %i, %i, %i, %i, %i, %i, %i, %i", nontimer, timer1, timer2, timer3, timer4, timer5, timer6, timer7, timer8);
     SMTimer checktimer = new SMTimer(1.0, checktimerfunc);
+    SmartDB.Connect(DatabaseCallback);
+    smartdb.VoidQuery("");
 }
+
+public void DatabaseCallback(Database db, const char[] error, any data)
+{
+	smartdb = view_as<SmartDB>(db);
+}
+
+public void QueryCallback(Database db, DBResultSet results, const char[] error, any data)
+{
+	
+}
+
 
 public Action timer1func(Handle timer) {
     PrintToServer("Deleted Handle timer1 shows up!");

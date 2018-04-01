@@ -1,18 +1,31 @@
+/**
+* TheXeon
+* ngs_advert_antiflood.sp
+*
+* Files:
+* addons/sourcemod/plugins/ngs_advert_antiflood.smx
+* cfg/sourcemod/plugin.ngs_advert_antiflood.cfg
+*
+* Dependencies:
+* sourcemod.inc, ngsutils.inc, ngsupdater.inc, sdktools.inc
+*/
 #pragma newdecls required
 #pragma semicolon 1
 
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
+
 #include <sourcemod>
+#include <ngsutils>
+#include <ngsupdater>
 #include <sdktools>
-
-#define PLUGIN_VERSION "1.5"
-
 
 char Chat1[MAXPLAYERS+1][1024], Chat2[MAXPLAYERS+1][1024], Chat3[MAXPLAYERS+1][1024], Chat4[MAXPLAYERS+1][1024];
 
 bool IsBlocked[MAXPLAYERS + 1] = {false, ...};
 int LineCount[MAXPLAYERS + 1] = 1;
 
-Handle DelayTimer[MAXPLAYERS+1] = {null, ...};
+SMDataTimer DelayTimer[MAXPLAYERS+1] = {null, ...};
 
 ConVar sm_advertflood_time;
 ConVar sm_advertflood_minlen;
@@ -21,19 +34,18 @@ public Plugin myinfo = {
 	name = "[NGS] Advert Antiflood",
 	author = "EHG / TheXeon",
 	description = "Advert Antiflood",
-	version = PLUGIN_VERSION,
-	url = ""
+	version = "1.0.5",
+	url = "https://www.neogenesisnetwork.net"
 }
 
 public void OnPluginStart()
 {
-	CreateConVar("sm_advertflood_version", PLUGIN_VERSION, "Advert Antiflood Version", FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_DONTRECORD);
 	sm_advertflood_time = CreateConVar("sm_advertflood_time", "5.00", "Amount of time allowed between advert chat messages");
 	sm_advertflood_minlen = CreateConVar("sm_advertflood_minlen", "2", "Minimum length of text to be detected");
-	
-	
+
 	AddCommandListener(Command_SayChat, "say");
 	AddCommandListener(Command_SayChat, "say_team");
+	AutoExecConfig();
 }
 
 public void OnClientPostAdminCheck(int client)
@@ -44,17 +56,13 @@ public void OnClientPostAdminCheck(int client)
 	strcopy(Chat2[client], sizeof(Chat2[]), "NULL_INVALID_CHAT2");
 	strcopy(Chat3[client], sizeof(Chat3[]), "NULL_INVALID_CHAT3");
 	strcopy(Chat4[client], sizeof(Chat4[]), "NULL_INVALID_CHAT4");
-	DelayTimer[client] = INVALID_HANDLE;
+	delete DelayTimer[client];
 }
 
 
 public void OnClientDisconnect(int client)
 {
-	if (DelayTimer[client] != INVALID_HANDLE)
-	{
-		CloseHandle(DelayTimer[client]);
-		DelayTimer[client] = INVALID_HANDLE;
-	}
+	delete DelayTimer[client];
 }
 
 public Action Command_SayChat(int client, const char[] command, int args)
@@ -64,7 +72,7 @@ public Action Command_SayChat(int client, const char[] command, int args)
 	{
 		return Plugin_Continue;
 	}
-	
+
 	if (strlen(CurrentChat) >= sm_advertflood_minlen.IntValue)
 	{
 		int line = LineCount[client];
@@ -76,8 +84,8 @@ public Action Command_SayChat(int client, const char[] command, int args)
 				LineCount[client] = 2;
 				if (IsBlocked[client])
 				{
-					if (strcmp(CurrentChat, Chat2[client], false) == 0 
-					|| strcmp(CurrentChat, Chat3[client], false) == 0 
+					if (strcmp(CurrentChat, Chat2[client], false) == 0
+					|| strcmp(CurrentChat, Chat3[client], false) == 0
 					|| strcmp(CurrentChat, Chat4[client], false) == 0)
 					{
 						PrintToChat(client, "[SM] You are flooding the chat");
@@ -95,8 +103,8 @@ public Action Command_SayChat(int client, const char[] command, int args)
 				LineCount[client] = 3;
 				if (IsBlocked[client])
 				{
-					if (strcmp(CurrentChat, Chat1[client], false) == 0 
-					|| strcmp(CurrentChat, Chat3[client], false) == 0 
+					if (strcmp(CurrentChat, Chat1[client], false) == 0
+					|| strcmp(CurrentChat, Chat3[client], false) == 0
 					|| strcmp(CurrentChat, Chat4[client], false) == 0)
 					{
 						PrintToChat(client, "[SM] You are flooding the chat");
@@ -114,8 +122,8 @@ public Action Command_SayChat(int client, const char[] command, int args)
 				LineCount[client] = 4;
 				if (IsBlocked[client])
 				{
-					if (strcmp(CurrentChat, Chat1[client], false) == 0 
-					|| strcmp(CurrentChat, Chat2[client], false) == 0 
+					if (strcmp(CurrentChat, Chat1[client], false) == 0
+					|| strcmp(CurrentChat, Chat2[client], false) == 0
 					|| strcmp(CurrentChat, Chat4[client], false) == 0)
 					{
 						PrintToChat(client, "[SM] You are flooding the chat");
@@ -133,8 +141,8 @@ public Action Command_SayChat(int client, const char[] command, int args)
 				LineCount[client] = 1;
 				if (IsBlocked[client])
 				{
-					if (strcmp(CurrentChat, Chat1[client], false) == 0 
-					|| strcmp(CurrentChat, Chat2[client], false) == 0 
+					if (strcmp(CurrentChat, Chat1[client], false) == 0
+					|| strcmp(CurrentChat, Chat2[client], false) == 0
 					|| strcmp(CurrentChat, Chat3[client], false) == 0)
 					{
 						PrintToChat(client, "[SM] You are flooding the chat");
@@ -148,7 +156,7 @@ public Action Command_SayChat(int client, const char[] command, int args)
 			}
 		}
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -156,34 +164,26 @@ public Action Command_SayChat(int client, const char[] command, int args)
 public void StartTimer(int client)
 {
 	IsBlocked[client] = true;
-	if (DelayTimer[client] != null)
-	{
-		CloseHandle(DelayTimer[client]);
-		DelayTimer[client] = null;
-	}
+	delete DelayTimer[client];
 	DataPack pack;
-	DelayTimer[client] = CreateDataTimer(sm_advertflood_time.FloatValue, Timer_Reset, pack);
+	DelayTimer[client] = new SMDataTimer(sm_advertflood_time.FloatValue, Timer_Reset, pack);
 	pack.WriteCell(client);
 	pack.WriteCell(GetClientUserId(client));
 }
 
 public Action Timer_Reset(Handle timer, DataPack pack)
 {
-	int client;
-	int userid;
 	pack.Reset();
-	client = pack.ReadCell();
-	userid = pack.ReadCell();
+	int client = pack.ReadCell();
+	int userid = pack.ReadCell();
+	DelayTimer[client] = null;
 	if (userid != GetClientUserId(client))
-		return Plugin_Handled;
-	
-	DelayTimer[client] = INVALID_HANDLE;
+		return Plugin_Continue;
+
 	strcopy(Chat1[client], sizeof(Chat1[]), "NULL_INVALID_CHAT1");
 	strcopy(Chat2[client], sizeof(Chat2[]), "NULL_INVALID_CHAT2");
 	strcopy(Chat3[client], sizeof(Chat3[]), "NULL_INVALID_CHAT3");
 	strcopy(Chat4[client], sizeof(Chat4[]), "NULL_INVALID_CHAT4");
 	IsBlocked[client] = false;
-	return Plugin_Handled;
+	return Plugin_Continue;
 }
-
-

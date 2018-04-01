@@ -1,10 +1,24 @@
+/**
+* TheXeon
+* ngs_adminlist.sp
+*
+* Files:
+* addons/sourcemod/plugins/ngs_adminlist.smx
+* cfg/sourcemod/plugin.ngs_adminlist.cfg
+*
+* Dependencies:
+* sourcemod.inc, ngsutils.inc, ngsupdater.inc, multicolors.inc
+*/
 #pragma newdecls required
 #pragma semicolon 1
 
-#include <sourcemod>
-#include <multicolors>
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
 
-#define PLUGIN_VERSION "1.5"
+#include <sourcemod>
+#include <ngsutils>
+#include <ngsupdater>
+#include <multicolors>
 
 ConVar AdminListEnabled;
 
@@ -12,15 +26,14 @@ public Plugin myinfo = {
 	name = "[NGS] Admin List",
 	author = "Fredd / TheXeon",
 	description = "Prints admins and donors to clients.",
-	version = PLUGIN_VERSION,
+	version = "1.0.5",
 	url = "https://www.neogenesisnetwork.net"
 }
 
 public void OnPluginStart()
 {
-	CreateConVar("adminlist_version", PLUGIN_VERSION, "[NGS] Admin List Version", FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
-	AdminListEnabled = CreateConVar("adminlist_on", "1", "Turns the admin list feature on and off.");
-	
+	AdminListEnabled = CreateConVar("sm_ngsadminlist_on", "1", "Turns the admin list feature on and off.");
+
 	RegConsoleCmd("sm_administrators", CommandListAdmins, "List admins to chat.");
 	RegConsoleCmd("sm_admins", CommandListAdmins, "List admins to chat.");
 	RegConsoleCmd("sm_listadmins", CommandListAdmins, "List admins to chat.");
@@ -31,12 +44,14 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_staff", CommandListStaff, "List all staff in chat.");
 	RegConsoleCmd("sm_liststaff", CommandListStaff, "List all staff in chat.");
 	RegConsoleCmd("sm_stafflist", CommandListStaff, "List all staff in chat.");
+
+	AutoExecConfig();
 }
 
 public Action CommandListAdmins(int client, int args)
 {
 	if (AdminListEnabled.BoolValue)
-	{   
+	{
 		char adminNames[MAXPLAYERS + 1][MAX_NAME_LENGTH + 1];
 		int count = 0;
 		for(int i = 1 ; i <= MaxClients; i++)
@@ -61,7 +76,7 @@ public Action CommandListAdmins(int client, int args)
 public Action CommandListDonors(int client, int args)
 {
 	if (AdminListEnabled.BoolValue)
-	{   
+	{
 		char DonorNames[MAXPLAYERS + 1][MAX_NAME_LENGTH + 1];
 		int count = 0;
 		for(int i = 1 ; i <= MaxClients; i++)
@@ -70,7 +85,7 @@ public Action CommandListDonors(int client, int args)
 			{
 				GetClientName(i, DonorNames[count], sizeof(DonorNames[]));
 				count++;
-			} 
+			}
 		}
 		if (count > 0)
 		{
@@ -86,7 +101,7 @@ public Action CommandListDonors(int client, int args)
 public Action CommandListDJs(int client, int args)
 {
 	if (AdminListEnabled.BoolValue)
-	{   
+	{
 		char DJNames[MAXPLAYERS + 1][MAX_NAME_LENGTH + 1];
 		int count = 0;
 		for(int i = 1 ; i <= MaxClients; i++)
@@ -95,7 +110,7 @@ public Action CommandListDJs(int client, int args)
 			{
 				GetClientName(i, DJNames[count], sizeof(DJNames[]));
 				count++;
-			} 
+			}
 		}
 		if (count > 0)
 		{
@@ -111,8 +126,8 @@ public Action CommandListDJs(int client, int args)
 public Action CommandListStaff(int client, int args)
 {
 	if (AdminListEnabled.BoolValue)
-	{   
-		char adminNames[MAXPLAYERS + 1][MAX_NAME_LENGTH + 1], marketerNames[MAXPLAYERS + 1][MAX_NAME_LENGTH + 1], 
+	{
+		char adminNames[MAXPLAYERS + 1][MAX_NAME_LENGTH + 1], marketerNames[MAXPLAYERS + 1][MAX_NAME_LENGTH + 1],
 			developerNames[MAXPLAYERS + 1][MAX_NAME_LENGTH + 1];
 		int adminListCount = 0, commAdvCount = 0, commManCount = 0, devCount = 0;
 		for(int i = 1 ; i <= MaxClients; i++)
@@ -163,14 +178,4 @@ public Action CommandListStaff(int client, int args)
 		else CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} There are no staff online. If you need an admin, call one with !calladmin.");
 	}
 	return Plugin_Handled;
-}
-
-public bool IsValidClient(int client)
-{
-	if(client > 4096) client = EntRefToEntIndex(client);
-	if(client < 1 || client > MaxClients) return false;
-	if(!IsClientInGame(client)) return false;
-	if(IsFakeClient(client)) return false;
-	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
-	return true;
 }

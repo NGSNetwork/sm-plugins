@@ -1,11 +1,27 @@
+/**
+* TheXeon
+* ngs_buildinghats.sp
+*
+* Files:
+* addons/sourcemod/plugins/ngs_buildinghats.smx
+* cfg/sourcemod/buildhats.cfg
+* addons/sourcemod/configs/buildinghats.cfg
+*
+*
+* Dependencies:
+* sourcemod.inc, clientprefs.inc, tf2_stocks.inc, ngsutils.inc, ngsupdater.inc
+*/
 #pragma newdecls required
 #pragma semicolon 1
 
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
+
 #include <sourcemod>
-#include <sdktools>
-#include <sdkhooks>
 #include <clientprefs>
 #include <tf2_stocks>
+#include <ngsutils>
+#include <ngsupdater>
 
 int g_ModelIndex[2049];
 float g_flZOffset[2049];
@@ -17,7 +33,7 @@ int g_hatEnt[2049] = {INVALID_ENT_REFERENCE, ... };
 int g_particleEnt[2049] = {INVALID_ENT_REFERENCE, ... };
 
 int stringTable;
-Handle hHatInfo = INVALID_HANDLE;
+ArrayList hHatInfo = null;
 
 float RollCooldown[MAXPLAYERS+1];
 
@@ -105,7 +121,6 @@ char g_sParticleList[][] =
 	{"unusual_eldritch_flames_orange"}
 };
 
-ConVar g_hCvarVersion;
 ConVar g_hCvarEnabled;
 bool g_bCvarEnabled;
 ConVar g_hCvarUnusualChance;
@@ -113,43 +128,40 @@ float g_flCvarUnusualChance;
 ConVar g_hCvarRerollCooldown;
 int g_CvarRerollCooldown;
 
-Handle g_hParticleMenu = INVALID_HANDLE;
-Handle g_hClientCookie = INVALID_HANDLE;
-
-#define PLUGIN_VERSION 		"2.0"
+Menu g_hParticleMenu = null;
+Cookie g_hClientCookie = null;
 
 public Plugin myinfo = {
 	name		= "[TF2] Building Hats",
 	author		= "Pelipoika / TheXeon",
 	description	= "Ain't that a cute little gun?",
-	version		= PLUGIN_VERSION,
+	version		= "2.0.1",
 	url			= "https://forums.alliedmods.net/showthread.php?p=2164412#post2164412"
 }
 
 public void OnPluginStart()
 {
-	g_hCvarVersion = CreateConVar("sm_bhats_version", PLUGIN_VERSION, "Current Building Hats Version", FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
 	HookConVarChange(g_hCvarEnabled = CreateConVar("sm_bhats_enabled", "1.0", "Enable Hats on Buildings \n 0 = Disabled \n 1 = Enabled", _, true, 0.0, true, 1.0), OnConVarChange);
 	HookConVarChange(g_hCvarUnusualChance = CreateConVar("sm_bhats_unusualchance", "0.1", "Chance for a building to get an unusual effect on it's hat upon being built. 0.1 = 10%", _, true, 0.0), OnConVarChange);
 	HookConVarChange(g_hCvarRerollCooldown = CreateConVar("sm_bhats_rollcooldown", "30", "Hat reroll cooldown (in seconds)", _, true, 0.0), OnConVarChange);
-	
+
 	HookEvent("player_builtobject",		Event_PlayerBuiltObject);
 	HookEvent("player_upgradedobject",	Event_UpgradeObject);
 	HookEvent("player_dropobject", 		Event_DropObject);
 	HookEvent("player_carryobject",		Event_PickupObject);
-	
+
 	stringTable = FindStringTable("modelprecache");
-	hHatInfo = CreateArray(PLATFORM_MAX_PATH, 1);
-	
-	g_hClientCookie = RegClientCookie("BuildingHats", "sm_bhats_enabled", CookieAccess_Private);
-	
+	hHatInfo = new ArrayList(PLATFORM_MAX_PATH, 1);
+
+	g_hClientCookie = new Cookie("BuildingHats", "sm_bhats_enabled", CookieAccess_Private);
+
 	RegAdminCmd("sm_buildinghats",		 Command_iDontWantHatsOnMyThings, 0);
 	RegAdminCmd("sm_bhats_reloadconfig", Command_Parse, ADMFLAG_ROOT);
 	RegAdminCmd("sm_rerollhat", 		 Command_RerollHats, 0);
 	RegAdminCmd("sm_buildinghateffect",  Command_ChooseBuildingEffect, ADMFLAG_ROOT);
-	
+
 	AutoExecConfig(true, "buildhats");
-	
+
 	for(int i = 0; i <= MaxClients; i++)
 	{
 		if(IsValidClient(i))
@@ -159,22 +171,21 @@ public void OnPluginStart()
 
 public void OnConfigsExecuted()
 {
-	SetConVarString(g_hCvarVersion, PLUGIN_VERSION);
-	g_bCvarEnabled  = GetConVarBool(g_hCvarEnabled);
-	g_flCvarUnusualChance = GetConVarFloat(g_hCvarUnusualChance);
-	g_CvarRerollCooldown = GetConVarInt(g_hCvarRerollCooldown);
+	g_bCvarEnabled  = g_hCvarEnabled.BoolValue;
+	g_flCvarUnusualChance = g_hCvarUnusualChance.FloatValue;
+	g_CvarRerollCooldown = g_hCvarRerollCooldown.IntValue;
 	ParseConfigurations();
-	
-	g_hParticleMenu = CreateMenu(Menu_SetEffect);
-	SetMenuTitle(g_hParticleMenu, "[Building Hats] Hat Effects");
+
+	g_hParticleMenu = new Menu(Menu_SetEffect);
+	g_hParticleMenu.SetTitle("[Building Hats] Hat Effects");
 	for(int i = 0; i < sizeof(g_sParticleList); i++)
 	{
 		char info[128], display[128];
 		Format(info, sizeof(info), "%s", g_sParticleList[i][0]);
 		Format(display, sizeof(display), "%s", g_sParticleList[i][0]);
-		AddMenuItem(g_hParticleMenu, info, display);
+		g_hParticleMenu.AddItem(info, display);
 	}
-	SetMenuExitBackButton(g_hParticleMenu, false); 
+	g_hParticleMenu.ExitBackButton =  false;
 }
 
 public void OnClientAuthorized(int client)
@@ -186,8 +197,8 @@ public void OnClientAuthorized(int client)
 public void OnClientCookiesCached(int client)
 {
 	char sValue[8];
-	GetClientCookie(client, g_hClientCookie, sValue, sizeof(sValue));
-    
+	g_hClientCookie.GetValue(client, sValue, sizeof(sValue));
+
 	if(sValue[0] == '\0')
 		g_bWantsTheH[client] = true;
 	else
@@ -196,38 +207,33 @@ public void OnClientCookiesCached(int client)
 
 public void OnMapEnd()
 {
-	if(g_hParticleMenu != INVALID_HANDLE)
-	{
-		CloseHandle(g_hParticleMenu);
-		g_hParticleMenu = INVALID_HANDLE;
-	}
+	delete g_hParticleMenu;
 }
 
-public void OnConVarChange(Handle hConvar, const char[] strOldValue, const char[] strNewValue)
+public void OnConVarChange(ConVar hConvar, const char[] strOldValue, const char[] strNewValue)
 {
-	SetConVarString(g_hCvarVersion, PLUGIN_VERSION);
-	g_bCvarEnabled = GetConVarBool(g_hCvarEnabled);
-	g_flCvarUnusualChance = GetConVarFloat(g_hCvarUnusualChance);
-	g_CvarRerollCooldown = GetConVarInt(g_hCvarRerollCooldown);
+	g_bCvarEnabled  = g_hCvarEnabled.BoolValue;
+	g_flCvarUnusualChance = g_hCvarUnusualChance.FloatValue;
+	g_CvarRerollCooldown = g_hCvarRerollCooldown.IntValue;
 }
 
 public Action Command_ChooseBuildingEffect(int client, int args)
 {
 	if(IsValidClient(client))
 		DisplayMenuSafely(g_hParticleMenu, client);
-		
+
 	return Plugin_Handled;
 }
 
-public int Menu_SetEffect(Handle menu, MenuAction action, int param1, int param2)
+public int Menu_SetEffect(Menu menu, MenuAction action, int param1, int param2)
 {
 	if (action == MenuAction_Select && IsValidClient(param1))
 	{
 		char info[128];
-		GetMenuItem(menu, param2, info, sizeof(info));
-		
+		menu.GetItem(param2, info, sizeof(info));
+
 		int iBuilding = -1;
-		while ((iBuilding = FindEntityByClassname(iBuilding, "obj_*")) != -1) 
+		while ((iBuilding = FindEntityByClassname(iBuilding, "obj_*")) != -1)
 		{
 			if(GetEntPropEnt(iBuilding, Prop_Send, "m_hBuilder") == param1 && GetEntProp(iBuilding, Prop_Send, "m_bPlacing") == 0 && GetEntProp(iBuilding, Prop_Send, "m_bCarried") == 0)
 			{
@@ -237,18 +243,18 @@ public int Menu_SetEffect(Handle menu, MenuAction action, int param1, int param2
 					AcceptEntityInput(particle, "Stop");
 					AcceptEntityInput(particle, "Kill");
 				}
-				
-				int iParticle = CreateEntityByName("info_particle_system"); 
+
+				int iParticle = CreateEntityByName("info_particle_system");
 				if(IsValidEdict(iParticle))
 				{
-					float flPos[3]; 
+					float flPos[3];
 
-					DispatchKeyValue(iParticle, "effect_name", info); 
-					DispatchSpawn(iParticle); 
-					
-					SetVariantString("!activator"); 
-					AcceptEntityInput(iParticle, "SetParent", iBuilding); 
-					ActivateEntity(iParticle); 
+					DispatchKeyValue(iParticle, "effect_name", info);
+					DispatchSpawn(iParticle);
+
+					SetVariantString("!activator");
+					AcceptEntityInput(iParticle, "SetParent", iBuilding);
+					ActivateEntity(iParticle);
 
 					TFObjectType objectT = view_as<TFObjectType>(TF2_GetObjectType(iBuilding));
 					if(objectT == TFObject_Dispenser)
@@ -263,33 +269,33 @@ public int Menu_SetEffect(Handle menu, MenuAction action, int param1, int param2
 							SetVariantString("rocket_r");
 					}
 					AcceptEntityInput(iParticle, "SetParentAttachment", iBuilding);
-					
+
 					GetEntPropVector(iParticle, Prop_Send, "m_vecOrigin", flPos);
-					
+
 					if(objectT == TFObject_Dispenser)
 					{
 						flPos[2] += 13.0;	//Make sure the effect is on top of the dispenser
-						
+
 						if(GetEntProp(iBuilding, Prop_Send, "m_iUpgradeLevel") == 3)
 							flPos[2] += 8.0;	//Account for level 3 dispenser
 					}
-					
+
 					if(GetEntProp(iBuilding, Prop_Send, "m_iUpgradeLevel") == 3 && objectT != TFObject_Dispenser)
 					{
 						flPos[2] += 6.5;	//Level 3 sentry offsets
 						flPos[0] -= 11.0;	//Gotta get that effect on top of the missile thing
 					}
-					
+
 					SetEntPropVector(iParticle, Prop_Send, "m_vecOrigin", flPos);
-					AcceptEntityInput(iParticle, "start"); 
-					
+					AcceptEntityInput(iParticle, "start");
+
 					g_particleEnt[iBuilding] = EntIndexToEntRef(iParticle);
 					Format(g_strParticle[iBuilding], sizeof(g_strParticle), "%s", info);
 				}
 			}
 		}
-		
-		DisplayMenuAtItem(menu, param1, GetMenuSelectionPosition(), MENU_TIME_FOREVER); 
+
+		menu.DisplayAt(param1, GetMenuSelectionPosition(), MENU_TIME_FOREVER);
 	}
 }
 
@@ -307,7 +313,7 @@ public Action Command_RerollHats(int client, int args)
 			else
 			{
 				int iBuilding = -1;
-				while ((iBuilding = FindEntityByClassname(iBuilding, "obj_*")) != -1) 
+				while ((iBuilding = FindEntityByClassname(iBuilding, "obj_*")) != -1)
 				{
 					if(GetEntPropEnt(iBuilding, Prop_Send, "m_hBuilder") == client
 					&& GetEntProp(iBuilding, Prop_Send, "m_bPlacing") == 0
@@ -322,27 +328,27 @@ public Action Command_RerollHats(int client, int args)
 						{
 							AcceptEntityInput(g_hatEnt[iBuilding], "Kill");
 						}
-						
+
 						if(IsValidEntity(g_particleEnt[iBuilding]))
 						{
 							AcceptEntityInput(g_particleEnt[iBuilding], "Stop");
 							AcceptEntityInput(g_particleEnt[iBuilding], "Kill");
 						}
-						
+
 						g_particleEnt[iBuilding] = INVALID_ENT_REFERENCE;
 						g_hatEnt[iBuilding] = INVALID_ENT_REFERENCE;
-						
+
 						CreateTimer(0.1, Timer_ReHat, iBuilding);
 					}
 				}
-				
+
 				RollCooldown[client] = GetTickedTime() + float(g_CvarRerollCooldown);
 			}
 		}
 		else
 			ReplyToCommand(client, "[SM] You do not have acces to this command.");
 	}
-	
+
 	return Plugin_Handled;
 }
 
@@ -354,21 +360,21 @@ public Action Command_iDontWantHatsOnMyThings(int client, int args)
 		{
 			if(!g_bWantsTheH[client])
 			{
-				SetClientCookie(client, g_hClientCookie, "1");
+				g_hClientCookie.SetValue(client, "1");
 				OnClientCookiesCached(client);
 				g_bWantsTheH[client] = true;
 				PrintToChat(client, "[Building Hats] On");
 			}
 			else
 			{
-				SetClientCookie(client, g_hClientCookie, "0");
+				g_hClientCookie.SetValue(client, "0");
 				OnClientCookiesCached(client);
-			
+
 				g_bWantsTheH[client] = false;
 				PrintToChat(client, "[Building Hats] Off");
-				
+
 				int iBuilding = -1;
-				while ((iBuilding = FindEntityByClassname(iBuilding, "obj_*")) != -1) 
+				while ((iBuilding = FindEntityByClassname(iBuilding, "obj_*")) != -1)
 				{
 					if(GetEntPropEnt(iBuilding, Prop_Send, "m_hBuilder") == client)
 					{
@@ -383,7 +389,7 @@ public Action Command_iDontWantHatsOnMyThings(int client, int args)
 							AcceptEntityInput(g_particleEnt[iBuilding], "Kill");
 							g_particleEnt[iBuilding] = INVALID_ENT_REFERENCE;
 						}
-						
+
 						if (GetEntProp(iBuilding, Prop_Send, "m_bMiniBuilding"))
 						{
 							SetVariantInt(0);
@@ -394,27 +400,27 @@ public Action Command_iDontWantHatsOnMyThings(int client, int args)
 			}
 		}
 		else
-			ReplyToCommand(client, "[SM] You do not have acces to this command.");
+			ReplyToCommand(client, "[SM] You do not have access to this command.");
 	}
-	
+
 	return Plugin_Handled;
 }
 
 public Action Command_Parse(int client, int args)
 {
-	ResizeArray(hHatInfo, 1);
+	hHatInfo.Resize(1);
 	ReplyToCommand(client, "[Building Hats] Reloading config...");
 	ParseConfigurations();
 	return Plugin_Handled;
 }
 
-public Action Event_PickupObject(Handle event, const char[] name, bool dontBroadcast)
-{	
-	int client = GetClientOfUserId(GetEventInt(event, "userid"));
-	
+public Action Event_PickupObject(Event event, const char[] name, bool dontBroadcast)
+{
+	int client = GetClientOfUserId(event.GetInt("userid"));
+
 	if(IsValidClient(client))
 	{
-		int iBuilding = GetEventInt(event, "index");
+		int iBuilding = event.GetInt("index");
 		if(iBuilding > MaxClients && IsValidEntity(iBuilding))
 		{
 			if (IsValidEntity(g_hatEnt[iBuilding]))
@@ -427,25 +433,25 @@ public Action Event_PickupObject(Handle event, const char[] name, bool dontBroad
 			}
 		}
 	}
-	
-	return Plugin_Handled;
+
+	return Plugin_Handled; // TODO: Determine if this should be Plugin_Continue
 }
 
-public Action Event_DropObject(Handle event, const char[] name, bool dontBroadcast)
+public Action Event_DropObject(Event event, const char[] name, bool dontBroadcast)
 {
-	if(!g_bCvarEnabled) 
+	if(!g_bCvarEnabled)
 		return Plugin_Continue;
 
-	int client = GetClientOfUserId(GetEventInt(event, "userid"));
-	TFObjectType objectT = view_as<TFObjectType>(GetEventInt(event, "object"));
-	
-	if(client >= 1 && client <= MaxClients && IsClientInGame(client) && g_bWantsTheH[client])
+	int client = GetClientOfUserId(event.GetInt("userid"));
+	TFObjectType objectT = view_as<TFObjectType>(event.GetInt("object"));
+
+	if(IsValidClient(client) && g_bWantsTheH[client])
 	{
 		if(!CheckCommandAccess(client, "sm_buildinghats_access", 0))
 			return Plugin_Handled;
-	
-		int iBuilding = GetEventInt(event, "index");
-		if(iBuilding > MaxClients && IsValidEntity(iBuilding))
+
+		int iBuilding = event.GetInt("index");
+		if(/*iBuilding > MaxClients*/!IsValidClient(iBuilding) && IsValidEntity(iBuilding)) // TODO: See if IsValidClient is proper.
 		{
 			if(objectT == TFObject_Sentry && GetEntProp(iBuilding, Prop_Send, "m_bMiniBuilding"))
 			{
@@ -453,7 +459,7 @@ public Action Event_DropObject(Handle event, const char[] name, bool dontBroadca
 				AcceptEntityInput(iBuilding, "SetBodyGroup");
 				CreateTimer(2.0, Timer_TurnTheLightsOff, iBuilding);
 			}
-			
+
 			if (IsValidEntity(g_hatEnt[iBuilding]))
 			{
 				AcceptEntityInput(g_hatEnt[iBuilding], "TurnOn");
@@ -465,24 +471,24 @@ public Action Event_DropObject(Handle event, const char[] name, bool dontBroadca
 			}
 		}
 	}
-	
+
 	return Plugin_Handled;
 }
 
-public Action Event_UpgradeObject(Handle event, const char[] name, bool dontBroadcast)
+public Action Event_UpgradeObject(Event event, const char[] name, bool dontBroadcast)
 {
-	if(!g_bCvarEnabled) 
+	if(!g_bCvarEnabled)
 		return Plugin_Continue;
 
-	TFObjectType objectT = view_as<TFObjectType>(GetEventInt(event, "object"));
-	
-	int iBuilding = GetEventInt(event, "index");
+	TFObjectType objectT = view_as<TFObjectType>(event.GetInt("object"));
+
+	int iBuilding = event.GetInt("index");
 	if(iBuilding > MaxClients && IsValidEntity(iBuilding))
 	{
 		int builder = GetEntPropEnt(iBuilding, Prop_Send, "m_hBuilder");
-		if(builder >= 1 && builder <= MaxClients && IsClientInGame(builder) && !g_bWantsTheH[builder] || !CheckCommandAccess(builder, "sm_buildinghats_access", 0))
+		if(IsValidClient(builder) && !g_bWantsTheH[builder] || !CheckCommandAccess(builder, "sm_buildinghats_access", 0))
 			return Plugin_Handled;
-		
+
 		if(objectT == TFObject_Sentry)
 		{
 			if (IsValidEntity(g_hatEnt[iBuilding]))
@@ -490,14 +496,14 @@ public Action Event_UpgradeObject(Handle event, const char[] name, bool dontBroa
 				AcceptEntityInput(g_hatEnt[iBuilding], "Kill");
 				g_hatEnt[iBuilding] = INVALID_ENT_REFERENCE;
 			}
-			
+
 			if(IsValidEntity(g_particleEnt[iBuilding]))
 			{
 				AcceptEntityInput(g_particleEnt[iBuilding], "Stop");
 				AcceptEntityInput(g_particleEnt[iBuilding], "Kill");
 				g_particleEnt[iBuilding] = INVALID_ENT_REFERENCE;
 			}
-			
+
 			CreateTimer(2.0, Timer_ReHat, iBuilding);
 		}
 		if(objectT == TFObject_Dispenser && GetEntProp(iBuilding, Prop_Send, "m_iUpgradeLevel") == 2)
@@ -507,62 +513,62 @@ public Action Event_UpgradeObject(Handle event, const char[] name, bool dontBroa
 				AcceptEntityInput(g_hatEnt[iBuilding], "Kill");
 				g_hatEnt[iBuilding] = INVALID_ENT_REFERENCE;
 			}
-			
+
 			if(IsValidEntity(g_particleEnt[iBuilding]))
 			{
 				AcceptEntityInput(g_particleEnt[iBuilding], "Stop");
 				AcceptEntityInput(g_particleEnt[iBuilding], "Kill");
 				g_particleEnt[iBuilding] = INVALID_ENT_REFERENCE;
 			}
-			
+
 			CreateTimer(2.0, Timer_ReHat, iBuilding);
 		}
 	}
-	
+
 	return Plugin_Handled;
 }
 
 public Action Timer_ReHat(Handle timer, any iBuilding)
 {
-	if(!g_bCvarEnabled) 
+	if(!g_bCvarEnabled)
 		return Plugin_Continue;
 
-	if(iBuilding > MaxClients && IsValidEntity(iBuilding))
+	if(!IsValidClient(iBuilding) && IsValidEntity(iBuilding)) // TODO: Use IsValidClient
 	{
 		char strPath[PLATFORM_MAX_PATH], strOffz[16], strScale[16], strAnima[128];
-		int row = (GetArraySize(hHatInfo) / 4) - 1;
+		int row = (hHatInfo.Length / 4) - 1;
 		int index = (GetRandomInt(0, row)) * 4;
 
-		GetArrayString(hHatInfo, index+1, strPath, sizeof(strPath));
-		GetArrayString(hHatInfo, index+2, strOffz, sizeof(strOffz));
-		GetArrayString(hHatInfo, index+3, strScale, sizeof(strScale));
-		GetArrayString(hHatInfo, index+4, strAnima, sizeof(strAnima));
-		
+		hHatInfo.GetString(index+1, strPath, sizeof(strPath));
+		hHatInfo.GetString(index+2, strOffz, sizeof(strOffz));
+		hHatInfo.GetString(index+3, strScale, sizeof(strScale));
+		hHatInfo.GetString(index+4, strAnima, sizeof(strAnima));
+
 		TFObjectType objectT = view_as<TFObjectType>(TF2_GetObjectType(iBuilding));
-		
+
 		if(objectT == TFObject_Sentry)
 			ParentHatEntity(iBuilding, strPath, StringToFloat(strOffz), StringToFloat(strScale), TFObject_Sentry, strAnima);
 		else if(objectT == TFObject_Dispenser)
 			ParentHatEntity(iBuilding, strPath, StringToFloat(strOffz), StringToFloat(strScale), TFObject_Dispenser, strAnima);
 	}
-	
+
 	return Plugin_Handled;
 }
 
-public Action Event_PlayerBuiltObject(Handle event, const char[] name, bool dontBroadcast)
+public Action Event_PlayerBuiltObject(Event event, const char[] name, bool dontBroadcast)
 {
-	if(!g_bCvarEnabled) 
+	if(!g_bCvarEnabled)
 		return Plugin_Continue;
-		
-	int client = GetClientOfUserId(GetEventInt(event, "userid"));
-	TFObjectType objectT = view_as<TFObjectType>(GetEventInt(event, "object"));
-	
-	if(client >= 1 && client <= MaxClients && IsClientInGame(client) && g_bWantsTheH[client])
+
+	int client = GetClientOfUserId(event.GetInt("userid"));
+	TFObjectType objectT = view_as<TFObjectType>(event.GetInt("object"));
+
+	if(IsValidClient(client) && g_bWantsTheH[client])
 	{
 		if(!CheckCommandAccess(client, "sm_buildinghats_access", 0))
 			return Plugin_Handled;
-		
-		int iBuilding = GetEventInt(event, "index");
+
+		int iBuilding = event.GetInt("index");
 		if(iBuilding > MaxClients && IsValidEntity(iBuilding))
 		{
 			if(!GetEntProp(iBuilding, Prop_Send, "m_bCarryDeploy"))
@@ -571,16 +577,16 @@ public Action Event_PlayerBuiltObject(Handle event, const char[] name, bool dont
 				g_flZOffset[iBuilding]   = 0.0;
 				g_flModelScale[iBuilding]= 0.0;
 				Format(g_strParticle[iBuilding], sizeof(g_strParticle), "");
-				
+
 				char strPath[PLATFORM_MAX_PATH], strOffz[16], strScale[16], strAnima[128];
-				int row = (GetArraySize(hHatInfo) / 4) - 1;
+				int row = (hHatInfo.Length / 4) - 1;
 				int index = (GetRandomInt(0, row)) * 4;
 
-				GetArrayString(hHatInfo, index+1, strPath, sizeof(strPath));
-				GetArrayString(hHatInfo, index+2, strOffz, sizeof(strOffz));
-				GetArrayString(hHatInfo, index+3, strScale, sizeof(strScale));
-				GetArrayString(hHatInfo, index+4, strAnima, sizeof(strAnima));
-			
+				hHatInfo.GetString(index+1, strPath, sizeof(strPath));
+				hHatInfo.GetString(index+2, strOffz, sizeof(strOffz));
+				hHatInfo.GetString(index+3, strScale, sizeof(strScale));
+				hHatInfo.GetString(index+4, strAnima, sizeof(strAnima));
+
 				if(objectT == TFObject_Sentry)
 				{
 					if(GetEntProp(iBuilding, Prop_Send, "m_bMiniBuilding"))
@@ -601,21 +607,21 @@ public Action Event_PlayerBuiltObject(Handle event, const char[] name, bool dont
 			}
 		}
 	}
-	
+
 	return Plugin_Handled;
 }
 
 public Action Timer_TurnTheLightsOff(Handle timer, any iBuilding)
 {
-	if(!g_bCvarEnabled) 
+	if(!g_bCvarEnabled)
 		return Plugin_Continue;
 
-	if(iBuilding > MaxClients && IsValidEntity(iBuilding))
+	if(!IsValidClient(iBuilding) && IsValidEntity(iBuilding)) // TODO: Make sure IsValidClient is proper
 	{
 		SetVariantInt(2);
 		AcceptEntityInput(iBuilding, "SetBodyGroup");
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -627,20 +633,20 @@ void ParentHatEntity(int entity, const char[] smodel, float flZOffset = 0.0, flo
 	int prop = CreateEntityByName("prop_dynamic_override");
 
 	char strModelPath[PLATFORM_MAX_PATH];
-	
+
 	if(g_ModelIndex[entity] != INVALID_STRING_INDEX)
-		ReadStringTable(stringTable, g_ModelIndex[entity], strModelPath, PLATFORM_MAX_PATH);  
-	
+		ReadStringTable(stringTable, g_ModelIndex[entity], strModelPath, PLATFORM_MAX_PATH);
+
 	if(StrEqual(strModelPath, "", false))
 		g_ModelIndex[entity] = PrecacheModel(smodel);
-	
+
 	if(IsValidEntity(prop))
 	{
 		if(!StrEqual(strModelPath, "", false))
-			DispatchKeyValue(prop, "model", strModelPath); 
+			DispatchKeyValue(prop, "model", strModelPath);
 		else
-			DispatchKeyValue(prop, "model", smodel); 
-			
+			DispatchKeyValue(prop, "model", smodel);
+
 		if(g_flModelScale[entity] != 0.0)
 			SetEntPropFloat(prop, Prop_Send, "m_flModelScale", g_flModelScale[entity]);
 		else
@@ -652,7 +658,7 @@ void ParentHatEntity(int entity, const char[] smodel, float flZOffset = 0.0, flo
 
 		SetVariantString("!activator");
 		AcceptEntityInput(prop, "SetParent", entity);
-		
+
 		if(objectT == TFObject_Dispenser)
 		{
 			SetVariantString("build_point_0");
@@ -664,85 +670,85 @@ void ParentHatEntity(int entity, const char[] smodel, float flZOffset = 0.0, flo
 			else
 				SetVariantString("rocket_r");
 		}
-			
+
 		AcceptEntityInput(prop, "SetParentAttachment", entity);
-		
+
 		GetEntPropVector(prop, Prop_Send, "m_vecOrigin", pPos);
 		GetEntPropVector(prop, Prop_Send, "m_angRotation", pAng);
-		
+
 		if(!StrEqual(strAnimation, "default", false))
 		{
 			SetVariantString(strAnimation);
-			AcceptEntityInput(prop, "SetAnimation");  
+			AcceptEntityInput(prop, "SetAnimation");
 			SetVariantString(strAnimation);
 			AcceptEntityInput(prop, "SetDefaultAnimation");
 		}
-		
+
 		if(g_flZOffset[entity] != 0.0)
 			pPos[2] += g_flZOffset[entity];
 		else
 			pPos[2] += flZOffset;
-			
+
 		if(objectT == TFObject_Dispenser)
 		{
 			pPos[2] += 13.0;	//Make sure the hat is on top of the dispenser
 			pAng[1] += 180.0;	//Make hat face builder
-			
+
 			if(GetEntProp(entity, Prop_Send, "m_iUpgradeLevel") == 3)
 			{
 				pPos[2] += 8.0;	//Account for level 3 dispenser
 			}
 		}
-		
+
 		if(GetEntProp(entity, Prop_Send, "m_iUpgradeLevel") == 3 && objectT != TFObject_Dispenser)
 		{
 			pPos[2] += 6.5;		//Level 3 sentry offsets
 			pPos[0] -= 11.0;	//Gotta get that hat on top of the missile thing
 		}
-		
+
 		SetEntPropVector(prop, Prop_Send, "m_vecOrigin", pPos);
 		SetEntPropVector(prop, Prop_Send, "m_angRotation", pAng);
-		
+
 		g_hatEnt[entity] = EntIndexToEntRef(prop);
-		
+
 		if(g_flZOffset[entity] == 0.0)
 			g_flZOffset[entity] = flZOffset;
-			
+
 		if(g_flModelScale[entity] == 0.0)
 			g_flModelScale[entity] = flModelScale;
 
 		if(g_particleEnt[entity] == INVALID_ENT_REFERENCE && CheckCommandAccess(builder, "sm_buildinghats_unusuals", 0))
 		{
-			int iParticle = CreateEntityByName("info_particle_system"); 
+			int iParticle = CreateEntityByName("info_particle_system");
 			if(IsValidEdict(iParticle))
 			{
-				float flPos[3]; 
+				float flPos[3];
 				bool kill = false;
-				
+
 				if(GetEntProp(entity, Prop_Send, "m_iUpgradeLevel") > 1 && StrEqual(g_strParticle[entity], "", false))
 					kill = true;
-				
+
 				int sParticle = GetRandomInt(0, sizeof(g_sParticleList)-1);
-				
+
 				if(!StrEqual(g_strParticle[entity], "", false))
-					DispatchKeyValue(iParticle, "effect_name", g_strParticle[entity]); 
+					DispatchKeyValue(iParticle, "effect_name", g_strParticle[entity]);
 				else
 				{
 					if(g_flCvarUnusualChance == 1.0)	//100% Unusual chance fix?
-						DispatchKeyValue(iParticle, "effect_name", g_sParticleList[sParticle][0]); 
+						DispatchKeyValue(iParticle, "effect_name", g_sParticleList[sParticle][0]);
 					else if(GetRandomFloat(0.0, 1.0) <= g_flCvarUnusualChance)
-						DispatchKeyValue(iParticle, "effect_name", g_sParticleList[sParticle][0]); 
+						DispatchKeyValue(iParticle, "effect_name", g_sParticleList[sParticle][0]);
 					else
 						kill = true;
 				}
 
 				if(!kill)
 				{
-					DispatchSpawn(iParticle); 
-					
-					SetVariantString("!activator"); 
-					AcceptEntityInput(iParticle, "SetParent", entity); 
-					ActivateEntity(iParticle); 
+					DispatchSpawn(iParticle);
+
+					SetVariantString("!activator");
+					AcceptEntityInput(iParticle, "SetParent", entity);
+					ActivateEntity(iParticle);
 
 					if(objectT == TFObject_Dispenser)
 					{
@@ -756,29 +762,29 @@ void ParentHatEntity(int entity, const char[] smodel, float flZOffset = 0.0, flo
 							SetVariantString("rocket_r");
 					}
 					AcceptEntityInput(iParticle, "SetParentAttachment", entity);
-					
+
 					GetEntPropVector(iParticle, Prop_Send, "m_vecOrigin", flPos);
-					
+
 					if(objectT == TFObject_Dispenser)
 					{
 						flPos[2] += 13.0;	//Make sure the effect is on top of the dispenser
-						
+
 						if(GetEntProp(entity, Prop_Send, "m_iUpgradeLevel") == 3)
 							flPos[2] += 8.0;	//Account for level 3 dispenser
 					}
-					
+
 					if(GetEntProp(entity, Prop_Send, "m_iUpgradeLevel") == 3 && objectT != TFObject_Dispenser)
 					{
 						flPos[2] += 6.5;	//Level 3 sentry offsets
 						flPos[0] -= 11.0;	//Gotta get that effect on top of the missile thing
 					}
-					
+
 					SetEntPropVector(iParticle, Prop_Send, "m_vecOrigin", flPos);
 
-					AcceptEntityInput(iParticle, "start"); 
-					
+					AcceptEntityInput(iParticle, "start");
+
 					g_particleEnt[entity] = EntIndexToEntRef(iParticle);
-					
+
 					if(StrEqual(g_strParticle[entity], "", false))
 						Format(g_strParticle[entity], sizeof(g_strParticle), "%s", g_sParticleList[sParticle][0]);
 				}
@@ -796,57 +802,47 @@ bool ParseConfigurations()
 	Format(strFileName, sizeof(strFileName), "configs/buildinghats.cfg");
 	BuildPath(Path_SM, strPath, sizeof(strPath), strFileName);
 
-	LogMessage("[Building Hats] Executing configuration file %s", strPath);    
-	
+	LogMessage("[Building Hats] Executing configuration file %s", strPath);
+
 	if (FileExists(strPath, true))
 	{
-		Handle kvConfig = CreateKeyValues("TF2_Buildinghats");
-		if (FileToKeyValues(kvConfig, strPath) == false) SetFailState("[Building Hats] Error while parsing the configuration file.");
-		KvGotoFirstSubKey(kvConfig);
-		
+		KeyValues kvConfig = new KeyValues("TF2_Buildinghats");
+		if (kvConfig.ImportFromFile(strPath) == false) SetFailState("[Building Hats] Error while parsing the configuration file.");
+		kvConfig.GotoFirstSubKey();
+
 		do
 		{
-			char strMpath[PLATFORM_MAX_PATH], strOffz[16], strScale[16], strAnima[128]; 
+			char strMpath[PLATFORM_MAX_PATH], strOffz[16], strScale[16], strAnima[128];
 
-			KvGetString(kvConfig, "modelpath",	strMpath, sizeof(strMpath));
-			KvGetString(kvConfig, "offset", 	strOffz,  sizeof(strOffz));
-			KvGetString(kvConfig, "modelscale", strScale, sizeof(strScale));
-			KvGetString(kvConfig, "animation",  strAnima, sizeof(strAnima));
-			
+			kvConfig.GetString("modelpath",	strMpath, sizeof(strMpath));
+			kvConfig.GetString("offset", 	strOffz,  sizeof(strOffz));
+			kvConfig.GetString("modelscale", strScale, sizeof(strScale));
+			kvConfig.GetString("animation",  strAnima, sizeof(strAnima));
+
 			PrecacheModel(strMpath);
-			
-			PushArrayString(hHatInfo, strMpath);
-			PushArrayString(hHatInfo, strOffz);
-			PushArrayString(hHatInfo, strScale);
-			PushArrayString(hHatInfo, strAnima);
-		}
-		while (KvGotoNextKey(kvConfig));
 
-		CloseHandle(kvConfig);
+			hHatInfo.PushString(strMpath);
+			hHatInfo.PushString(strOffz);
+			hHatInfo.PushString(strScale);
+			hHatInfo.PushString(strAnima);
+		}
+		while (kvConfig.GotoNextKey());
+
+		delete kvConfig;
 	}
 }
 
-stock void DisplayMenuSafely(Handle menu, int client)
+stock void DisplayMenuSafely(Menu menu, int client)
 {
-    if(client >= 1 && client <= MaxClients && IsClientInGame(client))
+    if(IsValidClient(client))
     {
-        if(menu == INVALID_HANDLE)
+        if (menu == null)
         {
             PrintToConsole(client, "ERROR: Unable to open Menu.");
         }
         else
         {
-            DisplayMenu(menu, client, MENU_TIME_FOREVER);
+            menu.Display(client, MENU_TIME_FOREVER);
         }
     }
-}
-
-public bool IsValidClient (int client)
-{
-	if(client > 4096) client = EntRefToEntIndex(client);
-	if(client < 1 || client > MaxClients) return false;
-	if(!IsClientInGame(client)) return false;
-	if(IsFakeClient(client)) return false;
-	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
-	return true;
 }

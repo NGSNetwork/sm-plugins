@@ -1,0 +1,21 @@
+"Updater"
+{
+	"Information"
+	{
+		"Version"
+		{
+			"Latest"	"2.0.1"
+		}
+		
+		"Notes"	"Add updater support!"
+		"Notes"	"Convert to methodmapped newdecls."
+		"Notes"	"Remove extra spaces from .sp."
+	}
+	
+	"Files"
+	{
+		"Plugin"	"Path_SM/plugins/ngs_buildinghats.smx"
+		
+		"Source"	"Path_SM/scripting/ngs_adminlist.sp"
+	}
+}

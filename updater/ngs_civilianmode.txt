@@ -1,0 +1,21 @@
+"Updater"
+{
+	"Information"
+	{
+		"Version"
+		{
+			"Latest"	"1.4.1"
+		}
+		
+		"Notes"	"Add updater support!"
+		"Notes"	"Remove unneeded formatting and spaces from .sp."
+		"Notes"	"Add optional disable/enable parameter to target command."
+	}
+	
+	"Files"
+	{
+		"Plugin"	"Path_SM/plugins/ngs_civilianmode.smx"
+		
+		"Source"	"Path_SM/scripting/ngs_civilianmode.sp"
+	}
+}

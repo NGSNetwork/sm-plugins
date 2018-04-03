@@ -1,61 +1,83 @@
+/**
+* TheXeon
+* ngs_cccmysql.sp
+*
+* Files:
+* addons/sourcemod/plugins/ngs_cccmysql.smx
+*
+* Dependencies:
+* sourcemod.inc, ccc.inc, ngsutils.inc, ngsupdater.inc
+*/
 #pragma newdecls required
 #pragma semicolon 1
 
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
+
 #include <sourcemod>
 #include <ccc>
-
-#undef REQUIRE_PLUGIN
-#include <updater>
-
-#define UPDATE_URL			"http://hg.doctormckay.com/public-plugins/raw/default/chatcolorsmysqlmodule.txt"
-#define PLUGIN_VERSION		"1.1.3"
+#include <ngsutils>
+#include <ngsupdater>
 
 public Plugin myinfo = {
 	name        = "[Source 2009] Custom Chat Colors MySQL Module",
 	author      = "Dr. McKay / TheXeon",
 	description = "Allows for Custom Chat Colors to be configured via MySQL",
-	version     = PLUGIN_VERSION,
+	version     = "1.2.0",
 	url         = "http://www.doctormckay.com"
 }
 
-ConVar cvarUpdater;
-
 KeyValues kv;
 
-public void OnPluginStart() {
-	cvarUpdater = CreateConVar("ccc_mysql_auto_update", "1", "Enables automatic updating (has no effect if Updater is not installed)");
+public void OnPluginStart()
+{
 	RegAdminCmd("sm_ccc_mysql_dump", Command_DumpData, ADMFLAG_ROOT, "DEBUG: Dumps cached data");
 	CCC_OnConfigReloaded();
 }
 
-public void CCC_OnConfigReloaded() {
-	if(SQL_CheckConfig("custom-chatcolors")) {
+public void CCC_OnConfigReloaded()
+{
+	if(SQL_CheckConfig("custom-chatcolors"))
+	{
 		Database.Connect(OnDatabaseConnected, "custom-chatcolors");
-	} else if(SQL_CheckConfig("default")) {
+	}
+	else if(SQL_CheckConfig("default"))
+	{
 		Database.Connect(OnDatabaseConnected, "default");
-	} else {
+	}
+	else
+	{
 		SetFailState("No database configuration \"custom-chatcolors\" or \"default\" found.");
 	}
 }
 
 public void OnDatabaseConnected(Database db, const char[] error, any data) {
-	if(db == null) {
-		if(kv == null) {
+	if(db == null)
+	{
+		if(kv == null)
+		{
 			SetFailState("Unable to connect to database. %s", error);
-		} else {
+		}
+		else
+		{
 			LogError("Unable to connect to database. Falling back to saved values. %s", error);
 			return;
 		}
 	}
-	if(kv == null) {
+	if(kv == null)
+	{
 		db.Query(OnTableCreated, "CREATE TABLE IF NOT EXISTS `custom_chatcolors` (`index` int(11) NOT NULL, `identity` varchar(32) NOT NULL, `override` varchar(32) DEFAULT NULL, `flag` char(1) DEFAULT NULL, `tag` varchar(32) DEFAULT NULL, `tagcolor` varchar(8) DEFAULT NULL, `namecolor` varchar(8) DEFAULT NULL, `textcolor` varchar(8) DEFAULT NULL, PRIMARY KEY (`index`), UNIQUE KEY `identity` (`identity`)) ENGINE=MyISAM DEFAULT CHARSET=latin1");
-	} else {
+	}
+	else
+	{
 		db.Query(OnDataReceived, "SELECT * FROM `custom_chatcolors` ORDER BY `index` ASC");
 	}
 }
 
-public void OnTableCreated(Database db, DBResultSet results, const char[] error, any data) {
-	if(results == null) {
+public void OnTableCreated(Database db, DBResultSet results, const char[] error, any data)
+{
+	if(results == null)
+	{
 		if (db != null) delete db;
 		SetFailState("Error creating database table. %s", error);
 	}
@@ -72,9 +94,7 @@ public void OnDataReceived(Database db, DBResultSet results, const char[] error,
 			return;
 		}
 	}
-	if(kv != null) {
-		delete kv;
-	}
+	delete kv;
 	kv = new KeyValues("admin_colors");
 	char identity[33], override[33], flag[2], tag[33], tagcolor[12], namecolor[12], textcolor[12];
 	while(results.FetchRow()) {
@@ -127,7 +147,7 @@ public Action Command_DumpData(int client, int args) {
 	}
 	char path[PLATFORM_MAX_PATH];
 	BuildPath(Path_SM, path, sizeof(path), "data/custom-chatcolors-mysql-dump.txt");
-	kv.ImportFromFile(path);
+	kv.ExportToFile(path);
 	ReplyToCommand(client, "\x04[CCC] \x01Loaded data has been dumped to %s", path);
 	return Plugin_Handled;
 }
@@ -247,47 +267,4 @@ public Action Timer_CheckDatabase(Handle timer, any userid) {
 	}
 	CCC_OnUserConfigLoaded(client);
 	return Plugin_Stop;
-}
-
-/////////////////////////////////
-
-public void OnAllPluginsLoaded() {
-	ConVar convar;
-	if(LibraryExists("updater")) {
-		Updater_AddPlugin(UPDATE_URL);
-		char version[12];
-		Format(version, sizeof(version), "%sA", PLUGIN_VERSION);
-		convar = CreateConVar("custom_chat_colors_mysql_version", version, "Custom Chat Colors MySQL Module Version", FCVAR_DONTRECORD|FCVAR_NOTIFY|FCVAR_CHEAT);
-	} else {
-		convar = CreateConVar("custom_chat_colors_mysql_version", PLUGIN_VERSION, "Custom Chat Colors MySQL Module Version", FCVAR_DONTRECORD|FCVAR_NOTIFY|FCVAR_CHEAT);
-	}
-	convar.AddChangeHook(Callback_VersionConVarChanged);
-	Callback_VersionConVarChanged(convar, "", ""); // Check the cvar value
-}
-
-public void OnLibraryAdded(const char[] name) {
-	if(StrEqual(name, "updater")) {
-		Updater_AddPlugin(UPDATE_URL);
-	}
-}
-
-public void Callback_VersionConVarChanged(ConVar convar, const char[] oldValue, const char[] newValue) {
-	if(LibraryExists("updater")) {
-		char version[12];
-		Format(version, sizeof(version), "%sA", PLUGIN_VERSION);
-		convar.SetString(version);
-	} else {
-		convar.SetString(PLUGIN_VERSION);
-	}
-}
-
-public Action Updater_OnPluginDownloading() {
-	if(!cvarUpdater.BoolValue) {
-		return Plugin_Handled;
-	}
-	return Plugin_Continue;
-}
-
-public void Updater_OnPluginUpdated() {
-	ReloadPlugin();
 }

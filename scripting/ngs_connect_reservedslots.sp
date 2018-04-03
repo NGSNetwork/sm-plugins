@@ -7,17 +7,19 @@
 * cfg/sourcemod/ngs-connect-reservedslots.cfg
 *
 * Dependencies:
-* sourcemod.inc, ngsutils.inc, afk_manager.inc, connect.inc
+* sourcemod.inc, afk_manager.inc, connect.inc, ngsutils.inc, ngsupdater.inc
 */
 #pragma newdecls required
 #pragma semicolon 1
 
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
+
 #include <sourcemod>
-#include <ngsutils>
 #include <afk_manager>
 #include <connect>
-
-#define PLUGIN_VERSION "1.0.1"
+#include <ngsutils>
+#include <ngsupdater>
 
 ConVar g_hcvarKickType;
 ConVar g_hcvarEnabled;
@@ -28,18 +30,16 @@ public Plugin myinfo =
 	name = "[NGS] Reserved Slots - Connect",
 	author = "luki1412 / TheXeon",
 	description = "Simple plugin for reserved slots using Connect",
-	version = PLUGIN_VERSION,
+	version = "1.0.5",
 	url = "https://neogenesisnetwork.net/"
 }
 
 public void OnPluginStart()
 {
-	ConVar g_hcvarVer = CreateConVar("sm_brsc_version", PLUGIN_VERSION, "Basic Reserved Slots using Connect - version cvar", FCVAR_NOTIFY|FCVAR_DONTRECORD);
 	g_hcvarEnabled = CreateConVar("sm_brsc_enabled", "1", "Enables/disables this plugin", FCVAR_NONE, true, 0.0, true, 1.0);
 	g_hcvarKickType = CreateConVar("sm_brsc_type", "1", "Who gets kicked out: 1 - Highest ping player, 2 - Longest connection time player, 3 - Random player, 4 - AFK Player", FCVAR_NONE, true, 1.0, true, 3.0);
 	g_hcvarReason = CreateConVar("sm_brsc_reason", "Kicked for reserved slot! Connect to our other server or donate to get instant access.", "Reason used when kicking players", FCVAR_NONE);
 
-	g_hcvarVer.SetString(PLUGIN_VERSION);
 	AutoExecConfig(true, "ngs-connect-reservedslots");
 }
 

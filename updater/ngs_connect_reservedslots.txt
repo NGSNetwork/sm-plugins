@@ -1,0 +1,20 @@
+"Updater"
+{
+	"Information"
+	{
+		"Version"
+		{
+			"Latest"	"1.0.5"
+		}
+		
+		"Notes"	"Add updater support!"
+		"Notes"	"Remove unneeded formatting and spaces from .sp."
+	}
+	
+	"Files"
+	{
+		"Plugin"	"Path_SM/plugins/ngs_connect_reservedslots.smx"
+		
+		"Source"	"Path_SM/scripting/ngs_connect_reservedslots.sp"
+	}
+}

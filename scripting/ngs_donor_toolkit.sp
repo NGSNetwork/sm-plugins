@@ -1,23 +1,32 @@
+/**
+* TheXeon
+* ngs_donor_toolkit.sp
+*
+* Files:
+* addons/sourcemod/plugins/ngs_donor_toolkit.smx
+*
+* Dependencies:
+* sourcemod.inc, tf2attributes.inc, multicolors.inc, ngsutils.inc, ngsupdater.inc
+*/
 #pragma newdecls required
 #pragma semicolon 1
 
-#include <sourcemod>
-#include <sdktools>
-#include <sdkhooks>
-#include <tf2attributes>
-#include <morecolors>
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
 
-#define PLUGIN_VERSION "1.0.0"
+#include <sourcemod>
+#include <tf2attributes>
+#include <multicolors>
+#include <ngsutils>
+#include <ngsupdater>
 
 bool VoicesEnabled[MAXPLAYERS + 1];
 
-//--------------------//
-
 public Plugin myinfo = {
-	name = "[NGS] VIP Tools",
+	name = "[NGS] Donor/VIP Tools",
 	author = "TheXeon",
 	description = "VIP commands for NGS people.",
-	version = PLUGIN_VERSION,
+	version = "1.0.1",
 	url = "https://neogenesisnetwork.net"
 }
 
@@ -45,16 +54,6 @@ public Action CommandVoices(int client, int args)
 
 public void OnPostInventoryApplication(Event hEvent, const char[] szName, bool bDontBroadcast)
 {
-	int client = GetClientOfUserId(GetEventInt(hEvent, "userid"));
+	int client = GetClientOfUserId(hEvent.GetInt("userid"));
 	if (VoicesEnabled[client]) TF2Attrib_SetByName(client, "SPELL: Halloween voice modulation", 1.0);
-}
-
-public bool IsValidClient(int client)
-{
-	if(client > 4096) client = EntRefToEntIndex(client);
-	if(client < 1 || client > MaxClients) return false;
-	if(!IsClientInGame(client)) return false;
-	if(IsFakeClient(client)) return false;
-	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
-	return true;
 }

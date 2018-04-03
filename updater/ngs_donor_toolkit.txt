@@ -1,0 +1,20 @@
+"Updater"
+{
+	"Information"
+	{
+		"Version"
+		{
+			"Latest"	"1.0.1"
+		}
+		
+		"Notes"	"Add updater support!"
+		"Notes"	"Remove unneeded dependencies and spaces from .sp."
+	}
+	
+	"Files"
+	{
+		"Plugin"	"Path_SM/plugins/ngs_donor_toolkit.smx"
+		
+		"Source"	"Path_SM/scripting/ngs_donor_toolkit.sp"
+	}
+}

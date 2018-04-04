@@ -1,16 +1,29 @@
-#include <sourcemod>
-#undef REQUIRE_EXTENSIONS
-#include <sdkhooks>
-#include <tf2>
-#include <friendly>
-#include <colorvariables>
-#define REQUIRE_EXTENSIONS
-#include <tf2_stocks>
-
+/**
+* TheXeon
+* ngs_resizeplayers.sp
+*
+* Files:
+* addons/sourcemod/plugins/ngs_resizeplayers.smx
+*
+* Dependencies:
+* sdkhooks.inc, friendly.inc, colorvariables.inc, tf2_stocks.inc, ngsutils.inc,
+* ngsupdater.inc
+*/
 #pragma newdecls required
 #pragma semicolon 1
 
-#define PLUGIN_VERSION      "1.5.1"
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
+
+#include <sdkhooks>
+#undef REQUIRE_PLUGIN
+#include <friendly>
+#define REQUIRE_PLUGIN
+#include <colorvariables>
+#include <tf2_stocks>
+#include <ngsutils>
+#include <ngsupdater>
+
 #define SELF_ADMIN_FLAG      ADMFLAG_GENERIC
 #define TARGET_ADMIN_FLAG    ADMFLAG_CHEATS
 #define JOIN_ADMIN_FLAG      ADMFLAG_CHEATS
@@ -25,7 +38,7 @@ public Plugin myinfo = {
     name    =  "[NGS] Resize Players",
     author    =  "11530 / TheXeon",
     description  =  "Tiny and friendly!",
-    version    =  PLUGIN_VERSION,
+    version    =  "2.1.0",
     url      =  "http://www.sourcemod.net"
 };
 
@@ -76,111 +89,109 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
 public void OnPluginStart()
 {
-  CreateConVar("sm_resize_version", PLUGIN_VERSION, "\"Resize Players\" version.", FCVAR_SPONLY|FCVAR_NOTIFY);
-  
   Handle hEnabled = CreateConVar("sm_resize_enabled", "1", "0 = Disable plugin, 1 = Enable plugin.");
   HookConVarChange(hEnabled, ConVarEnabledChanged);
   g_bEnabled = GetConVarBool(hEnabled);
-  
+
   Handle hDefaultResize = CreateConVar("sm_resize_defaultresize", "0.4", "Default scale of players when resized.", 0, true, 0.0);
   HookConVarChange(hDefaultResize, ConVarScaleChanged);
   GetConVarString(hDefaultResize, g_szDefault[ResizeType_Generic], sizeof(g_szDefault[]));
   g_fDefaultResize[ResizeType_Generic] = StringToFloat(g_szDefault[ResizeType_Generic]);
-  
+
   Handle hDefaultHeadResize = CreateConVar("sm_resize_defaultheadresize", "2.5", "Default scale of players' heads when resized.", 0);
   HookConVarChange(hDefaultHeadResize, ConVarHeadScaleChanged);
   GetConVarString(hDefaultHeadResize, g_szDefault[ResizeType_Head], sizeof(g_szDefault[]));
   g_fDefaultResize[ResizeType_Head] = StringToFloat(g_szDefault[ResizeType_Head]);
-  
+
   Handle hDefaultTorsoResize = CreateConVar("sm_resize_defaulttorsoresize", "2.5", "Default scale of players' torsos when resized.", 0);
   HookConVarChange(hDefaultTorsoResize, ConVarTorsoScaleChanged);
   GetConVarString(hDefaultTorsoResize, g_szDefault[ResizeType_Torso], sizeof(g_szDefault[]));
   g_fDefaultResize[ResizeType_Torso] = StringToFloat(g_szDefault[ResizeType_Torso]);
-  
+
   Handle hDefaultHandsResize = CreateConVar("sm_resize_defaulthandsresize", "2.5", "Default scale of players' hands when resized.", 0);
   HookConVarChange(hDefaultHandsResize, ConVarHandScaleChanged);
   GetConVarString(hDefaultHandsResize, g_szDefault[ResizeType_Hands], sizeof(g_szDefault[]));
   g_fDefaultResize[ResizeType_Hands] = StringToFloat(g_szDefault[ResizeType_Hands]);
-  
+
   Handle hOnJoin = CreateConVar("sm_resize_onjoin", "0", "Add values to alter size upon joining, 0 = Disable, 1 = Admin only, 2 = Resize body, 4 = Resize head, 8 = Resize torso, 16 = Resize hands.", 0);
   HookConVarChange(hOnJoin, ConVarOnJoinChanged);
   g_iOnJoin = GetConVarInt(hOnJoin);
-  
+
   ConVar hResizeMenu = CreateConVar("sm_resize_menu", "0", "0 = Disable menus, 1 = Enable menus when no command parameters are given, 2 = Enable for self-commands only.", 0);
   HookConVarChange(hResizeMenu, ConVarMenuChanged);
   g_iMenu = GetConVarInt(hResizeMenu);
-  
+
   Handle hVoices = CreateConVar("sm_resize_voices", "0", "0 = Normal voices, 1 = Voice pitch scales with size, 2 = No low-pitched voices, 3 = No high-pitched voices.", 0);
   HookConVarChange(hVoices, ConVarVoicesChanged);
   g_iVoicesChanged = GetConVarInt(hVoices);
-  
+
   Handle hDamage = CreateConVar("sm_resize_damage", "0", "0 = Normal damage, 1 = Damage given scales with size, 2 = No up-scaled damage, 3 = No down-scaled damage.", 0);
   HookConVarChange(hDamage, ConVarDamageChanged);
   g_iDamage = GetConVarInt(hDamage);
-  
+
   Handle hSteps = CreateConVar("sm_resize_steps", "0", "0 = Normal step-size, 1 = Step-size scales with size, 2 = No up-scaled steps, 3 = No down-scaled steps.", 0);
   HookConVarChange(hSteps, ConVarStepsChanged);
   g_iSteps = GetConVarInt(hSteps);
-  
+
   Handle hNotify = CreateConVar("sm_resize_notify", "1", "0 = No notifications, 1 = Respect sm_show_activity, 2 = Notify everyone.", 0);
   HookConVarChange(hNotify, ConVarNotifyChanged);
   g_iNotify = GetConVarInt(hNotify);
-  
+
   Handle hMenuItems = CreateConVar("sm_resize_menuitems", "0.1, Smallest; 0.25, Smaller; 0.50, Small; 1.00, Normal; 1.25, Large; 1.50, Larger; 2.00, Largest", "Resize menu's items.", 0);
   HookConVarChange(hMenuItems, ConVarMenuItemsChanged);
   GetConVarString(hMenuItems, g_szMenuItems[ResizeType_Generic], sizeof(g_szMenuItems[]));
-  
+
   Handle hMenuHeadItems = CreateConVar("sm_resize_headmenuitems", "0.50, Smallest; 0.75, Small; 1.00, Normal; 2.00, Large; 3.00, Largest", "Head resize menu's items.", 0);
   HookConVarChange(hMenuHeadItems, ConVarMenuHeadItemsChanged);
   GetConVarString(hMenuHeadItems, g_szMenuItems[ResizeType_Head], sizeof(g_szMenuItems[]));
-  
+
   Handle hMenuTorsoItems = CreateConVar("sm_resize_torsomenuitems", "0.50, Smallest; 0.75, Small; 1.00, Normal; 2.00, Large; 3.00, Largest", "Torso resize menu's items.", 0);
   HookConVarChange(hMenuTorsoItems, ConVarMenuTorsoItemsChanged);
   GetConVarString(hMenuTorsoItems, g_szMenuItems[ResizeType_Torso], sizeof(g_szMenuItems[]));
-  
+
   Handle hMenuHandsItems = CreateConVar("sm_resize_handsmenuitems", "0.50, Smallest; 0.75, Small; 1.00, Normal; 2.00, Large; 3.00, Largest", "Hand resize menu's items.", 0);
   HookConVarChange(hMenuHandsItems, ConVarMenuHandsItemsChanged);
   GetConVarString(hMenuHandsItems, g_szMenuItems[ResizeType_Hands], sizeof(g_szMenuItems[]));
-  
+
   Handle hLogging = CreateConVar("sm_resize_logging", "1", "0 = No logging, 1 = Log self/target resizes, 2 = Log target resizes only.", 0);
   HookConVarChange(hLogging, ConVarLoggingChanged);
   g_iLogging = GetConVarInt(hLogging);
-  
+
   Handle hBackstab = CreateConVar("sm_resize_backstab", "0", "0 = Normal backstabs, 1 = Backstab damage scales proportionally with size.", 0);
   HookConVarChange(hBackstab, ConVarBackstabChanged);
   g_bBackstab = GetConVarBool(hBackstab);
-  
+
   Handle hUnstick = CreateConVar("sm_resize_unstick", "1", "Revert when stuck: 0 = Never, 1 = Self-resizes only, 2 = Respawns only, 3 = Self-resizes and respawns.", 0);
   HookConVarChange(hUnstick, ConVarUnstickChanged);
   g_iUnstick = GetConVarInt(hUnstick);
-  
+
   Handle hCooldown = CreateConVar("sm_resize_cooldown", "0", "Cooldown duration for those without permission to bypass (in seconds).", 0, true, 0.0);
   HookConVarChange(hCooldown, ConVarCooldownChanged);
   g_iCooldown = GetConVarInt(hCooldown);
-  
+
   g_hBound[ResizeType_Generic] = CreateConVar("sm_resize_bounds", "0.1, 3.0", "Lower (optional) and upper bounds for resizing, separated with a comma.", 0);
   HookConVarChange(g_hBound[ResizeType_Generic], ConVarBoundsChanged);
   ParseConVarToLimits(g_hBound[ResizeType_Generic], g_szBound[ResizeType_Generic][0], sizeof(g_szBound[][]), g_fBound[ResizeType_Generic][0], g_szBound[ResizeType_Generic][1], sizeof(g_szBound[][]), g_fBound[ResizeType_Generic][1]);
-  
+
   g_hBound[ResizeType_Head] = CreateConVar("sm_resize_headbounds", "0.25, 3.0", "Lower (optional) and upper bounds for head resizing, separated with a comma.", 0);
   HookConVarChange(g_hBound[ResizeType_Head], ConVarHeadBoundsChanged);
   ParseConVarToLimits(g_hBound[ResizeType_Head], g_szBound[ResizeType_Head][0], sizeof(g_szBound[][]), g_fBound[ResizeType_Head][0], g_szBound[ResizeType_Head][1], sizeof(g_szBound[][]), g_fBound[ResizeType_Head][1]);
-  
+
   g_hBound[ResizeType_Torso] = CreateConVar("sm_resize_torsobounds", "0.25, 3.0", "Lower (optional) and upper bounds for torso resizing, separated with a comma.", 0);
   HookConVarChange(g_hBound[ResizeType_Torso], ConVarTorsoBoundsChanged);
   ParseConVarToLimits(g_hBound[ResizeType_Torso], g_szBound[ResizeType_Torso][0], sizeof(g_szBound[][]), g_fBound[ResizeType_Torso][0], g_szBound[ResizeType_Torso][1], sizeof(g_szBound[][]), g_fBound[ResizeType_Torso][1]);
-  
+
   g_hBound[ResizeType_Hands] = CreateConVar("sm_resize_handsbounds", "0.25, 3.0", "Lower (optional) and upper bounds for hand resizing, separated with a comma.", 0);
   HookConVarChange(g_hBound[ResizeType_Hands], ConVarHandsBoundsChanged);
   ParseConVarToLimits(g_hBound[ResizeType_Hands], g_szBound[ResizeType_Hands][0], sizeof(g_szBound[][]), g_fBound[ResizeType_Hands][0], g_szBound[ResizeType_Hands][1], sizeof(g_szBound[][]), g_fBound[ResizeType_Hands][1]);
-  
+
   char szDir[64];
   GetGameFolderName(szDir, sizeof(szDir));
   if (strcmp(szDir, "tf") == 0 || strcmp(szDir, "tf_beta") == 0)
   {
     g_bIsTF2 = true;
   }
-  
+
   Handle hConf = LoadGameConfigFile("sdkhooks.games");
   if (hConf != INVALID_HANDLE)
   {
@@ -190,44 +201,44 @@ public void OnPluginStart()
     g_hGetMaxHealth = EndPrepSDKCall();
     delete hConf;
   }
-  
+
   LoadTranslations("core.phrases.txt");
   LoadTranslations("common.phrases.txt");
   AddNormalSoundHook(SoundCallback);
-  
+
   g_bIsAvailable[ResizeType_Generic] = (FindSendPropInfo("CBasePlayer", "m_flModelScale") != -1);
   g_bIsAvailable[ResizeType_Head] = (FindSendPropInfo("CTFPlayer", "m_flHeadScale") != -1);
   g_bIsAvailable[ResizeType_Torso] = (FindSendPropInfo("CTFPlayer", "m_flTorsoScale") != -1);
   g_bIsAvailable[ResizeType_Hands] = (FindSendPropInfo("CTFPlayer", "m_flHandScale") != -1);
   g_bHitboxAvailable = ((FindSendPropInfo("CBasePlayer", "m_vecSpecifiedSurroundingMins") != -1) && FindSendPropInfo("CBasePlayer", "m_vecSpecifiedSurroundingMaxs") != -1);
   g_bCustomDmgAvailable = (GetFeatureStatus(FeatureType_Capability, "SDKHook_DmgCustomInOTD") == FeatureStatus_Available);
-  
+
   HookEventEx("player_spawn", OnPlayerSpawn);
-  
+
   RegAdminCmd("sm_resize", OnResizeCmd, TARGET_ADMIN_FLAG, "Toggles a client's size.");
   RegAdminCmd("sm_resize_f", OnResizeFriendlyCmd, TARGET_ADMIN_FLAG, "Changes client size with friendly check.");
   //RegAdminCmd("sm_scale", OnResizeCmd, TARGET_ADMIN_FLAG, "Toggles a client's size.");
   RegAdminCmd("sm_resizeme", OnResizeMeCmd, SELF_ADMIN_FLAG, "Toggles a client's size.");
   //RegAdminCmd("sm_scaleme", OnResizeMeCmd, SELF_ADMIN_FLAG, "Toggles a client's size.");
-  
+
   RegAdminCmd("sm_resizehead", OnResizeHeadCmd, TARGET_ADMIN_FLAG, "Toggles a client's head size.");
   //RegAdminCmd("sm_scalehead", OnResizeHeadCmd, TARGET_ADMIN_FLAG, "Toggles a client's head size.");
   RegAdminCmd("sm_resizehead_f", OnResizeHeadFriendlyCmd, TARGET_ADMIN_FLAG, "Changes client head size with friendly check.");
   RegAdminCmd("sm_resizemyhead", OnResizeMyHeadCmd, SELF_ADMIN_FLAG, "Toggles a client's head size.");
   //RegAdminCmd("sm_scalemyhead", OnResizeMyHeadCmd, SELF_ADMIN_FLAG, "Toggles a client's head size.");
-  
+
   RegAdminCmd("sm_resizetorso", OnResizeTorsoCmd, TARGET_ADMIN_FLAG, "Toggles a client's torso size.");
   //RegAdminCmd("sm_scaletorso", OnResizeTorsoCmd, TARGET_ADMIN_FLAG, "Toggles a client's torso size.");
   RegAdminCmd("sm_resizemytorso", OnResizeMyTorsoCmd, SELF_ADMIN_FLAG, "Toggles a client's torso size.");
   //RegAdminCmd("sm_scalemytorso", OnResizeMyTorsoCmd, SELF_ADMIN_FLAG, "Toggles a client's torso size.");
   RegAdminCmd("sm_resizetorso_f", OnResizeTorsoFriendlyCmd, TARGET_ADMIN_FLAG, "Changes client torso size with friendly check.");
-  
+
   RegAdminCmd("sm_resizehands", OnResizeHandsCmd, TARGET_ADMIN_FLAG, "Toggles a client's hand size.");
   //RegAdminCmd("sm_scalehands", OnResizeHandsCmd, TARGET_ADMIN_FLAG, "Toggles a client's hand size.");
   RegAdminCmd("sm_resizemyhands", OnResizeMyHandsCmd, SELF_ADMIN_FLAG, "Toggles a client's hand size.");
   //RegAdminCmd("sm_scalemyhands", OnResizeMyHandsCmd, SELF_ADMIN_FLAG, "Toggles a client's hand size.");
   RegAdminCmd("sm_resizehands_f", OnResizeHandsFriendlyCmd, TARGET_ADMIN_FLAG, "Changes client hands size with friendly check.");
-  
+
   RegAdminCmd("sm_resizereset", OnResetCmd, TARGET_ADMIN_FLAG, "Resets a client's size.");
   //RegAdminCmd("sm_scalereset", OnResetCmd, TARGET_ADMIN_FLAG, "Resets a client's size.");
   RegAdminCmd("sm_resizeresetme", OnResetMeCmd, SELF_ADMIN_FLAG, "Resets a client's size.");
@@ -244,7 +255,7 @@ public void OnPluginStart()
       }
     }
   }
-  
+
   for (int i = 0; i < sizeof(g_fClientCurrentScale); i++)
   {
     for (int j = 0; j < sizeof(g_fClientCurrentScale[]); j++)
@@ -262,7 +273,7 @@ public void OnConfigsExecuted()
   CheckDefaultValue(g_fDefaultResize[ResizeType_Torso], g_szDefault[ResizeType_Torso], sizeof(g_szDefault[]), "sm_resize_defaulttorsoresize", DEFAULT_TORSO_FALLBACK);
   CheckDefaultValue(g_fDefaultResize[ResizeType_Hands], g_szDefault[ResizeType_Hands], sizeof(g_szDefault[]), "sm_resize_defaulthandsresize", DEFAULT_HANDS_FALLBACK);
   BuildMenus();
-  
+
   for (int i = 1; i <= MaxClients; i++)
   {
     for (int j = 0; j < ResizeTypes; j++)
@@ -301,7 +312,7 @@ void ReadjustInitialSize(const int client, const bool bResetOnDisable = false)
   {
     int bAdminOnly = (g_iOnJoin & 1 == 1);
     char szOverrides[][] = { "sm_resizejoinoverride", "sm_resizeheadjoinoverride", "sm_resizetorsojoinoverride", "sm_resizehandsjoinoverride" };
-    
+
     for (int i = 0; i < ResizeTypes; i++)
     {
       if (g_bIsAvailable[i] && (g_iOnJoin & (1 << (i + 1)) == (1 << (i + 1))))
@@ -341,11 +352,11 @@ int ParseStringToMenu(Handle &hResizeMenu, const MenuHandler hCallback, const ch
   float fRatio;
   int iSplitResult;
   char szMenuItems[16][32], szNum[16], szItemLabel[32];
-  
+
   int iExplodeResult = ExplodeString(szItems, ";", szMenuItems, sizeof(szMenuItems), sizeof(szMenuItems[]));
   hResizeMenu = CreateMenu(hCallback);
   SetMenuTitle(hResizeMenu, szTitle);
-  
+
   if (!szItems[0])
   {
     AddMenuItem(hResizeMenu, "1.0", "[NO ITEMS]", ITEMDRAW_DISABLED);
@@ -362,7 +373,7 @@ int ParseStringToMenu(Handle &hResizeMenu, const MenuHandler hCallback, const ch
       {
         TrimString(szMenuItems[i]);
         if ((fRatio = StringToFloat(szMenuItems[i])) <= 0.0)
-        {          
+        {
           strcopy(szItemLabel, sizeof(szItemLabel), "Toggle");
         }
         else
@@ -395,7 +406,7 @@ void ParseConVarToLimits(const Handle hConvar, char[] szMinString, const int iMi
   int iSplitResult;
   char szBounds[256];
   GetConVarString(hConvar, szBounds, sizeof(szBounds));
-  
+
   if ((iSplitResult = SplitString(szBounds, ",", szMinString, iMinStringLength)) != -1 && (fMin = StringToFloat(szMinString)) >= 0.0)
   {
     TrimString(szMinString);
@@ -409,11 +420,11 @@ void ParseConVarToLimits(const Handle hConvar, char[] szMinString, const int iMi
   }
   TrimString(szMaxString);
   fMax = StringToFloat(szMaxString);
-  
+
   int iMarkInMin = FindCharInString(szMinString, '.'), iMarkInMax = FindCharInString(szMaxString, '.');
   Format(szMinString, iMinStringLength, "%s%s%s", (iMarkInMin == 0 ? "0" : ""), szMinString, (iMarkInMin == -1 ? ".0" : (iMarkInMin == (strlen(szMinString) - 1) ? "0" : "")));
   Format(szMaxString, iMaxStringLength, "%s%s%s", (iMarkInMax == 0 ? "0" : ""), szMaxString, (iMarkInMax == -1 ? ".0" : (iMarkInMax == (strlen(szMaxString) - 1) ? "0" : "")));
-  
+
   if (fMin > fMax)
   {
     float fTemp = fMax;
@@ -427,17 +438,17 @@ public Action OnPlayerSpawn(Handle event, const char[] name, bool dontBroadcast)
   if (g_bEnabled)
   {
     int client = GetClientOfUserId(GetEventInt(event, "userid"));
-    
+
     if (client < 1)
     {
       return Plugin_Continue;
     }
-    
+
     //Resize back to specified scale on spawn.
     if (IsPlayerAlive(client) && g_bIsAvailable[ResizeType_Generic])
     {
       ResizePlayer(ResizeType_Generic, client, g_szClientCurrentScale[ResizeType_Generic][client], _, _, _, _, false);
-      
+
       //If server wants to unstick on spawn, then check player is stuck.
       if ((g_iUnstick == 2 || g_iUnstick == 3) && g_fClientCurrentScale[ResizeType_Generic][client] != 1.0 && IsPlayerStuck(client))
       {
@@ -457,13 +468,13 @@ void ResizeProcess(const int type, const bool bSelfCmd, const int client, const 
     ReplyToCommand(client, "%sCannot use command in this game.", CHAT_TAG);
     return;
   }
-  
+
   int iNow = GetTime();
   if (IsClientOnCooldown(client, iNow, type))
   {
     return;
   }
-  
+
   if (args == 0)
   {
     if (client == 0)
@@ -471,7 +482,7 @@ void ResizeProcess(const int type, const bool bSelfCmd, const int client, const 
       PrintToServer("%s%T", CONSOLE_TAG, "Command is in-game only", LANG_SERVER);
       return;
     }
-    
+
     if (bSelfCmd && bFriendlyCheck && !TF2Friendly_IsFriendly(client))
     {
     	CPrintToChat(client, "%sYou must be in friendly to use this!", CHAT_TAG);
@@ -526,7 +537,7 @@ void ResizeProcess(const int type, const bool bSelfCmd, const int client, const 
       ReplyToTargetError(client, target_count);
       return;
     }
-    
+
     char szScale[8] = "0.0", szTime[8] = "0.0";
     float fScale = 0.0, fTime = 0.0;
     if (args > 1)
@@ -545,18 +556,18 @@ void ResizeProcess(const int type, const bool bSelfCmd, const int client, const 
         ReplyToCommand(client, "%sSize must be between \x05%s\x01 and \x05%s\x01.", CHAT_TAG, g_szBound[type][0], g_szBound[type][1]);
         return;
       }
-      
+
       if (args > 2)
-      {          
+      {
         GetCmdArg(3, szTime, sizeof(szTime));
         TrimString(szTime);
         fTime = StringToFloat(szTime);
-          
+
         if (fTime <= 0.0)
         {
           ReplyToCommand(client, "%sInvalid duration specified.", CHAT_TAG);
           return;
-        }  
+        }
       }
     }
     bool bResult, bIsSelfTarget = ((!tn_is_ml || target_count == 1) && client == iTargetList[0]);
@@ -568,20 +579,20 @@ void ResizeProcess(const int type, const bool bSelfCmd, const int client, const 
         continue;
       }
       StopTimer(iTargetList[i], type);
-      
+
       if (bFriendlyCheck && !TF2Friendly_IsFriendly(iTargetList[i]))
       {
         CPrintToChat(iTargetList[i], "%sYou must be in friendly to use this!", CHAT_TAG);
         continue;
       }
-      
+
       char szScaleEdited[16];
       int iMarkInScale = FindCharInString(szScale, '.');
       FormatEx(szScaleEdited, sizeof(szScaleEdited), "%s%s%s", (iMarkInScale == 0 ? "0" : ""), szScale, (iMarkInScale == -1 ? ".0" : (iMarkInScale == (strlen(szScale) - 1) ? "0" : "")));
-      
+
       bResult = ResizePlayer(type, iTargetList[i], szScaleEdited, bLog, client, szTime, bCheckStuck, bFriendlyCheck);
     }
-    
+
     if (!bResult)
     {
       ReplyToCommand(client, "%sYou were not resized!.", CHAT_TAG);
@@ -595,24 +606,24 @@ void ResizeProcess(const int type, const bool bSelfCmd, const int client, const 
 bool ResizePlayer(const int type, const int client, const char[] szScale = "0.0", const bool bLog = false, const int iOrigin = -1, const char[] szTime = "0.0", const bool bCheckStuck = false, const bool bFriendlyCheck=true)
 {
   float fScale = StringToFloat(szScale), fTime = StringToFloat(szTime);
-  
+
   char szOriginalScale[8];
   strcopy(szOriginalScale, sizeof(szOriginalScale), g_szClientCurrentScale[type][client]);
-  
+
   if (bFriendlyCheck && !TF2Friendly_IsFriendly(client))
   {
     CPrintToChat(client, "%sYou must be in friendly to use this!", CHAT_TAG);
     return false;
   }
-  
+
   if (fScale == 0.0)
   {
     if (g_fClientCurrentScale[type][client] != g_fClientLastScale[type][client])
     {
-      
+
       g_fClientCurrentScale[type][client] = g_fClientLastScale[type][client];
       strcopy(g_szClientCurrentScale[type][client], sizeof(g_szClientCurrentScale[][]), g_szClientLastScale[type][client]);
-      
+
       if (type == ResizeType_Generic)
       {
         SetEntPropFloat(client, Prop_Send, "m_flModelScale", g_fClientCurrentScale[ResizeType_Generic][client]);
@@ -644,10 +655,10 @@ bool ResizePlayer(const int type, const int client, const char[] szScale = "0.0"
       g_fClientLastScale[type][client] = fScale;
       strcopy(g_szClientLastScale[type][client], sizeof(g_szClientLastScale[][]), szScale);
     }
-    
+
     g_fClientCurrentScale[type][client] = fScale;
     strcopy(g_szClientCurrentScale[type][client], sizeof(g_szClientCurrentScale[][]), szScale);
-    
+
     if (type == ResizeType_Generic)
     {
       SetEntPropFloat(client, Prop_Send, "m_flModelScale", fScale);
@@ -661,21 +672,21 @@ bool ResizePlayer(const int type, const int client, const char[] szScale = "0.0"
       }
     }
   }
-  
+
   if (type == ResizeType_Generic)
   {
     if (g_bHitboxAvailable)
     {
       UpdatePlayerHitbox(client);
     }
-  
+
     if (bCheckStuck && IsPlayerAlive(client) && IsPlayerStuck(client))
     {
       ResizePlayer(ResizeType_Generic, client, szOriginalScale, _, _, _, false, bFriendlyCheck);
       return false;
     }
   }
-  
+
   if (fTime > 0.0)
   {
     Handle hPack;
@@ -684,11 +695,11 @@ bool ResizePlayer(const int type, const int client, const char[] szScale = "0.0"
     WritePackCell(hPack, GetClientUserId(client));
     WritePackString(hPack, szOriginalScale);
   }
-  
+
   if (bLog)
   {
     char szPart[10];
-    
+
     switch (type)
     {
       case ResizeType_Head:   strcopy(szPart, sizeof(szPart), "'s head");
@@ -696,12 +707,12 @@ bool ResizePlayer(const int type, const int client, const char[] szScale = "0.0"
       case ResizeType_Hands:  strcopy(szPart, sizeof(szPart), "'s hands");
       default:                strcopy(szPart, sizeof(szPart), "");
     }
-    
+
     if (iOrigin > -1)
     {
       if (fTime > 0.0)
       {
-        LogAction(iOrigin, client, "\"%L\" resized \"%L\"%s to %s for %s seconds.", iOrigin, client, szPart, g_szClientCurrentScale[type][client], szTime);        
+        LogAction(iOrigin, client, "\"%L\" resized \"%L\"%s to %s for %s seconds.", iOrigin, client, szPart, g_szClientCurrentScale[type][client], szTime);
       }
       else
       {
@@ -758,7 +769,7 @@ bool IsClientOnCooldown(const int client, const int now, const int type)
   {
     int iTimeLeft = g_iCooldown - now;
     iTimeLeft += g_iLastResize[type][client];
-    
+
     if (iTimeLeft > 0)
     {
       ReplyToCommand(client, "%sYou must wait another %d second%s.", CHAT_TAG, iTimeLeft, (iTimeLeft != 1 ? "s" : ""));
@@ -796,7 +807,7 @@ public Action OnResizeFriendlyCmd(int client, int args)
 }
 
 public Action OnResizeHeadCmd(int client, int args)
-{  
+{
   if (g_bEnabled)
   {
     ResizeProcess(ResizeType_Head, false, client, args);
@@ -805,7 +816,7 @@ public Action OnResizeHeadCmd(int client, int args)
 }
 
 public Action OnResizeHeadFriendlyCmd(int client, int args)
-{  
+{
 //  char arg1[128];
 //  GetCmdArg(1, arg1, 128);
 //  int target = FindTarget(client, arg1);
@@ -823,7 +834,7 @@ public Action OnResizeHeadFriendlyCmd(int client, int args)
 }
 
 public Action OnResizeTorsoCmd(int client, int args)
-{  
+{
   if (g_bEnabled)
   {
     ResizeProcess(ResizeType_Torso, false, client, args);
@@ -832,7 +843,7 @@ public Action OnResizeTorsoCmd(int client, int args)
 }
 
 public Action OnResizeTorsoFriendlyCmd(int client, int args)
-{  
+{
 //  char arg1[128];
 //  GetCmdArg(1, arg1, 128);
 //  int target = FindTarget(client, arg1);
@@ -850,7 +861,7 @@ public Action OnResizeTorsoFriendlyCmd(int client, int args)
 }
 
 public Action OnResizeHandsCmd(int client, int args)
-{  
+{
   if (g_bEnabled)
   {
     ResizeProcess(ResizeType_Hands, false, client, args);
@@ -859,7 +870,7 @@ public Action OnResizeHandsCmd(int client, int args)
 }
 
 public Action OnResizeHandsFriendlyCmd(int client, int args)
-{  
+{
 //  char arg1[128];
 //  GetCmdArg(1, arg1, 128);
 //  int target = FindTarget(client, arg1);
@@ -942,7 +953,7 @@ public Action OnResetCmd(int client, int args)
 }
 
 public Action OnResetFriendlyCmd(int client, int args)
-{  
+{
 //  char arg1[128];
 //  GetCmdArg(1, arg1, 128);
 //  int target = FindTarget(client, arg1);
@@ -992,7 +1003,7 @@ void ResetProcess(const bool bSelfCmd, const int client, const int args, const b
       CPrintToChat(client, "%sYou must be in friendly to use this!", CHAT_TAG);
       return;
     }
-  
+
     for (int type = 0; type < ResizeTypes; type++)
     {
       if (g_bIsAvailable[type])
@@ -1001,7 +1012,7 @@ void ResetProcess(const bool bSelfCmd, const int client, const int args, const b
         ResizePlayer(type, client, "1.0", (g_iLogging == 1 || (g_iLogging == 2 && !bSelfCmd)), _, _, false, bFriendlyCheck);
       }
     }
-    
+
     if (g_iNotify == 1)
     {
       ShowActivity2(client, CHAT_TAG, "%N's size was \x05reset\x01!", client);
@@ -1028,7 +1039,7 @@ void ResetProcess(const bool bSelfCmd, const int client, const int args, const b
     }
 
     bool bLog = (g_iLogging == 1 || (g_iLogging == 2 && !bSelfCmd));
-    
+
     for (int type = 0; type < ResizeTypes; type++)
     {
       if (g_bIsAvailable[type])
@@ -1049,7 +1060,7 @@ void ResetProcess(const bool bSelfCmd, const int client, const int args, const b
         }
       }
     }
-    
+
     if (bSelfCmd)
     {
       if (g_iNotify == 1)
@@ -1078,14 +1089,14 @@ void ResetProcess(const bool bSelfCmd, const int client, const int args, const b
 bool NotifyPlayers(const int type, const int iOrigin, const bool tn_is_ml, const int[] targets, const int target_count, const char[] szScale, const char[] szTarget = "", const char[] szTime = "0.0")
 {
   if (g_iNotify != 1 && g_iNotify != 2) return false;
-  
+
   char szScaleEdited[16], szTimeEdited[16];
   int iMarkInScale = FindCharInString(szScale, '.'), iMarkInTime = FindCharInString(szTime, '.');
   FormatEx(szScaleEdited, sizeof(szScaleEdited), "%s%s%s", (iMarkInScale == 0 ? "0" : ""), szScale, (iMarkInScale == -1 ? ".0" : (iMarkInScale == (strlen(szScale) - 1) ? "0" : "")));
   FormatEx(szTimeEdited, sizeof(szTimeEdited), "%s%s%s", (iMarkInTime == 0 ? "0" : ""), szTime, (iMarkInTime == -1 ? ".0" : (iMarkInTime == (strlen(szTime) - 1) ? "0" : "")));
-  
+
   char szPart[16];
-  
+
   if (target_count == 1)
   {
     switch (type)
@@ -1095,7 +1106,7 @@ bool NotifyPlayers(const int type, const int iOrigin, const bool tn_is_ml, const
       case ResizeType_Hands:    strcopy(szPart, sizeof(szPart), "'s hands were");
       default:                  strcopy(szPart, sizeof(szPart), " was");
     }
-  
+
     switch ((view_as<int>(StringToFloat(szScale) > 0.0) << 2) | (view_as<int>(StringToFloat(szTime) > 0.0) << 1) | view_as<int>(g_iNotify == 1))
     {
       case 0b000:  CPrintToChatAdmins(ADMFLAG_RESERVATION, "%s%N%s \x05resized\x01 to \x05%s\x01!", CHAT_TAG, targets[0], szPart, g_szClientCurrentScale[type][targets[0]]);
@@ -1130,7 +1141,7 @@ bool NotifyPlayers(const int type, const int iOrigin, const bool tn_is_ml, const
         default:                  strcopy(szPart, sizeof(szPart), "");
       }
     }
-  
+
     switch ((view_as<int>(StringToFloat(szScale) > 0.0) << 2) | (view_as<int>(StringToFloat(szTime) > 0.0) << 1) | view_as<int>(g_iNotify == 1))
     {
       case 0b000:  CPrintToChatAdmins(ADMFLAG_RESERVATION, "%s%N \x05resized\x01 %s%s!", CHAT_TAG, iOrigin, szTarget, szPart);
@@ -1149,7 +1160,7 @@ bool NotifyPlayers(const int type, const int iOrigin, const bool tn_is_ml, const
 public Action ResizeTimer(Handle timer, Handle pack)
 {
   ResetPack(pack);
-  
+
   int type = ReadPackCell(pack);
   int client = GetClientOfUserId(ReadPackCell(pack));
   char szOriginalScale[8];
@@ -1178,7 +1189,7 @@ void ResizeMenuHandlerTyped(const int type, Handle menu, MenuAction action, int 
     {
       return;
     }
-  
+
     char info[32];
     GetMenuItem(menu, param2, info, sizeof(info));
     StopTimer(param1, type);
@@ -1236,7 +1247,7 @@ public int ResizeHandsMenuHandler(Handle menu, MenuAction action, int param1, in
 public void ConVarEnabledChanged(Handle convar, const char[] oldvalue, const char[] newvalue)
 {
   g_bEnabled = (StringToInt(newvalue) != 0);
-  
+
   for (int i = 1; i <= MaxClients; i++)
   {
     if (IsClientInGame(i) && IsClientAuthorized(i) && !IsClientReplay(i) && !IsClientSourceTV(i))
@@ -1254,7 +1265,7 @@ public void ConVarDamageChanged(Handle convar, const char[] oldvalue, const char
 public void ConVarStepsChanged(Handle convar, const char[] oldvalue, const char[] newvalue)
 {
   g_iSteps = StringToInt(newvalue);
-  
+
   for (int i = 1; i <= MaxClients; i++)
   {
     if (IsClientInGame(i) && IsClientAuthorized(i) && !IsClientReplay(i) && !IsClientSourceTV(i))
@@ -1378,7 +1389,7 @@ void ConVarScaleChangedTyped(const int type, const char[] szDefaultConVar, const
   TrimString(g_szDefault[type]);
   g_fDefaultResize[type] = StringToFloat(newvalue);
   CheckDefaultValue(g_fDefaultResize[type], g_szDefault[type], sizeof(g_szDefault[]), szDefaultConVar, szFallback);
-  
+
   for (int i = 1; i <= MaxClients; i++)
   {
     g_fClientLastScale[type][i] = g_fDefaultResize[type];
@@ -1452,7 +1463,7 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
     {
       return Plugin_Continue;
     }
-    
+
     //Alter backstabs to deal same damage ratio as body size.
     if (g_bIsTF2 && g_bBackstab && g_bCustomDmgAvailable && victim > 0 && victim <= MaxClients && damagecustom == TF_CUSTOM_BACKSTAB)
     {
@@ -1460,7 +1471,7 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
       damage = RoundToCeil(GetMax(iMaxHealth, GetEntProp(victim, Prop_Data, "m_iHealth")) * g_fClientCurrentScale[ResizeType_Generic][attacker]) / 3.0;
       return Plugin_Changed;
     }
-    
+
     if (weapon == -1 && inflictor > MaxClients && IsValidEntity(inflictor))
     {
       char szClassName[64];
@@ -1470,7 +1481,7 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
         return Plugin_Continue;
       }
     }
-    
+
     damage *= g_fClientCurrentScale[ResizeType_Generic][attacker];
     return Plugin_Changed;
   }

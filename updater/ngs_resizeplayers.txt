@@ -1,0 +1,20 @@
+"Updater"
+{
+	"Information"
+	{
+		"Version"
+		{
+			"Latest"	"2.1.0"
+		}
+		
+		"Notes"	"Add updater support!"
+		"Notes"	"Remove extra spaces from sp."
+	}
+	
+	"Files"
+	{
+		"Plugin"	"Path_SM/plugins/ngs_resizeplayers.smx"
+		
+		"Source"	"Path_SM/scripting/ngs_resizeplayers.sp"
+	}
+}

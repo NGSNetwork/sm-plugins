@@ -1,11 +1,22 @@
+/**
+* TheXeon
+* ngs_randomfilter.sp
+*
+* Files:
+* addons/sourcemod/plugins/ngs_randomfilter.smx
+*
+* Dependencies:
+* tf2_stocks.inc, ngsutils.inc, ngsupdater.inc
+*/
 #pragma newdecls required
 #pragma semicolon 1
 
-#include <sourcemod>
-#include <tf2>
-#include <tf2_stocks>
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
 
-#define PLUGIN_VERSION "1.0.5"
+#include <tf2_stocks>
+#include <ngsutils>
+#include <ngsupdater>
 
 //--------------------//
 
@@ -13,8 +24,8 @@ public Plugin myinfo = {
 	name = "[NGS] Random Filter",
 	author = "TheXeon",
 	description = "Adds a filter to target random people.",
-	version = PLUGIN_VERSION,
-	url = "https://matespastdates.servegame.com"
+	version = "1.1.1",
+	url = "https://www.neogenesisnetwork.net"
 }
 
 public void OnPluginStart()
@@ -27,7 +38,7 @@ public void OnPluginStart()
 	AddMultiTargetFilter("@rblue", TargetRandomBlue, "Random player on blue", false);
 }
 
-public void OnPluginEnd ()
+public void OnPluginEnd()
 {
 	RemoveMultiTargetFilter("@random", TargetRandom);
 	RemoveMultiTargetFilter("@r", TargetRandom);
@@ -35,7 +46,7 @@ public void OnPluginEnd ()
 	RemoveMultiTargetFilter("@rred", TargetRandomRed);
 	RemoveMultiTargetFilter("@randomblue", TargetRandomBlue);
 	RemoveMultiTargetFilter("@rblue", TargetRandomBlue);
-	
+
 }
 
 public bool TargetRandom(const char[] pattern, Handle clients)
@@ -76,14 +87,3 @@ public bool TargetRandomRed(const char[] pattern, Handle clients)
 	PushArrayCell(clients, client);
 	return true;
 }
-
-public bool IsValidClient (int client)
-{
-	if(client > 4096) client = EntRefToEntIndex(client);
-	if(client < 1 || client > MaxClients) return false;
-	if(!IsClientInGame(client)) return false;
-	if(IsFakeClient(client)) return false;
-	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
-	return true;
-}
-

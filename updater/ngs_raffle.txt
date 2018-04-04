@@ -1,0 +1,20 @@
+"Updater"
+{
+	"Information"
+	{
+		"Version"
+		{
+			"Latest"	"1.1.5"
+		}
+		
+		"Notes"	"Add updater support!"
+		"Notes"	"Remove extra spaces from sp."
+	}
+	
+	"Files"
+	{
+		"Plugin"	"Path_SM/plugins/ngs_raffle.smx"
+		
+		"Source"	"Path_SM/scripting/ngs_raffle.sp"
+	}
+}

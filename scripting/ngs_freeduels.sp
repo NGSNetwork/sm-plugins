@@ -1,22 +1,32 @@
+/**
+* TheXeon
+* ngs_freeduels.sp
+*
+* Files:
+* addons/sourcemod/plugins/ngs_freeduels.smx
+* addons/sourcemod/translations/free_duels.phrases.txt
+* cfg/sourcemod/free_duels.cfg
+*
+* Dependencies:
+* sourcemod.inc, sdkhooks.inc, tf2_stocks.inc, multicolors.inc, free_duels.inc,
+* friendly.inc, ngsutils.inc, ngsupdater.inc
+*/
 #pragma newdecls required
 #pragma semicolon 1
 
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
+
 #include <sourcemod>
-#include <sdktools>
 #include <sdkhooks>
-#include <tf2>
 #include <tf2_stocks>
-#include <morecolors>
+#include <multicolors>
 #include <free_duels>
 #include <friendly>
+#include <ngsutils>
+#include <ngsupdater>
 
-
-#define PLUGIN_NAME         "[NGS] Free duels"
-#define PLUGIN_AUTHOR       "Erreur 500 / TheXeon"
-#define PLUGIN_DESCRIPTION	"Challenge other players"
-#define PLUGIN_VERSION      "2.1"
-#define PLUGIN_CONTACT      "erreur500@hotmail.fr"
-#define WEBSITE 			"http://adf.ly/qVkzU"
+#define WEBSITE 			"https://www.neogenesisnetwork.net"
 #define MAX_LINE_WIDTH 		60
 #define CHECK_DELAY 		0.1
 
@@ -82,16 +92,15 @@ int Countdown = 600;
 
 
 public Plugin myinfo = {
-    name        = PLUGIN_NAME,
-    author      = PLUGIN_AUTHOR,
-    description = PLUGIN_DESCRIPTION,
-    version     = PLUGIN_VERSION,
-    url         = PLUGIN_CONTACT
+    name        = "[NGS] Free duels",
+    author      = "Erreur 500 / TheXeon",
+    description = "Challenge other players",
+    version     = "1.2.1",
+    url         = "https://www.neogenesisnetwork.net"
 }
 
 public void OnPluginStart()
 {
-	CreateConVar("duel_version", PLUGIN_VERSION, "Duel version", FCVAR_NOTIFY|FCVAR_DONTRECORD);
 	cvarEnabled 		= CreateConVar("duel_enabled", 			"1", 	"Enable or disable Free Duels ?", 0, true, 0.0, true, 1.0);
 	c_Tag		 		= CreateConVar("duel_tag", 				"1", 	"Add 'duels' tags", 0, true, 0.0, true, 1.0);
 	c_Immunity			= CreateConVar("duel_immunity", 		"0", 	"a or b or o or p or q or r or s or t or z for flag needed, 0 = no flag needed");
@@ -104,7 +113,6 @@ public void OnPluginStart()
 	c_GodModFlag		= CreateConVar("duel_godmod_flag", 		"0", 	"Flag needed to create godmod duel : a or b or o or p or q or r or s or t or z, 0 = no flag");
 	c_EnableHeadShot	= CreateConVar("duel_headshot", 		"1", 	"0 = disable head shot only (sniper), 1 = enable", 0, true, 0.0, true, 1.0);
 	c_HeadShotFlag		= CreateConVar("duel_headshot_flag", 	"a", 	"Flag needed to create head shot duel : a or b or o or p or q or r or s or t or z, 0 = no flag");
-
 
 	if(cvarEnabled.BoolValue)
 	{
@@ -127,18 +135,37 @@ public void OnPluginStart()
 		HookEvent("player_death", EventPlayerDeath);
 		HookEvent("player_team", EventPlayerTeam, EventHookMode_Pre);
 		HookEvent("player_changeclass", EventPlayerchangeclass, EventHookMode_Pre);
-		HookEvent("player_hurt", Eventplayerhurt, EventHookMode_Pre);
 		HookEvent("player_builtobject", EventBuiltObject);
 		HookEvent("teamplay_round_win", EventRoundEnd);
 		HookEvent("teamplay_flag_event", EventFlag);
 		HookEvent("controlpoint_starttouch", EventCPStartTouch);
 		HookEvent("controlpoint_endtouch", EventCPEndTouch);
 
+		for (int iClient = 1; iClient <= MaxClients; iClient++)
+          if (IsClientInGame(iClient)) OnClientPutInServer(iClient);
 
 		CreateTimer(1.0, Timer, INVALID_HANDLE, TIMER_REPEAT);
 	}
 	else
 		LogMessage("Loading : Free Duels disabled by CVar");
+}
+
+public void OnPluginEnd()
+{
+	for(int i = 1; i <= MaxClients ; i++)
+	{
+		if(g_Duel[i][Enabled])
+		{
+			EndDuel(i, g_Duel[i][Type]);
+			g_Duel[i][Enabled] = false;
+			g_Duel[g_Duel[i][Challenger]][Enabled] = false;
+		}
+	}
+}
+
+public void OnClientPutInServer(int client)
+{
+	SDKHook(client, SDKHook_OnTakeDamage, OnTakeDamage);
 }
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -557,7 +584,7 @@ public void EventPlayerchangeclass(Event event, const char[] name, bool bHidden)
 
 public Action EventRoundEnd(Event event, const char[] name, bool bHidden)
 {
-	for(int i = 1; i < MaxClients ; i++)
+	for(int i = 1; i <= MaxClients ; i++)
 	{
 		if(g_Duel[i][Enabled])
 		{
@@ -568,19 +595,20 @@ public Action EventRoundEnd(Event event, const char[] name, bool bHidden)
 	}
 }
 
-public Action Eventplayerhurt(Event event, const char[] name, bool bHidden)
+public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &damage, int &damagetype)
 {
+	if (!IsValidClient(victim) || !IsValidClient(attacker)) return Plugin_Continue;
 	if(c_EnableGodMod.BoolValue)
 	{
-		int client = GetClientOfUserId(event.GetInt("userid"));
-		int damageAmount = event.GetInt("damageamount");
-		int attacker = GetClientOfUserId(event.GetInt("attacker"));
+		// int damageAmount = event.GetInt("damageamount");
 
-		if(((g_Duel[client][Challenger] != attacker) || (g_Duel[attacker][Challenger] != client)) && (client != attacker) && ((g_Duel[client][Enabled] && g_Duel[client][GodMod] == 1 ) || (g_Duel[attacker][Enabled] && g_Duel[attacker][GodMod] == 1)) && IsValidClient(attacker))
+		if(((g_Duel[victim][Challenger] != attacker) || (g_Duel[attacker][Challenger] != victim)) && (victim != attacker) && ((g_Duel[victim][Enabled] && g_Duel[victim][GodMod] == 1 ) || (g_Duel[attacker][Enabled] && g_Duel[attacker][GodMod] == 1)) && IsValidClient(attacker))
 		{
-			SetEntityHealth(client, GetClientHealth(client) + damageAmount);
+			return Plugin_Handled;
+			// SetEntityHealth(client, GetClientHealth(client) + damageAmount);
 		}
 	}
+	return Plugin_Continue;
 }
 
 public Action EventCPStartTouch(Handle hEvent, const char[] strName, bool bHidden)
@@ -686,7 +714,7 @@ public void CallPanel(int iClient)
 			if(iteam == 2 || iteam == 3)
 			{
 				int nbr = 0;
-				for(int i = 1; i < MaxClients ; i++)	// Create an array if valid players (players + bots)
+				for(int i = 1; i <= MaxClients ; i++)	// Create an array if valid players (players + bots)
 				{
 					Player[i-1] = 0;
 					if(IsValidClient(i) && GetClientTeam(i) == iteam && !g_Duel[i][Enabled] && g_Duel[i][Challenger] == 0)
@@ -864,7 +892,7 @@ public int DuelOptionAnswer(Handle menu, MenuAction action, int Player1, int arg
 				PlayerPerClass[0][i] = 0;
 				PlayerPerClass[1][i] = 0;
 			}
-			for(int i = 1; i < MaxClients; i++)
+			for(int i = 1; i <= MaxClients; i++)
 				if(IsClientInGame(i))
 					PlayerPerClass[GetClientTeam(i)%2][TF2_GetPlayerClass(i)] ++;
 
@@ -1050,7 +1078,7 @@ bool StartReadingFromTable()
 	for (i=0; i<10; i++)
 		MaxPlayers[i] = -1;
 
-	for (i=0; i<=GetMaxClients(); i++)
+	for (i=0; i<= MaxClients; i++)
 		for (a=TFTeam_Unassigned; a <= TFTeam_Blue; a++)
 			MaxClass[i][a] = MaxPlayers;
 
@@ -1173,7 +1201,7 @@ public void ChallengerMenu(int Player1, int Player2)
 		return;
 	}
 
-	for(int i = 1; i<MaxClients; i++)
+	for(int i = 1; i<= MaxClients; i++)
 		if(IsValidClient(i) && i != g_Duel[Player1][Challenger])
 			CPrintToChat(i, "%t", "Challenged", Player1, g_Duel[Player1][Challenger]);
 
@@ -1414,11 +1442,11 @@ public Action Hook_SetTransmit(int entity, int iClient)
 public Action Timer(Handle timer)
 {
 	char FlagNeeded[2];
-	GetConVarString(c_Immunity, FlagNeeded, sizeof(FlagNeeded));
+	c_Immunity.GetString(FlagNeeded, sizeof(FlagNeeded));
 	Countdown--;
-	for(int t=1; t<=MaxClients; t++)
+	for(int t=1; t <= MaxClients; t++)
 	{
-		if(IsClientInGame(t) && IsClientConnected(t) && !IsClientReplay(t) && !IsClientSourceTV(t) && g_Duel[t][Enabled])
+		if(IsValidClient(t) && g_Duel[t][Enabled])
 		{
 			HudMessageTime(t);
 
@@ -1510,17 +1538,6 @@ public Action AbortDuel(int iClient, int Args)
 //------------------------------------------------------------------------------------------------------------------------
 //							Security functions
 //------------------------------------------------------------------------------------------------------------------------
-
-
-public bool IsValidClient(int client)
-{
-	if(client > 4096) client = EntRefToEntIndex(client);
-	if(client < 1 || client > MaxClients) return false;
-	if(!IsClientInGame(client)) return false;
-	if(IsFakeClient(client)) return false;
-	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
-	return true;
-}
 
 public bool isGoodSituation(int iClient, int Player2)
 {

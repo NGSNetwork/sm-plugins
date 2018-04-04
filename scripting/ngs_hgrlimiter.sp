@@ -1,15 +1,25 @@
-#include <sourcemod>
-#include <hgr>
-#include <tf2>
-#include <tf2_stocks>
-#include <multicolors>
-
+/**
+* TheXeon
+* ngs_hgrlimiter.sp
+*
+* Files:
+* addons/sourcemod/plugins/ngs_hgrlimiter.smx
+*
+* Dependencies:
+* hgr.inc, tf2_stocks.inc, multicolors.inc, ngsutils.inc, ngsupdater.inc
+*/
 #pragma newdecls required
 #pragma semicolon 1
 
-#define PLUGIN_VERSION "1.0.0"
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
 
-// Handle hHookCooldown[MAXPLAYERS + 1];
+#include <hgr>
+#include <tf2_stocks>
+#include <multicolors>
+#include <ngsutils>
+#include <ngsupdater>
+
 bool inCiv[MAXPLAYERS + 1];
 
 //--------------------//
@@ -18,7 +28,7 @@ public Plugin myinfo = {
 	name = "[NGS] Hook Nerfer",
 	author = "TheXeon",
 	description = "Nerfs hooks for donors and above!",
-	version = PLUGIN_VERSION,
+	version = "1.1.0",
 	url = "https://www.neogenesisnetwork.net"
 }
 
@@ -55,7 +65,7 @@ stock void KillBuildingsAndCiv(int client)
 	if (TF2_GetPlayerClass(client) == TFClass_Engineer)
 	{
 		int iEnt = -1;
-		while ((iEnt = FindEntityByClassname(iEnt, "obj_sentrygun")) != INVALID_ENT_REFERENCE)
+		while ((iEnt = FindEntityByClassname(iEnt, "obj_sentrygun")) != -1)
 		{
 			if (GetEntPropEnt(iEnt, Prop_Send, "m_hBuilder") == client)
 			{
@@ -70,9 +80,9 @@ stock void KillBuildingsAndCiv(int client)
 	CPrintToChat(client, "{GREEN}[HGR]{DEFAULT} You have been put into civilian mode.");
 }
 /*
-public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon) 
+public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon)
 {
-	if (buttons & IN_ATTACK && hHookCooldown[client] == null) 
+	if (buttons & IN_ATTACK && hHookCooldown[client] == null)
 	{
 		hHookCooldown[client] = CreateTimer(7.0, OnHookCooldownTimer, client);
 		if (HGR_IsHooking(client) || HGR_IsRoping(client) || HGR_IsPushing(client) || HGR_IsAscending(client) || HGR_IsDescending(client))
@@ -82,7 +92,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 			HGR_StopRope(client);
 		}
 	}
-	return Plugin_Continue; 
+	return Plugin_Continue;
 }
 
 public void Event_PlayerHurt(Event event, const char[] name, bool dontBroadcast)
@@ -118,12 +128,3 @@ public void OnClientDisconnect(int client)
 	}
 }
 */
-public bool IsValidClient (int client)
-{
-	if(client > 4096) client = EntRefToEntIndex(client);
-	if(client < 1 || client > MaxClients) return false;
-	if(!IsClientInGame(client)) return false;
-	if(IsFakeClient(client)) return false;
-	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
-	return true;
-}

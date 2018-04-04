@@ -1,17 +1,28 @@
+/**
+* TheXeon
+* ngs_rtdpunisher.sp
+*
+* Files:
+* addons/sourcemod/plugins/ngs_rtdpunisher.smx
+*
+* Dependencies:
+* tf2_stocks.inc, multicolors.inc, ngsutils.inc, ngsupdater.inc
+*/
 #pragma newdecls required
 #pragma semicolon 1
 
-#include <sdktools>
-#include <sourcemod>
-#include <tf2>
-#include <morecolors>
-#include <clientprefs>
+#define LIBRARY_ADDED_FUNC LibraryAdded
+#define LIBRARY_REMOVED_FUNC LibraryRemoved
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
+
+#include <tf2_stocks>
+#include <multicolors>
+#include <ngsutils>
+#include <ngsupdater>
 
 #undef REQUIRE_PLUGIN
 #include <basecomm>
-
-
-#define PLUGIN_VERSION "1.5"
 
 //-------------------------------------------------------------------------------------------------
 
@@ -23,9 +34,9 @@ bool basecommExists = false;
 public Plugin myinfo = {
 	name = "[NGS] RTD Punisher",
 	author = "TheXeon",
-	description = "Negatively affects those who try rtd",
-	version = PLUGIN_VERSION,
-	url = "https://neogenesisnetwork.net"
+	description = "Negatively affects those who try rtd.",
+	version = "1.5.5",
+	url = "https://www.neogenesisnetwork.net"
 }
 
 public void OnPluginStart()
@@ -37,13 +48,13 @@ public void OnPluginStart()
 }
 
 public void OnClientPutInServer(int client)
-{ 
-	RTDCooldown[client] = 0; 
+{
+	RTDCooldown[client] = 0;
 }
 
-public void OnLibraryAdded(const char[] name) { if (StrEqual(name, "basecomm")) basecommExists = true; }
+public void LibraryAdded(const char[] name) { if (StrEqual(name, "basecomm")) basecommExists = true; }
 
-public void OnLibraryRemoved(const char[] name) { if (StrEqual(name, "basecomm")) basecommExists = false; }
+public void LibraryRemoved(const char[] name) { if (StrEqual(name, "basecomm")) basecommExists = false; }
 
 public Action CommandRTDEffect(int client, int args)
 {
@@ -54,50 +65,47 @@ public Action CommandRTDEffect(int client, int args)
 public void DoRTD(int client)
 {
 	if (!IsValidClient(client)) return;
-	
+
 	if(!IsPlayerAlive(client))
 	{
 		CReplyToCommand(client, "{YELLOW}[LOLRTD]{DEFAULT} You must be alive to use RTD!");
 		return;
 	}
-	
-	int currentTime = GetTime(); 
+
+	int currentTime = GetTime();
 	if (currentTime - RTDCooldown[client] < 7)
     {
-   		CReplyToCommand(client, "{YELLOW}[LOLRTD]{DEFAULT} You must wait {PURPLE}%d{DEFAULT} seconds to roll again.", 7 - (currentTime - RTDCooldown[client]));
-   		return;
+		CReplyToCommand(client, "{YELLOW}[LOLRTD]{DEFAULT} You must wait {PURPLE}%d{DEFAULT} seconds to roll again.", 7 - (currentTime - RTDCooldown[client]));
+		return;
   	}
 
 	RTDCooldown[client] = currentTime;
-	
-	char playerName[MAX_NAME_LENGTH];
-	GetClientName(client, playerName, sizeof(playerName));
-	
+
 	int randomEffectID = GetRandomInt(1, 3);
-	
+
 	switch (randomEffectID)
 	{
 		case 1:
 		{
 			SlapPlayer(client, 1000);
 			CReplyToCommand(client, "{YELLOW}[LOLRTD]{DEFAULT} You rolled {PURPLE}Instant Death{DEFAULT}! {LIGHTGREEN}Roll again!");
-			SayToAllElse(client, playerName);
+			SayToAllElse(client);
 			return;
 		}
-		
+
 		case 2:
 		{
 			TF2_IgnitePlayer(client, client);
 			CReplyToCommand(client, "{YELLOW}[LOLRTD]{DEFAULT} You rolled {PURPLE}Ignition{DEFAULT}! {LIGHTGREEN}We will unfortunately never have this plugin on the server.");
-			SayToAllElse(client, playerName);
+			SayToAllElse(client);
 			return;
 		}
-		
+
 		case 3:
 		{
 			TF2_RespawnPlayer(client);
 			CReplyToCommand(client, "{YELLOW}[LOLRTD]{DEFAULT} You rolled {PURPLE}Instant Respawn{DEFAULT}! {LIGHTGREEN}Roll again, randomness is based on your lag!");
-			SayToAllElse(client, playerName);
+			SayToAllElse(client);
 			return;
 		}
 	}
@@ -110,28 +118,26 @@ public Action Listener_Say(int client, int args)
 	GetCmdArgString(text, sizeof(text));
 	StripQuotes(text);
 	// LogMessage("Text is %s!", text);
-	if (!(FindCharInString(text, '/') == 1 || FindCharInString(text, '!') == 1) && 
+	if (!(FindCharInString(text, '/') == 1 || FindCharInString(text, '!') == 1) &&
 		(StrEqual(text, "rtd", false) || StrEqual(text, "rollthedice", false)))
 	{
 		if (basecommExists && BaseComm_IsClientGagged(client))
 		{
 			CPrintToChat(client, "{YELLOW}[RTD]{DEFAULT} Sorry, you may not use RTD!");
-			return Plugin_Continue;
 		}
 		else
 		{
 			DoRTD(client);
-			return Plugin_Continue;
 		}
 	}
-	
+
 	return Plugin_Continue;
 }
 
-public void SayToAllElse(int client, char[] cPlayerName)
+public void SayToAllElse(int client)
 {
 	int randomSayID = GetRandomInt(1, 6);
-	
+
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsValidClient(i) && i != client)
@@ -140,44 +146,34 @@ public void SayToAllElse(int client, char[] cPlayerName)
 			{
 				case 1:
 				{
-					CPrintToChat(i, "{YELLOW}[LOLRTD]{DEFAULT} {LIGHTGREEN}%s{DEFAULT} rolled {GREEN}toxic{DEFAULT}!", cPlayerName);
+					CPrintToChat(i, "{YELLOW}[LOLRTD]{DEFAULT} {LIGHTGREEN}%N{DEFAULT} rolled {GREEN}toxic{DEFAULT}!", client);
 				}
-				
+
 				case 2:
 				{
-					CPrintToChat(i, "{YELLOW}[LOLRTD]{DEFAULT} {LIGHTGREEN}%s{DEFAULT} rolled {GREEN}instant kills{DEFAULT}!", cPlayerName);
+					CPrintToChat(i, "{YELLOW}[LOLRTD]{DEFAULT} {LIGHTGREEN}%N{DEFAULT} rolled {GREEN}instant kills{DEFAULT}!", client);
 				}
-				
+
 				case 3:
 				{
-					CPrintToChat(i, "{YELLOW}[LOLRTD]{DEFAULT} {LIGHTGREEN}%s{DEFAULT} rolled {GREEN}godmode{DEFAULT}!", cPlayerName);
+					CPrintToChat(i, "{YELLOW}[LOLRTD]{DEFAULT} {LIGHTGREEN}%N{DEFAULT} rolled {GREEN}godmode{DEFAULT}!", client);
 				}
-				
+
 				case 4:
 				{
-					CPrintToChat(i, "{YELLOW}[LOLRTD]{DEFAULT} {LIGHTGREEN}%s{DEFAULT} rolled {GREEN}homing projectiles{DEFAULT}!", cPlayerName);
+					CPrintToChat(i, "{YELLOW}[LOLRTD]{DEFAULT} {LIGHTGREEN}%N{DEFAULT} rolled {GREEN}homing projectiles{DEFAULT}!", client);
 				}
-				
+
 				case 5:
 				{
-					CPrintToChat(i, "{YELLOW}[LOLRTD]{DEFAULT} {LIGHTGREEN}%s{DEFAULT} rolled {GREEN}noclip{DEFAULT}!", cPlayerName);
+					CPrintToChat(i, "{YELLOW}[LOLRTD]{DEFAULT} {LIGHTGREEN}%N{DEFAULT} rolled {GREEN}noclip{DEFAULT}!", client);
 				}
-				
+
 				case 6:
 				{
-					CPrintToChat(i, "{YELLOW}[LOLRTD]{DEFAULT} {LIGHTGREEN}%s{DEFAULT} rolled {GREEN}sp00ky bullets{DEFAULT}!", cPlayerName);
+					CPrintToChat(i, "{YELLOW}[LOLRTD]{DEFAULT} {LIGHTGREEN}%N{DEFAULT} rolled {GREEN}sp00ky bullets{DEFAULT}!", client);
 				}
 			}
 		}
 	}
-}
-
-public bool IsValidClient(int client)
-{
-	if(client > 4096) client = EntRefToEntIndex(client);
-	if(client < 1 || client > MaxClients) return false;
-	if(!IsClientInGame(client)) return false;
-	if(IsFakeClient(client)) return false;
-	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
-	return true;
 }

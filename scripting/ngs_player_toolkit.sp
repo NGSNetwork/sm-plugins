@@ -1,16 +1,27 @@
+/**
+* TheXeon
+* ngs_player_toolkit.sp
+*
+* Files:
+* addons/sourcemod/plugins/ngs_player_toolkit.smx
+*
+* Dependencies:
+* clientprefs.inc, tf2_stocks.inc, advanced_motd.inc, multicolors.inc,
+* ngsutils.inc, ngsupdater.inc
+*/
 #pragma newdecls required
 #pragma semicolon 1
 
-#include <sourcemod>
-#include <sdktools>
-#include <sdkhooks>
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
+
 #include <clientprefs>
 #include <tf2_stocks>
-#include <tf2>
 #include <advanced_motd>
 #include <multicolors>
+#include <ngsutils>
+#include <ngsupdater>
 
-#define PLUGIN_VERSION "1.0.0"
 #define STEAMCOMMUNITY_PROFILESURL "https://steamcommunity.com/profiles/"
 
 int BAMCooldown[MAXPLAYERS + 1];
@@ -29,7 +40,7 @@ public Plugin myinfo = {
 	name = "[NGS] Player Tools",
 	author = "TheXeon",
 	description = "Player commands for NGS people.",
-	version = PLUGIN_VERSION,
+	version = "1.2.1",
 	url = "https://neogenesisnetwork.net"
 }
 
@@ -51,13 +62,13 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_toggledamagenotif", CommandToggleDamageNotif, "Usage: sm_toggledamagenotif");
 	RegConsoleCmd("sm_toggledamagenotifs", CommandToggleDamageNotif, "Usage: sm_toggledamagenotifs");
 	LoadTranslations("common.phrases");
-	
+
 	cvarAutoTag = CreateConVar("sm_ngsplayertoolkit_autotag", "NGS", "Tag to give players, leave blank to disable.");
 	autoTagEnabledCookie = RegClientCookie("AutoTagEnabled", "Is autotag enabled?", CookieAccess_Public);
 	getDamageNotificationCookie = RegClientCookie("DamageNotifsEnabled", "Is damage notifications enabled.", CookieAccess_Public);
-	
+
 	HookEvent("player_death", OnPlayerDeath);
-	
+
 	for (int i = MaxClients; i > 0; --i)
 	{
 		if (!AreClientCookiesCached(i))
@@ -77,7 +88,7 @@ public void OnMapStart()
 	PrecacheSound("weapons/ambassador_shoot.wav", false);
 	PrecacheSound("weapons/sentry_empty.wav", false);
 	PrecacheSound("weapons/diamond_back_01.wav", false);
-	
+
 	// Laughing taunt
 	PrecacheSound("vo/scout_laughlong02.mp3");
 	PrecacheSound("vo/soldier_laughlong03.mp3");
@@ -96,7 +107,7 @@ public void OnClientCookiesCached(int client)
 	char notifValue[8];
 	GetClientCookie(client, autoTagEnabledCookie, sValue, sizeof(sValue));
 	GetClientCookie(client, getDamageNotificationCookie, notifValue, sizeof(notifValue));
-	
+
 	isPlayerAutoTagEnabled[client] = (sValue[0] != '\0' && StringToInt(sValue));
 	isDamageNotificationEnabled[client] = (notifValue[0] != '\0' && StringToInt(notifValue));
 }
@@ -115,9 +126,9 @@ public void OnClientPostAdminCheck(int client)
 }
 
 public void OnClientPutInServer(int client)
-{ 
+{
 	BAMOptOut[client] = false;
-	BAMCooldown[client] = 0; 
+	BAMCooldown[client] = 0;
 }
 
 public Action CommandGetProfile(int client, int args)
@@ -129,15 +140,15 @@ public Action CommandGetProfile(int client, int args)
 		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_profile <#userid|name>");
 		return Plugin_Handled;
 	}
-	
+
 	char arg1[MAX_TARGET_LENGTH];
-	
+
 	GetCmdArg(1, arg1, sizeof(arg1));
 	int target = FindTarget(client, arg1, true, false);
 
 	if (!IsValidClient(target)) return Plugin_Handled;
-	
-	
+
+
 	char targetAuthID[MAX_BUFFER_LENGTH];
 	char profileLink [MAX_BUFFER_LENGTH];
 	if (GetClientAuthId(target, AuthId_SteamID64, targetAuthID, sizeof(targetAuthID)))
@@ -156,7 +167,7 @@ public Action CommandGetProfile(int client, int args)
 public Action CommandYum(int client, int args)
 {
 	if (!IsValidClient(client)) return Plugin_Handled;
-	
+
 	FakeClientCommand(client, "explode");
 	CPrintToChat(client, "{GREEN}[SM]{DEFAULT} That's {LIGHTGREEN}Andy{DEFAULT}'s thing, stahp.");
 	return Plugin_Handled;
@@ -165,7 +176,7 @@ public Action CommandYum(int client, int args)
 public Action CommandDoQuack(int client, int args)
 {
 	if (!IsValidClient(client)) return Plugin_Handled;
-	
+
 	EmitSoundToClient(client, "ambient/bumper_car_quack11.wav");
 	EmitSoundToClient(client, "ambient/bumper_car_quack11.wav");
 	EmitSoundToClient(client, "ambient/bumper_car_quack11.wav");
@@ -200,7 +211,7 @@ public Action CommandRussianRoulette(int client, int args)
 		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You must be alive to use this!");
 		return Plugin_Handled;
 	}
-	
+
 	int numOfBullets = 1;
 	if (args > 0)
 	{
@@ -213,7 +224,7 @@ public Action CommandRussianRoulette(int client, int args)
 			return Plugin_Handled;
 		}
 	}
-	
+
 	int randomInt = GetRandomInt(1, 6);
 	if (numOfBullets < randomInt)
 	{
@@ -236,14 +247,14 @@ public Action CommandRussianRoulette(int client, int args)
 public Action CommandBamboozle(int client, int args)
 {
 	if (!IsValidClient(client)) return Plugin_Handled;
-	
+
 	if (BAMOptOut[client])
 	{
 		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You may not bamboozle when opted out. Use !dontbamboozleme to opt back in.");
 		return Plugin_Handled;
 	}
-	
-	int currentTime = GetTime(); 
+
+	int currentTime = GetTime();
 	if (currentTime - BAMCooldown[client] < 7)
     {
    		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You must wait {PURPLE}%d{DEFAULT} seconds to bam again.", 7 - (currentTime - BAMCooldown[client]));
@@ -252,26 +263,26 @@ public Action CommandBamboozle(int client, int args)
   	}
 
 	BAMCooldown[client] = currentTime;
-	
+
 	if (args < 1)
 	{
 		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_bamboozle <#userid|name>");
 		return Plugin_Handled;
 	}
-	
+
 	char arg1[MAX_BUFFER_LENGTH];
-	
+
 	GetCmdArg(1, arg1, sizeof(arg1));
 	int target = FindTarget(client, arg1, true, false);
 
 	if (target == -1) return Plugin_Handled;
-	
+
 	if (BAMOptOut[target])
 	{
 		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} The target has opted out of bamboozlement.");
 		return Plugin_Handled;
 	}
-	
+
 	EmitSoundToClient(target, "vo/demoman_specialcompleted11.mp3");
 	EmitSoundToClient(target, "vo/demoman_specialcompleted11.mp3");
 	EmitSoundToClient(target, "vo/demoman_specialcompleted11.mp3");
@@ -280,11 +291,11 @@ public Action CommandBamboozle(int client, int args)
 	ShowSyncHudText(target, hHudText, "BAMBOOZLED");
 	ShowSyncHudText(client, hHudText, "BAMBOOZLED");
 	delete hHudText;
-	
+
 	char targetName[MAX_BUFFER_LENGTH], clientName[MAX_BUFFER_LENGTH];
 	GetClientName(target, targetName, sizeof(targetName));
 	GetClientName(client, clientName, sizeof(clientName));
-	
+
 	CPrintToChatAll("{GREEN}[SM]{DEFAULT} {LIGHTGREEN}%s{DEFAULT} just {RED}B{ORANGE}A{YELLOW}M{GREEN}B{BLUE}O{PURPLE}O{MAGENTA}Z{BLACK}L{WHITE}E{GREEN}D{DEFAULT} {LIGHTGREEN}%s{DEFAULT}!", clientName, targetName);
 	return Plugin_Handled;
 }
@@ -292,7 +303,7 @@ public Action CommandBamboozle(int client, int args)
 public Action CommandDontBamboozle(int client, int args)
 {
 	if (!IsValidClient(client)) return Plugin_Handled;
-	
+
 	BAMOptOut[client] = !BAMOptOut[client];
 	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You have opted %s bamboozlement.", BAMOptOut[client] ? "out of" : "into");
 	return Plugin_Handled;
@@ -301,7 +312,7 @@ public Action CommandDontBamboozle(int client, int args)
 public Action CommandChowMane(int client, int args)
 {
 	if (!IsValidClient(client)) return Plugin_Handled;
-	
+
 	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} APPLY CHOW MANE LIBERALLY TO EAR CANALS!!ONE!11!ONE");
 	EmitSoundToClient(client, "coach/coach_attack_here.wav");
 	return Plugin_Handled;
@@ -325,7 +336,7 @@ public Action CommandDazhLove(int client, int args)
 public Action CommandAutoTag(int client, int args)
 {
 	if (!IsValidClient(client) || !AreClientCookiesCached(client)) return Plugin_Handled;
-  	
+
 	char tagvalue[24], namevalue[MAX_NAME_LENGTH];
 	cvarAutoTag.GetString(tagvalue, sizeof(tagvalue));
 	if (strlen(tagvalue) < 1) return Plugin_Handled;
@@ -344,14 +355,14 @@ public Action CommandAutoTag(int client, int args)
   		SetClientCookie(client, autoTagEnabledCookie, "0");
   		CPrintToChat(client, "{GREEN}[SM]{DEFAULT} Your tag has been disabled. Reconnect to reset your name.");
   	}
- 		
+
   	return Plugin_Handled;
 }
 
 public Action CommandToggleDamageNotif(int client, int args)
 {
 	if (!IsValidClient(client) || !AreClientCookiesCached(client)) return Plugin_Handled;
-	
+
 	char numToSet[4];
 	Format(numToSet, sizeof(numToSet), "%s", isDamageNotificationEnabled[client] ? "0" : "1");
 	SetClientCookie(client, getDamageNotificationCookie, numToSet);
@@ -371,14 +382,4 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	if (IsPlayerAlive(attacker))
 		attackerHealth = GetClientHealth(attacker);
 	CPrintToChat(victim, "{GREEN}[SM]{DEFAULT} {LIGHTGREEN}%N{DEFAULT} had {LIGHTGREEN}%d{DEFAULT} health remaining.", attacker, attackerHealth);
-}
-
-public bool IsValidClient(int client)
-{
-	if(client > 4096) client = EntRefToEntIndex(client);
-	if(client < 1 || client > MaxClients) return false;
-	if(!IsClientInGame(client)) return false;
-	if(IsFakeClient(client)) return false;
-	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
-	return true;
 }

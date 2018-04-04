@@ -1,11 +1,23 @@
+/**
+* TheXeon
+* ngs_helpmenu.sp
+*
+* Files:
+* addons/sourcemod/plugins/ngs_helpmenu.smx
+*
+* Dependencies:
+* multicolors.inc, ngsutils.inc, ngsupdater.inc
+*/
 #pragma newdecls required
 #pragma semicolon 1
 
-#include <sourcemod>
-#include <sdkhooks>
-#include <morecolors>
+#define ALL_PLUGINS_LOADED_FUNC AllPluginsLoaded
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
 
-#define PLUGIN_VERSION "1.1.0"
+#include <multicolors>
+#include <ngsutils>
+#include <ngsupdater>
 
 bool showRulesMenu[MAXPLAYERS + 1];
 
@@ -18,7 +30,7 @@ public Plugin myinfo = {
 	name = "[NGS] Help Menu",
 	author = "TheXeon",
 	description = "A help menu for NGS.",
-	version = PLUGIN_VERSION,
+	version = "1.1.1",
 	url = "https://neogenesisnetwork.net"
 }
 
@@ -50,7 +62,7 @@ public void OnPluginStart()
 	serverCommandsSubMenu = new Menu(ServerCommandsSubMenuHandler);
 }
 
-public void OnAllPluginsLoaded()
+public void AllPluginsLoaded()
 {
 	RuleMenuBuilder();
 }
@@ -207,14 +219,4 @@ public void RuleMenuBuilder()
 	serverRulesMenu.AddItem("rule7", "Don\'t beg for items or ask for donations!");
 	serverRulesMenu.AddItem("playerrulelink", "Select me to go to regular rules.");
 	serverRulesMenu.AddItem("donorrulelink", "Select me to go to donor rules.");
-}
-
-public bool IsValidClient(int client)
-{
-	if(client > 4096) client = EntRefToEntIndex(client);
-	if(client < 1 || client > MaxClients) return false;
-	if(!IsClientInGame(client)) return false;
-	if(IsFakeClient(client)) return false;
-	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
-	return true;
 }

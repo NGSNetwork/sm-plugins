@@ -1,0 +1,21 @@
+"Updater"
+{
+	"Information"
+	{
+		"Version"
+		{
+			"Latest"	"1.2.0"
+		}
+		
+		"Notes"	"Add updater support!"
+		"Notes"	"Remove extra spaces from sp."
+		"Notes"	"Fix !hideraffle to properly hide message."
+	}
+	
+	"Files"
+	{
+		"Plugin"	"Path_SM/plugins/ngs_raffleannounce.smx"
+		
+		"Source"	"Path_SM/scripting/ngs_raffleannounce.sp"
+	}
+}

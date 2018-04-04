@@ -1,11 +1,24 @@
+/**
+* TheXeon
+* ngs_raffleannounce.sp
+*
+* Files:
+* addons/sourcemod/plugins/ngs_raffleannounce.smx
+*
+* Dependencies:
+* advanced_motd.inc, multicolors.inc, ngsutils.inc, ngsupdater.inc
+*/
 #pragma newdecls required
 #pragma semicolon 1
 
-#include <sourcemod>
-#include <advanced_motd>
-#include <colorvariables>
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
 
-#define PLUGIN_VERSION "1.0.0"
+#include <advanced_motd>
+#include <multicolors>
+#include <ngsutils>
+#include <ngsupdater>
+
 #define NGSRAFFLEURL "https://steamcommunity.com/groups/NGSRaffle#announcements/detail/"
 
 Handle hHudText;
@@ -20,7 +33,7 @@ public Plugin myinfo = {
 	name = "[NGS] Raffle Announce",
 	author = "TheXeon",
 	description = "Announces NGS group raffles!",
-	version = PLUGIN_VERSION,
+	version = "1.2.0",
 	url = "https://www.neogenesisnetwork.net"
 }
 
@@ -93,17 +106,9 @@ public Action CommandCancelRaffle(int client, int args)
 	if (!CheckCommandAccess(client, "sm_raffleadmin_override", ADMFLAG_GENERIC)) return Plugin_Handled;
 	raffleID = NULL_STRING;
 	raffleItem = NULL_STRING;
-	if (hHudText != null)
-	{
-		for (int i = 1; i <= MaxClients; i++)
-		{
-			if (IsValidClient(i))
-				ClearSyncHud(i, hHudText);
-		}
-	}
-	else
-		hHudText = CreateHudSynchronizer();
-	
+	ClearAndDeleteHudText();
+	hHudText = CreateHudSynchronizer();
+
 	SetHudTextParams(-1.0, 0.1, 5.0, 255, 0, 0, 255, 1, 1.0, 1.0, 1.0);
     
 	for (int i = 1; i <= MaxClients; i++)
@@ -113,7 +118,6 @@ public Action CommandCancelRaffle(int client, int args)
 			ShowSyncHudText(i, hHudText, "Raffle has been canceled...");
 		}
 	}
-	delete hHudText;
 	
 	return Plugin_Handled;
 }
@@ -134,6 +138,7 @@ public Action CommandJoinRaffle(int client, int args)
 
 public void AnnounceRaffle()
 {
+	ClearAndDeleteHudText();
 	hHudText = CreateHudSynchronizer();
 	SetHudTextParams(-1.0, 0.1, 30.0, 255, 0, 0, 255, 1, 1.0, 1.0, 1.0);
     
@@ -175,9 +180,19 @@ public void AnnounceRaffle()
 			}
 		}
 	}
-	
-	delete hHudText;
-	hHudText = null;
+}
+
+public void ClearAndDeleteHudText()
+{
+	if (hHudText != null)
+	{
+		for (int i = 1; i <= MaxClients; i++)
+		{
+			if (IsValidClient(i))
+				ClearSyncHud(i, hHudText);
+		}
+		delete hHudText;
+	}
 }
 
 public int OnMOTDFailure(int client, MOTDFailureReason reason) 
@@ -188,14 +203,4 @@ public int OnMOTDFailure(int client, MOTDFailureReason reason)
 		case MOTDFailure_Matchmaking: CPrintToChat(client, "{GREEN}[SM]{DEFAULT} You cannot join raffles after joining via Quickplay!");
 		case MOTDFailure_QueryFailed: CPrintToChat(client, "{GREEN}[SM]{DEFAULT} Unable to join raffle!");
 	}
-}
-
-public bool IsValidClient (int client)
-{
-	if(client > 4096) client = EntRefToEntIndex(client);
-	if(client < 1 || client > MaxClients) return false;
-	if(!IsClientInGame(client)) return false;
-	if(IsFakeClient(client)) return false;
-	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
-	return true;
 }

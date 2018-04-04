@@ -1,27 +1,37 @@
+/**
+* TheXeon
+* ngs_kartify.sp
+*
+* Files:
+* addons/sourcemod/plugins/ngs_kartify.smx
+*
+* Dependencies:
+* tf2_stocks.inc, multicolors.inc, friendly.inc, ngsutils.inc, ngsupdater.inc
+*/
 #pragma newdecls required
 #pragma semicolon 1
 
-#include <sourcemod>
-#include <tf2>
-#include <tf2_stocks>
-#include <sdkhooks>
-#include <morecolors>
-#include <friendly>
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
 
-#define PLUGIN_VERSION		"1.7"
+#include <tf2_stocks>
+#include <multicolors>
+#include <friendly>
+#include <ngsutils>
+#include <ngsupdater>
 
 public Plugin myinfo = {
 	name		= "[NGS] Kartify",
 	author		= "Dr. McKay / TheXeon",
 	description	= "Put players into karts!",
-	version		= PLUGIN_VERSION,
+	version		= "1.7.7",
 	url			= "http://www.doctormckay.com"
 }
 
-Handle g_cvarSpawnKart;
-Handle g_cvarStartPercentage;
-Handle g_cvarForcedPercentage;
-Handle g_cvarAllowSuicide;
+ConVar g_cvarSpawnKart;
+ConVar g_cvarStartPercentage;
+ConVar g_cvarForcedPercentage;
+ConVar g_cvarAllowSuicide;
 
 bool g_KartSpawn[MAXPLAYERS + 1];
 
@@ -30,7 +40,7 @@ public void OnPluginStart() {
 	g_cvarStartPercentage = CreateConVar("kartify_start_percentage", "0", "Starting percentage, as an integer, of damage for kartified players", _, true, 0.0);
 	g_cvarForcedPercentage = CreateConVar("kartify_forced_percentage", "-1", "If 0 or greater, karts will not take damage and will instead have this percent of damage all the time (as an integer)", _, true, -1.0);
 	g_cvarAllowSuicide = CreateConVar("kartify_allow_suicide", "1", "Allow players to suicide while in a kart", _, true, 0.0, true, 1.0);
-	
+
 	RegAdminCmd("sm_kartify", Command_Kartify, ADMFLAG_SLAY, "Put players into karts!");
 	RegAdminCmd("sm_kart", Command_Kartify, ADMFLAG_SLAY, "Put players into karts!");
 	RegAdminCmd("sm_unkartify", Command_Unkartify, ADMFLAG_SLAY, "Remove players from karts");
@@ -39,18 +49,18 @@ public void OnPluginStart() {
 	RegAdminCmd("sm_kartme", Command_KartifyMe, ADMFLAG_SLAY, "Puts you into a kart!");
 	RegAdminCmd("sm_unkartifyme", Command_UnkartifyMe, ADMFLAG_SLAY, "Removes you from a kart");
 	RegAdminCmd("sm_unkartme", Command_UnkartifyMe, ADMFLAG_SLAY, "Removes you from a kart");
-	
+
 	LoadTranslations("common.phrases");
-	
+
 	HookEvent("player_spawn", Event_PlayerSpawn);
 	HookEvent("player_team", Event_PlayerTeam);
-	
+
 	AddCommandListener(Command_Kill, "kill");
 	AddCommandListener(Command_Kill, "explode");
 }
 
 public Action Command_Kill(int client, const char[] command, int argc) {
-	if(GetConVarBool(g_cvarAllowSuicide)) {
+	if(g_cvarAllowSuicide.BoolValue) {
 		Unkartify(client); // Won't do anything if they're not in a kart
 	}
 }
@@ -58,7 +68,7 @@ public Action Command_Kill(int client, const char[] command, int argc) {
 public void OnMapStart() {
 	PrecacheModel("models/player/items/taunts/bumpercar/parts/bumpercar.mdl");
 	PrecacheModel("models/player/items/taunts/bumpercar/parts/bumpercar_nolights.mdl");
-	
+
 	PrecacheSound(")weapons/bumper_car_accelerate.wav");
 	PrecacheSound(")weapons/bumper_car_decelerate.wav");
 	PrecacheSound(")weapons/bumper_car_decelerate_quick.wav");
@@ -74,7 +84,7 @@ public void OnMapStart() {
 	PrecacheSound(")weapons/bumper_car_spawn_from_lava.wav");
 	PrecacheSound(")weapons/bumper_car_speed_boost_start.wav");
 	PrecacheSound(")weapons/bumper_car_speed_boost_stop.wav");
-	
+
 	char name[64];
 	for(int i = 1; i <= 8; i++) {
 		FormatEx(name, sizeof(name), "weapons/bumper_car_hit%d.wav", i);
@@ -91,22 +101,22 @@ public Action Command_Kartify(int client, int args) {
 		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_kartify <name|#userid>");
 		return Plugin_Handled;
 	}
-	
+
 	char argString[MAX_NAME_LENGTH];
 	GetCmdArgString(argString, sizeof(argString));
 	StripQuotes(argString);
 	TrimString(argString);
-	
-	int targets[MAXPLAYERS]; 
+
+	int targets[MAXPLAYERS];
 	char target_name[MAX_NAME_LENGTH];
 	bool tn_is_ml;
-	
+
 	int result = ProcessTargetString(argString, client, targets, MaxClients, COMMAND_FILTER_ALIVE, target_name, sizeof(target_name), tn_is_ml);
 	if(result <= 0) {
 		ReplyToTargetError(client, result);
 		return Plugin_Handled;
 	}
-	
+
 	if(result == 1 && TF2_IsPlayerInCondition(targets[0], view_as<TFCond>(82))) {
 		// Only one player chosen and they're in a kart
 		CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "Unkartified {LIGHTGREEN}%s{DEFAULT}!", target_name);
@@ -115,14 +125,14 @@ public Action Command_Kartify(int client, int args) {
 		Unkartify(targets[0]);
 		return Plugin_Handled;
 	}
-	
+
 	CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "Kartified {LIGHTGREEN}%s{DEFAULT}!", target_name);
 	for(int i = 0; i < result; i++) {
 		LogAction(client, targets[i], "\"%L\" kartified \"%L\"", client, targets[i]);
 		g_KartSpawn[targets[i]] = true;
 		Kartify(targets[i], true);
 	}
-	
+
 	return Plugin_Handled;
 }
 
@@ -131,13 +141,13 @@ public Action Command_Unkartify(int client, int args) {
 		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_unkartify <name|#userid>");
 		return Plugin_Handled;
 	}
-	
+
 	char argString[MAX_NAME_LENGTH];
 	GetCmdArgString(argString, sizeof(argString));
 	StripQuotes(argString);
 	TrimString(argString);
-	
-	int targets[MAXPLAYERS]; 
+
+	int targets[MAXPLAYERS];
 	char target_name[MAX_NAME_LENGTH];
 	bool tn_is_ml;
 	int result = ProcessTargetString(argString, client, targets, MaxClients, COMMAND_FILTER_ALIVE, target_name, sizeof(target_name), tn_is_ml);
@@ -145,14 +155,14 @@ public Action Command_Unkartify(int client, int args) {
 		ReplyToTargetError(client, result);
 		return Plugin_Handled;
 	}
-	
+
 	CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "Unkartified {LIGHTGREEN}%s{DEFAULT}!", target_name);
 	for(int i = 0; i < result; i++) {
 		LogAction(client, targets[i], "\"%L\" unkartified \"%L\"", client, targets[i]);
 		g_KartSpawn[targets[i]] = false;
 		Unkartify(targets[i]);
 	}
-	
+
 	return Plugin_Handled;
 }
 
@@ -185,7 +195,7 @@ public void Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadcas
 	if(mode == 0) {
 		return;
 	}
-	
+
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
 	if(mode == 1 || (mode == 2 && g_KartSpawn[client])) {
 		Kartify(client);
@@ -230,7 +240,7 @@ bool Unkartify(int client)
 }
 
 public void OnGameFrame() {
-	int forcedPct = GetConVarInt(g_cvarForcedPercentage);
+	int forcedPct = g_cvarForcedPercentage.IntValue;
 	if(forcedPct >= 0) {
 		for(int i = 1; i <= MaxClients; i++) {
 			if(IsClientInGame(i)) {

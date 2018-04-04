@@ -1,13 +1,13 @@
 /**
 * TheXeon
-* ngs_donor_toolkit.sp
+* ngs_evilrocket.sp
 *
 * Files:
-* addons/sourcemod/plugins/ngs_donor_toolkit.smx
-* cfg/sourcemod/plugin.ngs_evilrocket.sp
+* addons/sourcemod/plugins/ngs_evilrocket.smx
+* cfg/sourcemod/plugin.ngs_evilrocket.cfg
 *
 * Dependencies:
-* sourcemod.inc, tf2attributes.inc, multicolors.inc, ngsutils.inc, ngsupdater.inc
+* sourcemod.inc, sdktools.inc, adminmenu.inc, multicolors.inc, ngsutils.inc, ngsupdater.inc
 */
 #pragma newdecls required
 #pragma semicolon 1

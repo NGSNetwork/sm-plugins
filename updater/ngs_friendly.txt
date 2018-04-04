@@ -1,0 +1,20 @@
+"Updater"
+{
+	"Information"
+	{
+		"Version"
+		{
+			"Latest"	"1.6.1"
+		}
+		
+		"Notes"	"Add updater support!"
+		"Notes"	"Remove extra spaces from sp."
+	}
+	
+	"Files"
+	{
+		"Plugin"	"Path_SM/plugins/ngs_friendly.smx"
+		
+		"Source"	"Path_SM/scripting/ngs_friendly.sp"
+	}
+}

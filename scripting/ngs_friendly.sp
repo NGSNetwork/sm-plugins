@@ -1,11 +1,21 @@
+/**
+* TheXeon
+* ngs_friendly.sp
+*
+* Files:
+* addons/sourcemod/plugins/ngs_friendly.smx
+* addons/sourcemod/gamedata/friendly.txt
+* cfg/sourcemod/friendly.cfg
+*
+* Dependencies:
+* tf2_stocks.inc, sdkhooks.inc, morecolors.inc, morecolors.inc, ngsutils.inc,
+* ngsupdater.inc, goomba.inc, rtd.inc
+*/
 #pragma newdecls required
 #pragma semicolon 1
 
-#define PLUGIN_VERSION "16.0112"
-#define UPDATE_FILE "friendly.txt"
-#define CONVAR_PREFIX "sm_friendly"
-#define DEFAULT_UPDATE_SETTING "2"
-#define UPD_LIBFUNC
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
 
 #include <tf2_stocks>
 #include <sdkhooks>
@@ -13,8 +23,8 @@
 #include <clientprefs>
 
 #undef REQUIRE_PLUGIN
-#include <ddhoward_updater>
-#include <validClient>
+#include <ngsupdater>
+#include <ngsutils>
 #tryinclude <goomba>
 #tryinclude <rtd>
 
@@ -183,7 +193,7 @@ public Plugin myinfo = {
 	name = "[NGS] Friendly Mode",
 	author = "Derek D. Howard / TheXeon",
 	description = "Allows players to become invulnerable to damage from other players, while also being unable to attack other players.",
-	version = PLUGIN_VERSION,
+	version = "1.6.1",
 	url = "http://forums.alliedmods.net/showthread.php?t=213205"
 }
 
@@ -1332,7 +1342,7 @@ void ApplyNoblock(int entity, bool remove) {
 	int normalValue;
 	if (IsValidEntity(entity))
 	{
-		if (IsValidClient(entity, VCLIENT_INDEX)) {
+		if (IsValidClient(entity)) {
 			cvarValue = cvar_noblock_p.IntValue;
 			normalValue = 5;
 		}

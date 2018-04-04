@@ -1,16 +1,27 @@
+/**
+* TheXeon
+* ngs_map_teleporter.sp
+*
+* Files:
+* addons/sourcemod/plugins/ngs_map_teleporter.smx
+*
+* Dependencies:
+* multicolors.inc, tf2_stocks.inc, ngsutils.inc, ngsupdater.inc
+*/
 #pragma newdecls required
 #pragma semicolon 1
 
-#include <sdktools>
-#include <sourcemod>
-#include <morecolors>
-#include <tf2_stocks>
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
 
-#define PLUGIN_VERSION "1.1"
+#include <multicolors>
+#include <tf2_stocks>
+#include <ngsutils>
+#include <ngsupdater>
 
 //-------------------------------------------------------------------------------------------------
 
-Handle teleportTimersSkybox[MAXPLAYERS + 1];
+SMTimer teleportTimersSkybox[MAXPLAYERS + 1];
 
 float skyboxredorigin[3];
 float skyboxbluorigin[3];
@@ -25,7 +36,7 @@ public Plugin myinfo = {
 	name = "[NGS] Per Map Teleport",
 	author = "TheXeon",
 	description = "A quick way to teleport players to map areas.",
-	version = PLUGIN_VERSION,
+	version = "1.1.1",
 	url = "https://neogenesisnetwork.net"
 }
 
@@ -33,11 +44,11 @@ public void OnPluginStart()
 {
 	RegConsoleCmd("sm_skybox", CommandSkybox, "Teleports you to the skybox!");
 	RegAdminCmd("sm_adminroom", CommandAdminRoom, ADMFLAG_GENERIC, "Teleports you to the admin room!");
-	
+
 	cvarSkyboxTagEnabled = CreateConVar("sm_skybox_tag_enabled", "1", "If allowing tag to skybox.");
 	cvarSkyboxTag = CreateConVar("sm_skybox_tag", "NGS | ", "Tag to use if tag to skybox is enabled.");
 	cvarSkyboxTagCaseSensitive = CreateConVar("sm_skybox_tag_case_sensitive", "1", "If tag to skybox is case sensitive.");
-	
+
 	HookEvent("player_hurt", Event_PlayerHurt);
 	HookEvent("player_death", Event_PlayerDeath);
 }
@@ -72,16 +83,14 @@ public void OnMapStart()
 	}
 	else
 	{
-		char filename[256];
-		GetPluginFilename(INVALID_HANDLE, filename, sizeof(filename));
-		ServerCommand("sm plugins unload %s", filename);
+		LogError("Unsupported teleporter map %s!", mapName);
 	}
 }
 
 public Action CommandSkybox(int client, int args)
 {
 	if (!IsValidClient(client)) return Plugin_Handled;
-	
+
 	if (!IsPlayerAlive(client))
 	{
 		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Skybox: Sorry! You can only do this while you are alive!");
@@ -100,7 +109,7 @@ public Action CommandSkybox(int client, int args)
 		cvarSkyboxTag.GetString(tag, sizeof(tag));
 		if (StrContains(clientName, tag, cvarSkyboxTagCaseSensitive.BoolValue) != -1 || CheckCommandAccess(client, "sm_skybox_override", ADMFLAG_RESERVATION))
 		{
-			teleportTimersSkybox[client] = CreateTimer(7.0, TeleportPlayerSkybox, client);
+			teleportTimersSkybox[client] = new SMTimer(7.0, TeleportPlayerSkybox, client);
 			CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Teleporting to the skybox in {PURPLE}7{DEFAULT} seconds!");
 			return Plugin_Handled;
 		}
@@ -115,7 +124,7 @@ public Action CommandSkybox(int client, int args)
 	{
 		if (CheckCommandAccess(client, "sm_skybox_override", ADMFLAG_RESERVATION))
 		{
-			teleportTimersSkybox[client] = CreateTimer(7.0, TeleportPlayerSkybox, client);
+			teleportTimersSkybox[client] = new SMTimer(7.0, TeleportPlayerSkybox, client);
 			CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Teleporting to the skybox in {PURPLE}7{DEFAULT} seconds!");
 			return Plugin_Handled;
 		}
@@ -126,11 +135,11 @@ public Action CommandSkybox(int client, int args)
 
 public Action TeleportPlayerSkybox(Handle timer, any client)
 {
+	teleportTimersSkybox[client] = null;
 	TFTeam clientTeam = view_as<TFTeam>(GetClientTeam(client));
 	if (clientTeam == TFTeam_Red) TeleportEntity(client, skyboxredorigin, NULL_VECTOR, NULL_VECTOR);
 	else TeleportEntity(client, skyboxbluorigin, NULL_VECTOR, NULL_VECTOR);
 	LogAction(client, -1, "Tele: %L teleported to the skybox!", client);
-	teleportTimersSkybox[client] = null;
 }
 
 public void Event_PlayerHurt(Event event, const char[] name, bool dontBroadcast)
@@ -138,8 +147,7 @@ public void Event_PlayerHurt(Event event, const char[] name, bool dontBroadcast)
 	int client = GetClientOfUserId(event.GetInt("userid"));
  	if (teleportTimersSkybox[client] != null)
 	{
-		KillTimer(teleportTimersSkybox[client]);
-		teleportTimersSkybox[client] = null;
+		delete teleportTimersSkybox[client];
 		CPrintToChat(client, "{GREEN}[SM]{DEFAULT} Your teleportation to the skybox has been interrupted!");
 	}
 }
@@ -149,19 +157,14 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 	int client = GetClientOfUserId(event.GetInt("userid"));
  	if (teleportTimersSkybox[client] != null)
 	{
-		KillTimer(teleportTimersSkybox[client]);
-		teleportTimersSkybox[client] = null;
+		delete teleportTimersSkybox[client];
 		CPrintToChat(client, "{GREEN}[SM]{DEFAULT} Your teleportation to the skybox has been interrupted!");
 	}
 }
 
 public void OnClientDisconnect(int client)
 {
-	if (teleportTimersSkybox[client] != null)
-	{
-		KillTimer(teleportTimersSkybox[client]);
-		teleportTimersSkybox[client] = null;
-	}
+	delete teleportTimersSkybox[client];
 }
 
 public Action CommandAdminRoom(int client, int args)
@@ -171,24 +174,14 @@ public Action CommandAdminRoom(int client, int args)
 		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Admin Room: Sorry! You can only do this while you are alive!");
 		return Plugin_Handled;
 	}
-	
+
 	int playerUserID = GetClientUserId(client);
 	ServerCommand("sm_god #%d 1", playerUserID);
 	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Teleported to admin room!");
-	
+
 	TeleportEntity(client, adminroomorigin, NULL_VECTOR, NULL_VECTOR);
-	
+
 	LogAction(client, client, "Tele: %L teleported to the admin room!", client);
 
 	return Plugin_Handled;
-}
-
-public bool IsValidClient(int client)
-{
-	if(client > 4096) client = EntRefToEntIndex(client);
-	if(client < 1 || client > MaxClients) return false;
-	if(!IsClientInGame(client)) return false;
-	if(IsFakeClient(client)) return false;
-	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
-	return true;
 }

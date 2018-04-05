@@ -1,12 +1,27 @@
+/**
+* TheXeon
+* ngs_serverhop.sp
+*
+* Files:
+* addons/sourcemod/plugins/ngs_serverhop.smx
+* addons/sourcemod/configs/serverhop.cfg
+* addons/sourcemod/translations/serverhop.phrases.txt
+* cfg/sourcemod/plugin.serverhop.cfg
+*
+* Dependencies:
+* tf2_stocks.inc, multicolors.inc, ngsutils.inc, ngsupdater.inc
+*/
 #pragma newdecls required
 #pragma semicolon 1
 
-#include <sourcemod>
-#include <convars>
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
+
 #include <socket>
 #include <multicolors>
+#include <ngsutils>
+#include <ngsupdater>
 
-#define PLUGIN_VERSION "0.8.1"
 #define MAX_SERVERS 10
 #define REFRESH_TIME 60.0
 #define SERVER_TIMEOUT 10.0
@@ -34,7 +49,7 @@ public Plugin myinfo = {
 	name = "[NGS] Server Hop",
 	author = "[GRAVE] rig0r / TheXeon",
 	description = "Provides live server info with a join option!",
-	version = PLUGIN_VERSION,
+	version = "1.2.0",
 	url = "https://neogenesisnetwork.servegame.com"
 }
 
@@ -50,20 +65,20 @@ public void OnPluginStart()
 
 	AutoExecConfig(true, "plugin.serverhop");
 
-	Handle timer = CreateTimer(REFRESH_TIME, RefreshServerInfo, _, TIMER_REPEAT);
-	
+	SMTimer timer = new SMTimer(REFRESH_TIME, RefreshServerInfo, _, TIMER_REPEAT);
+
 	RegConsoleCmd("sm_hop", CommandHop, "Usage: sm_hop");
 	RegConsoleCmd("sm_servers", CommandHop, "Usage: sm_servers");
 	RegConsoleCmd("sm_list", CommandHop, "Usage: sm_list");
-	
+
 	char gameFolder[MAX_BUFFER_LENGTH];
 	GetGameFolderName(gameFolder, sizeof(gameFolder));
 	if (StrEqual(gameFolder, "tf", true)) isTF2 = true;
-	
+
 	char path[MAX_STR_LEN], hostip[24];
 	Inet_NtoA(FindConVar("hostip").IntValue, hostip, sizeof(hostip));
 	int hostport = FindConVar("hostport").IntValue;
-	
+
 	BuildPath(Path_SM, path, sizeof(path), "configs/serverhop.cfg");
 	KeyValues kv = new KeyValues("Servers");
 	if (!kv.ImportFromFile(path)) SetFailState("Error loading server list!");
@@ -81,7 +96,7 @@ public void OnPluginStart()
 	while (kv.GotoNextKey());
 	delete kv;
 	serverCount = i;
-	TriggerTimer(timer);
+	timer.Trigger();
 }
 
 public Action CommandHop(int client, int args)
@@ -148,7 +163,7 @@ public int HopMenuHandler(Menu menu, MenuAction action, int param1, int param2)
 			CreateDialog(param1, kv, DialogType_AskConnect);
 			delete kv;
 		}
-		
+
 		// broadcast to all
 		if (cv_broadcasthops.BoolValue)
 		{
@@ -169,7 +184,7 @@ public Action RefreshServerInfo(Handle timer)
 		socket[i].SetArg(i);
 		socket[i].Connect(OnSocketConnected, OnSocketReceive, OnSocketDisconnected, serverAddress[i], serverPort[i]);
 	}
-	CreateTimer(SERVER_TIMEOUT, CleanUp);
+	SMTimer.Make(SERVER_TIMEOUT, CleanUp);
 }
 
 public Action CleanUp(Handle timer)
@@ -186,12 +201,12 @@ public Action CleanUp(Handle timer)
 	if (cv_advert.BoolValue)
 	{
 		if (advertInterval == cv_advert_interval.FloatValue)
-		{	
+		{
 			Advertise();
 		}
 		advertInterval++;
 		if (advertInterval > cv_advert_interval.FloatValue)
-		{	
+		{
 			advertInterval = 1;
 		}
 	}
@@ -201,13 +216,13 @@ public Action Advertise()
 {
 	// skip servers being marked as down
 	while (strlen(serverInfo[advertCount]) == 0)
-	{	
+	{
 		#if defined DEBUG then
 			LogError("Not advertising down server %i", advertCount);
 		#endif
 		advertCount++;
 		if (advertCount >= serverCount)
-		{		
+		{
 			advertCount = 0;
 			break;
 		}
@@ -315,16 +330,6 @@ stock void Inet_NtoA(int binary, char[] address, int maxlength)
     quads[1] = binary >> 16 & 0x000000FF;
     quads[2] = binary >> 8 & 0x000000FF;
     quads[3] = binary & 0x000000FF;
-    
-    Format(address, maxlength, "%d.%d.%d.%d", quads[0], quads[1], quads[2], quads[3]);
-}  
 
-public bool IsValidClient (int client)
-{
-	if(client > 4096) client = EntRefToEntIndex(client);
-	if(client < 1 || client > MaxClients) return false;
-	if(!IsClientInGame(client)) return false;
-	if(IsFakeClient(client)) return false;
-	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
-	return true;
+    Format(address, maxlength, "%d.%d.%d.%d", quads[0], quads[1], quads[2], quads[3]);
 }

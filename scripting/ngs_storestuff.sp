@@ -1,22 +1,34 @@
+/**
+* TheXeon
+* ngs_storestuff.sp
+*
+* Files:
+* addons/sourcemod/plugins/ngs_storestuff.smx
+*
+* Dependencies:
+* sdktools.inc, steamtools.inc, ngsutils.inc, ngsupdater.inc,
+* ccc.inc, scp.inc, sourcebans.inc
+*/
 #pragma newdecls required
 #pragma semicolon 1
 
-#include <sourcemod>
-#include <sdktools>
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
+
 #include <tf2_stocks>
-#include <colorvariables>
 #include <clientprefs>
 #include <store>
 #include <afk_manager>
 #include <friendly>
+#include <ngsutils>
+#include <ngsupdater>
 
-#define PLUGIN_VERSION  "1.0.3"
 
 public Plugin myinfo = {
 	name = "[NGS] Store Additions",
 	author = "MasterOfTheXP / TheXeon",
-	description = "Spawns bosses and other stuff where needed.",
-	version = PLUGIN_VERSION,
+	description = "Additional store items!",
+	version = "1.1.0",
 	url = "https://neogenesisnetwork.net/"
 }
 
@@ -105,9 +117,7 @@ public void OnMapStart()
 	}
 	else
 	{
-		char filename[256];
-		GetPluginFilename(INVALID_HANDLE, filename, sizeof(filename));
-		ServerCommand("sm plugins unload %s", filename);
+		LogError("Unsupported map %s!", mapName);
 	}
 	PrecacheMonoculus();
 	PrecacheMerasmus();
@@ -805,14 +815,4 @@ void PrecacheMerasmus()
 	PrecacheSound("misc/halloween/merasmus_hiding_explode.wav", true);
 	PrecacheSound("misc/halloween/merasmus_spell.wav", true);
 	PrecacheSound("misc/halloween/merasmus_stun.wav", true);
-}
-
-public bool IsValidClient (int client)
-{
-	if(client > 4096) client = EntRefToEntIndex(client);
-	if(client < 1 || client > MaxClients) return false;
-	if(!IsClientInGame(client)) return false;
-	if(IsFakeClient(client)) return false;
-	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
-	return true;
 }

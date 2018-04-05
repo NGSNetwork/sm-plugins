@@ -9,7 +9,7 @@
 * cfg/sourcemod/plugin.serverhop.cfg
 *
 * Dependencies:
-* tf2_stocks.inc, multicolors.inc, ngsutils.inc, ngsupdater.inc
+* socket.inc, multicolors.inc, ngsutils.inc, ngsupdater.inc
 */
 #pragma newdecls required
 #pragma semicolon 1

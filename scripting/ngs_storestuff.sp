@@ -6,8 +6,8 @@
 * addons/sourcemod/plugins/ngs_storestuff.smx
 *
 * Dependencies:
-* sdktools.inc, steamtools.inc, ngsutils.inc, ngsupdater.inc,
-* ccc.inc, scp.inc, sourcebans.inc
+* tf2_stocks.inc, clientprefs.inc, store.inc, afk_manager.inc,
+* friendly.inc, ngsutils.inc, ngsupdater.inc,
 */
 #pragma newdecls required
 #pragma semicolon 1

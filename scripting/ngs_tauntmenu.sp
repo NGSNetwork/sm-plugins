@@ -1,19 +1,31 @@
+/**
+* TheXeon
+* ngs_tauntmenu.sp
+*
+* Files:
+* addons/sourcemod/plugins/ngs_tauntmenu.smx
+* addons/sourcemod/gamedata/tf2.tauntem.txt
+*
+* Dependencies:
+* tf2items.inc, tf2_stocks.inc, morecolors.inc, ngsutils.inc, ngsupdater.inc
+*/
 #pragma newdecls required
 #pragma semicolon 1
 
-#include <sdktools>
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
+
 #include <tf2items>
-#include <tf2>
 #include <tf2_stocks>
 #include <morecolors>
-
-#define PLUGIN_VERSION "1.3"
+#include <ngsutils>
+#include <ngsupdater>
 
 public Plugin myinfo = {
 	name = "[NGS] Taunt Menu",
 	author = "FlaminSarge, Nighty, xCoderx / TheXeon",
 	description = "Displays a nifty taunt menu. TF2 only.",
-	version = PLUGIN_VERSION,
+	version = "1.3.5",
 	url = "http://forums.alliedmods.net/showthread.php?t=242866"
 }
 
@@ -37,8 +49,8 @@ public void OnPluginStart()
 
 	if (hPlayTaunt == null)
 	{
-		SetFailState("Unable to initialize call to CTFPlayer::PlayTauntSceneFromItem. Wait patiently for a fix.");
 		delete conf;
+		SetFailState("Unable to initialize call to CTFPlayer::PlayTauntSceneFromItem. Wait patiently for a fix.");
 		return;
 	}
 
@@ -47,7 +59,6 @@ public void OnPluginStart()
 
 	delete conf;
 	LoadTranslations("common.phrases");
-	CreateConVar("tf_tauntmenu_version", PLUGIN_VERSION, "[NGS] Taunt Menu Version");
 	PrecacheTaunts();
 }
 

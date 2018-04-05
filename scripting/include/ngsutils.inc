@@ -47,7 +47,7 @@ methodmap SMTimer < Handle
 	}
 
 	/**
-	 * Creates a basic timer without returning a Handle.
+	 * Creates a SMTimer in a static fashion. Useful if the Handle isn't meant to be saved.
 	 *
 	 * @param interval			Interval from the current game time to execute the given function.
 	 * @param func				Function to execute once the given interval has elapsed.
@@ -56,9 +56,9 @@ methodmap SMTimer < Handle
 	 * @return					Handle to the timer object.  You do not need to call CloseHandle().
 	 *							If the timer could not be created, null will be returned.
 	 */
-	public static void Make(float interval, Timer func, any data=INVALID_HANDLE, int flags=0)
+	public static SMTimer Make(float interval, Timer func, any data=INVALID_HANDLE, int flags=0)
 	{
-		CreateTimer(interval, func, data, flags);
+		return new SMTimer(interval, func, data, flags);
 	}
 
 	/**
@@ -123,6 +123,23 @@ methodmap SMDataTimer < SMTimer
 		}
 		flags |= TIMER_DATA_HNDL_CLOSE;
 		return view_as<SMDataTimer>(new SMTimer(interval, func, datapack, flags));
+	}
+
+	/**
+	 * Creates a SMDataTimer in a static fashion. Useful if the Handle isn't meant to be saved.
+	 * @note The datapack is automatically freed when the timer ends.
+	 * @note The position of the datapack is not reset or changed for the timer function.
+	 *
+	 * @param interval			Interval from the current game time to execute the given function.
+	 * @param func				Function to execute once the given interval has elapsed.
+	 * @param datapack			The newly created datapack is passed through this by-reference
+	 *							parameter to the timer callback function.
+	 * @param flags				Timer flags.
+	 * @return					Handle to the timer object.  You do not need to call CloseHandle().
+	 */
+	public static SMDataTimer Make(float interval, Timer func, DataPack &datapack, int flags=0)
+	{
+		return new SMDataTimer(interval, func, datapack, flags);
 	}
 }
 

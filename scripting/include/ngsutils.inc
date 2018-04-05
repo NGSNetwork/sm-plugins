@@ -47,6 +47,21 @@ methodmap SMTimer < Handle
 	}
 
 	/**
+	 * Creates a basic timer without returning a Handle.
+	 *
+	 * @param interval			Interval from the current game time to execute the given function.
+	 * @param func				Function to execute once the given interval has elapsed.
+	 * @param data				Handle or value to pass through to the timer callback function.
+	 * @param flags				Flags to set (such as repeatability or auto-Handle closing).
+	 * @return					Handle to the timer object.  You do not need to call CloseHandle().
+	 *							If the timer could not be created, null will be returned.
+	 */
+	public static void Make(float interval, Timer func, any data=INVALID_HANDLE, int flags=0)
+	{
+		CreateTimer(interval, func, data, flags);
+	}
+
+	/**
 	 * Kills a timer.  Use this instead of delete if you need more options. Do not use in a timer's callback!
 	 *
 	 * @param autoClose			If autoClose is true, the data that was passed to CreateTimer() will

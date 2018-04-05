@@ -1,5 +1,22 @@
+/**
+* TheXeon
+* ngs_tf2fix.sp
+*
+* Files:
+* addons/sourcemod/plugins/ngs_tf2fix.smx
+* cfg/sourcemod/tf2fix.cfg
+*
+* Dependencies:
+* tf2_stocks.inc, sdkhooks.inc, tf2items.inc, tf2attributes.inc, ngsutils.inc,
+* ngsupdater.inc
+*/
 #pragma newdecls required
 #pragma semicolon 1
+
+#define LIBRARY_ADDED_FUNC LibraryAdded
+#define LIBRARY_REMOVED_FUNC LibraryRemoved
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
 
 #include <tf2_stocks>
 #undef REQUIRE_EXTENSIONS
@@ -9,14 +26,14 @@
 #include <tf2attributes>
 #define REQUIRE_PLUGIN
 #define REQUIRE_EXTENSIONS
-
-#define PLUGIN_VERSION	"1.4.8_01"
+#include <ngsutils>
+#include <ngsupdater>
 
 public Plugin myinfo = {
 	name = "TF2Fix",
-	author = "MasterOfTheXP",
+	author = "MasterOfTheXP / TheXeon",
 	description = "Fixes various bugs, exploits, and more in Team Fortress 2.",
-	version = PLUGIN_VERSION,
+	version = "2.1.1",
 	url = "http://mstr.ca/"
 }
 
@@ -101,7 +118,6 @@ char CritReceiveSounds[] = {
 #define FIX_CONVAR_FLAGS FCVAR_NONE
 public void OnPluginStart()
 {
-	CreateConVar("sm_tf2fix_version", PLUGIN_VERSION, "Plugin version smoke! Don't touch this!", FCVAR_NOTIFY|FCVAR_SPONLY);
 	cvarEnabled = CreateConVar("tf_fix_enable","1","Enable or disable TF2Fix entirely.", FIX_CONVAR_FLAGS, true, 0.0, true, 1.0);
 	cvarLogClassName = CreateConVar("tf_fix_killicon_logclassname", "0", "When TF2Fix fixes a weapon's kill icon, it will also update that weapon's logged console name.", FIX_CONVAR_FLAGS, true, 0.0, true, 1.0);
 
@@ -314,13 +330,13 @@ public void OnClientPutInServer(int client)
 	}
 }
 
-public void OnLibraryAdded(const char[] name)
+public void LibraryAdded(const char[] name)
 {
 	extSDKHooks = !extSDKHooks ? StrEqual(name, "sdkhooks", false) : extSDKHooks;
 	extTF2Attributes = !extTF2Attributes ? StrEqual(name, "tf2attributes", false) : extTF2Attributes;
 }
 
-public void OnLibraryRemoved(const char[] name)
+public void LibraryRemoved(const char[] name)
 {
 	extSDKHooks = extSDKHooks ? !StrEqual(name, "sdkhooks", false) : extSDKHooks;
 	extTF2Attributes = extTF2Attributes ? !StrEqual(name, "tf2attributes", false) : extTF2Attributes;
@@ -1544,14 +1560,4 @@ stock bool IsMedieval(bool bForceRecalc = false)
 stock void TF2_RecalculateSpeed(int client)
 {
 	TF2_AddCondition(client, TFCond_SpeedBuffAlly, 0.01);
-}
-
-public bool IsValidClient (int client)
-{
-	if(client > 4096) client = EntRefToEntIndex(client);
-	if(client < 1 || client > MaxClients) return false;
-	if(!IsClientInGame(client)) return false;
-	if(IsFakeClient(client)) return false;
-	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
-	return true;
 }

@@ -1,7 +1,22 @@
+/**
+* TheXeon
+* ngs_tf2items_giveweapon.sp
+*
+* Files:
+* addons/sourcemod/plugins/ngs_tf2items_giveweapon.smx
+*
+* Dependencies:
+* tf2items.inc, tf2_stocks.inc, sdktools.inc, visweps.inc, 
+* tf2idb.inc, ngsutils.inc, ngsupdater.inc
+*/
 #pragma newdecls required
 #pragma semicolon 1
 
-#include <sourcemod>
+#define LIBRARY_ADDED_FUNC LibraryAdded
+#define LIBRARY_REMOVED_FUNC LibraryRemoved
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
+
 #define REQUIRE_EXTENSIONS
 #include <tf2items>
 #include <tf2_stocks>
@@ -10,12 +25,8 @@
 #tryinclude <visweps>
 #tryinclude <tf2idb>
 #define REQUIRE_PLUGIN
-
-#define PLUGIN_NAME		"[TF2Items] Give Weapon"
-#define PLUGIN_AUTHOR		"FlaminSarge (orig by asherkin) / TheXeon"
-#define PLUGIN_VERSION		"4.0"
-#define PLUGIN_CONTACT		"https://forums.alliedmods.net/showthread.php?t=141962"
-#define PLUGIN_DESCRIPTION	"Give any weapon to a valid player on command"
+#include <ngsutils>
+#include <ngsupdater>
 
 #define EF_BONEMERGE			(1 << 0)
 #define EF_BONEMERGE_FASTCULL	(1 << 7)
@@ -45,17 +56,16 @@ int iEyeParticle[MAXPLAYERS + 1] = { INVALID_ENT_REFERENCE, ... };
 //Handle g_hFireProjectile;
 
 public Plugin myinfo = {
-	name			= PLUGIN_NAME,
-	author			= PLUGIN_AUTHOR,
-	description	= PLUGIN_DESCRIPTION,
-	version		= PLUGIN_VERSION,
-	url				= PLUGIN_CONTACT
+	name			= "[TF2Items] Give Weapon",
+	author			= "FlaminSarge (orig by asherkin) / TheXeon",
+	description	= "Give any weapon to a valid player on command",
+	version		= "1.4.0",
+	url				= "https://forums.alliedmods.net/showthread.php?t=141962"
 }
 
 public void OnPluginStart()
 {
 	LoadTranslations("common.phrases");
-	ConVar cv_version = CreateConVar("tf2items_giveweapon_version", PLUGIN_VERSION, "[TF2Items] Give Weapon Version", FCVAR_NOTIFY | FCVAR_SPONLY);
 	ConVar cv_notify = CreateConVar("tf2items_giveweapon_notify", "2", "If 1, makes Give Weapon show the plugin activity for givew only. If 2, makes it show activity for both givew and givew_ex.", 0);
 	ConVar cv_valveweps = CreateConVar("tf2items_valveweapons", "1337", "1337 to allow giving Valve weapons, anything else to disallow. Just because I got annoyed.", 0);
 	ConVar cv_lowadmins = CreateConVar("tf2items_customweapons_lowadmins", "1", "0 to disallow lower admins giving themselves custom weapons, 1 to allow. Just because I got annoyed.", 0);
@@ -80,8 +90,6 @@ public void OnPluginStart()
 	AddCommandListener(Cmd_taunt, "+use_action_slot_item_server");
 	AddCommandListener(Cmd_taunt, "use_action_slot_item_server");
 
-	SetConVarString(cv_version, PLUGIN_VERSION);
-	HookConVarChange(cv_version, cvhook_version);
 	iCvarNotify = GetConVarInt(cv_notify);
 	iCvarValveWeapons = GetConVarInt(cv_valveweps);
 	bCvarLowAdmins = GetConVarBool(cv_lowadmins);
@@ -119,17 +127,13 @@ public void OnPluginEnd()
 		ClearEyeParticle(i);
 	}
 }
-public void cvhook_version(Handle cvar, const char[] oldVal, const char[] newVal)
-{
-	if (strcmp(newVal, PLUGIN_VERSION, false) != 0)
-		SetConVarString(cvar, PLUGIN_VERSION);
-}
+
 public void cvhook_notify(Handle cvar, const char[] oldVal, const char[] newVal) { iCvarNotify = GetConVarInt(cvar); }
 public void cvhook_valveweps(Handle cvar, const char[] oldVal, const char[] newVal) { iCvarValveWeapons = GetConVarInt(cvar); }
 public void cvhook_lowadmins(Handle cvar, const char[] oldVal, const char[] newVal) { bCvarLowAdmins = GetConVarBool(cvar); }
 public void cvhook_gimme(Handle cvar, const char[] oldVal, const char[] newVal) { bCvarGimme = GetConVarBool(cvar); }
 
-public void OnLibraryAdded(const char[] strName)
+public void LibraryAdded(const char[] strName)
 {
 #if defined _visweps_included
 	if(strcmp(strName, "visweps", false) == 0)
@@ -143,7 +147,7 @@ public void OnLibraryAdded(const char[] strName)
 	}
 #endif
 }
-public void OnLibraryRemoved(const char[] strName)
+public void LibraryRemoved(const char[] strName)
 {
 #if defined _visweps_included
 	if (strcmp(strName, "visweps", false) == 0)
@@ -4628,16 +4632,6 @@ public void SickleClimbWalls(int client)
 public bool TraceRayDontHitSelf(int entity, int mask, any data)
 {
 	return (entity != data);
-}
-
-public bool IsValidClient(int client)
-{
-	if(client > 4096) client = EntRefToEntIndex(client);
-	if(client < 1 || client > MaxClients) return false;
-	if(!IsClientInGame(client)) return false;
-	// if(IsFakeClient(client)) return false;
-	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
-	return true;
 }
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)

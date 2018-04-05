@@ -1,15 +1,24 @@
+/**
+* TheXeon
+* ngs_stuck.sp
+*
+* Files:
+* addons/sourcemod/plugins/ngs_stuck.smx
+* cfg/sourcemod/stuck.cfg
+*
+* Dependencies:
+* sdktools.inc, multicolors.inc, ngsutils.inc, ngsupdater.inc,
+*/
 #pragma newdecls required
 #pragma semicolon 1
 
-#include <sourcemod>
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
+
 #include <sdktools>
 #include <multicolors>
-
-#define PLUGIN_NAME		 	"[NGS] Stuck"
-#define PLUGIN_AUTHOR	   	"Erreur 500 / TheXeon"
-#define PLUGIN_DESCRIPTION	"Fix stuck players"
-#define PLUGIN_VERSION	  	"1.3"
-#define PLUGIN_CONTACT	  	"erreur500@hotmail.fr"
+#include <ngsutils>
+#include <ngsupdater>
 
 int  TimeLimit;
 int  Counter[MAXPLAYERS+1] 		= {0, ...};
@@ -26,16 +35,15 @@ ConVar c_Limit, c_Countdown, c_Radius, c_Step;
 
 
 public Plugin myinfo = {
-	name		= PLUGIN_NAME,
-	author	  	= PLUGIN_AUTHOR,
-	description = PLUGIN_DESCRIPTION,
-	version	 	= PLUGIN_VERSION,
-	url		 	= PLUGIN_CONTACT
+	name		= "[NGS] Stuck",
+	author	  	= "Erreur 500 / TheXeon",
+	description = "Fix stuck players",
+	version	 	= "1.3.1",
+	url		 	= "https://www.neogenesisnetwork.net"
 }
 
 public void OnPluginStart()
 {
-	CreateConVar("stuck_version", PLUGIN_VERSION, "Stuck version", FCVAR_NOTIFY|FCVAR_DONTRECORD);
 	c_Limit		= CreateConVar("stuck_limit", 				"7", 	"How many !stuck can a player use ? (0 = no limit)", 0, true, 0.0);
 	c_Countdown	= CreateConVar("stuck_wait", 				"300", 	"Time to wait before earn new !stuck.", 0, true, 0.0);
 	c_Radius	= CreateConVar("stuck_radius", 				"200", 	"Radius size to fix player position.", 0, true, 10.0);
@@ -96,13 +104,6 @@ public void CallBackCVarStep(ConVar cvar, const char[] oldVal, const char[] newV
 		Step = 1.0;
 
 	LogMessage("stuck_step = %f", Step);
-}
-
-stock bool IsValidClient(int iClient)
-{
-	if (iClient <= 0) return false;
-	if (iClient > MaxClients) return false;
-	return IsClientInGame(iClient);
 }
 
 public Action Timer(Handle timer)

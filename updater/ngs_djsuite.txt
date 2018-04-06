@@ -4,11 +4,12 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.0.5"
+			"Latest"	"1.0.6"
 		}
 		
-		"Notes"	"Add updater support!"
-		"Notes"	"Remove unneeded formatting and spaces from .sp."
+		"Notes"	"Convert to use CommandListeners for chat!"
+		"Notes"	"Add extra checks for replicating convars!"
+		"Notes"	"Optimize DJ chat checks (take less cycles)."
 	}
 	
 	"Files"

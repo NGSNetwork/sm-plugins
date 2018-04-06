@@ -27,6 +27,37 @@ stock bool IsValidClient(int client, bool aliveTest=false, bool botTest=true, bo
 	return true;
 }
 
+/**
+* Check if a translation file exists. This is intended to be run before
+* loading the file in. BuildPath is not needed beforehand. 
+*
+* @param file			Translation file to check for existence.
+* @param loadFile		Load Translation if exists.
+* @param failPlugin		If true, SetFailState to pause plugin.
+* @return				True if file exists, else false.
+*/
+stock bool TranslationFileExists(char[] file, bool loadFile=true, bool failPlugin=false)
+{
+	char path[PLATFORM_MAX_PATH];
+	int checkindex = strlen(file) - 4;
+	BuildPath(Path_SM, path, sizeof(path), "translations/%s%s", file,
+		(StrContains(file, ".txt") == checkindex || 
+			StrContains(file, ".cfg") == checkindex) ? "" : ".txt");
+	if(FileExists(path))
+	{
+		if (loadFile)
+		{
+			LoadTranslation(file);
+		}
+		return true;
+	}
+	else if (failPlugin)
+	{
+		SetFailState("Missing translation file at %s!", path);
+	}
+	return false;
+}
+
 // TIMER METHODMAPS
 methodmap SMTimer < Handle
 {
@@ -166,7 +197,7 @@ methodmap Cookie < Handle
 	}
 
 	/**
-	 * Searches for a Client preference cookie. Use as Cookie.Find
+	 * Searches for a Client preference cookie. Use as Cookie.Find().
 	 *
 	 * Cookies can be closed via delete when
 	 * no longer needed.
@@ -285,7 +316,7 @@ methodmap CookieIterator < Handle
 #endif
 
 #if defined _dbi_included
-// Thanks to Shader's Allen (Drixevel) for the idea and code! sourcemod-misc.inc -> methodmaps
+// Thanks to Shaders Allen (Drixevel) for the idea and code! sourcemod-misc.inc -> methodmaps
 methodmap SmartDB < Database
 {
 	public void QueryF(SQLQueryCallback callback, any data, DBPriority priority = DBPrio_Normal, const char[] format, any ...)

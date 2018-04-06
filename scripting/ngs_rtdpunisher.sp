@@ -23,19 +23,17 @@
 
 #undef REQUIRE_PLUGIN
 #include <basecomm>
-
-//-------------------------------------------------------------------------------------------------
+#include <sourcecomms>
+#define REQUIRE_PLUGIN
 
 int RTDCooldown[MAXPLAYERS + 1];
-bool basecommExists = false;
-
-//-------------------------------------------------------------------------------------------------
+bool basecommExists, sourcecommsExists;
 
 public Plugin myinfo = {
 	name = "[NGS] RTD Punisher",
 	author = "TheXeon",
 	description = "Negatively affects those who try rtd.",
-	version = "1.5.5",
+	version = "1.5.6",
 	url = "https://www.neogenesisnetwork.net"
 }
 
@@ -43,8 +41,9 @@ public void OnPluginStart()
 {
 	RegConsoleCmd("sm_rtd", CommandRTDEffect, "Anti-RTD in chat.");
 	RegConsoleCmd("sm_rollthedice", CommandRTDEffect, "Anti-RTD in chat.");
-	RegConsoleCmd("say", Listener_Say);
-	RegConsoleCmd("say_team", Listener_Say);
+
+	AddCommandListener(Listener_Say, "say");
+	AddCommandListener(Listener_Say, "say_team");
 }
 
 public void OnClientPutInServer(int client)
@@ -52,9 +51,29 @@ public void OnClientPutInServer(int client)
 	RTDCooldown[client] = 0;
 }
 
-public void LibraryAdded(const char[] name) { if (StrEqual(name, "basecomm")) basecommExists = true; }
+public void LibraryAdded(const char[] name)
+{
+	if (StrEqual(name, "basecomm", false))
+	{
+		basecommExists = true;
+	}
+	else if (StrEqual(name, "sourcecomms", false))
+	{
+		sourcecommsExists = true;
+	}
+}
 
-public void LibraryRemoved(const char[] name) { if (StrEqual(name, "basecomm")) basecommExists = false; }
+public void LibraryRemoved(const char[] name)
+{
+	if (StrEqual(name, "basecomm", false))
+	{
+		basecommExists = false;
+	}
+	else if (StrEqual(name, "sourcecomms", false))
+	{
+		sourcecommsExists = false;
+	}
+}
 
 public Action CommandRTDEffect(int client, int args)
 {
@@ -68,16 +87,16 @@ public void DoRTD(int client)
 
 	if(!IsPlayerAlive(client))
 	{
-		CReplyToCommand(client, "{YELLOW}[LOLRTD]{DEFAULT} You must be alive to use RTD!");
+		CPrintToChat(client, "{YELLOW}[LOLRTD]{DEFAULT} You must be alive to use RTD!");
 		return;
 	}
 
 	int currentTime = GetTime();
 	if (currentTime - RTDCooldown[client] < 7)
-    {
-		CReplyToCommand(client, "{YELLOW}[LOLRTD]{DEFAULT} You must wait {PURPLE}%d{DEFAULT} seconds to roll again.", 7 - (currentTime - RTDCooldown[client]));
+	{
+		CPrintToChat(client, "{YELLOW}[LOLRTD]{DEFAULT} You must wait {PURPLE}%d{DEFAULT} seconds to roll again.", 7 - (currentTime - RTDCooldown[client]));
 		return;
-  	}
+	}
 
 	RTDCooldown[client] = currentTime;
 
@@ -88,7 +107,7 @@ public void DoRTD(int client)
 		case 1:
 		{
 			SlapPlayer(client, 1000);
-			CReplyToCommand(client, "{YELLOW}[LOLRTD]{DEFAULT} You rolled {PURPLE}Instant Death{DEFAULT}! {LIGHTGREEN}Roll again!");
+			CPrintToChat(client, "{YELLOW}[LOLRTD]{DEFAULT} You rolled {PURPLE}Instant Death{DEFAULT}! {LIGHTGREEN}Roll again!");
 			SayToAllElse(client);
 			return;
 		}
@@ -96,7 +115,7 @@ public void DoRTD(int client)
 		case 2:
 		{
 			TF2_IgnitePlayer(client, client);
-			CReplyToCommand(client, "{YELLOW}[LOLRTD]{DEFAULT} You rolled {PURPLE}Ignition{DEFAULT}! {LIGHTGREEN}We will unfortunately never have this plugin on the server.");
+			CPrintToChat(client, "{YELLOW}[LOLRTD]{DEFAULT} You rolled {PURPLE}Ignition{DEFAULT}! {LIGHTGREEN}We will unfortunately never have this plugin on the server.");
 			SayToAllElse(client);
 			return;
 		}
@@ -104,7 +123,7 @@ public void DoRTD(int client)
 		case 3:
 		{
 			TF2_RespawnPlayer(client);
-			CReplyToCommand(client, "{YELLOW}[LOLRTD]{DEFAULT} You rolled {PURPLE}Instant Respawn{DEFAULT}! {LIGHTGREEN}Roll again, randomness is based on your lag!");
+			CPrintToChat(client, "{YELLOW}[LOLRTD]{DEFAULT} You rolled {PURPLE}Instant Respawn{DEFAULT}! {LIGHTGREEN}Roll again, randomness is based on your lag!");
 			SayToAllElse(client);
 			return;
 		}
@@ -112,16 +131,21 @@ public void DoRTD(int client)
 	return;
 }
 
-public Action Listener_Say(int client, int args)
+public Action Listener_Say(int client, const char[] command, int argc)
 {
+	if (!IsValidClient(client))
+	{
+		return Plugin_Continue;
+	}
+
 	char text[512];
 	GetCmdArgString(text, sizeof(text));
 	StripQuotes(text);
-	// LogMessage("Text is %s!", text);
-	if (!(FindCharInString(text, '/') == 1 || FindCharInString(text, '!') == 1) &&
+
+	if (!(FindCharInString(text, '/') == 1 || FindCharInString(text, '!') == 1 || FindCharInString(text, '@') == 1) &&
 		(StrEqual(text, "rtd", false) || StrEqual(text, "rollthedice", false)))
 	{
-		if (basecommExists && BaseComm_IsClientGagged(client))
+		if ((basecommExists && BaseComm_IsClientGagged(client)) || (sourcecommsExists && SourceComms_GetClientGagType(client) != bNot))
 		{
 			CPrintToChat(client, "{YELLOW}[RTD]{DEFAULT} Sorry, you may not use RTD!");
 		}

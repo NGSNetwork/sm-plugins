@@ -4,11 +4,13 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.5.5"
+			"Latest"	"1.5.6"
 		}
 		
-		"Notes"	"Add updater support!"
-		"Notes"	"Remove extra spaces from sp."
+		"Notes"	"Use light CommandListeners for chat!"
+		"Notes"	"Add Sourcecomms gag support."
+		"Notes"	"Fix text not showing up in chat rtd."
+		"Notes"	"Fix rtd showing up on admin chat trigger."
 	}
 	
 	"Files"

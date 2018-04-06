@@ -4,16 +4,19 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.6.1"
+			"Latest"	"1.6.2"
 		}
 		
-		"Notes"	"Add updater support!"
-		"Notes"	"Remove extra spaces from sp."
+		"Notes"	"Use CommandListeners for chat!"
+		"Notes"	"Add sourcecomms support for gagging."
+		"Notes"	"Add missing translation files check."
+		"Notes"	"Remove OnAllPluginsLoaded hook."
 	}
 	
 	"Files"
 	{
 		"Plugin"	"Path_SM/plugins/ngs_tradechat.smx"
+		"Plugin"	"Path_SM/translations/tradechat.phrases.txt"
 		
 		"Source"	"Path_SM/scripting/ngs_tradechat.sp"
 	}

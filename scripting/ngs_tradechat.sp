@@ -15,7 +15,6 @@
 
 #define LIBRARY_ADDED_FUNC LibraryAdded
 #define LIBRARY_REMOVED_FUNC LibraryRemoved
-#define ALL_PLUGINS_LOADED_FUNC AllPluginsLoaded
 #define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
 #define RELOAD_ON_UPDATE 1
 
@@ -26,12 +25,14 @@
 
 #undef REQUIRE_PLUGIN
 #include <basecomm>
+#include <sourcecomms>
+#define REQUIRE_PLUGIN
 
 public Plugin myinfo = {
 	name = "[NGS] Trade Chat",
 	author = "Luki / TheXeon",
 	description = "This plugin adds a special trade chat, players can hide it.",
-	version = "1.6.1",
+	version = "1.6.2",
 	url = "https://neogenesisnetwork.net/"
 }
 
@@ -43,7 +44,7 @@ ConVar hChatCheck;
 ConVar hChatTriggers;
 ConVar hChatTag;
 
-bool basecommExists = false;
+bool basecommExists, sourcecommsExists;
 
 bool HideTradeChat[MAXPLAYERS + 1];
 bool TradeChatGag[MAXPLAYERS + 1];
@@ -60,10 +61,19 @@ char sChatTag[32] = "Trade";
 public void OnPluginStart()
 {
 	LoadTranslations("common.phrases");
+
+	char path[PLATFORM_MAX_PATH];
+	BuildPath(Path_SM, path, sizeof(path), "translations/tradechat.phrases.txt");
+	if(!FileExists(path))
+	{
+		SetFailState("Missing translations at %s", path);
+	}
+
 	LoadTranslations("tradechat.phrases");
 
-	RegConsoleCmd("say", Command_Say);
-	RegConsoleCmd("say_team", Command_Say);
+	AddCommandListener(Command_Say, "say");
+	AddCommandListener(Command_Say, "say_team");
+
 	RegConsoleCmd("sm_t", Command_TradeChat);
 	RegConsoleCmd("sm_lt", Command_LastTradeChat);
 	RegConsoleCmd("sm_mlt", Command_MyLastTrade);
@@ -98,23 +108,28 @@ public void OnPluginStart()
 	AutoExecConfig(true);
 }
 
-public void AllPluginsLoaded()
-{
-	basecommExists = LibraryExists("basecomm");
-	if (!basecommExists)
-		LogMessage("Could not find 'basecomm' plugin.");
-}
-
 public void LibraryAdded(const char[] name)
 {
-	if (StrEqual(name, "basecomm"))
+	if (StrEqual(name, "basecomm", false))
+	{
 		basecommExists = true;
+	}
+	else if (StrEqual(name, "sourcecomms", false))
+	{
+		sourcecommsExists = true;
+	}
 }
 
 public void LibraryRemoved(const char[] name)
 {
-	if (StrEqual(name, "basecomm"))
+	if (StrEqual(name, "basecomm", false))
+	{
 		basecommExists = false;
+	}
+	else if (StrEqual(name, "sourcecomms", false))
+	{
+		sourcecommsExists = false;
+	}
 }
 
 public void OnConfigsExecuted()
@@ -135,11 +150,10 @@ public void OnClientConnected(int client)
 	SpamCount[client] = 0;
 }
 
-public Action Command_Say(int client, int args)
+public Action Command_Say(int client, const char[] command, int argc)
 {
 	if (!IsValidClient(client)) return Plugin_Continue;
-	int checkTriggers = hChatCheck.IntValue;
-	if (checkTriggers < 1) return Plugin_Continue;
+	if (hChatCheck.IntValue < 1) return Plugin_Continue;
 
 	char text[512];
 	GetCmdArgString(text, sizeof(text));
@@ -204,7 +218,7 @@ stock bool DoTradeChat(int client, char[] msg, bool fromChatTriggers=false)
 	if (strlen(msg) == 0)
 		return true;
 
-	if (TradeChatGag[client] || (basecommExists && BaseComm_IsClientGagged(client)))
+	if (TradeChatGag[client] || ((basecommExists && BaseComm_IsClientGagged(client)) || (sourcecommsExists && SourceComms_GetClientGagType(client) != bNot)))
 	{
 		CPrintToChat(client, "%t", "TradeBanned", sChatTag);
 		return false;
@@ -213,7 +227,9 @@ stock bool DoTradeChat(int client, char[] msg, bool fromChatTriggers=false)
 	if (HideTradeChat[client])
 	{
 		if (!fromChatTriggers)
+		{
 			CPrintToChat(client, "%t", "TradeDisabledForYou", sChatTag);
+		}
 		return true;
 	}
 
@@ -230,10 +246,10 @@ stock bool DoTradeChat(int client, char[] msg, bool fromChatTriggers=false)
 			CPrintToChatAll("%t", "AntiSpamAutoGag", sChatTag, name);
 			return false;
 		}
-		if (GetConVarBool(hAntiSpamPunish))
+		if (hAntiSpamPunish.BoolValue)
 			LastMessageTime[client] = GetTime();
 		LogToFile(logfile, "%L was blocked from sending an offer", client);
-		if (GetConVarBool(hAntiSpamShowInterval))
+		if (hAntiSpamShowInterval.BoolValue)
 			CPrintToChat(client, "%t", "AntiSpamBlockedInterval", sChatTag, iAntiSpamDelay - (GetTime() - LastMessageTime[client]));
 		else
 			CPrintToChat(client, "%t", "AntiSpamBlocked", sChatTag);
@@ -247,12 +263,16 @@ stock bool DoTradeChat(int client, char[] msg, bool fromChatTriggers=false)
 	bool HintCommandAccess = CheckCommandAccess(client, "sm_trade_hudtext_override", ADMFLAG_RESERVATION);
 
 	for (int i = 1; i <= MaxClients; i++)
+	{
 		if (IsValidClient(i) && !HideTradeChat[i])
 		{
 			CPrintToChat(i, "%t", "Offer", sChatTag, name, msg);
 			if (HintCommandAccess)
+			{
 				PrintHintText(i, "[%s] %s: %s", sChatTag, name, msg);
+			}
 		}
+	}
 	LogToFile(logfile, "%L says \"%s\"", client, msg);
 	return false;
 }

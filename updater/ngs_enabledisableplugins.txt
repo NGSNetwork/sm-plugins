@@ -1,0 +1,21 @@
+"Updater"
+{
+	"Information"
+	{
+		"Version"
+		{
+			"Latest"	"1.1.0"
+		}
+		
+		"Notes"	"Add updater support!"
+		"Notes"	"Added ability to force a disable."
+		"Notes"	"Remove extra spaces from sp."
+	}
+	
+	"Files"
+	{
+		"Plugin"	"Path_SM/plugins/ngs_enabledisableplugins.smx"
+		
+		"Source"	"Path_SM/scripting/ngs_enabledisableplugins.sp"
+	}
+}

@@ -47,7 +47,7 @@ stock bool TranslationFileExists(char[] file, bool loadFile=true, bool failPlugi
 	{
 		if (loadFile)
 		{
-			LoadTranslation(file);
+			LoadTranslations(file);
 		}
 		return true;
 	}

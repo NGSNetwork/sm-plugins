@@ -4,16 +4,19 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.2.1"
+			"Latest"	"1.2.3"
 		}
 		
-		"Notes"	"Add updater support!"
-		"Notes"	"Remove extra spaces from sp."
+		"Notes"	"Fix duel protected users killing buildings!"
+		"Notes"	"Fall back to SQLite if SQL doesn't work."
+		"Notes"	"Properly stop damage on players."
+		"Notes"	"Use new syntax where applicable."
 	}
 	
 	"Files"
 	{
 		"Plugin"	"Path_SM/plugins/ngs_freeduels.smx"
+		"Plugin"	"Path_SM/translations/free_duels.phrases.txt"
 		
 		"Source"	"Path_SM/scripting/ngs_freeduels.sp"
 	}

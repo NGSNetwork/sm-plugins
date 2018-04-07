@@ -1,0 +1,158 @@
+﻿"Phrases"
+{
+	"ChangeClass"
+	{
+		"en"		"{cyan}[Duel]{default} You can't change class during a restricted duel!"
+		"fr"		"{cyan}[Duel]{default} Vous ne pouvez pas changer de classe pendant un duel avec restriction de classe!"
+		"it"		"{cyan}[Duel]{default} Non puoi cambiare classe durante un duello con restrizioni!"
+	}
+	"Abort"
+	{
+		"en"		"{cyan}[Duel]{Red} !abort {olive} to abort a duel."
+		"fr"		"{cyan}[Duel]{Red} !abort {olive} pour annuler un duel."
+		"it"		"{cyan}[Duel]{Red} !abort {olive} per annullare un duello."
+	}
+	"NoFound"
+	{
+		"en"		"{cyan}[Duel]{Orange} No player found."
+		"fr"		"{cyan}[Duel]{Orange} Aucun joueur trouve."
+		"it"		"{cyan}[Duel]{Orange} Nessun giocatore trovato."
+	}
+	"NoFlag"
+	{
+		"en"		"{cyan}[Duel]{default} You don't have access to this command!"
+		"fr"		"{cyan}[Duel]{default} Vous n'avez pas acces à cette commande !"
+		"it"		"{cyan}[Duel]{default} Non hai accesso a questo comando !"
+	}
+	"Spectator"
+	{
+		"en"		"{cyan}[Duel]{default} You can't duel in spectator!"
+		"fr"		"{cyan}[Duel]{default} Vous ne pouvez pas faire de duel en spectateur !"
+		"it"		"{cyan}[Duel]{default} Non puoi iniziare un duello come spettatore !"
+	}
+	"InDuel"
+	{
+		"en"		"{cyan}[Duel]{Red} You're already in a duel!"
+		"fr"		"{cyan}[Duel]{Red} Vous etes deja en duel !"
+		"it"		"{cyan}[Duel]{Red} Hai già iniziato un duello !"
+	}
+	"NotInGame"
+	{
+		"en"		"{cyan}[Duel]{Red} Player isn't in game!"
+		"fr"		"{cyan}[Duel]{Red} Joueur non en jeu !"
+		"it"		"{cyan}[Duel]{Red} Giocatori non in partita !"
+	}
+	"NotInDuel"
+	{
+		"en"		"{cyan}[Duel]{olive} You aren't in a duel!"
+		"fr"		"{cyan}[Duel]{olive} Vous n'etes pas dans un duel !"
+		"it"		"{cyan}[Duel]{olive} Non hai iniziato alcun duello !"
+	}
+	"Score"
+	{
+		"#format"	"{1:N},{2:d},{3:N},{4:d}"
+		"en"		"{cyan}[Duel]{default} {1} : {2}  -  {3} : {4}"
+		"fr"		"{cyan}[Duel]{default} {1} : {2}  -  {3} : {4}"
+		"it"		"{cyan}[Duel]{default} {1} : {2}  -  {3} : {4}"
+	}
+	"Victory"
+	{
+		"#format"	"{1:N},{2:N},{3:s}"
+		"en"		"{cyan}[Duel]{green} {1} {olive}wins their duel against{green} {2}  {default}{3}"
+		"fr"		"{cyan}[Duel]{green} {1} {olive}gagne le duel contre{green} {2}  {default}{3}"
+		"it"		"{cyan}[Duel]{green} {1} {olive}vince il duello contro{green} {2}  {default}{3}"
+	}
+	"Challenged"
+	{
+		"#format"	"{1:N},{2:N}"
+		"en"		"{cyan}[Duel]{Green} {1} {Orange}has challenged {green}{2} !"
+		"fr"		"{cyan}[Duel]{Green} {1} {Orange}a defie{green}{2} !"
+		"it"		"{cyan}[Duel]{Green} {1} {Orange}ha sfidato {green}{2} !"
+	}
+	"You!"
+	{
+		"#format"	"{1:N},{2:d}"
+		"en"		"{cyan}[Duel]{green} {1} {olive}has challenged you!"
+		"fr"		"{cyan}[Duel]{green} {1} {olive}vous defie!"
+		"it"		"{cyan}[Duel]{green} {1} {olive}ti ha sfidato!"
+	}
+	"Refused"
+	{
+		"#format"	"{1:N},{2:N}"
+		"en"		"{cyan}[Duel]{Red} But {Green} {1} {Red}refused {Green}{2}{Red}'s duel!"
+		"fr"		"{cyan}[Duel]{Red} Mais {Green} {1} {Red}a refuse le duel de {Green}{2}{Red} !"
+		"it"		"{cyan}[Duel]{Red} Ma {Green} {1} {Red}ha rifiutato la sfida di {Green}{2}{Red}!"
+	}
+	"Accepts"
+	{
+		"#format"	"{1:N},{2:N}"
+		"en"		"{cyan}[Duel]{green} {1} {olive}accepts {Green}{2}{olive}'s challenge!"
+		"fr"		"{cyan}[Duel]{green} {1} {olive}a accepte le defi de {Green}{2}{olive}!"
+		"it"		"{cyan}[Duel]{green} {1} {olive}ha accettato la sfida di {Green}{2}{olive}!"
+	}
+	"TooAfraid"
+	{
+		"#format"	"{1:N},{2:N}"
+		"en"		"{cyan}[Duel]{Green} {1} {Red} is too afraid to accept {Green}{2}{Red}'s challenge!"
+		"fr"		"{cyan}[Duel]{Green} {1} {Red} a trop peur de repondre à {Green}{2} !"
+		"it"		"{cyan}[Duel]{Green} {1} {Red} è troppo spaventato per rispondere a {Green}{2} !"
+	}
+	"IsInDuel"
+	{
+		"#format"	"{1:N}"
+		"en"		"{cyan}[Duel]{Green} {1} {Red} is already in a duel!"
+		"fr"		"{cyan}[Duel]{Green} {1} {Red} est deja dans un duel !"
+		"it"		"{cyan}[Duel]{Green} {1} {Red} è già in duello con un giocatore !"
+	}
+	"TeamError"
+	{
+		"en"		"{cyan}[Duel]{Red} Team error!"
+		"fr"		"{cyan}[Duel]{Red} Erreur d'equipe !"
+		"it"		"{cyan}[Duel]{Red} Squadra errata !"
+	}
+	"!myduels"
+	{
+		"en"		"{cyan}[Duel]{default} Write {Green}!myduels {default}to see your duels ratio."
+		"fr"		"{cyan}[Duel]{default} Tapes {Green}!myduels {default}pour voir le rapport de tes duels."
+		"it"		"{cyan}[Duel]{default} Scrivi {Green}!myduels {default}per consultare le statistiche dei tuoi duelli."
+	}
+	"!topduel"
+	{
+		"en"		"{cyan}[Duel]{default} Write {Green}!topduel {default}to see the top duelists."
+		"fr"		"{cyan}[Duel]{default} Tapes {Green}!topduel {default}pour voir les meilleurs dueleurs."
+		"it"		"{cyan}[Duel]{default} Scrivi {Green}!topduel {default}per l'elenco dei migliori duellanti."
+	}
+	"Equality"
+	{
+		"#format"	"{1:N},{2:N}"
+		"en"		"{cyan}[Duel]{red} Duel finished :{green} {1} {olive}and {green}{2} {olive}have tied with the same level!"
+		"fr"		"{cyan}[Duel]{red} Duel termine :{green} {1} {olive}et {green}{2} {olive}on le meme niveau !"
+		"it"		"{cyan}[Duel]{red} Duello terminato :{green} {1} {olive} e {green}{2} {olive}sono in parità !"
+	}
+	"VictoryNbr"
+	{
+		"#format"	"{1:s},{2:d}"
+		"en"		"{cyan}[Duel]{green} {1} {olive}has{green} {2} {orange}victory!"
+		"fr"		"{cyan}[Duel]{green} {1} {olive}a{green} {2} {orange}victore!"
+		"it"		"{cyan}[Duel]{green} {1} {olive}ha{green} {2} {orange}vittoria!"
+	}
+	"Victories"
+	{
+		"#format"	"{1:s},{2:d}"
+		"en"		"{cyan}[Duel]{green} {1} {olive}has{green} {2} {orange}victories!"
+		"fr"		"{cyan}[Duel]{green} {1} {olive}a{green} {2} {orange}victoires!"
+		"it"		"{cyan}[Duel]{green} {1} {olive}ha{green} {2} {orange}vittorie!"
+	}
+	"WaitAnwser"
+	{
+		"en"		"{cyan}[Duel]{orange} You must wait for an answer to your last challenge before create a new one."
+		"fr"		"{cyan}[Duel]{orange} Tu dois attendre la reponse de ton dernier duel avant d'en creer un nouveau."
+		"it"		"{cyan}[Duel]{orange} Devi aspettare una risposta alla tua ultima richiesta di duello prima di farne una nuova."
+	}
+	"Don'tBuilt"
+	{
+		"en"		"{cyan}[Duel]{default} In Challenger Protection, you are not allow to build objects!"
+		"fr"		"{cyan}[Duel]{default} En GodMod, tu n'es pas autorise à construire des objets!"
+		"it"		"{cyan}[Duel]{default} In GodMod, non sei abilitato a costruire oggetti!"
+	}
+}

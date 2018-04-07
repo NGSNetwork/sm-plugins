@@ -5,10 +5,11 @@
 * Files:
 * addons/sourcemod/plugins/ngs_freeduels.smx
 * addons/sourcemod/translations/free_duels.phrases.txt
+* addons/sourcemod/data/sqlite/duel.sq3
 * cfg/sourcemod/free_duels.cfg
 *
 * Dependencies:
-* sourcemod.inc, sdkhooks.inc, tf2_stocks.inc, multicolors.inc, free_duels.inc,
+* sdkhooks.inc, tf2_stocks.inc, multicolors.inc, free_duels.inc,
 * friendly.inc, ngsutils.inc, ngsupdater.inc
 */
 #pragma newdecls required
@@ -17,7 +18,6 @@
 #define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
 #define RELOAD_ON_UPDATE 1
 
-#include <sourcemod>
 #include <sdkhooks>
 #include <tf2_stocks>
 #include <multicolors>
@@ -28,8 +28,6 @@
 
 #define WEBSITE 			"https://www.neogenesisnetwork.net"
 #define MAX_LINE_WIDTH 		60
-#define CHECK_DELAY 		0.1
-
 
 enum DuelData
 {
@@ -74,7 +72,7 @@ ConVar c_Immunity;
 ConVar c_ClassRestriction;
 ConVar c_GodModFlag;
 
-Handle db 						= null;
+SmartDB db;
 
 char ClientSteamID[MAXPLAYERS+1][24];
 char ClientName[MAXPLAYERS+1][MAX_LINE_WIDTH];
@@ -95,7 +93,7 @@ public Plugin myinfo = {
     name        = "[NGS] Free duels",
     author      = "Erreur 500 / TheXeon",
     description = "Challenge other players",
-    version     = "1.2.1",
+    version     = "1.2.3",
     url         = "https://www.neogenesisnetwork.net"
 }
 
@@ -128,7 +126,7 @@ public void OnPluginStart()
 		Initialisation();
 		AutoExecConfig(true, "free_duels");
 		Connect();
-		LoadTranslations("free_duels.phrases");
+		TranslationFileExists("free_duels.phrases", true, true);
 		LoadTranslations("common.phrases");
 
 		HookEvent("player_spawn", EventPlayerSpawn, EventHookMode_Pre);
@@ -136,13 +134,16 @@ public void OnPluginStart()
 		HookEvent("player_team", EventPlayerTeam, EventHookMode_Pre);
 		HookEvent("player_changeclass", EventPlayerchangeclass, EventHookMode_Pre);
 		HookEvent("player_builtobject", EventBuiltObject);
-		HookEvent("teamplay_round_win", EventRoundEnd);
+		HookEvent("teamplay_round_win", EventRoundEnd, EventHookMode_PostNoCopy);
 		HookEvent("teamplay_flag_event", EventFlag);
 		HookEvent("controlpoint_starttouch", EventCPStartTouch);
 		HookEvent("controlpoint_endtouch", EventCPEndTouch);
+		HookEvent("player_sapped_object", EventSapped);
+//		HookEvent("player_upgradedobject", EventUpgradedObject, EventHookMode_Pre);
+//		HookEvent("object_deflected", EventAirblast);
 
 		for (int iClient = 1; iClient <= MaxClients; iClient++)
-          if (IsClientInGame(iClient)) OnClientPutInServer(iClient);
+          if (IsValidClient(iClient)) OnClientPutInServer(iClient);
 
 		CreateTimer(1.0, Timer, INVALID_HANDLE, TIMER_REPEAT);
 	}
@@ -182,8 +183,8 @@ void Initialisation()
 	for (int i = 0; i < MAXPLAYERS + 1; i++)
 	{
 		g_Duel[i][Enabled]		= false;
-		g_Duel[i][SpriteParent]	= -1;
-		g_Duel[i][CSprite]		= -1;
+		g_Duel[i][SpriteParent]	= INVALID_ENT_REFERENCE;
+		g_Duel[i][CSprite]		= INVALID_ENT_REFERENCE;
 	}
 }
 
@@ -195,7 +196,7 @@ public void OnClientConnected(int client)
 public void OnConfigsExecuted()
 {
 	LogMessage("[4/5] Loading : Configs Executed");
-	if(GetConVarInt(c_Tag))
+	if(c_Tag.IntValue)
 		TagsCheck("Duels");
 
 	LogMessage("[5/5] Loading : Finished");
@@ -214,7 +215,7 @@ void TagsCheck(const char[] tag)
 		hTags.SetString(newTags);
 		hTags.GetString(tags, sizeof(tags));
 	}
-	CloseHandle(hTags);
+	delete hTags;
 }
 
 public void OnMapStart()
@@ -233,43 +234,51 @@ void Connect()
 {
 	if (SQL_CheckConfig("duel"))
 	{
-		SQL_TConnect(Connected, "duel");
+		Database.Connect(Connected, "duel");
+	}
+	else if (SQL_CheckConfig("default"))
+	{
+		Database.Connect(Connected);
 	}
 	else
 	{
-		char error[255];
-		SQLite = true;
-
-		Handle kv;
-		kv = CreateKeyValues("");
-		KvSetString(kv, "driver", "sqlite");
-		KvSetString(kv, "database", "duel");
-		db = SQL_ConnectCustom(kv, error, sizeof(error), false);
-		CloseHandle(kv);
-
-		if (db == null)
-			LogMessage("Loading : Failed to connect: %s", error);
-		else
-		{
-			LogMessage("[2/5] Loading : Connected to SQLite Database");
-			CreateDbSQLite();
-		}
+		ConnectToSQLite();
 	}
 }
 
-public void Connected(Handle owner, Handle hndl, const char[] error, any data)
+public void ConnectToSQLite()
+{
+	char error[255];
+	SQLite = true;
+
+	KeyValues kv = new KeyValues("");
+	kv.SetString("driver", "sqlite");
+	kv.SetString("database", "duel");
+	db = view_as<SmartDB>(SQL_ConnectCustom(kv, error, sizeof(error), false));
+	delete kv;
+
+	if (db == null)
+		LogMessage("Loading : Failed to connect: %s", error);
+	else
+	{
+		LogMessage("[2/5] Loading : Connected to SQLite Database");
+		CreateDbSQLite();
+	}
+}
+
+public void Connected(Database hndl, const char[] error, any data)
 {
 	if (hndl == null)
 	{
 		LogError("Failed to connect! Error: %s", error);
-		LogMessage("Loading : Failed to connect! Error: %s", error);
-		SetFailState("SQL Error.  See error logs for details.");
+		LogMessage("Loading : Failed to connect! Falling back to SQLite!");
+		ConnectToSQLite();
 		return;
 	}
 
-	LogMessage("Loading : Connected to MySQLite Database[2/5]");
-	SQL_TQuery(hndl, SQLErrorCheckCallback, "SET NAMES 'utf8'");
-	db = hndl;
+	LogMessage("Loading : Connected to MySQL Database[2/5]");
+	hndl.Query(SQLErrorCheckCallback, "SET NAMES 'utf8'");
+	db = view_as<SmartDB>(hndl);
 	SQL_CreateTables();
 }
 
@@ -293,8 +302,8 @@ void SQL_CreateTables()
 	len += Format(query[len], sizeof(query)-len, "`Etat` VARCHAR(25) NOT NULL,");
 	len += Format(query[len], sizeof(query)-len, "PRIMARY KEY  (`SteamID`)");
 	len += Format(query[len], sizeof(query)-len, ") ENGINE=MyISAM DEFAULT CHARSET=utf8;");
-	if (SQL_FastQuery(db, query))
-		LogMessage("[3/5] Loading : Tables Created");
+	db.VoidQuery(query);
+	LogMessage("[?/5] Loading : Tables Created");
 }
 
 void CreateDbSQLite()
@@ -309,8 +318,8 @@ void CreateDbSQLite()
 	len += Format(query[len], sizeof(query)-len, " `Last_dueler` TEXT, `Last_dueler_SteamID` TEXT, `Etat` TEXT");
 
 	len += Format(query[len], sizeof(query)-len, ");");
-	if(SQL_FastQuery(db, query))
-		LogMessage("[3/5] Loading : Tables Created");
+	db.VoidQuery(query);
+	LogMessage("[?/5] Loading : Tables Created");
 }
 
 public void SQLErrorCheckCallback(Handle owner, Handle hndl, const char[] error, any data)
@@ -332,13 +341,18 @@ public Action NoDuelMe(int client, int args)
 
 public Action loadDuel(int iClient, int Args)
 {
+	if (!IsValidClient(iClient))
+	{
+		return Plugin_Handled;
+	}
+
 	if (disableDuel[iClient])
 	{
 		CReplyToCommand(iClient, "{CYAN}[Duel]{DEFAULT} You cannot send duel requests if you have disabled duel requests.");
 		return Plugin_Handled;
 	}
 	char FlagNeeded[2];
-	GetConVarString(c_Immunity, FlagNeeded, sizeof(FlagNeeded));
+	c_Immunity.GetString(FlagNeeded, sizeof(FlagNeeded));
 
 	if(!isAdmin(iClient, FlagNeeded))
 		return Plugin_Handled;
@@ -468,9 +482,9 @@ void RemovePlayerBuilding(int iClient)
 //------------------------------------------------------------------------------------------------------------------------
 
 
-public Action EventPlayerSpawn(Handle hEvent, const char[] strName, bool bHidden)
+public Action EventPlayerSpawn(Event hEvent, const char[] strName, bool bHidden)
 {
-	int iClient = GetClientOfUserId(GetEventInt(hEvent, "userid"));
+	int iClient = GetClientOfUserId(hEvent.GetInt("userid"));
 	if(g_Duel[iClient][Enabled] && g_Duel[iClient][ClassRestrict] != 0 && TF2_GetPlayerClass(iClient) != view_as<TFClassType>(g_Duel[iClient][ClassRestrict]))
 	{
 		TF2_SetPlayerClass(iClient, view_as<TFClassType>(g_Duel[iClient][ClassRestrict]), false);
@@ -488,21 +502,22 @@ public Action EventPlayerSpawn(Handle hEvent, const char[] strName, bool bHidden
 		SetEntProp(iClient, Prop_Send, "m_CollisionGroup", 5);
 }
 
-public Action EventPlayerDeath(Handle hEvent, const char[] strName, bool bHidden)
+public void EventPlayerDeath(Event hEvent, const char[] strName, bool bHidden)
 {
 
-	int iClient 	= GetClientOfUserId(GetEventInt(hEvent, "userid"));
-	int iKiller 	= GetClientOfUserId(GetEventInt(hEvent, "attacker"));
-	int iAssister 	= GetClientOfUserId(GetEventInt(hEvent, "assister"));
+	int iClient 	= GetClientOfUserId(hEvent.GetInt("userid"));
+	int iKiller 	= GetClientOfUserId(hEvent.GetInt("attacker"));
+	int iAssister 	= GetClientOfUserId(hEvent.GetInt("assister"));
 
-	if( GetEventInt( hEvent, "death_flags" ) & TF_DEATHFLAG_DEADRINGER )
+	if(hEvent.GetInt("death_flags") & TF_DEATHFLAG_DEADRINGER)
         return;
 
-	if( GetConVarBool(c_EnableHeadShot) == true && g_Duel[iClient][HeadShot] == true)
+	if(c_EnableHeadShot.BoolValue && g_Duel[iClient][HeadShot])
 	{
-		int customkill = GetEventInt(hEvent, "customkill");
-		bool headshot = (customkill == 1);
-		if(headshot == false) return;
+		if(hEvent.GetInt("customkill") != 1)
+		{
+			return;
+		}
 	}
 
 	if (g_Duel[iKiller][Challenger] == iClient && g_Duel[iKiller][Enabled])
@@ -546,9 +561,9 @@ public Action EventPlayerDeath(Handle hEvent, const char[] strName, bool bHidden
 	}
 }
 
-public Action EventPlayerTeam(Handle hEvent, const char[] strName, bool bHidden)
+public Action EventPlayerTeam(Event hEvent, const char[] strName, bool bHidden)
 {
-	int iClient = GetClientOfUserId(GetEventInt(hEvent, "userid"));
+	int iClient = GetClientOfUserId(hEvent.GetInt("userid"));
 
 	if(g_Duel[iClient][Enabled])
 	{
@@ -582,9 +597,9 @@ public void EventPlayerchangeclass(Event event, const char[] name, bool bHidden)
 	}
 }
 
-public Action EventRoundEnd(Event event, const char[] name, bool bHidden)
+public void EventRoundEnd(Event event, const char[] name, bool bHidden)
 {
-	for(int i = 1; i <= MaxClients ; i++)
+	for (int i = 1; i <= MaxClients ; i++)
 	{
 		if(g_Duel[i][Enabled])
 		{
@@ -602,18 +617,21 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 	{
 		// int damageAmount = event.GetInt("damageamount");
 
-		if(((g_Duel[victim][Challenger] != attacker) || (g_Duel[attacker][Challenger] != victim)) && (victim != attacker) && ((g_Duel[victim][Enabled] && g_Duel[victim][GodMod] == 1 ) || (g_Duel[attacker][Enabled] && g_Duel[attacker][GodMod] == 1)) && IsValidClient(attacker))
+		if(((g_Duel[victim][Challenger] != attacker) || (g_Duel[attacker][Challenger] != victim)) &&
+			(victim != attacker) && ((g_Duel[victim][Enabled] && g_Duel[victim][GodMod] == 1 ) ||
+			(g_Duel[attacker][Enabled] && g_Duel[attacker][GodMod] == 1)) && IsValidClient(attacker))
 		{
-			return Plugin_Handled;
+			damage = 0.0;
+			return Plugin_Changed;
 			// SetEntityHealth(client, GetClientHealth(client) + damageAmount);
 		}
 	}
 	return Plugin_Continue;
 }
 
-public Action EventCPStartTouch(Handle hEvent, const char[] strName, bool bHidden)
+public void EventCPStartTouch(Event hEvent, const char[] strName, bool bHidden)
 {
-	int iClient = GetEventInt(hEvent, "player");
+	int iClient = hEvent.GetInt("player");
 	if(g_Duel[iClient][Enabled] && g_Duel[iClient][GodMod] == 1)
 	{
 		g_Duel[iClient][GodMod] = 2;	// It's not because you are on GodMod you can take CP!
@@ -621,9 +639,9 @@ public Action EventCPStartTouch(Handle hEvent, const char[] strName, bool bHidde
 	}
 }
 
-public Action EventCPEndTouch(Handle hEvent, const char[] strName, bool bHidden)
+public void EventCPEndTouch(Event hEvent, const char[] strName, bool bHidden)
 {
-	int iClient = GetEventInt(hEvent, "player");
+	int iClient = hEvent.GetInt("player");
 	if(!IsValidClient(iClient)) return;
 
 	if(g_Duel[iClient][Enabled] && g_Duel[iClient][GodMod] == 2)
@@ -633,10 +651,10 @@ public Action EventCPEndTouch(Handle hEvent, const char[] strName, bool bHidden)
 	}
 }
 
-public Action EventFlag(Handle hEvent, const char[] strName, bool bHidden)
+public void EventFlag(Event hEvent, const char[] strName, bool bHidden)
 {
-	int iClient = GetEventInt(hEvent, "player");
-	int EventType = GetEventInt(hEvent, "eventtype");
+	int iClient = hEvent.GetInt("player");
+	int EventType = hEvent.GetInt("eventtype");
 
 	if(!IsValidClient(iClient)) return;
 
@@ -652,19 +670,77 @@ public Action EventFlag(Handle hEvent, const char[] strName, bool bHidden)
 	}
 }
 
-public Action EventBuiltObject(Handle hEvent, const char[] strName, bool bHidden)
+public void EventBuiltObject(Event hEvent, const char[] strName, bool bHidden)
 {
-	int iClient = GetClientOfUserId(GetEventInt(hEvent, "userid"));
-	int ObjEnt = GetEventInt(hEvent, "index");
+	int iClient = GetClientOfUserId(hEvent.GetInt("userid"));
+	int ObjEnt = hEvent.GetInt("index");
 
-	if(!IsValidClient(iClient)) return Plugin_Handled;
-	if(!g_Duel[iClient][Enabled]) return Plugin_Handled;
-	if(!g_Duel[iClient][GodMod]) return Plugin_Handled;
+	if(!IsValidClient(iClient)) return;
+
+	SDKHook(ObjEnt, SDKHook_OnTakeDamage, BuildingTakeDamage);
+
+	if(!g_Duel[iClient][Enabled]) return;
+	if(!g_Duel[iClient][GodMod]) return;
 
 	CPrintToChat(iClient, "%t", "Don'tBuilt");
 	SetVariantInt(1000);
 	AcceptEntityInput(ObjEnt, "RemoveHealth");
-	return Plugin_Handled;
+}
+
+// Next few methods from ddhoward's friendly. He is a god.
+public Action BuildingTakeDamage(int building, int &attacker, int &inflictor, float &damage, int &damagetype)
+{
+	int engie = GetEntPropEnt(building, Prop_Send, "m_hBuilder");
+	char classname[64];
+	if (!GetEntityClassname(building, classname, sizeof(classname)))
+	{
+		return Plugin_Continue;
+	}
+	if (!IsValidClient(attacker) || !IsValidClient(engie)) {
+		return Plugin_Continue;
+	}
+
+	if (g_Duel[attacker][Enabled] && g_Duel[attacker][GodMod] == 1 && g_Duel[attacker][Challenger] != engie)
+	{
+		damage = 0.0;
+		return Plugin_Changed;
+	}
+	return Plugin_Continue;
+}
+
+public void EventSapped(Event event, const char[] name, bool dontBroadcast)
+{
+	int spy = GetClientOfUserId(event.GetInt("userid"));
+	int sapper = event.GetInt("sapperid");
+	int engie = GetClientOfUserId(event.GetInt("ownerid"));
+	if (g_Duel[spy][Enabled] && g_Duel[spy][GodMod] == 1)
+	{
+		if (g_Duel[spy][Challenger] != engie)
+		{
+			AcceptEntityInput(sapper, "Kill");
+		}
+		else
+		{
+			SDKHook(sapper, SDKHook_OnTakeDamage, SapperTakeDamage);
+		}
+	}
+}
+
+public Action SapperTakeDamage(int sapper, int &attacker, int &inflictor, float &damage, int &damagetype)
+{
+	int building = GetEntPropEnt(sapper, Prop_Send, "m_hBuiltOnEntity");
+	int engie = GetEntPropEnt(building, Prop_Send, "m_hBuilder");
+	if (!IsValidClient(attacker))
+	{
+		return Plugin_Continue;
+	}
+
+	if (g_Duel[engie][Enabled] && g_Duel[engie][GodMod] == 1 && g_Duel[engie][Challenger] != attacker) // I dont know how it could be true
+	{
+		damage = 0.0;
+		return Plugin_Changed;
+	}
+	return Plugin_Continue;
 }
 
 public void OnGameFrame()
@@ -688,7 +764,7 @@ public void OnGameFrame()
 			GetClientEyePosition( iClient, vecOrigin );
 			vecOrigin[2] += 25.0;
 
-			if(EntRefToEntIndex(g_Duel[iClient][SpriteParent]) != -1)
+			if(EntRefToEntIndex(g_Duel[iClient][SpriteParent]) != INVALID_ENT_REFERENCE)
 				TeleportEntity(EntRefToEntIndex(g_Duel[iClient][SpriteParent]), vecOrigin, NULL_VECTOR, NULL_VECTOR);
 		}
 }
@@ -728,14 +804,14 @@ public void CallPanel(int iClient)
 				{
 					char Playername[MAX_LINE_WIDTH];
 					char str_PlayerID[8];
-					Handle menuPlayer = CreateMenu(DuelPanel1);
+					Menu menuPlayer = new Menu(DuelPanel1);
 					SetMenuTitle(menuPlayer, "Who challenge ?");
 
 					for(int i = 0; i < nbr; i++)
 					{
 						GetClientName(Player[i], Playername, sizeof(Playername));
 						IntToString(Player[i], str_PlayerID, sizeof(str_PlayerID));
-						AddMenuItem(menuPlayer, str_PlayerID, Playername);
+						menuPlayer.AddItem(str_PlayerID, Playername);
 					}
 
 					SetMenuExitButton(menuPlayer, true);
@@ -759,7 +835,7 @@ public void CallPanel(int iClient)
 public int DuelPanel1(Handle menu, MenuAction action, int iClient, int args)
 {
 	if (action == MenuAction_End)
-		CloseHandle(menu);
+		delete menu;
 	else if (action == MenuAction_Select)
 	{
 		char str_PlayerID[8];
@@ -804,41 +880,41 @@ void CreateDuel(int Player1, int Player2)
 public void DuelOption(int Player1)
 {
 	char MenuItem[100];
-	Handle menu = CreatePanel();
+	Panel menu = new Panel();
 
-	SetPanelTitle(menu, "Duel Options:");
+	menu.SetTitle("Duel Options:");
 	Format(MenuItem, sizeof(MenuItem), "Duel                        [%s]", DuelNames[g_Duel[Player1][Type]]);
-	DrawPanelItem(menu, MenuItem);
+	menu.DrawItem(MenuItem);
 
 	if(g_Duel[Player1][Type] == 2)
 	{
 		Format(MenuItem, sizeof(MenuItem), "Time                        [%i %s]", g_Duel[Player1][TimeLeft], g_Duel[Player1][TimeLeft] >1 ? "mins":"min");
-		DrawPanelItem(menu, MenuItem);
+		menu.DrawItem(MenuItem);
 	}
 	else if(g_Duel[Player1][Type] == 3)
 	{
 		Format(MenuItem, sizeof(MenuItem), "Amount                   [%i %s]", g_Duel[Player1][Score], g_Duel[Player1][Score] >1 ? "kills":"kill");
-		DrawPanelItem(menu, MenuItem);
+		menu.DrawItem(MenuItem);
 	}
 	else
-		DrawPanelText(menu, " ");
+		menu.DrawText(" ");
 
 	Format(MenuItem, sizeof(MenuItem), "Class restriction                [%s]", ClassNames[g_Duel[Player1][ClassRestrict]]);
-	DrawPanelItem(menu, MenuItem);
+	menu.DrawItem(MenuItem);
 	Format(MenuItem, sizeof(MenuItem), "Challenger protection       [%s]", g_Duel[Player1][GodMod] ? "ON":"OFF");
-	DrawPanelItem(menu, MenuItem);
+	menu.DrawItem(MenuItem);
 	Format(MenuItem, sizeof(MenuItem), "Head shot only                  [%s]", g_Duel[Player1][HeadShot] ? "ON":"OFF");
-	DrawPanelItem(menu, MenuItem);
-	DrawPanelText(menu, " ");
-	DrawPanelItem(menu, "Rules");
-	DrawPanelItem(menu, "Send duel");
-	DrawPanelItem(menu, "Exit");
+	menu.DrawItem(MenuItem);
+	menu.DrawText(" ");
+	menu.DrawItem("Rules");
+	menu.DrawItem("Send duel");
+	menu.DrawItem("Exit");
 
 
-	SendPanelToClient(menu, Player1, DuelOptionAnswer, MENU_TIME_FOREVER);
+	menu.Send(Player1, DuelOptionAnswer, MENU_TIME_FOREVER);
 }
 
-public int DuelOptionAnswer(Handle menu, MenuAction action, int Player1, int args)
+public int DuelOptionAnswer(Menu menu, MenuAction action, int Player1, int args)
 {
 	if (action == MenuAction_Cancel)
 	{
@@ -846,24 +922,24 @@ public int DuelOptionAnswer(Handle menu, MenuAction action, int Player1, int arg
 		ResetPlayer(Player1);
 	}
 	else if (action == MenuAction_End)
-		CloseHandle(menu);
+		delete menu;
 	else if (action == MenuAction_Select)
 	{
 		bool AvailableClass[10] = {true,...};
 
 		// IF Class restriction Enable
-		if(GetConVarInt(c_ClassRestriction) > 0)
+		if(c_ClassRestriction.IntValue > 0)
 		{
 			int PlayerPerClass[2][10];
 			char CVARClassRed[35];
 			char CVARClassBlue[35];
 
 			// Get Plugin restriction limit
-			if(GetConVarInt(c_ClassRestriction) == 2)		//MaxClass Plugin
+			if(c_ClassRestriction.IntValue == 2)		//MaxClass Plugin
 			{
 				if(!StartReadingFromTable()) //error while reding file
 				{
-					SetConVarInt(c_ClassRestriction, 0);
+					c_ClassRestriction.IntValue = 0;
 					LogMessage("[Duel] Error while reading MaxClass config file. Now duel_classrestrict = 0 ");
 				}
 			}
@@ -871,12 +947,12 @@ public int DuelOptionAnswer(Handle menu, MenuAction action, int Player1, int arg
 			{
 				for(int i=1;i<=9;i++)
 				{
-					if(GetConVarInt(c_ClassRestriction) == 1)	//Class Restrict Plugin
+					if(c_ClassRestriction.IntValue == 1)	//Class Restrict Plugin
 					{
 						Format(CVARClassRed, sizeof(CVARClassRed), "sm_classrestrict_red_%s", ClassRestricNames[i]);
 						Format(CVARClassBlue, sizeof(CVARClassBlue), "sm_classrestrict_blu_%s", ClassRestricNames[i]);
-						LimitPerClass[2][i] = GetConVarInt(FindConVar(CVARClassRed));
-						LimitPerClass[3][i] = GetConVarInt(FindConVar(CVARClassBlue));
+						LimitPerClass[2][i] = FindConVar(CVARClassRed).IntValue;
+						LimitPerClass[3][i] = FindConVar(CVARClassBlue).IntValue;
 					}
 					else 											//Error in Cvar
 					{
@@ -916,8 +992,8 @@ public int DuelOptionAnswer(Handle menu, MenuAction action, int Player1, int arg
 
 		char FlagNeeded1[2];
 		char FlagNeeded2[2];
-		GetConVarString(c_GodModFlag, FlagNeeded1, sizeof(FlagNeeded1));
-		GetConVarString(c_HeadShotFlag, FlagNeeded2, sizeof(FlagNeeded2));
+		c_GodModFlag.GetString(FlagNeeded1, sizeof(FlagNeeded1));
+		c_HeadShotFlag.GetString(FlagNeeded2, sizeof(FlagNeeded2));
 
 
 
@@ -955,7 +1031,7 @@ public int DuelOptionAnswer(Handle menu, MenuAction action, int Player1, int arg
 
 			if(args == 3)		// Class Restriction
 			{
-				if(GetConVarBool(c_EnableClass))
+				if(c_EnableClass.BoolValue)
 				{
 					do
 					{
@@ -975,14 +1051,14 @@ public int DuelOptionAnswer(Handle menu, MenuAction action, int Player1, int arg
 			}
 			else if(args == 4)		// Challenger protection
 			{
-				if(GetConVarBool(c_EnableGodMod) && isAdmin(Player1, FlagNeeded1))
+				if(c_EnableGodMod.BoolValue && isAdmin(Player1, FlagNeeded1))
 					g_Duel[Player1][GodMod] = g_Duel[Player1][GodMod] ? 0 : 1;
 				else
 					g_Duel[Player1][GodMod] = 0;
 			}
 			else if(args == 5) // Head shot only
 			{
-				if(GetConVarBool(c_EnableHeadShot) && g_Duel[Player1][ClassRestrict] == 2 && isAdmin(Player1, FlagNeeded2))
+				if(c_EnableHeadShot.BoolValue && g_Duel[Player1][ClassRestrict] == 2 && isAdmin(Player1, FlagNeeded2))
 					g_Duel[Player1][HeadShot] = g_Duel[Player1][HeadShot] ? false : true;
 				else
 					g_Duel[Player1][HeadShot] = false;
@@ -1040,7 +1116,7 @@ bool StartReadingFromTable()
 	char mapname[32];
 	int MaxClass[MAXPLAYERS][TFTeam + view_as<TFTeam>(1)][TFClassType + view_as<TFClassType>(1)];
 
-	GetConVarString(FindConVar("sm_maxclass_config"), config, sizeof(config));
+	FindConVar("sm_maxclass_config").GetString(config, sizeof(config));
 	BuildPath(Path_SM, file, sizeof(file),"configs/%s", config);
 
 	if (!FileExists(file))
@@ -1049,21 +1125,21 @@ bool StartReadingFromTable()
 	if (!FileExists(file))
 		return false;
 
-	Handle kv = CreateKeyValues("MaxClassPlayers");
-	FileToKeyValues(kv, file);
+	KeyValues kv = new KeyValues("MaxClassPlayers");
+	kv.ImportFromFile(file);
 
 	//Get in the first sub-key, first look for the map, then look for default
 	GetCurrentMap(mapname, sizeof(mapname));
-	if (!KvJumpToKey(kv, mapname))
+	if (!kv.JumpToKey(mapname))
 	{
 		// Check for map type!
 		SplitString(mapname, "_", mapname, sizeof(mapname));
 
-		if (!KvJumpToKey(kv, mapname))
+		if (!kv.JumpToKey(mapname))
 		{
-			if (!KvJumpToKey(kv, "default"))
+			if (!kv.JumpToKey("default"))
 			{
-				CloseHandle(kv);
+				delete kv;
 				return false;
 			}
 		}
@@ -1082,38 +1158,38 @@ bool StartReadingFromTable()
 		for (a=TFTeam_Unassigned; a <= TFTeam_Blue; a++)
 			MaxClass[i][a] = MaxPlayers;
 
-	if (!KvGotoFirstSubKey(kv))
+	if (!kv.GotoFirstSubKey())
 	{
-		CloseHandle(kv);
+		delete kv;
 		return false;
 	}
 
 	do
 	{
-		KvGetSectionName(kv, buffer, sizeof(buffer));
+		kv.GetSectionName(buffer, sizeof(buffer));
 
 		//Collect all data
-		MaxPlayers[TFClass_Scout] =	KvGetNum(kv, TF_ClassNames[TFClass_Scout], -1);
-		MaxPlayers[TFClass_Sniper] =   KvGetNum(kv, TF_ClassNames[TFClass_Sniper], -1);
-		MaxPlayers[TFClass_Soldier] =  KvGetNum(kv, TF_ClassNames[TFClass_Soldier], -1);
-		MaxPlayers[TFClass_DemoMan] =  KvGetNum(kv, TF_ClassNames[TFClass_DemoMan], -1);
-		MaxPlayers[TFClass_Medic] =	KvGetNum(kv, TF_ClassNames[TFClass_Medic], -1);
-		MaxPlayers[TFClass_Heavy] =	KvGetNum(kv, TF_ClassNames[TFClass_Heavy], -1);
-		MaxPlayers[TFClass_Pyro] =	 KvGetNum(kv, TF_ClassNames[TFClass_Pyro], -1);
-		MaxPlayers[TFClass_Spy] =	  KvGetNum(kv, TF_ClassNames[TFClass_Spy], -1);
-		MaxPlayers[TFClass_Engineer] = KvGetNum(kv, TF_ClassNames[TFClass_Engineer], -1);
+		MaxPlayers[TFClass_Scout] =	kv.GetNum(TF_ClassNames[TFClass_Scout], -1);
+		MaxPlayers[TFClass_Sniper] =   kv.GetNum(TF_ClassNames[TFClass_Sniper], -1);
+		MaxPlayers[TFClass_Soldier] =  kv.GetNum(TF_ClassNames[TFClass_Soldier], -1);
+		MaxPlayers[TFClass_DemoMan] =  kv.GetNum(TF_ClassNames[TFClass_DemoMan], -1);
+		MaxPlayers[TFClass_Medic] =	kv.GetNum(TF_ClassNames[TFClass_Medic], -1);
+		MaxPlayers[TFClass_Heavy] =	kv.GetNum(TF_ClassNames[TFClass_Heavy], -1);
+		MaxPlayers[TFClass_Pyro] =	 kv.GetNum(TF_ClassNames[TFClass_Pyro], -1);
+		MaxPlayers[TFClass_Spy] =	  kv.GetNum(TF_ClassNames[TFClass_Spy], -1);
+		MaxPlayers[TFClass_Engineer] = kv.GetNum(TF_ClassNames[TFClass_Engineer], -1);
 
 		if (MaxPlayers[TFClass_Engineer] == -1)
-			MaxPlayers[TFClass_Engineer] = KvGetNum(kv, "engenner", -1);
+			MaxPlayers[TFClass_Engineer] = kv.GetNum("engenner", -1);
 
-		redblue[TFTeam_Red] =  KvGetNum(kv, "team2", 1);
-		redblue[TFTeam_Blue] =  KvGetNum(kv, "team3", 1);
+		redblue[TFTeam_Red] =  kv.GetNum("team2", 1);
+		redblue[TFTeam_Blue] =  kv.GetNum("team3", 1);
 
 		if (redblue[TFTeam_Red] == 1)
-			redblue[TFTeam_Red] =  KvGetNum(kv, "red", 1);
+			redblue[TFTeam_Red] =  kv.GetNum("red", 1);
 
 		if (redblue[TFTeam_Blue] == 1)
-			redblue[TFTeam_Blue] =  KvGetNum(kv, "blue", 1);
+			redblue[TFTeam_Blue] =  kv.GetNum("blue", 1);
 
 		if ((redblue[TFTeam_Red] + redblue[TFTeam_Blue]) == 0)
 			continue;
@@ -1158,10 +1234,10 @@ bool StartReadingFromTable()
 			LimitPerClass[2][i] = MaxClass[GetClientCount(true)][2][i];
 			LimitPerClass[3][i] = MaxClass[GetClientCount(true)][1][i];
 		}
-	} while (KvGotoNextKey(kv));
+	} while (kv.GotoNextKey());
 
 
-	CloseHandle(kv);
+	delete kv;
 	return true;
 }
 
@@ -1210,32 +1286,32 @@ public void ChallengerMenu(int Player1, int Player2)
 
 	char MenuItem[100];
 	char MenuTitle[100];
-	Handle menu = CreatePanel();
+	Panel menu = new Panel();
 
 	Format(MenuTitle, sizeof(MenuTitle), "%N challenged you!", Player1);
-	SetPanelTitle(menu, MenuTitle);
+	menu.SetTitle(MenuTitle);
 	if(g_Duel[Player1][Type] == 1)
 		Format(MenuItem, sizeof(MenuItem), "Type: Normal");
 	else if(g_Duel[Player1][Type] == 2)
 		Format(MenuItem, sizeof(MenuItem), "Type: Time left         [%i %s]", g_Duel[Player1][TimeLeft], g_Duel[Player1][TimeLeft] >1 ? "mins":"min");
 	else if(g_Duel[Player1][Type] == 3)
 		Format(MenuItem, sizeof(MenuItem), "Type: Amount of kills   [%i %s]", g_Duel[Player1][Score], g_Duel[Player1][Score] >1 ? "kills":"kill");
-	DrawPanelText(menu, MenuItem);
-	DrawPanelText(menu, " ");
+	menu.DrawText(MenuItem);
+	menu.DrawText(" ");
 	Format(MenuItem, sizeof(MenuItem), "Class restriction                [%s]", ClassNames[g_Duel[Player1][ClassRestrict]]);
-	DrawPanelText(menu, MenuItem);
+	menu.DrawText(MenuItem);
 	Format(MenuItem, sizeof(MenuItem), "Challenger protection       [%s]", g_Duel[Player1][GodMod] ? "ON":"OFF");
-	DrawPanelText(menu, MenuItem);
+	menu.DrawText(MenuItem);
 	Format(MenuItem, sizeof(MenuItem), "Head shot only                  [%s]", g_Duel[Player1][HeadShot] ? "ON":"OFF");
-	DrawPanelText(menu, MenuItem);
+	menu.DrawText(MenuItem);
 	Format(MenuItem, sizeof(MenuItem), "                                ");
-	DrawPanelText(menu, MenuItem);
+	menu.DrawText(MenuItem);
 
-	DrawPanelItem(menu, "Yes, I challenge");
-	DrawPanelItem(menu, "No, I refuse");
+	menu.DrawItem("Yes, I challenge");
+	menu.DrawItem("No, I refuse");
 
 
-	SendPanelToClient(menu, Player2, ChallengerMenuAnswer, 20);
+	menu.Send(Player2, ChallengerMenuAnswer, 20);
 }
 
 public int ChallengerMenuAnswer(Handle menu, MenuAction action, int Player2, int args)
@@ -1248,7 +1324,7 @@ public int ChallengerMenuAnswer(Handle menu, MenuAction action, int Player2, int
 	}
 	else if (action == MenuAction_End)
 	{
-		CloseHandle(menu);
+		delete menu;
 	}
 	else if (action == MenuAction_Select)
 	{
@@ -1590,26 +1666,24 @@ void GetSafeClientData(int iClient)
 	//Client Name
 	GetClientName(iClient, PlayerInfo, sizeof(PlayerInfo));
 
-	ReplaceString(PlayerInfo, sizeof(PlayerInfo), "'", "");		// Secure player name for DB
-	ReplaceString(PlayerInfo, sizeof(PlayerInfo), "<?PHP", "");
-	ReplaceString(PlayerInfo, sizeof(PlayerInfo), "<?php", "");
+	ReplaceString(PlayerInfo, sizeof(PlayerInfo), "<?PHP", "", false); // Secure player name for DB;
 	ReplaceString(PlayerInfo, sizeof(PlayerInfo), "<?", "");
 	ReplaceString(PlayerInfo, sizeof(PlayerInfo), "?>", "");
 	ReplaceString(PlayerInfo, sizeof(PlayerInfo), "<", "[");
 	ReplaceString(PlayerInfo, sizeof(PlayerInfo), ">", "]");
 	ReplaceString(PlayerInfo, sizeof(PlayerInfo), ",", ".");
 
-	strcopy(ClientName[iClient], MAX_LINE_WIDTH, PlayerInfo);
-
+	db.Escape(PlayerInfo, ClientName[iClient], MAX_LINE_WIDTH);
 
 	//Client SteamID
 	if(IsFakeClient(iClient))
 		strcopy(PlayerInfo, MAX_LINE_WIDTH, "BOT");
 	else
 	{
-		GetClientAuthId(iClient, AuthId_Steam3, PlayerInfo, sizeof(PlayerInfo));
-		if(StrEqual(PlayerInfo,""))		// O.o It's Possible !? yes ...
+		if (!GetClientAuthId(iClient, AuthId_Steam3, PlayerInfo, sizeof(PlayerInfo)))
+		{
 			strcopy(PlayerInfo, MAX_LINE_WIDTH, "INVALID");
+		}
 	}
 	strcopy(ClientSteamID[iClient], 24, PlayerInfo);
 }
@@ -1622,86 +1696,97 @@ void GetSafeClientData(int iClient)
 
 public Action MyDuelStats(int iClient, int Args)
 {
-	if (iClient == 0) return;
+	if (!IsValidClient(iClient))
+	{
+		return Plugin_Handled;
+	}
 
 	char buffer[255];
 
 	Format(buffer, sizeof(buffer), "SELECT COUNT(*) FROM `Duels_Stats`");
-	SQL_TQuery(db, T_Rank1, buffer, iClient);
+	db.Query(T_Rank1, buffer, GetClientUserId(iClient));
+	return Plugin_Handled;
 }
 
-public void T_Rank1(Handle owner, Handle hndl, const char[] error, any iClient)
+public void T_Rank1(Database dummy, DBResultSet hndl, const char[] error, any userid)
 {
 	if (hndl == null)
 		LogError("Query failed! %s", error);
 	else
 	{
+		int iClient = GetClientOfUserId(userid);
 		if(!IsValidClient(iClient))	return;
 		char buffer[255];
 
-		while (SQL_FetchRow(hndl))
+		while (hndl.FetchRow())
 		{
-			RankTotal = SQL_FetchInt(hndl,0);
+			RankTotal = hndl.FetchInt(0);
 			Format(buffer, sizeof(buffer), "SELECT `Points`, `Victories`, `Duels`, `Kills`, `Deads` FROM `Duels_Stats` WHERE SteamID = '%s'", ClientSteamID[iClient]);
-			SQL_TQuery(db, T_Rank2, buffer, iClient);
+			db.Query(T_Rank2, buffer, userid);
 		}
 	}
 }
 
-public void T_Rank2(Handle owner, Handle hndl, const char[] error, any iClient)
+public void T_Rank2(Database dummy, DBResultSet hndl, const char[] error, any userid)
 {
 	if (hndl == null)
 		LogError("Query failed! %s", error);
 	else
 	{
+		int iClient = GetClientOfUserId(userid);
+		if (!IsValidClient(iClient)) return;
 		char buffer[255];
-		while (SQL_FetchRow(hndl))
+		while (hndl.FetchRow())
 		{
-			points[iClient]	 	= SQL_FetchFloat(hndl,0);
-			victories[iClient]	= SQL_FetchInt(hndl,1);
-			dueltotal[iClient]		= SQL_FetchInt(hndl,2);
-			killsNbr[iClient]		= SQL_FetchInt(hndl,3);
-			death[iClient]		= SQL_FetchInt(hndl,4);
+			points[iClient]	 	= hndl.FetchFloat(0);
+			victories[iClient]	= hndl.FetchInt(1);
+			dueltotal[iClient]		= hndl.FetchInt(2);
+			killsNbr[iClient]		= hndl.FetchInt(3);
+			death[iClient]		= hndl.FetchInt(4);
 
 			Format(buffer, sizeof(buffer), "SELECT COUNT(*) FROM `Duels_Stats` WHERE `Points` > %i", victories);
-			SQL_TQuery(db, T_Rank3, buffer, iClient);
+			db.Query(T_Rank3, buffer, userid);
 		}
 	}
 }
 
-public void T_Rank3(Handle owner, Handle hndl, const char[] error, any iClient)
+public void T_Rank3(Database dummy, DBResultSet hndl, const char[] error, any userid)
 {
 	if (hndl == null)
 		LogError("Query failed! %s", error);
 	else
-		while (SQL_FetchRow(hndl))
-			RankPanel(iClient, SQL_FetchInt(hndl,0));
+	{
+		int iClient = GetClientOfUserId(userid);
+		if (!IsValidClient(iClient)) return;
+		while (hndl.FetchRow())
+			RankPanel(iClient, hndl.FetchInt(0));
+	}
 }
 
 void RankPanel(int iClient, int Rank)
 {
 	char value[MAX_LINE_WIDTH];
 	char ClientID[MAX_LINE_WIDTH];
-	Handle rnkpanel = CreatePanel();
+	Panel rnkpanel = new Panel();
 
 	GetClientName(iClient, ClientID, sizeof(ClientID) );
-	SetPanelTitle(rnkpanel, "Your duels' stats:");
+	rnkpanel.SetTitle("Your duels' stats:");
 	Format(value, sizeof(value), "Name: %s", ClientID);
-	DrawPanelText(rnkpanel, value);
+	rnkpanel.DrawText(value);
 	Format(value, sizeof(value), "Rank: %i out of %i", Rank , RankTotal);
-	DrawPanelText(rnkpanel, value);
+	rnkpanel.DrawText(value);
 	Format(value, sizeof(value), "Points: %f" , points[iClient]);
-	DrawPanelText(rnkpanel, value);
+	rnkpanel.DrawText(value);
 	Format(value, sizeof(value), "Victories: %i" , victories[iClient]);
-	DrawPanelText(rnkpanel, value);
+	rnkpanel.DrawText(value);
 	Format(value, sizeof(value), "Duels total: %i" , dueltotal[iClient]);
-	DrawPanelText(rnkpanel, value);
+	rnkpanel.DrawText(value);
 	Format(value, sizeof(value), "Kills: %i" , killsNbr[iClient]);
-	DrawPanelText(rnkpanel, value);
+	rnkpanel.DrawText(value);
 	Format(value, sizeof(value), "Deaths: %i" , death[iClient]);
-	DrawPanelText(rnkpanel, value);
-	DrawPanelItem(rnkpanel, "Close");
-	SendPanelToClient(rnkpanel, iClient, RankPanelHandler, 15);
+	rnkpanel.DrawText(value);
+	rnkpanel.DrawItem("Close");
+	rnkpanel.Send(iClient, RankPanelHandler, 15);
 }
 
 public int RankPanelHandler(Handle menu, MenuAction action, int param1, int param2)
@@ -1712,33 +1797,35 @@ public Action TopDuel(int iClient, int Args)
 {
 	char buffer[255];
 	Format(buffer, sizeof(buffer), "SELECT `Players`, `Points` FROM `Duels_Stats` ORDER BY `Points` DESC LIMIT 0,100");
-	SQL_TQuery(db, T_ShowTopDuel, buffer, iClient);
+	db.Query(T_ShowTopDuel, buffer, GetClientUserId(iClient));
+	return Plugin_Handled;
 }
 
-public void T_ShowTopDuel(Handle owner, Handle hndl, const char[] error, any iClient)
+public void T_ShowTopDuel(Database dummy, DBResultSet hndl, const char[] error, any userid)
 {
 	if (hndl == null)
 		LogError("Query failed! %s", error);
 	else
 	{
-		Handle menu = CreateMenu(TopDuelPanel);
-		SetMenuTitle(menu, "Top Duel Menu:");
+		int iClient = GetClientOfUserId(userid);
+		if (!IsValidClient(iClient)) return;
+
+		Menu menu = new Menu(TopDuelPanel);
+		menu.SetTitle("Top Duel Menu:");
 
 		int i = 1;
-		while (SQL_FetchRow(hndl))
+		while (hndl.FetchRow())
 		{
 			char PlayerName[MAX_LINE_WIDTH];
 			char line[MAX_LINE_WIDTH];
-			SQL_FetchString(hndl,0, PlayerName , MAX_LINE_WIDTH);
+			hndl.FetchString(0, PlayerName , MAX_LINE_WIDTH);
 
 			Format(line, sizeof(line), "%i : %s %f points", i, PlayerName, SQL_FetchFloat(hndl,1));
-			AddMenuItem(menu, "i" , line);
+			menu.AddItem("i" , line);
 			i++;
 		}
-		SetMenuExitButton(menu, true);
-		DisplayMenu(menu, iClient, MENU_TIME_FOREVER);
-
-		return;
+		menu.ExitButton = true;
+		menu.Display(iClient, MENU_TIME_FOREVER);
 	}
 	return;
 }
@@ -1746,7 +1833,7 @@ public void T_ShowTopDuel(Handle owner, Handle hndl, const char[] error, any iCl
 public int TopDuelPanel(Handle menu, MenuAction action, int param1, int param2)
 {
 	if (action == MenuAction_End)
-		CloseHandle(menu);
+		delete menu;
 }
 
 
@@ -1831,10 +1918,10 @@ public void InitializeClientonDB(int iClient)
 	char buffer[255];
 
 	Format(buffer, sizeof(buffer), "SELECT `Victories`,`Duels` FROM Duels_Stats WHERE STEAMID = '%s'", ClientSteamID[iClient]);
-	SQL_TQuery(db, T_UpdateClient, buffer, iClient);
+	db.Query(T_UpdateClient, buffer, iClient);
 }
 
-public void T_UpdateClient(Handle owner, Handle hndl, const char[] error, any iClient)
+public void T_UpdateClient(Database dummy, DBResultSet hndl, const char[] error, any iClient)
 {
 	char etat[512];
 	int CltPoint;
@@ -1871,19 +1958,19 @@ public void T_UpdateClient(Handle owner, Handle hndl, const char[] error, any iC
 
 	ResetPlayer(iClient);
 
-	if (!SQL_GetRowCount(hndl))
+	if (!hndl.RowCount)
 	{
 		char buffer[1500];
 		if(!SQLite)
 		{
 			Format(buffer, sizeof(buffer), "INSERT INTO Duels_Stats (`Players`,`SteamID`,`Points`,`Victories`,`Duels`,`Kills`,`Deads`,`PlayTime`,`Abandoned`,`Equalities`,`Last_dueler`,`Last_dueler_SteamID`,`Etat`) VALUES ('%s','%s','%i','%i','1','%i','%i','%i','%i','%i','%s','%s','%s')", ClientName[iClient], ClientSteamID[iClient], CltPoint, Victory, Kill, Dead, Tmer, Abort, Equal, ClientName[Dueller], ClientSteamID[Dueller], etat);
-			SQL_TQuery(db, SQLErrorCheckCallback, buffer);
+			db.Query(SQLErrorCheckCallback, buffer);
 			LogMessage("MySQL => %s First victory, and add on database.", ClientName[iClient]);
 		}
 		else
 		{
 			Format(buffer, sizeof(buffer), "INSERT INTO Duels_Stats VALUES('%s','%s','%i','%i','1','%i','%i','%i','%i','%i','%s','%s','%s');", ClientName[iClient], ClientSteamID[iClient], CltPoint, Victory, Kill, Dead, Tmer, Abort, Equal, ClientName[Dueller], ClientSteamID[Dueller], etat );
-			SQL_TQuery(db, SQLErrorCheckCallback, buffer);
+			db.Query(SQLErrorCheckCallback, buffer);
 			LogMessage("SQLite => %s First victory, and add on database.", ClientName[iClient]);
 		}
 		CPrintToChatAll("%t", Victory >1 ? "Victories" : "VictoryNbr", ClientName[iClient], Victory);
@@ -1892,16 +1979,16 @@ public void T_UpdateClient(Handle owner, Handle hndl, const char[] error, any iC
 	{
 		char buffer[1500];
 
-		while (SQL_FetchRow(hndl))
+		while (hndl.FetchRow())
 		{
-			int clientvictories 	= SQL_FetchInt(hndl,0);
-			int clientduels			= SQL_FetchInt(hndl,1);
+			int clientvictories 	= hndl.FetchInt(0);
+			int clientduels			= hndl.FetchInt(1);
 			if(Victory == 1)
 				clientvictories += 1;
 			float clientpoints 	= ((clientvictories*1.0)/(clientduels+1)) + clientvictories;
 
 			Format(buffer, sizeof(buffer), "UPDATE Duels_Stats SET Players = '%s', Points = %f, Victories = Victories +%i, Duels = Duels +1, Kills = Kills +%i, Deads = Deads +%i, PlayTime = PlayTime +%i, Abandoned = Abandoned +%i, Equalities = Equalities +%i, Last_dueler = '%s', Last_dueler_SteamID = '%s', Etat = '%s' WHERE SteamID = '%s'",ClientName[iClient], clientpoints, Victory, Kill, Dead, Tmer, Abort, Equal, ClientName[Dueller], ClientSteamID[Dueller], etat, ClientSteamID[iClient]);
-			SQL_TQuery(db,SQLErrorCheckCallback, buffer);
+			db.Query(SQLErrorCheckCallback, buffer);
 
 			CPrintToChatAll("%t", clientvictories >1 ? "Victories" : "VictoryNbr", ClientName[iClient], clientvictories);
 			LogMessage("MySQL => %s %d victories, and updated on database.", ClientName[iClient], clientvictories);
@@ -1914,7 +2001,7 @@ void ResetPlayer(int iClient)
 	g_Duel[iClient][Enabled] 		= false;
 	if(IsValidClient(iClient) && g_Duel[iClient][GodMod] && !g_Duel[iClient][Enabled])
 	{
-		if(GetCommandFlags("sm_colorize") != INVALID_FCVAR_FLAGS)
+		if(CommandExists("sm_colorize"))
 		{
 		    ServerCommand("sm_colorize #%d normal", GetClientUserId(iClient));
 		}
@@ -1938,13 +2025,13 @@ void ResetPlayer(int iClient)
 	if(IsValidEdict(EntRefToEntIndex(g_Duel[iClient][SpriteParent])))
 	{
 		RemoveEdict(EntRefToEntIndex(g_Duel[iClient][SpriteParent]));
-		g_Duel[iClient][SpriteParent] = -1;
+		g_Duel[iClient][SpriteParent] = INVALID_ENT_REFERENCE;
 	}
 
 	if(IsValidEdict(EntRefToEntIndex(g_Duel[iClient][CSprite])))
 	{
 		RemoveEdict(EntRefToEntIndex(g_Duel[iClient][CSprite]));
-		g_Duel[iClient][CSprite] = -1;
+		g_Duel[iClient][CSprite] = INVALID_ENT_REFERENCE;
 	}
 }
 

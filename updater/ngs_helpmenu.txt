@@ -4,11 +4,11 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.1.1"
+			"Latest"	"1.1.2"
 		}
 		
-		"Notes"	"Add updater support!"
-		"Notes"	"Remove extra spaces from sp."
+		"Notes"	"Only show the commands menu when we are clear :)"
+		"Notes"	"Fix some spacing issues and extra weirdness."
 	}
 	
 	"Files"

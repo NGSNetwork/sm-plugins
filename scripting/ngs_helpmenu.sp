@@ -30,8 +30,8 @@ public Plugin myinfo = {
 	name = "[NGS] Help Menu",
 	author = "TheXeon",
 	description = "A help menu for NGS.",
-	version = "1.1.1",
-	url = "https://neogenesisnetwork.net"
+	version = "1.1.2",
+	url = "https://www.neogenesisnetwork.net"
 }
 
 public void OnPluginStart()
@@ -39,6 +39,7 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_helpmenu", CommandHelpMenu, "Usage: sm_helpmenu");
 	RegConsoleCmd("sm_vip", CommandVIP, "Usage: sm_vip");
 	RegConsoleCmd("sm_commands", CommandCmdList, "Usage: sm_commands");
+	RegConsoleCmd("sm_cmds", CommandCmdList, "Usage: sm_cmds");
 	LoadTranslations("common.phrases");
 
 	HookEvent("post_inventory_application", OnPlayerFirstSpawn);
@@ -100,13 +101,15 @@ public int HelpMenuHandler(Menu menu, MenuAction action, int param1, int param2)
 	if (action == MenuAction_Select)
 	{
 		char info[32];
-		menu.GetItem(param2, info, sizeof(info));
-		if (StrEqual(info, "serverrules", false))
-			serverRulesMenu.Display(param1, MENU_TIME_FOREVER);
-		else if (StrEqual(info, "servercommands", false))
-			serverCommandsMainMenu.Display(param1, MENU_TIME_FOREVER);
-		else if (StrEqual(info, "extrasettings", false))
-			FakeClientCommand(param1, "sm_settings");
+		if (menu.GetItem(param2, info, sizeof(info)))
+		{
+			if (StrEqual(info, "serverrules", false))
+				serverRulesMenu.Display(param1, MENU_TIME_FOREVER);
+			else if (StrEqual(info, "servercommands", false))
+				serverCommandsMainMenu.Display(param1, MENU_TIME_FOREVER);
+			else if (StrEqual(info, "extrasettings", false))
+				FakeClientCommand(param1, "sm_settings");
+		}
 	}
 }
 
@@ -119,11 +122,13 @@ public int ServerRulesMenuHandler(Menu menu, MenuAction action, int param1, int 
 	else if(action == MenuAction_Select)
 	{
 		char info[32];
-		menu.GetItem(param2, info, sizeof(info));
-		if (StrEqual(info, "donorrulelink", false))
-			FakeClientCommand(param1, "say /donorperks");
-		else if (StrEqual(info, "playerrulelink", false))
-			FakeClientCommand(param1, "say /rules");
+		if (menu.GetItem(param2, info, sizeof(info)))
+		{
+			if (StrEqual(info, "donorrulelink", false))
+				FakeClientCommand(param1, "say /donorperks");
+			else if (StrEqual(info, "playerrulelink", false))
+				FakeClientCommand(param1, "say /rules");
+		}
 	}
 }
 
@@ -159,9 +164,27 @@ public int ServerCommandsSubMenuHandler(Menu menu, MenuAction action, int param1
 	else if(action == MenuAction_Select)
 	{
 		char info[32];
-		menu.GetItem(param2, info, sizeof(info));
-		FakeClientCommand(param1, info);
-		serverCommandsSubMenu.Display(param1, MENU_TIME_FOREVER);
+		if (menu.GetItem(param2, info, sizeof(info)))
+		{
+			FakeClientCommand(param1, info);
+			DataPack pack = new DataPack();
+			pack.WriteCell(GetClientUserId(param1));
+			pack.WriteCell(param2);
+			SMDataTimer.Make(0.1, ReshowCommandsSubMenu, pack);
+		}
+	}
+}
+
+public Action ReshowCommandsSubMenu(Handle timer, DataPack pack)
+{
+	pack.Reset();
+	int client = GetClientOfUserId(pack.ReadCell());
+	if (!IsValidClient(client)) return;
+	if (GetClientMenu(client) == MenuSource_None)
+	{
+		int position = pack.ReadCell();
+		position -= position % 7; // Show at last seen "page"
+		serverCommandsSubMenu.DisplayAt(client, position, MENU_TIME_FOREVER);
 	}
 }
 
@@ -195,7 +218,7 @@ public void FillCommands(bool regularPlayers)
 			}
 		}
 	}
-	CloseHandle(hIterator);
+	delete hIterator;
 	serverCommandsSubMenu.ExitBackButton = true;
 }
 
@@ -208,6 +231,7 @@ public void OnPlayerFirstSpawn(Event event, const char[] name, bool dontBroadcas
 		showRulesMenu[client] = false;
 	}
 }
+
 public void RuleMenuBuilder()
 {
 	serverRulesMenu.AddItem("rule1", "No hacks or glitches!");

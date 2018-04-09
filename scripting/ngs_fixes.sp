@@ -4,7 +4,7 @@
 *
 * Files:
 * addons/sourcemod/plugins/ngs_fixes.smx
-* cfg/sourcemod/autorestart.cfg
+* cfg/sourcemod/ngs_fixes.cfg
 *
 * Dependencies:
 * sourcemod.inc, basecomm.inc, ngsutils.inc, ngsupdater.inc

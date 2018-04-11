@@ -1,26 +1,58 @@
-#include <sourcemod>
+/**
+* TheXeon
+* ngs_spycrab.sp
+*
+* Files:
+* addons/sourcemod/plugins/ngs_spycrab.smx
+* addons/sourcemod/configs/crablocations.cfg
+*
+* Dependencies:
+* sdkhooks.inc, adminmenu.inc, multicolors.inc, tf2_stocks.inc,
+* ngsutils.inc, ngsupdater.inc
+*/
 #include <sdkhooks>
-#include <sdktools>
 #include <adminmenu>
-#include <morecolors>
-#include <tf2>
+#include <multicolors>
 #include <tf2_stocks>
+#include <ngsutils>
+#include <ngsupdater>
 
-#define PLUGIN_VERSION "1.0.0"
+//// Obviously inspired by Erreur 500
+//enum CrabData
+//{
+//	Challenger,
+//	bool:Enabled,
+//	Score,
+//	SMTimer:MovementTimer,
+//	TimesTaunted,
+//	Deads,
+//	ClassRestrict,
+//	GodMod,
+//	bool:HeadShot,
+//	TimeLeft,
+//	CSprite,
+//	SpriteParent,
+//	bool:HideSprite,
+//}
+
+ConVar mapNameContains;
+KeyValues mapLocations;
 
 bool spycrabInProgress, spycrabMenuInUse;
-int firstClient = -1, secondClient = -1, firstClientScore = 0, secondClientScore = 0, firstClientTimesTaunted, secondClientTimesTaunted, hudTextChannel;
-float firstClientOrigin[3] =  {-5092.628906, -864.530823, -161.218689}, secondClientOrigin[3] = {-4915.655273, -865.145020, -154.218689};
+//int playerCrabData[MAXPLAYERS + 1][CrabData];
+int firstClient = -1, secondClient = -1, firstClientScore, secondClientScore,
+	firstClientTimesTaunted, secondClientTimesTaunted, hudTextChannel;
+float firstClientOrigin[3], secondClientOrigin[3];
 TFTeam firstClientTeam, secondClientTeam;
 
-Handle firstClientMovement = null, secondClientMovement = null;
+SMTimer firstClientMovement, secondClientMovement;
 
 public Plugin myinfo = {
 	name = "[NGS] Spycrab Suite",
 	author = "TheXeon / EasyE",
 	description = "Automate a spycrab with people.",
-	version = PLUGIN_VERSION,
-	url = "https://neogenesisnetwork.net"
+	version = "1.1.0",
+	url = "https://www.neogenesisnetwork.net"
 }
 
 public void OnPluginStart()
@@ -28,27 +60,29 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_spycrab", CommandCrab, "Displays spycrab target menu.");
 	RegConsoleCmd("sm_crab", CommandCrab, "Displays spycrab target menu.");
 	RegAdminCmd("sm_cancelcrab", CommandCancelCrab, ADMFLAG_GENERIC, "Cancels the spycrab.");
+	RegAdminCmd("sm_reloadcrab", CommandReloadCrabConfig, ADMFLAG_GENERIC, "Reloads the map config file.");
+
+	mapNameContains = CreateConVar("sm_spycrab_config_contains", "1", "Whether map names in config will be checked partially or fully.");
 	HookEvent("player_death", OnPlayerDeath);
-	
-	char mapName[MAX_BUFFER_LENGTH];
-	GetCurrentMap(mapName, sizeof(mapName));
-	if (StrContains(mapName, "unusual_trade_pyro_v5c", false) != -1)
+	HookEvent("player_disconnect", OnPlayerDisconnect, EventHookMode_Pre);
+
+	LoadConfig();
+}
+
+// Thank you Dr.Mckay and your CCC
+public void LoadConfig()
+{
+	char configFile[PLATFORM_MAX_PATH];
+	BuildPath(Path_SM, configFile, sizeof(configFile), "configs/crablocations.cfg");
+	if (!FileExists(configFile))
 	{
-		firstClientOrigin[0] = -279.927246;
-		firstClientOrigin[1] = -6192.194336;
-		firstClientOrigin[2] = 382.031311;
-		secondClientOrigin[0] = -290.248535;
-		secondClientOrigin[1] = -6044.537109;
-		secondClientOrigin[2] = 382.031311;
+		SetFailState("Missing config file (should be at %s)! Please get it from the repo!", configFile);
 	}
-	else if (StrContains(mapName, "trade_museum_final", false) != -1)
+	delete mapLocations;
+	mapLocations = new KeyValues("Locations");
+	if (!mapLocations.ImportFromFile(configFile))
 	{
-		firstClientOrigin[0] = -5092.628906;
-		firstClientOrigin[1] = -864.530823;
-		firstClientOrigin[2] = -161.218689;
-		secondClientOrigin[0] = -4915.655273;
-		secondClientOrigin[1] = -865.145020;
-		secondClientOrigin[2] = -154.218689;
+		SetFailState("Invalid config file at %s! Please fix it!", configFile);
 	}
 }
 
@@ -56,64 +90,113 @@ public void OnMapStart()
 {
 	char mapName[MAX_BUFFER_LENGTH];
 	GetCurrentMap(mapName, sizeof(mapName));
-	if (StrContains(mapName, "trade_museum_final", false) == -1 && StrContains(mapName, "unusual_trade_pyro_v5", false) == -1)
+	FindMapCoords(mapName);
+}
+
+void FindMapCoords(char[] mapName)
+{
+	char buffer[MAX_BUFFER_LENGTH];
+	mapLocations.Rewind();
+	if (mapNameContains.BoolValue)
 	{
-		LogMessage("This is not the right map to run this on. This plugin currently only works on trade_museum_final or unusual_trade_pyro_v5.");
-		char filename[256];
-		GetPluginFilename(INVALID_HANDLE, filename, sizeof(filename));
-		ServerCommand("sm plugins unload %s", filename);
+		mapLocations.GotoFirstSubKey();
+		do
+		{
+			mapLocations.GetSectionName(buffer, sizeof(buffer));
+			if (StrContains(mapName, buffer, false) != -1)
+			{
+				SetMapCoords(buffer);
+				break;
+			}
+		}
+		while (mapLocations.GotoNextKey());
 	}
-	if (StrContains(mapName, "unusual_trade_pyro_v5c", false) != -1)
+	else
 	{
-		firstClientOrigin[0] = -279.927246;
-		firstClientOrigin[1] = -6192.194336;
-		firstClientOrigin[2] = 382.031311;
-		secondClientOrigin[0] = -290.248535;
-		secondClientOrigin[1] = -6044.537109;
-		secondClientOrigin[2] = 382.031311;
+		if (!mapLocations.JumpToKey(mapName))
+		{
+			LogError("Map %s is not in config file!", mapName);
+		}
+		else
+		{
+			SetMapCoords(mapName);
+		}
 	}
-	else if (StrContains(mapName, "trade_museum_final", false) != -1)
+}
+
+void SetMapCoords(char[] sectionName)
+{
+	firstClientOrigin = NULL_VECTOR;
+	secondClientOrigin = NULL_VECTOR;
+	char firstClientBuffer[MAX_BUFFER_LENGTH], secondClientBuffer[MAX_BUFFER_LENGTH],
+		firstClientVector[3][MAX_BUFFER_LENGTH], secondClientVector[3][MAX_BUFFER_LENGTH];
+	mapLocations.GetString("firstClient", firstClientBuffer, sizeof(firstClientBuffer));
+	mapLocations.GetString("secondClient", secondClientBuffer, sizeof(secondClientBuffer));
+	if (firstClientBuffer[0] != '\0' && secondClientBuffer[0] != '\0')
 	{
-		firstClientOrigin[0] = -5092.628906;
-		firstClientOrigin[1] = -864.530823;
-		firstClientOrigin[2] = -161.218689;
-		secondClientOrigin[0] = -4915.655273;
-		secondClientOrigin[1] = -865.145020;
-		secondClientOrigin[2] = -154.218689;
+		ExplodeString(firstClientBuffer, ",", firstClientVector, sizeof(firstClientVector), sizeof(firstClientVector[]));
+		ExplodeString(secondClientBuffer, ",", secondClientVector, sizeof(secondClientVector), sizeof(secondClientVector[]));
+		for (int i = 0; i < 3; i++)
+		{
+			firstClientOrigin[i] = StringToFloat(firstClientVector[i]);
+			secondClientOrigin[i] = StringToFloat(secondClientVector[i]);\
+		}
 	}
+	else
+	{
+		LogError("Invalidly formatted location string in config file around Section \'%s\'. Make sure it is a comma separated 3d vector!", sectionName);
+	}
+}
+
+public Action CommandReloadCrabConfig(int client, int args)
+{
+	if (mapLocations == null)
+	{
+		CReplyToCommand(client, "The config file does not currently exist!");
+	}
+	else
+	{
+		char mapName[MAX_BUFFER_LENGTH];
+		GetCurrentMap(mapName, sizeof(mapName));
+		LoadConfig();
+		FindMapCoords(mapName);
+		CReplyToCommand(client, "Locations have been reloaded!");
+	}
+	return Plugin_Handled;
 }
 
 public Action CommandCrab(int client, int args)
 {
-	if (!IsValidClient(client) || !IsPlayerAlive(client)) return Plugin_Handled;
+	if (!IsValidClient(client, true)) return Plugin_Handled;
 	if (spycrabInProgress)
 	{
 		CReplyToCommand(client, "{LIGHTGREEN}[Crab]{DEFAULT} There is currently another spycrab happening.");
-		return Plugin_Handled;
 	}
-	if (spycrabMenuInUse)
+	else if (spycrabMenuInUse)
 	{
 		CReplyToCommand(client, "{LIGHTGREEN}[Crab]{DEFAULT} The spycrab menu is currently being used by someone else right now.");
-		return Plugin_Handled;
 	}
-	Menu spycrabMenu = new Menu(SpycrabMenuHandler);
-	spycrabMenu.SetTitle("Select a player:");
-	AddTargetsToMenu(spycrabMenu, 0, true, true);
-	spycrabMenu.Display(client, MENU_TIME_FOREVER);
-	spycrabMenuInUse = true;
+	else if (firstClientOrigin[0] == NULL_VECTOR[0])
+	{
+		CReplyToCommand(client, "{LIGHTGREEN}[Crab]{DEFAULT} The map is not configured for this plugin, notify an admin!");
+	}
+	else
+	{
+		Menu spycrabMenu = new Menu(SpycrabMenuHandler);
+		spycrabMenu.SetTitle("Select a player:");
+		AddTargetsToMenu(spycrabMenu, 0, true, true);
+		spycrabMenu.Display(client, 20);
+		spycrabMenuInUse = true;
+	}
 	return Plugin_Handled;
 }
 
 public Action CommandCancelCrab(int client, int args)
 {
-	if (client != firstClient && client != secondClient) return Plugin_Handled;
 	if (!spycrabInProgress)
-	{
 		CReplyToCommand(client, "{LIGHTGREEN}[Crab]{DEFAULT} There isn\'t any spycrab going on right now.");
-		return Plugin_Handled;
-	}
-	
-	ResetSpycrabClients(true);
+	else
+		ResetSpycrabClients(true);
 	return Plugin_Handled;
 }
 
@@ -136,7 +219,7 @@ public int SpycrabMenuHandler(Menu menu, MenuAction action, int param1, int para
 		acceptMenu.SetTitle("Do you accept?");
 		acceptMenu.AddItem("yes", "Yes!");
 		acceptMenu.AddItem("no", "No!");
-		acceptMenu.Display(iTarget, MENU_TIME_FOREVER);
+		acceptMenu.Display(iTarget, 20);
 		firstClient = param1;
 	}
 	if (action == MenuAction_End)
@@ -154,21 +237,22 @@ public int AcceptMenuHandler(Menu menu, MenuAction action, int param1, int param
 	if (action == MenuAction_Select)
 	{
 		char answer[8];
-		menu.GetItem(param2, answer, sizeof(answer));
-		if (StrEqual(answer, "yes", false))
+		if (menu.GetItem(param2, answer, sizeof(answer)))
 		{
-			CPrintToChatAll("{LIGHTGREEN}[Crab]{DEFAULT} %N accepted %N\'s spycrab!", param1, firstClient);
-			secondClient = param1;
-			LogAction(secondClient, firstClient, "%N has accepted %N\'s spycrab.", secondClient, firstClient);
-			StartSpyCrab();
-			spycrabMenuInUse = false;
+			if (StrEqual(answer, "yes", false))
+			{
+				CPrintToChatAll("{LIGHTGREEN}[Crab]{DEFAULT} %N accepted %N\'s spycrab!", param1, firstClient);
+				secondClient = param1;
+				LogAction(secondClient, firstClient, "%N has accepted %N\'s spycrab.", secondClient, firstClient);
+				StartSpyCrab();
+			}
+			else
+			{
+				CPrintToChatAll("{LIGHTGREEN}[Crab]{DEFAULT} %N declined %N\'s spycrab!", param1, firstClient);
+				ResetSpycrabClients();
+			}
 		}
-		else
-		{
-			CPrintToChatAll("{LIGHTGREEN}[Crab]{DEFAULT} %N declined %N\'s spycrab!", param1, firstClient);
-			ResetSpycrabClients();
-			spycrabMenuInUse = false;
-		}
+		spycrabMenuInUse = false;
 	}
 	if (action == MenuAction_Cancel)
 	{
@@ -180,6 +264,16 @@ public int AcceptMenuHandler(Menu menu, MenuAction action, int param1, int param
 		delete menu;
 		spycrabMenuInUse = false;
 	}
+}
+
+public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon, int &subtype, int &cmdnum, int &tickcount, int &seed, int mouse[2])
+{
+	if ((client == firstClient || client == secondClient) && impulse >= 221 && impulse <=239 && impulse != 230)
+	{
+		CPrintToChat(client, "{LIGHTGREEN}[Crab]{DEFAULT} Please do not attempt to disguise!");
+		return Plugin_Handled;
+	}
+	return Plugin_Continue;
 }
 
 public void StartSpyCrab()
@@ -199,12 +293,15 @@ public void StartSpyCrab()
 	StripToPDA(secondClient);
 	TeleportEntity(firstClient, firstClientOrigin, NULL_VECTOR, NULL_VECTOR);
 	TeleportEntity(secondClient, secondClientOrigin, NULL_VECTOR, NULL_VECTOR);
-	firstClientMovement = CreateTimer(0.5, testFirstClientMov, INVALID_HANDLE, TIMER_REPEAT);
-	secondClientMovement = CreateTimer(0.5, testSecondClientMov, INVALID_HANDLE, TIMER_REPEAT);
+	firstClientMovement = new SMTimer(0.5, testFirstClientMov, _, TIMER_REPEAT);
+	secondClientMovement = new SMTimer(0.5, testSecondClientMov, _, TIMER_REPEAT);
 	firstClientTeam = TF2_GetClientTeam(firstClient);
 	secondClientTeam = TF2_GetClientTeam(secondClient);
-	if (CommandExists("sm_tauntspeed")) ServerCommand("sm_tauntspeed #%d 1.3", GetClientUserId(firstClient));
-	if (CommandExists("sm_tauntspeed")) ServerCommand("sm_tauntspeed #%d 1.3", GetClientUserId(secondClient));
+	if (CommandExists("sm_tauntspeed"))
+	{
+		ServerCommand("sm_tauntspeed #%d 1.3", GetClientUserId(firstClient));
+		ServerCommand("sm_tauntspeed #%d 1.3", GetClientUserId(secondClient));
+	}
 }
 
 public void StripToPDA(int client)
@@ -214,39 +311,59 @@ public void StripToPDA(int client)
 		TF2_RemoveAllWeapons(client);
 		ServerCommand("sm_spycrabpda #%d", GetClientUserId(client));
 	}
+	else
+	{
+		// Taken from Shaders Allen's TF2_StripToMelee
+
+		TF2_RemoveWeaponSlot(client, TFWeaponSlot_Building);
+		TF2_RemoveWeaponSlot(client, TFWeaponSlot_Primary);
+		TF2_RemoveWeaponSlot(client, TFWeaponSlot_Secondary);
+		TF2_RemoveWeaponSlot(client, TFWeaponSlot_Melee);
+		TF2_RemoveWeaponSlot(client, TFWeaponSlot_Item1);
+		TF2_RemoveWeaponSlot(client, TFWeaponSlot_Item2);
+		TF2_RemoveWeaponSlot(client, TFWeaponSlot_PDA);
+
+		int disguisekit = GetPlayerWeaponSlot(client, TFWeaponSlot_Grenade);
+
+		if (IsValidEntity(disguisekit))
+		{
+			EquipPlayerWeapon(client, disguisekit);
+		}
+	}
 }
 
 void ResetSpycrabClients(bool endOfCrab = false)
 {
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		if (IsValidClient(i)) ShowHudText(i, hudTextChannel, "");
+		if (IsValidClient(i))
+		{
+			ShowHudText(i, hudTextChannel, "");
+		}
 	}
 	if (endOfCrab)
 	{
 		if (IsValidClient(firstClient))
 		{
 			TF2_RespawnPlayer(firstClient);
-			if (CommandExists("sm_tauntspeed")) ServerCommand("sm_tauntspeed #%d 1", GetClientUserId(firstClient));
+			if (CommandExists("sm_tauntspeed"))
+			{
+				ServerCommand("sm_tauntspeed #%d 1", GetClientUserId(firstClient));
+			}
 		}
-		if (IsValidClient(secondClient)) 
+		if (IsValidClient(secondClient))
 		{
 			TF2_RespawnPlayer(secondClient);
-			if (CommandExists("sm_tauntspeed")) ServerCommand("sm_tauntspeed #%d 1", GetClientUserId(secondClient));
+			if (CommandExists("sm_tauntspeed"))
+			{
+				ServerCommand("sm_tauntspeed #%d 1", GetClientUserId(secondClient));
+			}
 		}
 	}
 	firstClient = -1;
 	secondClient = -1;
-	if (firstClientMovement != null)
-	{
-		KillTimer(firstClientMovement);
-		firstClientMovement = null;
-	}
-	if (secondClientMovement != null)
-	{
-		KillTimer(secondClientMovement);
-		secondClientMovement = null;
-	}
+	delete firstClientMovement;
+	delete secondClientMovement;
 	firstClientScore = 0;
 	secondClientScore = 0;
 	firstClientTimesTaunted = 0;
@@ -254,7 +371,7 @@ void ResetSpycrabClients(bool endOfCrab = false)
 	spycrabInProgress = false;
 }
 
-public Action testFirstClientMov(Handle timer, any dummy)
+public Action testFirstClientMov(Handle timer)
 {
 	float location[3], noMovement[3] = {0.0, 0.0, 0.0};
 	GetClientAbsOrigin(firstClient, location);
@@ -265,7 +382,7 @@ public Action testFirstClientMov(Handle timer, any dummy)
 	}
 }
 
-public Action testSecondClientMov(Handle timer, any dummy)
+public Action testSecondClientMov(Handle timer)
 {
 	float location[3], noMovement[3] = {0.0, 0.0, 0.0};
 	GetClientAbsOrigin(secondClient, location);
@@ -301,12 +418,14 @@ public Action OnSceneSpawned(int entity)
 		{
 			CPrintToChat(firstClient, "{LIGHTGREEN}[Crab]{DEFAULT} You must taunt %d more times for any more points to be counted.", absoluteTimesTaunted);
 			CPrintToChat(secondClient, "{LIGHTGREEN}[Crab]{DEFAULT} %N must taunt %d more times for any more points to be counted.", firstClient, absoluteTimesTaunted);
+			secondClientTimesTaunted--;
 			return;
 		}
 		else
 		{
 			CPrintToChat(secondClient, "{LIGHTGREEN}[Crab]{DEFAULT} You must taunt %d more times for any more points to be counted.", absoluteTimesTaunted);
 			CPrintToChat(firstClient, "{LIGHTGREEN}[Crab]{DEFAULT} %N must taunt %d more times for any more points to be counted.", secondClient, absoluteTimesTaunted);
+			firstClientTimesTaunted--;
 			return;
 		}
 	}
@@ -319,7 +438,7 @@ public Action OnSceneSpawned(int entity)
 		{
 			CPrintToChatAll("{LIGHTGREEN}[Crab]{DEFAULT} We have a winner! Congrats to %N.", (firstClientScore > secondClientScore) ? secondClient : firstClient);
 			LogMessage("%N has won the spycrab between them and %N.", (firstClientScore > secondClientScore) ? secondClient : firstClient, (firstClientScore > secondClientScore) ? firstClient : secondClient)
-			ResetSpycrabClients(true);
+			SMTimer.Make(3.5, ResetCrabOnWinTimer);
 			return;
 		}
 		for (int i = 1; i <= MaxClients; i++)
@@ -333,42 +452,57 @@ public Action OnSceneSpawned(int entity)
 		{
 			CPrintToChatAll("{LIGHTGREEN}[Crab]{DEFAULT} We have a winner! Congrats to %N.", (firstClientScore > secondClientScore) ? secondClient : firstClient);
 			LogMessage("%N has won the spycrab between them and %N.", (firstClientScore > secondClientScore) ? secondClient : firstClient, (firstClientScore > secondClientScore) ? firstClient : secondClient)
-			ResetSpycrabClients(true);
+			SMTimer.Make(3.5, ResetCrabOnWinTimer);
 		}
 	}
+}
+
+public Action ResetCrabOnWinTimer(Handle timer)
+{
+	ResetSpycrabClients(true);
 }
 
 ///////////////////////////////////
 ///////////// CHECKS //////////////
 ///////////////////////////////////
 
-public void OnClientDisconnect(int client)
+public Action OnPlayerDisconnect(Event event, const char[] name, bool dontBroadcast)
 {
-	if ((client == firstClient || client == secondClient))
+	int userid = event.GetInt("userid");
+	int client = GetClientOfUserId(userid);
+	if (client == firstClient || client == secondClient)
 	{
 		if (spycrabMenuInUse) spycrabMenuInUse = false;
 		if (spycrabInProgress)
 		{
+			LogMessage("%L may have just run from a spycrab!", IsValidClient(firstClient) ? secondClient : firstClient);
+			CPrintToChatAll("{LIGHTGREEN}[Crab]{DEFAULT} %L just ran from a spycrab!", IsValidClient(firstClient) ? secondClient : firstClient);
 			ResetSpycrabClients(true);
-			LogMessage("%N just ran from a spycrab!", IsValidClient(firstClient) ? secondClient : firstClient);
-			CPrintToChatAll("{LIGHTGREEN}[Crab]{DEFAULT} Someone just ran from a spycrab!", IsValidClient(firstClient) ? secondClient : firstClient);
 		}
 	}
+	return Plugin_Continue;
 }
 
 public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!spycrabInProgress) return;
-	int client = GetClientOfUserId(event.GetInt("userid"));
+	int userid = event.GetInt("userid");
+	int client = GetClientOfUserId(userid);
 	if (client == firstClient || client == secondClient)
 	{
-		CreateTimer(0.2, OnPlayerDeathTimer, client);
+		SMTimer.Make(0.2, OnPlayerDeathTimer, userid);
 	}
 }
 
-public Action OnPlayerDeathTimer(Handle timer, any client)
+public Action OnPlayerDeathTimer(Handle timer, any userid)
 {
 	float noMovement[3] = {0.0, 0.0, 0.0};
+	int client = GetClientOfUserId(userid);
+	if (!IsValidClient(client))
+	{
+		ResetSpycrabClients(false);
+		return;
+	}
 	if (client == firstClient && TF2_GetClientTeam(client) != firstClientTeam)
 	{
 		TF2_ChangeClientTeam(client, firstClientTeam);
@@ -384,16 +518,4 @@ public Action OnPlayerDeathTimer(Handle timer, any client)
 	else TeleportEntity(secondClient, secondClientOrigin, NULL_VECTOR, noMovement);
 }
 
-stock int abs(int x) { return RoundFloat(FloatAbs(float(x))); }
-
-stock bool IsValidClient(int client, bool aliveTest=false, bool botTest=true, bool rangeTest=true, 
-	bool ingameTest=true)
-{
-	if (client > 4096) client = EntRefToEntIndex(client);
-	if (rangeTest && (client < 1 || client > MaxClients)) return false;
-	if (ingameTest && !IsClientInGame(client)) return false;
-	if (botTest && IsFakeClient(client)) return false;
-	if (GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
-	if (aliveTest && !IsPlayerAlive(client)) return false;
-	return true;
-}
+stock int abs(int x) { return RoundToNearest(FloatAbs(float(x))); }

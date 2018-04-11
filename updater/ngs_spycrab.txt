@@ -1,0 +1,24 @@
+"Updater"
+{
+	"Information"
+	{
+		"Version"
+		{
+			"Latest"	"1.1.0"
+		}
+		
+		"Notes"	"Add updater support!"
+		"Notes"	"Use a config file for map locations!"
+		"Notes"	"Properly log/warn for runners!"
+		"Notes"	"Prevent people from going too far ahead in taunts!"
+		"Notes"	"Remove extra spaces from sp."
+	}
+	
+	"Files"
+	{
+		"Plugin"	"Path_SM/plugins/ngs_spycrab.smx"
+		"Plugin"	"Path_SM/configs/crablocations.cfg"
+		
+		"Source"	"Path_SM/scripting/ngs_spycrab.sp"
+	}
+}

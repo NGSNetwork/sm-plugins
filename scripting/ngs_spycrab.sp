@@ -95,39 +95,40 @@ public void OnMapStart()
 
 void FindMapCoords(char[] mapName)
 {
+	firstClientOrigin = NULL_VECTOR;
+	secondClientOrigin = NULL_VECTOR;
 	char buffer[MAX_BUFFER_LENGTH];
 	mapLocations.Rewind();
-	if (mapNameContains.BoolValue)
+	if (!mapLocations.JumpToKey(mapName))
 	{
-		mapLocations.GotoFirstSubKey();
-		do
+		if (mapNameContains.BoolValue)
 		{
-			mapLocations.GetSectionName(buffer, sizeof(buffer));
-			if (StrContains(mapName, buffer, false) != -1)
+			mapLocations.Rewind();
+			mapLocations.GotoFirstSubKey();
+			do
 			{
-				SetMapCoords(buffer);
-				break;
+				mapLocations.GetSectionName(buffer, sizeof(buffer));
+				if (StrContains(mapName, buffer, false) != -1)
+				{
+					SetMapCoords(buffer);
+					break;
+				}
 			}
-		}
-		while (mapLocations.GotoNextKey());
-	}
-	else
-	{
-		if (!mapLocations.JumpToKey(mapName))
-		{
-			LogError("Map %s is not in config file!", mapName);
+			while (mapLocations.GotoNextKey());
 		}
 		else
 		{
-			SetMapCoords(mapName);
+			LogError("Map %s is not in config file!", mapName);
 		}
+	}
+	else
+	{
+		SetMapCoords(mapName);
 	}
 }
 
 void SetMapCoords(char[] sectionName)
 {
-	firstClientOrigin = NULL_VECTOR;
-	secondClientOrigin = NULL_VECTOR;
 	char firstClientBuffer[MAX_BUFFER_LENGTH], secondClientBuffer[MAX_BUFFER_LENGTH],
 		firstClientVector[3][MAX_BUFFER_LENGTH], secondClientVector[3][MAX_BUFFER_LENGTH];
 	mapLocations.GetString("firstClient", firstClientBuffer, sizeof(firstClientBuffer));

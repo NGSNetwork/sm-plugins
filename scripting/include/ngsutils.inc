@@ -6,15 +6,15 @@
 
 
 /**
-* Checks if a client is valid. From another include whose author I can't find
-*
-* @param index				A client index.
-* @param aliveTest			If true, tests if a client is alive.
-* @param botTest			If true, bots will always return FALSE.
-* @param rangeTest			If true, clients out of range will return FALSE.
-* @param ingameTest			If true, clients not in-game will return FALSE.
-* @return					TRUE or FALSE, based on checks.
-*/
+ * Checks if a client is valid. From another include whose author I can't find
+ *
+ * @param index				A client index.
+ * @param aliveTest			If true, tests if a client is alive.
+ * @param botTest			If true, bots will always return FALSE.
+ * @param rangeTest			If true, clients out of range will return FALSE.
+ * @param ingameTest			If true, clients not in-game will return FALSE.
+ * @return					TRUE or FALSE, based on checks.
+ */
 stock bool IsValidClient(int client, bool aliveTest=false, bool botTest=true, bool rangeTest=true,
 	bool ingameTest=true)
 {
@@ -28,20 +28,20 @@ stock bool IsValidClient(int client, bool aliveTest=false, bool botTest=true, bo
 }
 
 /**
-* Check if a translation file exists. This is intended to be run before
-* loading the file in. BuildPath is not needed beforehand. 
-*
-* @param file			Translation file to check for existence.
-* @param loadFile		Load Translation if exists.
-* @param failPlugin		If true, SetFailState to pause plugin.
-* @return				True if file exists, else false.
-*/
+ * Check if a translation file exists. This is intended to be run before
+ * loading the file in. BuildPath is not needed beforehand.
+ *
+ * @param file			Translation file to check for existence.
+ * @param loadFile		Load Translation if exists.
+ * @param failPlugin		If true, SetFailState to pause plugin.
+ * @return				True if file exists, else false.
+ */
 stock bool TranslationFileExists(char[] file, bool loadFile=true, bool failPlugin=false)
 {
 	char path[PLATFORM_MAX_PATH];
 	int checkindex = strlen(file) - 4;
 	BuildPath(Path_SM, path, sizeof(path), "translations/%s%s", file,
-		(StrContains(file, ".txt") == checkindex || 
+		(StrContains(file, ".txt") == checkindex ||
 			StrContains(file, ".cfg") == checkindex) ? "" : ".txt");
 	if(FileExists(path))
 	{
@@ -58,6 +58,65 @@ stock bool TranslationFileExists(char[] file, bool loadFile=true, bool failPlugi
 	return false;
 }
 
+/**
+ * Shows a HUD message to all valid clients on the given channel.
+ *
+ * As of this writing, only TF, HL2MP, and SourceForts support HUD Text.
+ *
+ * @param channel		A channel number.
+ *						If -1, then a channel will automatically be selected
+ *						based on the least-recently-used channel.  If the
+ *						channel is any other number, it will be modulo'd with
+ *						the channel count to get a final channel number.
+ * @param message		Message text or formatting rules.
+ * @param ...			Message formatting parameters.
+ * @return				-1 on failure (or lack of mod support).
+ *						Any other return value is the channel number that was
+ *						used to render the text.
+ */
+stock int ShowHudTextAll(int channel, const char[] message, any ...)
+{
+	if (channel == -1)
+	{
+		for (int i = 1; i <= MaxClients; i++)
+		{
+			if (IsValidClient(i))
+			{
+				channel = ShowHudText(i, -1, "");
+				break;
+			}
+		}
+		if (channel == -1)
+		{
+			return -1;
+		}
+	}
+
+	char buffer[255];
+	VFormat(buffer, sizeof(buffer), message, 3);
+
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsValidClient(i))
+		{
+			ShowHudText(i, channel, buffer);
+		}
+	}
+	return channel;
+}
+
+/**
+ * Returns an absolute value.
+ *
+ * @param value			Input value.
+ * @return				Absolute value of the input.
+ */
+stock int abs(int value)
+{
+	return RoundToNearest(FloatAbs(float(value)));
+}
+
+#if defined _timers_included
 // TIMER METHODMAPS
 methodmap SMTimer < Handle
 {
@@ -131,6 +190,7 @@ methodmap SMTimer < Handle
 		TriggerTimer(this, reset);
 	}
 }
+#endif
 
 methodmap SMDataTimer < SMTimer
 {
@@ -362,5 +422,72 @@ public void TQuery_Void(Database owner, DBResultSet hndl, const char[] error, Da
 		LogError("Query Output: %s", sQuery);
 	}
 	delete data;
+}
+#endif
+
+#if defined _adt_array_included
+// SMQueue Methodmap, because this doesn't exist?
+methodmap SMQueue < ArrayList
+{
+	/**
+	 * Returns a Queue "object". This is just an ArrayList with
+	 * queue-like access and manipulation methods.
+	 *
+	 * @param blocksize		The number of cells each member of the array can
+	 * 						hold.  For example, 32 cells is equivalent to:
+	 * 						new Array[X][32]
+	 * @param startsize		Initial size of the array.  Note that data will
+	 * 						NOT be auto-initialized.
+	 * @return 				A new SMQueue object.
+	 */
+	public SMQueue(int blocksize = 1, int startsize = 0)
+	{
+		return view_as<SMQueue>(new ArrayList(blocksize, startsize));
+	}
+
+	/**
+	 * Checks if a Queue is empty.
+	 *
+	 * @return			True if Queue is empty, false otherwise.
+	 */
+	public bool isEmpty()
+	{
+		return this.Length == 0;
+	}
+
+	/**
+	 * Retrieves the front element in the Queue.
+	 *
+	 * @param block		Optionally specify which block to read from
+	 * 					(useful if the blocksize > 0).
+	 * @param asChar	Optionally read as a byte instead of a cell.
+	 * @return			Contents of first element.
+	 * @error			Empty queue.
+	 */
+	public any GetFront(int block = 0, bool asChar=false)
+	{
+		if (this.isEmpty())
+		{
+			ThrowError("Error: GetFront() called on empty Queue!");
+		}
+		return this.Get(0, block, asChar);
+	}
+
+	/**
+	 * Retrieves a string value from the front of a Queue.
+	 *
+	 * @param buffer        Buffer to copy to.
+	 * @param maxlength     Maximum size of the buffer.
+	 * @return              Number of characters copied.
+	 * @error               Invalid index.
+	 */
+	public int GetFrontString(char[] buffer, int maxlength)
+	{
+		if (this.isEmpty())
+		{
+			ThrowError("Error: GetFrontString() called on empty Queue!");
+		}
+		return this.GetString(0, buffer, maxlength);
+	}
 }
 #endif

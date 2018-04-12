@@ -64,6 +64,11 @@ public void OnPluginStart()
 	HookEvent("player_death", OnPlayerDeath);
 	HookEvent("player_disconnect", OnPlayerDisconnect, EventHookMode_Pre);
 
+	if (GetEngineVersion() != Engine_TF2)
+	{
+		LogError("Attempting to run plugin on unsupported game!");
+	}
+
 	LoadConfig();
 }
 
@@ -138,7 +143,7 @@ void SetMapCoords(char[] sectionName)
 		for (int i = 0; i < 3; i++)
 		{
 			firstClientOrigin[i] = StringToFloat(firstClientVector[i]);
-			secondClientOrigin[i] = StringToFloat(secondClientVector[i]);\
+			secondClientOrigin[i] = StringToFloat(secondClientVector[i]);
 		}
 	}
 	else
@@ -208,14 +213,21 @@ public int SpycrabMenuHandler(Menu menu, MenuAction action, int param1, int para
 				CPrintToChat(param1, "{LIGHTGREEN}[Crab]{DEFAULT} You may not target yourself!");
 				return;
 			}
-			CPrintToChatAll("{LIGHTGREEN}[Crab]{DEFAULT} %N has challenged %N to a spycrab showdown!", param1, iTarget);
-			Menu acceptMenu = new Menu(AcceptMenuHandler);
-			acceptMenu.SetTitle("Do you accept?");
-			acceptMenu.AddItem("yes", "Yes!");
-			acceptMenu.AddItem("no", "No!");
-			acceptMenu.Display(iTarget, 20);
-			playerCrabData[param1][Challenger] = iTarget;
-			playerCrabData[iTarget][Challenger] = param1;
+			else if (spycrabInProgress)
+			{
+				CPrintToChat(param1, "{LIGHTGREEN}[Crab]{DEFAULT} There is currently another spycrab happening.");
+			}
+			else
+			{
+				CPrintToChatAll("{LIGHTGREEN}[Crab]{DEFAULT} %N has challenged %N to a spycrab showdown!", param1, iTarget);
+				Menu acceptMenu = new Menu(AcceptMenuHandler);
+				acceptMenu.SetTitle("Do you accept?");
+				acceptMenu.AddItem("yes", "Yes!");
+				acceptMenu.AddItem("no", "No!");
+				acceptMenu.Display(iTarget, 20);
+				playerCrabData[param1][Challenger] = iTarget;
+				playerCrabData[iTarget][Challenger] = param1;
+			}
 		}
 	}
 	if (action == MenuAction_End)
@@ -230,11 +242,15 @@ public int AcceptMenuHandler(Menu menu, MenuAction action, int param1, int param
 	{
 		char answer[8];
 		int firstClient = playerCrabData[param1][Challenger];
-		if (menu.GetItem(param2, answer, sizeof(answer)) && IsValidClient(firstClient) && IsValidClient(param1))
+		if (spycrabInProgress)
+		{
+			CPrintToChat(param1, "{LIGHTGREEN}[Crab]{DEFAULT} There is currently another spycrab happening.");
+		}
+		else if (menu.GetItem(param2, answer, sizeof(answer)) && IsValidClient(firstClient) && IsValidClient(param1))
 		{
 			if (StrEqual(answer, "yes", false))
 			{
-				CPrintToChatAll("{LIGHTGREEN}[Crab]{DEFAULT} %N accepted %N\'s spycrab!", param1, firstClient);
+				CPrintToChatAll("{LIGHTGREEN}[Crab]{DEFAULT} %N accepted %N\'s spycrab! First to 3 {FULLRED}loses{DEFAULT}.", param1, firstClient);
 				LogAction(param1, firstClient, "%N has accepted %N\'s spycrab.", param1, firstClient);
 				StartSpyCrab(param1);
 			}
@@ -257,16 +273,6 @@ public int AcceptMenuHandler(Menu menu, MenuAction action, int param1, int param
 	{
 		delete menu;
 	}
-}
-
-public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon, int &subtype, int &cmdnum, int &tickcount, int &seed, int mouse[2])
-{
-	if (spycrabInProgress && playerCrabData[client][IsEnabled] && impulse >= 221 && impulse <=239 && impulse != 230)
-	{
-		CPrintToChat(client, "{LIGHTGREEN}[Crab]{DEFAULT} Please do not attempt to disguise!");
-		return Plugin_Handled;
-	}
-	return Plugin_Continue;
 }
 
 public void StartSpyCrab(int client)
@@ -302,6 +308,7 @@ void PreparePlayerForSpycrab(int client)
 	}
 	playerCrabData[client][MovementTimer] = new SMTimer(0.5, testSpycrabClientMov, userid, TIMER_REPEAT);
 	playerCrabData[client][Team] = TF2_GetClientTeam(client);
+	playerCrabData[client][IsEnabled] = true;
 	if (CommandExists("sm_tauntspeed"))
 	{
 		ServerCommand("sm_tauntspeed #%d 1.3", userid);
@@ -318,7 +325,6 @@ public void StripToPDA(int client)
 	else
 	{
 		// Taken from Shaders Allen's TF2_StripToMelee
-
 		TF2_RemoveWeaponSlot(client, TFWeaponSlot_Building);
 		TF2_RemoveWeaponSlot(client, TFWeaponSlot_Primary);
 		TF2_RemoveWeaponSlot(client, TFWeaponSlot_Secondary);
@@ -344,7 +350,7 @@ void ResetSpycrabClients(bool endOfCrab = false, int client = -1)
 		{
 			ShowHudText(i, hudTextChannel, "");
 		}
-		if (client == -1 && playerCrabData[i][IsEnabled])
+		if (client == -1 && playerCrabData[i][IsEnabled])	// ugly and harder than saving client to global var
 		{
 			client = i;
 		}
@@ -432,33 +438,22 @@ public Action OnSceneSpawned(int entity)
 	{
 		playerCrabData[client][TimesCrabbed]++;
 		CPrintToChatAll("{LIGHTGREEN}[Crab]{DEFAULT} %N just crabbed!", client);
-		if (absoluteTimesTaunted == 0 && (playerCrabData[client][TimesCrabbed] > 2 || playerCrabData[challenger][TimesCrabbed] > 2))
-		{
-			int printClient = (playerCrabData[client][TimesCrabbed] > playerCrabData[challenger][TimesCrabbed]) ? challenger : client;
-			CPrintToChatAll("{LIGHTGREEN}[Crab]{DEFAULT} We have a winner! Congrats to %N.", printClient);
-			LogMessage("%N has won the spycrab between them and %N.", printClient, playerCrabData[printClient][Challenger])
-			SMTimer.Make(3.5, ResetCrabOnWinTimer);
-			return;
-		}
 	}
-	else
+	int clientCrabs = playerCrabData[client][TimesCrabbed];
+	int challengerCrabs = playerCrabData[challenger][TimesCrabbed];
+	if (absoluteTimesTaunted == 0 && clientCrabs != challengerCrabs && (clientCrabs > 2 || challengerCrabs > 2))
 	{
-		if (playerCrabData[client][TimesCrabbed] > 2 || playerCrabData[challenger][TimesCrabbed] > 2)
-		{
-			int printClient = (playerCrabData[client][TimesCrabbed] > playerCrabData[challenger][TimesCrabbed]) ? challenger : client;
-			CPrintToChatAll("{LIGHTGREEN}[Crab]{DEFAULT} We have a winner! Congrats to %N.", printClient);
-			LogMessage("%N has won the spycrab between them and %N.", printClient, playerCrabData[printClient][Challenger])
-			SMTimer.Make(3.5, ResetCrabOnWinTimer);
-			return;
-		}
+		int printClient = (clientCrabs > challengerCrabs) ? challenger : client;
+		CPrintToChatAll("{LIGHTGREEN}[Crab]{DEFAULT} We have a winner! Congrats to %N.", printClient);
+		LogMessage("%N has won the spycrab between them and %N.", printClient, playerCrabData[printClient][Challenger])
+		SMTimer.Make(3.5, ResetCrabOnWinTimer);
+		return;
 	}
 	int firstClient = playerCrabData[client][IsFirstClient] ? client : challenger;
 	int secondClient = playerCrabData[firstClient][Challenger];
-	for (int i = 1; i <= MaxClients; i++)
-		if (IsValidClient(i))
-			ShowHudText(i, hudTextChannel, "%N: %d / %d\n%N: %d / %d", firstClient, 
-				playerCrabData[firstClient][TimesCrabbed], playerCrabData[firstClient][TimesTaunted], secondClient, 
-				playerCrabData[secondClient][TimesCrabbed], playerCrabData[secondClient][TimesTaunted]);
+	ShowHudTextAll(hudTextChannel, "%N: %d / %d\n%N: %d / %d", firstClient,
+		playerCrabData[firstClient][TimesCrabbed], playerCrabData[firstClient][TimesTaunted], secondClient,
+		playerCrabData[secondClient][TimesCrabbed], playerCrabData[secondClient][TimesTaunted]);
 }
 
 public Action ResetCrabOnWinTimer(Handle timer)
@@ -521,4 +516,13 @@ public Action OnPlayerDeathTimer(Handle timer, any userid)
 	else TeleportEntity(client, secondClientOrigin, NULL_VECTOR, noMovement);
 }
 
-stock int abs(int x) { return RoundToNearest(FloatAbs(float(x))); }
+
+public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon, int &subtype, int &cmdnum, int &tickcount, int &seed, int mouse[2])
+{
+	if (spycrabInProgress && playerCrabData[client][IsEnabled] && impulse >= 221 && impulse <=239 && impulse != 230)
+	{
+		CPrintToChat(client, "{LIGHTGREEN}[Crab]{DEFAULT} Please do not attempt to disguise!");
+		return Plugin_Handled;
+	}
+	return Plugin_Continue;
+}

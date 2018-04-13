@@ -120,6 +120,8 @@ public void OnPluginStart()
 	menu.AddItem("option1", "This is option 1");
 	menu.AddItem("option2", "This is option 2");
 	// menu.Display(/*clientnumber*/);
+	
+	RegConsole
 }
 
 public int MainMenuHandler(Menu menu, MenuAction action, int param1, int param2)
@@ -136,3 +138,8 @@ public int MainMenuHandler(Menu menu, MenuAction action, int param1, int param2)
 	}
 }
 
+public Action GetSlot(int client, int args)
+{
+	if (client == 0) return Plugin_Handled;
+	if (IsPlayerAlive(client)) return Plugin_Handled;
+}

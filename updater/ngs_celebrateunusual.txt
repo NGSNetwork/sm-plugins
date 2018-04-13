@@ -4,11 +4,10 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.1.1"
+			"Latest"	"1.2.0"
 		}
 		
-		"Notes"	"Add updater support!"
-		"Notes"	"Remove unneeded formatting and spaces from .sp."
+		"Notes"	"Add support for changing sound file and volume!"
 	}
 	
 	"Files"

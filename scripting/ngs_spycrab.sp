@@ -64,12 +64,21 @@ public void OnPluginStart()
 	HookEvent("player_death", OnPlayerDeath);
 	HookEvent("player_disconnect", OnPlayerDisconnect, EventHookMode_Pre);
 
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (IsValidClient(iClient))
+			OnClientPutInServer(iClient);
+
 	if (GetEngineVersion() != Engine_TF2)
 	{
 		LogError("Attempting to run plugin on unsupported game!");
 	}
 
 	LoadConfig();
+}
+
+public void OnClientPutInServer(int client)
+{
+	SDKHook(client, SDKHook_OnTakeDamage, OnTakeDamage);
 }
 
 // Thank you Dr.Mckay and your CCC
@@ -376,6 +385,7 @@ void ResetClient(int client, bool endOfCrab)
 	delete playerCrabData[client][MovementTimer];
 	playerCrabData[client][TimesCrabbed] = 0;
 	playerCrabData[client][TimesTaunted] = 0;
+	playerCrabData[client][IsFirstClient] = false;
 	playerCrabData[client][IsEnabled] = false;
 }
 
@@ -516,13 +526,23 @@ public Action OnPlayerDeathTimer(Handle timer, any userid)
 	else TeleportEntity(client, secondClientOrigin, NULL_VECTOR, noMovement);
 }
 
-
 public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon, int &subtype, int &cmdnum, int &tickcount, int &seed, int mouse[2])
 {
 	if (spycrabInProgress && playerCrabData[client][IsEnabled] && impulse >= 221 && impulse <=239 && impulse != 230)
 	{
 		CPrintToChat(client, "{LIGHTGREEN}[Crab]{DEFAULT} Please do not attempt to disguise!");
 		return Plugin_Handled;
+	}
+	return Plugin_Continue;
+}
+
+public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &damage, int &damagetype)
+{
+	if (!IsValidClient(victim) || !IsValidClient(attacker)) return Plugin_Continue;
+	if(spycrabInProgress && playerCrabData[victim][IsEnabled])
+	{
+		damage = 0.0;
+		return Plugin_Changed;
 	}
 	return Plugin_Continue;
 }

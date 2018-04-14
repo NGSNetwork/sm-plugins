@@ -4,12 +4,11 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.1.0"
+			"Latest"	"1.1.1"
 		}
-		
-		"Notes"	"Add updater support!"
-		"Notes"	"Use a config file for map locations!"
-		"Notes"	"Properly log/warn for runners!"
+		"Notes"	"Fix updater to actually work :)"
+		"Notes"	"Added hide crab command to get rid of text :)"
+		"Notes"	"Change tag color!"
 		"Notes"	"Prevent people from going too far ahead in taunts!"
 		"Notes"	"Remove extra spaces from sp."
 	}

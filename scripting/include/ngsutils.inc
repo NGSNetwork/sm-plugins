@@ -12,11 +12,12 @@
  * @param aliveTest			If true, tests if a client is alive.
  * @param botTest			If true, bots will always return FALSE.
  * @param rangeTest			If true, clients out of range will return FALSE.
- * @param ingameTest			If true, clients not in-game will return FALSE.
+ * @param ingameTest		If true, clients not in-game will return FALSE.
+ * @param afkTest			RELIES ON AFK MANAGER: If true, checks if client is afk.
  * @return					TRUE or FALSE, based on checks.
  */
-stock bool IsValidClient(int client, bool aliveTest=false, bool botTest=true, bool rangeTest=true,
-	bool ingameTest=true)
+stock bool IsValidClient(int client, bool aliveTest=false, bool botTest=true,
+	bool rangeTest=true, bool ingameTest=true, bool afkTest=false)
 {
 	if (client > 4096) client = EntRefToEntIndex(client);
 	if (rangeTest && (client < 1 || client > MaxClients)) return false;
@@ -24,6 +25,26 @@ stock bool IsValidClient(int client, bool aliveTest=false, bool botTest=true, bo
 	if (botTest && IsFakeClient(client)) return false;
 	if (GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
 	if (aliveTest && !IsPlayerAlive(client)) return false;
+	#if defined _afkmanager_included
+		bool afkavailable = (GetFeatureStatus(FeatureType_Native, "AFKM_IsClientAFK") == 
+				FeatureStatus_Available);
+		if (afkTest)
+		{
+			if (afkavailable)
+			{
+				if (AFKM_IsClientAFK(client))
+				{
+					return false;
+				}
+			}
+			else
+			{
+				LogError("AFKManager is not available, but was used!");
+			}
+		}
+	#else
+		if (afkTest) ThrowError("AFKManager was not included!");
+	#endif
 	return true;
 }
 
@@ -103,6 +124,57 @@ stock int ShowHudTextAll(int channel, const char[] message, any ...)
 		}
 	}
 	return channel;
+}
+
+/**
+ * Shows a synchronized HUD message to all clients.  
+ *
+ * As of this writing, only TF, HL2MP, and SourceForts support HUD Text.
+ *
+ * @param sync			Synchronization object.
+ * @param message		Message text or formatting rules.
+ * @param ...			Message formatting parameters.
+ * @return				-1 on failure, anything else on success.
+ *						This function fails if the mod does not support it.
+ * @error				Sync object not valid.
+ */
+stock int ShowSyncHudTextAll(Handle sync, const char[] message, any ...)
+{
+	int result = -1;
+	char buffer[255];
+	VFormat(buffer, sizeof(buffer), message, 3);
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsValidClient(i))
+		{
+			result = ShowSyncHudText(i, sync, buffer);
+			if (result == -1) return -1;
+		}
+	}
+	return result;
+}
+
+/**
+ * Shows a synchronized HUD message to all clients.  
+ *
+ * @param index				A client index.
+ * @param aliveTest			If true, tests if a client is alive.
+ * @param botTest			If true, bots will always return FALSE.
+ * @param rangeTest			If true, clients out of range will return FALSE.
+ * @param ingameTest		If true, clients not in-game will return FALSE.
+ * @param afkTest			RELIES ON AFK MANAGER: If true, checks if client is afk.
+ * @return					TRUE or FALSE, based on checks.
+ */
+stock bool IsServerPopulated(bool checkAFK=false)
+{
+	for(int i = 1; i <= MaxClients; i++)
+	{
+		if(IsValidClient(i, _, _, _, _, checkAFK))
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 /**

@@ -28,7 +28,7 @@ public Plugin myinfo = {
 	name = "[NGS] Store Additions",
 	author = "MasterOfTheXP / TheXeon",
 	description = "Additional store items!",
-	version = "1.1.0",
+	version = "1.1.1",
 	url = "https://neogenesisnetwork.net/"
 }
 
@@ -38,9 +38,9 @@ ConVar cvarHealthPerLevel;
 ConVar host_timescale;
 ConVar sm_timewarp_cooldown;
 
-Handle dailyTradeTimeCookie;
-Handle dailyLoginTimeCookie;
-Handle killMerasmusTimer;
+Cookie dailyTradeTimeCookie;
+Cookie dailyLoginTimeCookie;
+SMTimer killMerasmusTimer;
 
 float merasmusLocation[3];
 
@@ -54,8 +54,6 @@ bool time_warped = false;
 bool firstLogin[MAXPLAYERS + 1];
 bool loginCookiesJustMade[MAXPLAYERS + 1];
 bool tradeCookiesJustMade[MAXPLAYERS + 1];
-// TODO: Make it check every spawn if player is eligible for creditin'
-//bool loginRewardEligible[MAXPLAYERS + 1];
 
 float c_timewarp_cooldown;
 
@@ -77,8 +75,8 @@ public void OnPluginStart()
 	RegAdminCmd("sm_warptime", Command_warpTime, ADMFLAG_RCON);
 	sm_timewarp_cooldown = CreateConVar("sm_timewarp_cooldown", "180", "The serverwide cooldown for the timewarp item.");
 
-	dailyLoginTimeCookie = RegClientCookie("dailycreditloginreward", "Timestamp to check credit reward against.", CookieAccess_Private);
-	dailyTradeTimeCookie = RegClientCookie("dailytradereward", "Timestamp to check trade reward against.", CookieAccess_Private);
+	dailyLoginTimeCookie = new Cookie("dailycreditloginreward", "Timestamp to check credit reward against.", CookieAccess_Private);
+	dailyTradeTimeCookie = new Cookie("dailytradereward", "Timestamp to check trade reward against.", CookieAccess_Private);
 
 	sm_timewarp_cooldown.AddChangeHook(OnConVarChanged);
 	LoadTranslations("store.phrases");
@@ -86,7 +84,7 @@ public void OnPluginStart()
 	findSpawnPoints();
 	HookEvent("post_inventory_application", OnPostInventoryApplication);
 	HookEvent("item_found", EventItemFound);
-	HookEvent("merasmus_killed", OnMerasmusKilled);
+	HookEvent("merasmus_killed", OnMerasmusKilled, EventHookMode_Pre);
 	HookEvent("merasmus_escape_warning", OnMerasmusEscapeWarning);
 }
 
@@ -122,7 +120,7 @@ public void OnMapStart()
 	PrecacheMonoculus();
 	PrecacheMerasmus();
 	findSpawnPoints();
-	SetConVarFloat( host_timescale, 1.0 );
+	host_timescale.FloatValue = 1.0;
 	g_lastwarp = -c_timewarp_cooldown;
 
 	PrecacheSound("ui/halloween_loot_spawn.wav", true);
@@ -157,18 +155,18 @@ public void OnClientPostAdminCheck(int client)
 	if (AreClientCookiesCached(client))
 	{
 		char sTradeCookieValue[MAX_BUFFER_LENGTH], sLoginCookieValue[MAX_BUFFER_LENGTH], sNewTCV[MAX_BUFFER_LENGTH], sNewLCV[MAX_BUFFER_LENGTH];
-		GetClientCookie(client, dailyLoginTimeCookie, sLoginCookieValue, sizeof(sLoginCookieValue));
-		GetClientCookie(client, dailyTradeTimeCookie, sTradeCookieValue, sizeof(sTradeCookieValue));
+		dailyLoginTimeCookie.GetValue(client, sLoginCookieValue, sizeof(sLoginCookieValue));
+		dailyTradeTimeCookie.GetValue(client, sTradeCookieValue, sizeof(sTradeCookieValue));
 		if (sTradeCookieValue[0] == '\0')
 		{
 			IntToString(GetTime(), sNewTCV, sizeof(sNewTCV));
-			SetClientCookie(client, dailyTradeTimeCookie, sNewTCV);
+			dailyTradeTimeCookie.SetValue(client, sNewTCV);
 			loginCookiesJustMade[client] = true;
 		}
 		if (sLoginCookieValue[0] == '\0')
 		{
 			IntToString(GetTime(), sNewLCV, sizeof(sNewLCV));
-			SetClientCookie(client, dailyTradeTimeCookie, sNewLCV);
+			dailyTradeTimeCookie.SetValue(client, sNewLCV);
 			tradeCookiesJustMade[client] = true;
 		}
 	}
@@ -185,7 +183,7 @@ public void OnPostInventoryApplication(Event hEvent, const char[] szName, bool b
 		{
 			int accountID = GetSteamAccountID(client);
 			char sCookieValue[64];
-			GetClientCookie(client, dailyLoginTimeCookie, sCookieValue, sizeof(sCookieValue));
+			dailyLoginTimeCookie.GetValue(client, sCookieValue, sizeof(sCookieValue));
 			int cookieValue = StringToInt(sCookieValue);
 			int currentTime = GetTime();
 			char newCookieValue[MAX_BUFFER_LENGTH];
@@ -194,7 +192,7 @@ public void OnPostInventoryApplication(Event hEvent, const char[] szName, bool b
 				Store_GiveCredits(accountID, 200);
 				CPrintToChat(client, "%tCongrats, you have been awarded {PURPLE}200{DEFAULT} credits for logging in today. We hope you enjoy the NGS family!", "Store Tag Colored");
 				IntToString(currentTime, newCookieValue, sizeof(newCookieValue));
-				SetClientCookie(client, dailyLoginTimeCookie, newCookieValue);
+				dailyLoginTimeCookie.SetValue(client, newCookieValue);
 				if (loginCookiesJustMade[client]) loginCookiesJustMade[client] = false;
 			}
 		}
@@ -218,11 +216,11 @@ public Action CommandSpawnMerasmusCenter(int client, int args)
 		}
 		int currentTime = GetTime();
 		if (currentTime - SpawnCooldown < 900)
-	    {
-	   		CPrintToChat(target, "%tYou must wait {PURPLE}%d{DEFAULT} seconds to spawn this.", "Store Tag Colored", 900 - (currentTime - SpawnCooldown));
-	   		Store_GiveItem(GetSteamAccountID(target), 485);
-	   		return Plugin_Handled;
-	  	}
+		{
+			CPrintToChat(target, "%tYou must wait {PURPLE}%d{DEFAULT} seconds to spawn this.", "Store Tag Colored", 900 - (currentTime - SpawnCooldown));
+			Store_GiveItem(GetSteamAccountID(target), 485);
+			return Plugin_Handled;
+		}
 
 		SpawnCooldown = currentTime;
 		CPrintToChatAll("%t{OLIVE}%N{DEFAULT} spawned in {GREY}MERASMUS{DEFAULT}!", "Store Tag Colored", target);
@@ -345,7 +343,7 @@ public Action CommandTeamMonoculus(int client, int args)
 
 public Action CommandUltimateNecromash(int client, int args)
 {
-	if (!CommandExists("sm_smash") || !CommandExists("sm_freeze")) return Plugin_Handled;
+	if (!CommandExists("sm_smash")) return Plugin_Handled;
 	if (args > 0)
 	{
 		char arg1[32];
@@ -371,13 +369,13 @@ public Action CommandUltimateNecromash(int client, int args)
 	}
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		if (IsValidClient(i) && IsPlayerAlive(i))
+		if (IsValidClient(i, true))
 		{
 			TF2_StunPlayer(i, 12.0, 0.95, TF_STUNFLAG_SLOWDOWN, client);
 		}
 	}
 	PrintCenterTextAll("You slowed in fear!");
-	CreateTimer(2.0, TimerSmashAll);
+	SMTimer.Make(2.0, TimerSmashAll);
 	return Plugin_Handled;
 }
 
@@ -385,10 +383,9 @@ public Action TimerSmashAll(Handle timer)
 {
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		if (IsValidClient(i) && IsPlayerAlive(i) && !AFKM_IsClientAFK(i))
+		if (IsValidClient(i, true, _, _, _, true))
 		{
-			int userid = GetClientUserId(i);
-			ServerCommand("sm_smash #%d", userid);
+			ServerCommand("sm_smash #%d", GetClientUserId(i));
 		}
 	}
 	CPrintToChatAll("%t{RED}THE HAMMER{DEFAULT} SEES ALL!", "Store Tag Colored");
@@ -420,7 +417,7 @@ public Action CommandJudgingNecromash(int client, int args)
 		jNecromashCooldown = currentTime;
 		CPrintToChatAll("%t{OLIVE}%N{DEFAULT} called the power of {GREEN}THE JUDGING NECROMASH{DEFAULT}!", "Store Tag Colored", target);
 	}
-	CreateTimer(2.0, TimerRandomSmash);
+	SMTimer.Make(2.0, TimerRandomSmash);
 	return Plugin_Handled;
 }
 
@@ -448,7 +445,7 @@ public void EventItemFound(Event event, const char[] name, bool dontBroadcast)
 	{
 		char sCookieValue[64];
 		char newCookieValue[MAX_BUFFER_LENGTH];
-		GetClientCookie(client, dailyTradeTimeCookie, sCookieValue, sizeof(sCookieValue));
+		dailyTradeTimeCookie.GetValue(client, sCookieValue, sizeof(sCookieValue));
 		int cookieValue = StringToInt(sCookieValue);
 		int currentTime = GetTime();
  		if (tradeCookiesJustMade[client] || currentTime > (cookieValue + 86400))
@@ -456,7 +453,7 @@ public void EventItemFound(Event event, const char[] name, bool dontBroadcast)
 			Store_GiveCredits(accountID, 500);
 			CPrintToChat(client, "%tCongrats, you have been awarded {PURPLE}500{DEFAULT} credits for trading an item today.", "Store Tag Colored");
 			IntToString(currentTime, newCookieValue, sizeof(newCookieValue));
-			SetClientCookie(client, dailyTradeTimeCookie, newCookieValue);
+			dailyTradeTimeCookie.SetValue(client, newCookieValue);
 			if (tradeCookiesJustMade[client]) tradeCookiesJustMade[client] = false;
 		}
 	}
@@ -495,21 +492,18 @@ bool warpTime(int client)
 	EmitSoundToAll( "ui/halloween_loot_spawn.wav", SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_HOME );
 	TFTeam client_team = view_as<TFTeam>(GetClientTeam(client));
 
-	char name[32];
-	GetClientName( client, name, sizeof name );
-
-	if (client_team == TFTeam_Blue) CPrintToChatAll("%t{BLUE}%s{DEFAULT} has warped time!", "Store Tag Colored", name);
-	else CPrintToChatAll("%t{RED}%s{DEFAULT} has warped time!", "Store Tag Colored", name);
+	if (client_team == TFTeam_Blue) CPrintToChatAll("%t{BLUE}%N{DEFAULT} has warped time!", "Store Tag Colored", client);
+	else CPrintToChatAll("%t{RED}%N{DEFAULT} has warped time!", "Store Tag Colored", client);
 
 	time_warped = true;
 	for( int i = 1; i <= MaxClients; i++ ) {
-		if( IsClientInGame(i) && !IsFakeClient(i) ) {
+		if( IsValidClient(i) ) {
 			fakeCheats( i, true );
 		}
 	}
 
-	CreateTimer( 0.1, Timer_warpTimeInc, _, TIMER_REPEAT );
-	CreateTimer( 15.0, Timer_unWarpTime );
+	SMTimer.Make( 0.1, Timer_warpTimeInc, _, TIMER_REPEAT );
+	SMTimer.Make( 15.0, Timer_unWarpTime );
 	return true;
 }
 
@@ -562,45 +556,37 @@ public Action Timer_warpTimeInc( Handle timer )
 public Action Timer_unWarpTime( Handle timer ) {
 	EmitSoundToAll( "ui/halloween_loot_found.wav", SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_HOME );
 	CPrintToChatAll("%tThe {PURPLE}time warp{DEFAULT} has ended!", "Store Tag Colored");
-	CreateTimer( 0.1, Timer_unWarpTimeInc, _, TIMER_REPEAT );
+	SMTimer.Make( 0.1, Timer_unWarpTimeInc, _, TIMER_REPEAT );
 }
 
-public void OnMerasmusKilled(Event event, const char[] name, bool dontBroadcast)
+public Action OnMerasmusKilled(Event event, const char[] name, bool dontBroadcast)
 {
+	delete killMerasmusTimer;
 	int ent = -1;
 	while((ent = FindEntityByClassname(ent, "merasmus")) != -1) {
-		if(!IsValidEntity(ent)) return;
+		if(!IsValidEntity(ent)) return Plugin_Continue;
 		AcceptEntityInput(ent, "Kill");
 	}
-	KillMerasmusKillTimer();
+	return Plugin_Continue;
 }
 
 public void OnMerasmusEscapeWarning(Event event, const char[] name, bool dontBroadcast)
 {
-	if (killMerasmusTimer != null)
+	if (killMerasmusTimer == null)
 	{
 		int timeremaining = event.GetInt("time_remaining");
 		LogMessage("Escape warning timer is at %d.", timeremaining);
-		killMerasmusTimer = CreateTimer(float(timeremaining), OnKillMerasmusTimer);
+		killMerasmusTimer = new SMTimer(float(timeremaining), OnKillMerasmusTimer);
 	}
 }
 
-public Action OnKillMerasmusTimer(Handle timer, any data)
+public Action OnKillMerasmusTimer(Handle timer)
 {
+	killMerasmusTimer = null;
 	int ent = -1;
 	while((ent = FindEntityByClassname(ent, "merasmus")) != -1) {
 		if(!IsValidEntity(ent)) return;
 		AcceptEntityInput(ent, "Kill");
-	}
-	KillMerasmusKillTimer();
-}
-
-stock void KillMerasmusKillTimer()
-{
-	if (killMerasmusTimer != null)
-	{
-		KillTimer(killMerasmusTimer);
-		killMerasmusTimer = null;
 	}
 }
 
@@ -613,7 +599,7 @@ public Action Timer_unWarpTimeInc( Handle timer ) {
 	{
 		host_timescale.FloatValue = 1.0;
 		for( int i = 1; i <= MaxClients; i++ ) {
-			if( IsClientInGame(i) && !IsFakeClient(i) ) {
+			if( IsValidClient(i) ) {
 				fakeCheats(i,false);
 			}
 		}

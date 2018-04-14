@@ -4,13 +4,10 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.0.2"
+			"Latest"	"1.0.3"
 		}
 		
-		"Notes"	"Add updater support"
-		"Notes"	"Generate configuration files (cfg/sm/ngs_fixes.cfg)"
-		"Notes"	"Compatibility for other games"
-		"Notes"	"Properly null all our timers"
+		"Notes"	"Add ability to throttle voice lines (retiring ngs_voicemenuthrottler)"
 	}
 	
 	"Files"

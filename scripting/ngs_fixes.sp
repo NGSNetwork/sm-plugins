@@ -7,7 +7,7 @@
 * cfg/sourcemod/ngs_fixes.cfg
 *
 * Dependencies:
-* sourcemod.inc, basecomm.inc, ngsutils.inc, ngsupdater.inc
+* basecomm.inc, ngsutils.inc, ngsupdater.inc
 */
 #pragma newdecls required
 #pragma semicolon 1
@@ -15,32 +15,49 @@
 #define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
 #define RELOAD_ON_UPDATE 1
 
-#include <sourcemod>
 #include <basecomm>
 #include <ngsutils>
 #include <ngsupdater>
 
-ConVar cvarDisableDoveSpawn, cvarDisableNonAuthedSpam;
+ConVar cvarDisableDoveSpawn, cvarDisableNonAuthedSpam, cvarDisableVoiceMenuSpam;
+bool allowVoiceMenuSpam;
 SMTimer authClientTimer[MAXPLAYERS + 1];
+SMTimer voiceMenuTimer[MAXPLAYERS + 1];
 
 public Plugin myinfo =
 {
 	name = "[NGS] Game Fixes",
 	author = "TheXeon",
 	description = "Small plugin including changes for NGS server.",
-	version = "1.0.2",
+	version = "1.0.3",
 	url = "https://www.neogenesisnetwork.net/"
 }
 
 public void OnPluginStart()
 {
 	cvarDisableNonAuthedSpam = CreateConVar("sm_ngsfixes_disable_authspam", "1", "Should players be kicked if they don\'t auth?");
+	cvarDisableVoiceMenuSpam = CreateConVar("sm_ngsfixes_disable_voicespam", "1", "Should we limit the voicemenu spam on the server?");
+	cvarDisableVoiceMenuSpam.AddChangeHook(OnVoiceMenuSpamChanged);
 	if (GetEngineVersion() == Engine_TF2)
 	{
 		cvarDisableDoveSpawn = CreateConVar("sm_ngsfixes_disable_doves", "1", "Should the plugin disable dove spawning?");
 		HookUserMessage(GetUserMessageId("SpawnFlyingBird"), UserMsg_SpawnBird, true);
 	}
 	AutoExecConfig(true, "ngs_fixes");
+
+	AddCommandListener(CmdVoiceMenu, "voicemenu");
+}
+
+public void OnConfigsExecuted()
+{
+	char voicemenuspam[8];
+	cvarDisableVoiceMenuSpam.GetString(voicemenuspam, sizeof(voicemenuspam));
+	allowVoiceMenuSpam = !(view_as<bool>(StringToInt(voicemenuspam)));
+}
+
+public void OnVoiceMenuSpamChanged(ConVar convar, const char[] oldValue, const char[] newValue)
+{
+	allowVoiceMenuSpam = !convar.BoolValue;
 }
 
 public Action UserMsg_SpawnBird(UserMsg msg_id, BfRead bf, const int[] players, int playersNum, bool reliable, bool init)
@@ -53,6 +70,32 @@ public void OnClientConnected(int client)
 {
 	if (cvarDisableNonAuthedSpam.BoolValue && !IsFakeClient(client))
 		authClientTimer[client] = new SMTimer(2.0, AuthCheckTimer, GetClientUserId(client), TIMER_REPEAT);
+}
+
+public Action CmdVoiceMenu(int client, const char[] command, int argc)
+{
+	if (allowVoiceMenuSpam) return Plugin_Continue;
+	if (voiceMenuTimer[client] != null)
+	{
+		return Plugin_Handled;
+	}
+	else
+	{
+		char CmdString[4];
+		GetCmdArgString(CmdString, sizeof(CmdString));
+		if (StrEqual(CmdString, "0 0"))
+			voiceMenuTimer[client] = new SMTimer(0.5, OnVoiceMenuTimer, GetClientUserId(client));
+		else
+			voiceMenuTimer[client] = new SMTimer(0.1, OnVoiceMenuTimer, GetClientUserId(client));
+		return Plugin_Continue;
+	}
+}
+
+public Action OnVoiceMenuTimer(Handle timer, any userid)
+{
+	int client = GetClientOfUserId(userid);
+	if (client == 0) return;
+	voiceMenuTimer[client] = null;
 }
 
 public Action AuthCheckTimer(Handle timer, int userid)
@@ -87,4 +130,5 @@ public Action AuthCheckTimer(Handle timer, int userid)
 public void OnClientDisconnect(int client)
 {
 	authClientTimer[client].Close();
+	voiceMenuTimer[client].Close();
 }

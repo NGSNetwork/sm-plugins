@@ -24,13 +24,15 @@ public Plugin myinfo = {
 	name = "[NGS] VoiceMenu Throttler",
 	author = "TheXeon",
 	description = "Throttles voicemenu spam.",
-	version = "1.2.0",
+	version = "1.2.1",
 	url = "https://neogenesisnetwork.net"
 }
 
 public void OnPluginStart()
 {
 	RegConsoleCmd("voicemenu", OnPlayerVoiceMenu);
+
+	LogError("DEPRECATED: The latest version of ngs_fixes (1.0.3+) retires this plugin! Get it from https://github.com/NGSNetwork/sm-plugins/ and remove this plugin.");
 }
 
 public Action OnPlayerVoiceMenu(int client, int args)

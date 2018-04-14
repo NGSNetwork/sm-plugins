@@ -4,11 +4,10 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.2.0"
+			"Latest"	"1.2.1"
 		}
 		
-		"Notes"	"Add updater support!"
-		"Notes"	"Remove extra spaces from sp."
+		"Notes"	"DEPRECATED: The latest version of ngs_fixes (1.0.3+) retires this plugin! Get it from https://github.com/NGSNetwork/sm-plugins/ and remove this plugin."
 	}
 	
 	"Files"

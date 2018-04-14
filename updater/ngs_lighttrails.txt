@@ -4,14 +4,10 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.0.1"
+			"Latest"	"1.0.2"
 		}
 		
-		"Notes"	"Added updater support."
-		"Notes"	"Use multicolors instead of hardcoded values!"
-		"Notes"	"Optionally input a hex number for color!"
-		"Notes" "Fix crashes on reload (was deleting world)"
-		"Notes"	"Print color on output."
+		"Notes"	"Added a menu to choose colors."
 	}
 	
 	"Files"

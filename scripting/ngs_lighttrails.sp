@@ -6,7 +6,7 @@
 * addons/sourcemod/plugins/ngs_lighttrails.smx
 *
 * Dependencies:
-* sourcemod.inc, sdktools.inc, multicolors.inc, ngsutils.inc, ngsupdater.inc
+* sdktools.inc, multicolors.inc, ngsutils.inc, ngsupdater.inc
 */
 #pragma newdecls required
 #pragma semicolon 1
@@ -14,7 +14,6 @@
 #define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
 #define RELOAD_ON_UPDATE 1
 
-#include <sourcemod>
 #include <sdktools>
 #include <multicolors>
 #include <ngsutils>
@@ -25,16 +24,18 @@ public Plugin myinfo =
 	name = "[NGS] Light Trails",
 	author = "bSun Halt / TheXeon",
 	description = "Gives a light trail",
-	version = "1.0.1",
-	url = "http://sourcemod.net"
+	version = "1.0.2",
+	url = "https://www.neogenesisnetwork.net"
 }
 
 int SpriteTrail[MAXPLAYERS + 1] = {INVALID_ENT_REFERENCE, ...};
+Menu trailsMenu;
 
 public void OnPluginStart()
 {
 	RegAdminCmd("sm_trail", Command_Trail, ADMFLAG_GENERIC, "sm_trail <color/hex>");
 	MC_CheckTrie();
+	PrepTrailsMenu();
 }
 
 public void OnMapStart()
@@ -52,12 +53,31 @@ public void OnClientDisconnect(int client)
 	KillTrail(client);
 }
 
+void PrepTrailsMenu()
+{
+	trailsMenu = new Menu(ChooseColorMenuHandler);
+	trailsMenu.SetTitle("=== NGS Trail Menu ===");
+	trailsMenu.AddItem("off", "Off!");
+	trailsMenu.AddItem("chooseyourown", "Make your own!");
+	if (MC_Trie != null)
+	{
+		StringMapSnapshot snapshot = MC_Trie.Snapshot();
+		for (int i = 0; i < snapshot.Length; i++)
+		{
+			char[] buffer = new char[snapshot.KeyBufferSize(i)];
+			snapshot.GetKey(i, buffer, snapshot.KeyBufferSize(i));
+			trailsMenu.AddItem(buffer, buffer);
+		}
+		delete snapshot;
+	}
+}
+
 public Action Command_Trail(int client, int args)
 {
 	if (!IsValidClient(client)) return Plugin_Handled;
 	if (args == 0)
 	{
-		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_trail <color/hex>");
+		trailsMenu.Display(client, MENU_TIME_FOREVER);
 		return Plugin_Handled;
 	}
 
@@ -138,10 +158,29 @@ public Action Command_Trail(int client, int args)
 	TeleportEntity(Trail, CurrentOrigin, NULL_VECTOR, NULL_VECTOR);
 	SetVariantString(ClientName);
 
-	AcceptEntityInput(Trail, "SetParent", -1, -1);
-	AcceptEntityInput(Trail, "showsprite", -1, -1);
+	AcceptEntityInput(Trail, "SetParent");
+	AcceptEntityInput(Trail, "showsprite");
 
 	return Plugin_Handled;
+}
+
+public int ChooseColorMenuHandler(Menu menu, MenuAction action, int client, int choice)
+{
+	if (action == MenuAction_Select)
+	{
+		char item[MAX_BUFFER_LENGTH];
+		if (menu.GetItem(choice, item, sizeof(item)))
+		{
+			if (StrEqual("chooseyourown", item))
+			{
+				CPrintToChat(client, "{GREEN}[SM]{DEFAULT} Provide a hex number or existing color for the trail command. Usage: sm_trail <color/hex>");
+			}
+			else
+			{
+				FakeClientCommand(client, "sm_trail %s", item);
+			}
+		}
+	}
 }
 
 stock void KillTrail(int client)

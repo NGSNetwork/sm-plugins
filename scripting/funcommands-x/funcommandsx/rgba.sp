@@ -15,7 +15,7 @@
 *****************************************************************/
 // Basic color arrays for temp entities
 new g_iTColors[22][4]         = {{255, 255, 255, 255}, {0, 255, 0, 192}, {255, 255, 0, 192}, {0, 255, 255, 192}, {255, 128, 0, 192}, {255, 0, 128, 192}, {128, 255, 0, 192}, {0, 255, 128, 192}, {128, 0, 255, 192}, {0, 128, 255, 192}, {192, 192, 192}, {210, 105, 30}, {139, 69, 19}, {75, 0, 130}, {248, 248, 255}, {216, 191, 216}, {240, 248, 255}, {70, 130, 180}, {0, 128, 128},	{255, 215, 0}, {210, 180, 140}, {255, 99, 71}};
-new String:g_sTColors[26][32];
+new String:g_sTColors[22][32];
 
 new g_PlayerColor[MAXPLAYERS+1][4];			//remembers players color/alpha settings
 new g_AffectWeapon[MAXPLAYERS+1];		//tells recurring rgba functions to skip weapon setting if true

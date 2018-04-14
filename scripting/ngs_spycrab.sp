@@ -13,6 +13,7 @@
 #include <sdkhooks>
 #include <adminmenu>
 #include <multicolors>
+#include <tf2>
 #include <tf2_stocks>
 #include <ngsutils>
 #include <ngsupdater>
@@ -24,17 +25,28 @@ enum CrabData
 	bool:IsEnabled,
 	TimesCrabbed,
 	SMTimer:MovementTimer,
+	SMTimer:TauntTimer,
 	TimesTaunted,
 	UserId,
 	TFTeam:Team,
 	bool:IsFirstClient,
+	bool:HasTaunted,
 	CrabType:Type,
+	Penalty,
 }
 
 enum CrabType
 {
-	FirstToThreeWins,
-	FirstToThreeLoses
+	Type_FirstToThreeWins,
+	Type_FirstToThreeLoses
+}
+
+enum CrabStatus
+{
+	Status_Nothing,
+	Status_IsCrabbing,
+	Status_FinishedWinner,
+	Status_FinishedLoser
 }
 
 ConVar mapNameContains;
@@ -276,6 +288,7 @@ public int AcceptMenuHandler(Menu menu, MenuAction action, int param1, int param
 	}
 	if (action == MenuAction_Cancel)
 	{
+		CPrintToChatAll("{LIGHTGREEN}[Crab]{DEFAULT} %N declined %N\'s spycrab!", param1, playerCrabData[param1][Challenger]);
 		ResetSpycrabClients(false, param1);
 	}
 	if (action == MenuAction_End)
@@ -289,10 +302,11 @@ public void StartSpyCrab(int client)
 	spycrabInProgress = true;
 	// SetHudTextParams(0.1, 0.5, 22.0, 102, 51, 153, 255);
 	SetHudTextParams(0.1, 0.5, 22.0, 0, 255, 0, 255);
-	hudTextChannel = ShowHudText(client, -1, "Starting spycrab...");
+	hudTextChannel = ShowHudTextAll(-1, "Starting spycrab...");
 	playerCrabData[client][IsFirstClient] = true;
 	PreparePlayerForSpycrab(client);
 	PreparePlayerForSpycrab(playerCrabData[client][Challenger]);
+	PrintCrabDataToScreen(client);
 }
 
 void PreparePlayerForSpycrab(int client)
@@ -315,8 +329,10 @@ void PreparePlayerForSpycrab(int client)
 	{
 		TeleportEntity(client, secondClientOrigin, NULL_VECTOR, NULL_VECTOR);
 	}
-	playerCrabData[client][MovementTimer] = new SMTimer(0.5, testSpycrabClientMov, userid, TIMER_REPEAT);
+	playerCrabData[client][MovementTimer] = new SMTimer(3.0, TestSpycrabClientMov, userid, TIMER_REPEAT);
+	playerCrabData[client][TauntTimer] = new SMTimer(12.0, TestSpycrabClientTaunt, userid, TIMER_REPEAT);
 	playerCrabData[client][Team] = TF2_GetClientTeam(client);
+	CPrintToChat(client, "{LIGHTGREEN}[Crab]{DEFAULT} Ready, set, taunt!");
 	playerCrabData[client][IsEnabled] = true;
 	if (CommandExists("sm_tauntspeed"))
 	{
@@ -383,34 +399,13 @@ void ResetClient(int client, bool endOfCrab)
 		}
 	}
 	delete playerCrabData[client][MovementTimer];
+	delete playerCrabData[client][TauntTimer];
+	playerCrabData[client][Penalty] = 0;
 	playerCrabData[client][TimesCrabbed] = 0;
 	playerCrabData[client][TimesTaunted] = 0;
 	playerCrabData[client][IsFirstClient] = false;
 	playerCrabData[client][IsEnabled] = false;
-}
-
-public Action testSpycrabClientMov(Handle timer, any userid)
-{
-	int client = GetClientOfUserId(userid);
-	float location[3], noMovement[3] = {0.0, 0.0, 0.0};
-	GetClientAbsOrigin(client, location);
-	if (playerCrabData[client][IsFirstClient])
-	{
-		if (GetVectorDistance(location, firstClientOrigin) > 100.0)
-		{
-			TeleportEntity(client, firstClientOrigin, NULL_VECTOR, noMovement);
-			CPrintToChat(client, "{LIGHTGREEN}[Crab]{DEFAULT} Please do not move!");
-		}
-	}
-	else
-	{
-		GetClientAbsOrigin(client, location);
-		if (GetVectorDistance(location, secondClientOrigin) > 100.0)
-		{
-			TeleportEntity(client, secondClientOrigin, NULL_VECTOR, noMovement);
-			CPrintToChat(client, "{LIGHTGREEN}[Crab]{DEFAULT} Please do not move!");
-		}
-	}
+	playerCrabData[client][HasTaunted] = false;
 }
 
 public void OnEntityCreated(int entity, const char[] classname)
@@ -455,15 +450,21 @@ public Action OnSceneSpawned(int entity)
 	{
 		int printClient = (clientCrabs > challengerCrabs) ? challenger : client;
 		CPrintToChatAll("{LIGHTGREEN}[Crab]{DEFAULT} We have a winner! Congrats to %N.", printClient);
-		LogMessage("%N has won the spycrab between them and %N.", printClient, playerCrabData[printClient][Challenger])
+		LogMessage("%L has won the spycrab between them and %L.", printClient, playerCrabData[printClient][Challenger])
 		SMTimer.Make(3.5, ResetCrabOnWinTimer);
 		return;
 	}
-	int firstClient = playerCrabData[client][IsFirstClient] ? client : challenger;
+	PrintCrabDataToScreen(client);
+}
+
+void PrintCrabDataToScreen(int client)
+{
+	int firstClient = playerCrabData[client][IsFirstClient] ? client : playerCrabData[client][Challenger];
 	int secondClient = playerCrabData[firstClient][Challenger];
-	ShowHudTextAll(hudTextChannel, "%N: %d / %d\n%N: %d / %d", firstClient,
-		playerCrabData[firstClient][TimesCrabbed], playerCrabData[firstClient][TimesTaunted], secondClient,
-		playerCrabData[secondClient][TimesCrabbed], playerCrabData[secondClient][TimesTaunted]);
+	ShowHudTextAll(hudTextChannel, "[Taunted] / [Crabbed] / [Penalty]\n%N: %d / %d / %d\n%N: %d / %d / %d\nFirst to 3 loses.", firstClient,
+		playerCrabData[firstClient][TimesTaunted], playerCrabData[firstClient][TimesCrabbed], 
+		playerCrabData[firstClient][Penalty], secondClient, playerCrabData[secondClient][TimesTaunted], 
+		playerCrabData[secondClient][TimesCrabbed], playerCrabData[secondClient][Penalty]);
 }
 
 public Action ResetCrabOnWinTimer(Handle timer)
@@ -474,6 +475,15 @@ public Action ResetCrabOnWinTimer(Handle timer)
 ///////////////////////////////////
 ///////////// CHECKS //////////////
 ///////////////////////////////////
+
+public void TF2_OnConditionAdded(int client, TFCond condition)
+{
+	
+	if (spycrabInProgress && playerCrabData[client][IsEnabled] && condition == TFCond_Taunting)
+	{
+		playerCrabData[client][HasTaunted] = true;
+	}
+}
 
 public Action OnPlayerDisconnect(Event event, const char[] name, bool dontBroadcast)
 {
@@ -524,6 +534,69 @@ public Action OnPlayerDeathTimer(Handle timer, any userid)
 	StripToPDA(client);
 	if (playerCrabData[client][IsFirstClient]) TeleportEntity(client, firstClientOrigin, NULL_VECTOR, noMovement);
 	else TeleportEntity(client, secondClientOrigin, NULL_VECTOR, noMovement);
+}
+
+void ClearCrabTeleportLocation(int client, float location[3])
+{
+	float clientlocation[3];
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsValidClient(i) && client != i && playerCrabData[client][Challenger] != i)
+		{
+			GetClientAbsOrigin(i, clientlocation);
+			if (GetVectorDistance(clientlocation, location, true) <= 10000.0)
+			{
+				FakeClientCommand(i, "explode");
+			}
+		}
+	}
+}
+
+public Action TestSpycrabClientMov(Handle timer, any userid)
+{
+	int client = GetClientOfUserId(userid);
+	float location[3], noMovement[3] = {0.0, 0.0, 0.0};
+	GetClientAbsOrigin(client, location);
+	if (playerCrabData[client][IsFirstClient])
+	{
+		if (GetVectorDistance(location, firstClientOrigin, true) > 10000.0)
+		{
+			ClearCrabTeleportLocation(client, firstClientOrigin);
+			TeleportEntity(client, firstClientOrigin, NULL_VECTOR, noMovement);
+			CPrintToChat(client, "{LIGHTGREEN}[Crab]{DEFAULT} Please do not move!");
+		}
+	}
+	else
+	{
+		if (GetVectorDistance(location, secondClientOrigin) > 100.0)
+		{
+			ClearCrabTeleportLocation(client, secondClientOrigin);
+			TeleportEntity(client, secondClientOrigin, NULL_VECTOR, noMovement);
+			CPrintToChat(client, "{LIGHTGREEN}[Crab]{DEFAULT} Please do not move!");
+		}
+	}
+}
+
+public Action TestSpycrabClientTaunt(Handle timer, any userid)
+{
+	int client = GetClientOfUserId(userid);
+	if (!playerCrabData[client][HasTaunted])
+	{
+		playerCrabData[client][Penalty]++;
+		CPrintToChatAll("{LIGHTGREEN}[Crab]{DEFAULT} %N has been penalized for not taunting!", client);
+		PrintCrabDataToScreen(client);
+		if (playerCrabData[client][Penalty] >= 3)
+		{
+			CPrintToChatAll("{LIGHTGREEN}[Crab]{DEFAULT} %N has forfeit for having too many penalties!", client);
+			CPrintToChatAll("{LIGHTGREEN}[Crab]{DEFAULT} We have a winner! Congrats to %N.", playerCrabData[client][Challenger]);
+			LogMessage("%L has won the spycrab between them and %L due to forfeit.", playerCrabData[client][Challenger], client)
+			SMTimer.Make(3.5, ResetCrabOnWinTimer);
+		}
+	}
+	else
+	{
+		playerCrabData[client][HasTaunted] = false;
+	}
 }
 
 public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon, int &subtype, int &cmdnum, int &tickcount, int &seed, int mouse[2])

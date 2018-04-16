@@ -390,9 +390,14 @@ methodmap SWHTTPRequest < Handle
 		return SteamWorks_GetHTTPResponseHeaderValue(this, sHeader, sValue, size);
 	}
 	
-	public bool GetResponseSize(int &size)
+	property int ResponseSize
 	{
-		return SteamWorks_GetHTTPResponseBodySize(this, size);
+		public get()
+		{
+			int size;
+			SteamWorks_GetHTTPResponseBodySize(this, size);
+			return size;
+		}
 	}
 	
 	public bool GetBodyData(char[] sBody, int length)

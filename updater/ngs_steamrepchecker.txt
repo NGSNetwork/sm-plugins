@@ -4,11 +4,13 @@
 	{
 		"Version"
 		{
-			"Latest"	"2.1.1"
+			"Latest"	"2.2.0"
 		}
 		
-		"Notes"	"Add updater support!"
-		"Notes"	"Remove extra spaces from sp."
+		"Notes"	"Add proper checks for steamID!"
+		"Notes"	"Add cvar to control exluding people via SkipSR."
+		"Notes"	"Remove writing to a file when checking Valve."
+		"Notes"	"Removed Herobrine."
 	}
 	
 	"Files"

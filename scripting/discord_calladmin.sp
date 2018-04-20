@@ -7,7 +7,7 @@
 
 #define PLUGIN_VERSION "1.1"
 
-#define REPORT_MSG "{\"username\":\"{BOTNAME}\",\"content\":\"{MENTION} A new report has come in.\",\"attachments\":[{\"color\":\"{COLOR}\",\"title\":\"{HOSTNAME} (steam://connect/{SERVER_IP}:{SERVER_PORT}){REFER_ID}\",\"fields\":[{\"title\":\"Reason\",\"value\":\"{REASON}\",\"short\":true},{\"title\":\"Reporter\",\"value\":\"{REPORTER_NAME} ({REPORTER_ID})\",\"short\":true},{\"title\":\"Target\",\"value\":\"{TARGET_NAME} ({TARGET_ID})\",\"short\":true},{\"title\":\"Report ID\",\"value\":\"{REPORT_ID}\",\"short\":true}]}]}"
+#define REPORT_MSG "{\"username\":\"{BOTNAME}\",\"content\":\"{MENTION} A new report has come in, handle it with `/calladmin_handle {REPORT_ID}`.\",\"attachments\":[{\"color\":\"{COLOR}\",\"title\":\"{HOSTNAME} (steam://connect/{SERVER_IP}:{SERVER_PORT}){REFER_ID}\",\"fields\":[{\"title\":\"Reason\",\"value\":\"{REASON}\",\"short\":true},{\"title\":\"Reporter\",\"value\":\"{REPORTER_NAME} ({REPORTER_ID})\",\"short\":true},{\"title\":\"Target\",\"value\":\"{TARGET_NAME} ({TARGET_ID})\",\"short\":true},{\"title\":\"Report ID\",\"value\":\"{REPORT_ID}\",\"short\":true}]}]}"
 #define CLAIM_MSG "{\"username\":\"{BOTNAME}\", \"content\":\"{MSG}\",\"attachments\": [{\"color\": \"{COLOR}\",\"title\": \"{HOSTNAME} (steam://connect/{SERVER_IP}:{SERVER_PORT})\",\"fields\": [{\"title\": \"Admin\",\"value\": \"{ADMIN}\",\"short\": false}]}]}"
 #define HANDLED_MSG "{\"username\":\"{BOTNAME}\",\"content\":\"{MSG}\",\"attachments\":[{\"color\":\"{COLOR}\",\"title\":\"{HOSTNAME} (steam://connect/{SERVER_IP}:{SERVER_PORT})\",\"fields\":[{\"title\":\"Admin\",\"value\": \"{ADMIN}\",\"short\":true},{\"title\":\"Report ID\",\"value\":\"{REPORT_ID}\",\"short\":true}]}]}"
 

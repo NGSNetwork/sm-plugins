@@ -4,13 +4,10 @@
 	{
 		"Version"
 		{
-			"Latest"	"2.12.0"
+			"Latest"	"2.12.1"
 		}
 		
-		"Notes"	"Add updater support!"
-		"Notes"	"Add ConVar backpack_tf_user_agent to get around bp.tf's block."		
-		"Notes"	"Change to Prices V4!"
-		"Notes"	"Remove extra spaces from sp."
+		"Notes"	"Fixed Unusualifier! Defeated by an OR."
 	}
 	
 	"Files"

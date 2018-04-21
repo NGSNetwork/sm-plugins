@@ -46,7 +46,7 @@ public Plugin myinfo = {
 	name        = "[NGS] backpack.tf Price Check",
 	author      = "Dr. McKay / TheXeon",
 	description = "Provides a price check command for use with backpack.tf",
-	version     = "2.12.0",
+	version     = "2.12.1",
 	url         = "https://www.neogenesisnetwork.net"
 }
 
@@ -1056,7 +1056,7 @@ public int Handler_PriceListMenu(Menu menu, MenuAction action, int client, int p
 			do
 			{
 				backpackTFPricelist.GetSectionName(effect, sizeof(effect));
-				if((defindex != ITEM_UNUSUALIFIER && !unusualNameTrie.GetString(effect, effectName, sizeof(effectName))) && (defindex == ITEM_UNUSUALIFIER &&
+				if((defindex != ITEM_UNUSUALIFIER && !unusualNameTrie.GetString(effect, effectName, sizeof(effectName))) || (defindex == ITEM_UNUSUALIFIER &&
 					!unusualifierTauntTrie.GetString(effect, effectName, sizeof(effectName))))
 				{
 					int time = GetTime();

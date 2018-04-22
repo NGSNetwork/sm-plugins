@@ -27,7 +27,7 @@ public Plugin myinfo = {
     name 		=		"[NGS] Web Shortcuts",
     author		=		"Kyle Sanderson, Nicholas Hastings / TheXeon",
     description	=		"Redux of Web Shortcuts with Large/Small MOTD Support",
-    version		=		"1.3.0",
+    version		=		"1.3.1",
     url			=		"http://SourceMod.net"
 }
 
@@ -68,13 +68,12 @@ enum FieldCheckFlags
 	#endif  /* _steamtools_included	 */
 };
 
-stock bool isTeamFortress2() {return view_as<bool>(g_iGameMode & game_TF2);}
+stock bool isTeamFortress2() {return (GetEngineVersion() == Engine_TF2);}
 stock bool isLeftForDead() {return view_as<bool>(g_iGameMode & game_L4D);}
 stock bool goLargeOrGoHome() {return (isTeamFortress2() && view_as<bool>(g_iGameMode & big_MOTD));}
 
 /*#include "Duck"*/
 
-ArrayList g_hIndexArray;
 StringMap g_hFastLookupTrie;
 
 StringMap g_hCurrentTrie;
@@ -82,8 +81,6 @@ char g_sCurrentSection[128];
 
 public void OnPluginStart()
 {
-	g_hIndexArray = new ArrayList(); /* We'll only use this for cleanup to prevent handle leaks and what not.
-									  Our friend below doesn't have iteration, so we have to do this... */
 	g_hFastLookupTrie = new StringMap();
 
 	AddCommandListener(Client_Say, "say");
@@ -113,8 +110,8 @@ public Action Client_Say(int iClient, char[] sCommand, int argc)
 	if (DealWithOurTrie(iClient, sFirstArg, hStoredTrie))
 	{
 		if (sFirstArg[0] == '/') // Detect if using the default silent character
-			return Plugin_Continue;
-		return Plugin_Handled; /* We want other hooks to be called, I guess. We just don't want it to go to the game. */
+			return Plugin_Handled; /* We want other hooks to be called, I guess. We just don't want it to go to the game. */
+		return Plugin_Continue;
 	}
 
 	return Plugin_Continue; /* Well this is embarasing. We didn't actually hook this. Or atleast didn't intend to. */
@@ -175,7 +172,7 @@ public bool DealWithOurTrie(int iClient, char[] sHookedString, StringMap hStored
 
 		CPrintToChatAll("%s", sMessage);
 	}
-	AdvMOTD_ShowMOTDPanel(iClient, sTitle, sUrl, MOTDPANEL_TYPE_URL, true, true, true, OnMOTDFailure);
+	AdvMOTD_ShowMOTDPanel(iClient, sTitle, sUrl, MOTDPANEL_TYPE_URL, true, bBig, true, OnMOTDFailure);
 	return true;
 }
 
@@ -191,20 +188,20 @@ public void OnMOTDFailure(int client, MOTDFailureReason reason)
 
 public void ClearExistingData()
 {
-	Handle hHandle = null;
-	for (int i = (g_hIndexArray.Length - 1); i >= 0; i--)
+	StringMap hHandle;
+	StringMapSnapshot snapshot = g_hFastLookupTrie.Snapshot();
+	int length = snapshot.Length;
+	char buffer[256];
+	for (int i = 0; i < length; i++)
 	{
-		hHandle = g_hIndexArray.Get(i);
-
-		if (hHandle == null)
+		snapshot.GetKey(i, buffer, sizeof(buffer));
+		if (g_hFastLookupTrie.GetValue(buffer, hHandle))
 		{
-			continue;
+			delete hHandle;
 		}
-
-		delete hHandle;
 	}
+	delete snapshot;
 
-	g_hIndexArray.Clear();
 	g_hFastLookupTrie.Clear();
 }
 
@@ -265,7 +262,6 @@ public SMCResult SMC_NewSection(SMCParser smc, const char[] name, bool opt_quote
 	else /* That's cool. Sounds like an initial insertion. Just wanted to make sure! */
 	{
 		g_hCurrentTrie = new StringMap();
-		g_hIndexArray.Push(g_hCurrentTrie); /* Don't be leakin */
 		g_hFastLookupTrie.SetValue(name, g_hCurrentTrie);
 		g_hCurrentTrie.SetString("Name", name);
 	}
@@ -297,14 +293,6 @@ public SMCResult SMC_KeyValue(SMCParser smc, char[] key, char[] value, bool key_
 				return SMCParse_Continue;
 			}
 
-			int iFindValue;
-			iFindValue = g_hIndexArray.FindValue(g_hCurrentTrie);
-
-			if (iFindValue > -1)
-			{
-				g_hIndexArray.Erase(iFindValue);
-			}
-
 			if (g_sCurrentSection[0] != '\0')
 			{
 				g_hFastLookupTrie.Remove(g_sCurrentSection);
@@ -319,7 +307,6 @@ public SMCResult SMC_KeyValue(SMCParser smc, char[] key, char[] value, bool key_
 			}
 
 			g_hCurrentTrie = new StringMap(); /* Ruhro, the thing this points to doesn't actually exist. Should we error or what? Nah, lets try and recover. */
-			g_hIndexArray.Push(g_hCurrentTrie); /* Don't be losin handles */
 			g_hFastLookupTrie.SetValue(g_sCurrentSection, g_hCurrentTrie, true);
 			g_hCurrentTrie.SetString("Name", g_sCurrentSection, true);
 		}

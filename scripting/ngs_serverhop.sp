@@ -49,13 +49,13 @@ public Plugin myinfo = {
 	name = "[NGS] Server Hop",
 	author = "[GRAVE] rig0r / TheXeon",
 	description = "Provides live server info with a join option!",
-	version = "1.2.0",
-	url = "https://neogenesisnetwork.servegame.com"
+	version = "1.2.1",
+	url = "https://www.neogenesisnetwork.net"
 }
 
 public void OnPluginStart()
 {
-	LoadTranslations("serverhop.phrases");
+	TranslationFileExists("serverhop.phrases", true, true);
 	// convar setup
 	cv_serverformat = CreateConVar("sm_hop_serverformat", "%name - %map (%numplayers/%maxplayers)", "Defines how the server info should be presented.");
 	cv_broadcasthops = CreateConVar("sm_hop_broadcasthops", "1", "Set to 1 if you want a broadcast message when a player hops to another server.");
@@ -80,16 +80,46 @@ public void OnPluginStart()
 	int hostport = FindConVar("hostport").IntValue;
 
 	BuildPath(Path_SM, path, sizeof(path), "configs/serverhop.cfg");
+	if (!FileExists(path))
+	{
+		SetFailState("%s does not exist, get it from the repo!", path);
+	}
 	KeyValues kv = new KeyValues("Servers");
-	if (!kv.ImportFromFile(path)) SetFailState("Error loading server list!");
-	int i;
+	if (!kv.ImportFromFile(path))
+	{
+		delete kv;
+		SetFailState("Error in server list formatting, check %s!", path);
+	}
+	int i = 0;
 	kv.Rewind();
 	kv.GotoFirstSubKey();
 	do
 	{
 		kv.GetString("address", serverAddress[i], MAX_STR_LEN);
-		serverPort[i] = kv.GetNum("port", 27015);
-		if (StrEqual(serverAddress[i], hostip) && serverPort[i] == hostport) continue;
+		if (StrContains(serverAddress[i], ":") != -1)
+		{
+			char splitString[3][24];
+			int amount = ExplodeString(serverAddress[i], ":", splitString, sizeof(splitString), sizeof(splitString[]));
+			if (amount == 2)
+			{
+				strcopy(serverAddress[i], sizeof(serverAddress[]), splitString[0]);
+				serverPort[i] = StringToInt(splitString[1]);
+			}
+			else
+			{
+				char name[MAX_STR_LEN];
+				kv.GetSectionName(name, sizeof(name));
+				LogError("Invalidly formatted address in %s, section %s. Make sure addresses are in {IP}:{PORT} or \"address\" \"{IP}\" \"port\" \"{PORT}\"", path, name);
+			}
+		}
+		else
+		{
+			serverPort[i] = kv.GetNum("port", 27015);
+		}
+		if (StrEqual(serverAddress[i], hostip) && serverPort[i] == hostport)
+		{
+			continue;
+		}
 		kv.GetSectionName(serverName[i], MAX_STR_LEN);
 		i++;
 	}

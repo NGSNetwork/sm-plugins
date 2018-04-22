@@ -36,6 +36,7 @@
 #define ITEM_HAUNTED_SCRAP	267
 #define ITEM_HEADTAKER		266
 #define ITEM_UNUSUALIFIER	9258
+#define ITEM_STRANGIFIER	6522
 #define QUALITY_UNIQUE		"6"
 #define QUALITY_UNUSUAL		"5"
 #define NOTIFICATION_SOUND	"replay/downloadcomplete.wav"
@@ -46,7 +47,7 @@ public Plugin myinfo = {
 	name        = "[NGS] backpack.tf Price Check",
 	author      = "Dr. McKay / TheXeon",
 	description = "Provides a price check command for use with backpack.tf",
-	version     = "2.12.1",
+	version     = "2.12.2",
 	url         = "https://www.neogenesisnetwork.net"
 }
 
@@ -56,7 +57,7 @@ KeyValues backpackTFPricelist;
 
 StringMap qualityNameTrie;
 StringMap unusualNameTrie;
-StringMap unusualifierTauntTrie;
+StringMap defindexTrie;
 
 ConVar cvarBPCommand;
 ConVar cvarDisplayUpdateNotification;
@@ -243,16 +244,7 @@ public void OnPluginStart()
 	unusualNameTrie.SetString("3015", "Infernal Flames");
 	unusualNameTrie.SetString("3016", "Infernal Smoke");
 
-	unusualifierTauntTrie = new StringMap();
-	unusualifierTauntTrie.SetString("30671", "Taunt: Bad Pipes");
-	unusualifierTauntTrie.SetString("30609", "Taunt: The Killer Solo");
-	unusualifierTauntTrie.SetString("1119", "Taunt: Deep Fried Desire");
-	unusualifierTauntTrie.SetString("1162", "Taunt: Mannrobics");
-	unusualifierTauntTrie.SetString("438", "Taunt: Director's Vision");
-	unusualifierTauntTrie.SetString("1116", "Taunt: I See You");
-	unusualifierTauntTrie.SetString("1109", "Taunt: Results Are In");
-	unusualifierTauntTrie.SetString("1112", "Taunt: Party Trick");
-
+	PrepDefindexMap();
 	hudText = CreateHudSynchronizer();
 }
 
@@ -335,10 +327,27 @@ public Action Timer_Update(Handle timer)
 		backpackTFPricelist = new KeyValues("response");
 		if (backpackTFPricelist.ImportFromFile(path))
 		{
+			char defindex[16], name[64];
 			budsToKeys = GetConversion(ITEM_EARBUDS);
 			keysToRef = GetConversion(ITEM_KEY);
 			backpackTFPricelist.Rewind();
 			refToUsd = backpackTFPricelist.GetFloat("raw_usd_value");
+			PrepDefindexMap();
+			PrepPriceKv();
+			backpackTFPricelist.GotoFirstSubKey();
+			do
+			{
+				// loop through items
+				backpackTFPricelist.GetSectionName(name, sizeof(name));
+				backpackTFPricelist.JumpToKey("defindex");
+				backpackTFPricelist.GetString("0", defindex, sizeof(defindex));
+				backpackTFPricelist.GoBack();
+				#if defined DEBUG
+				PrintToServer("Adding defindex: %s, name: %s to defindexTrie in Timer_Update!", defindex, name);
+				#endif
+				defindexTrie.SetString(defindex, name);
+			}
+			while (backpackTFPricelist.GotoNextKey());
 		}
 		SMTimer.Make(float(3600 - age), Timer_Update);
 		return;
@@ -473,140 +482,145 @@ public int OnBackpackTFComplete(bool successful, const char[] error, System2HTTP
 			oldPrice[64], newPrice[64], tradable[64], craftable[64];
 		ArrayList array = new ArrayList(128);
 		array.PushString("#Type_command");
-		if(cvarDisplayChangedPrices.BoolValue)
+
+		bool showChanges = cvarDisplayChangedPrices.BoolValue;
+		PrepDefindexMap();
+		do
 		{
+			// loop through items
+			backpackTFPricelist.GetSectionName(name, sizeof(name));
+			backpackTFPricelist.JumpToKey("defindex");
+			backpackTFPricelist.GetString("0", defindex, sizeof(defindex));
+			backpackTFPricelist.GoBack();
+			#if defined DEBUG
+			PrintToServer("Adding defindex: %s, name: %s to defindexTrie in OnBackpackTFComplete!");
+			#endif
+			defindexTrie.SetString(defindex, name);
+			if (!showChanges) continue;
+			if(StringToInt(defindex) == ITEM_REFINED)
+			{
+				continue; // Skip over refined price changes
+			}
+			backpackTFPricelist.JumpToKey("prices");
+			backpackTFPricelist.GotoFirstSubKey();
 			do
 			{
-				// loop through items
-				backpackTFPricelist.GetSectionName(name, sizeof(name));
-				backpackTFPricelist.JumpToKey("defindex");
-				backpackTFPricelist.GetString("0", defindex, sizeof(defindex));
-				backpackTFPricelist.GoBack();
-				if(StringToInt(defindex) == ITEM_REFINED)
-				{
-					continue; // Skip over refined price changes
-				}
-				backpackTFPricelist.JumpToKey("prices");
+				// loop through qualities
+				backpackTFPricelist.GetSectionName(qualityIndex, sizeof(qualityIndex));
 				backpackTFPricelist.GotoFirstSubKey();
 				do
 				{
-					// loop through qualities
-					backpackTFPricelist.GetSectionName(qualityIndex, sizeof(qualityIndex));
+					// loop through tradable
+					backpackTFPricelist.GetSectionName(tradable, sizeof(tradable));
+					if (StrEqual(tradable, "Non-Tradable")) continue;
 					backpackTFPricelist.GotoFirstSubKey();
 					do
 					{
-						// loop through tradable
-						backpackTFPricelist.GetSectionName(tradable, sizeof(tradable));
-						if (StrEqual(tradable, "Non-Tradable")) continue;
+						// loop through craftable
+						backpackTFPricelist.GetSectionName(craftable, sizeof(craftable));
 						backpackTFPricelist.GotoFirstSubKey();
 						do
 						{
-							// loop through craftable
-							backpackTFPricelist.GetSectionName(craftable, sizeof(craftable));
-							backpackTFPricelist.GotoFirstSubKey();
-							do
+							// loop through instances (series #s, effects)
+							lastUpdate = backpackTFPricelist.GetNum("last_update");
+							if(lastUpdate == 0 || lastUpdate < lastCacheTime)
 							{
-								// loop through instances (series #s, effects)
-								lastUpdate = backpackTFPricelist.GetNum("last_update");
-								if(lastUpdate == 0 || lastUpdate < lastCacheTime)
-								{
-									continue; // hasn't updated
-								}
-								value = backpackTFPricelist.GetFloat("value");
-								valueOld = value - backpackTFPricelist.GetFloat("difference");
-								valueHigh = backpackTFPricelist.GetFloat("value_high");
+								continue; // hasn't updated
+							}
+							value = backpackTFPricelist.GetFloat("value");
+							valueOld = value - backpackTFPricelist.GetFloat("difference");
+							valueHigh = backpackTFPricelist.GetFloat("value_high");
 
-								backpackTFPricelist.GetString("currency", currency, sizeof(currency));
+							backpackTFPricelist.GetString("currency", currency, sizeof(currency));
 
-								if(strlen(currency) == 0)
+							if(strlen(currency) == 0)
+							{
+								continue;
+							}
+
+							FormatPriceRange(valueOld, 0.0, currency, oldPrice, sizeof(oldPrice), StrEqual(qualityIndex, QUALITY_UNUSUAL));
+							FormatPriceRange(value, valueHigh, currency, newPrice, sizeof(newPrice), StrEqual(qualityIndex, QUALITY_UNUSUAL));
+
+							// Get an average so we can determine if it went up or down
+							if(valueOldHigh != 0.0)
+							{
+								valueOld = (valueOld + valueOldHigh) / 2.0;
+							}
+
+							if(valueHigh != 0.0)
+							{
+								value = (value + valueHigh) / 2.0;
+							}
+
+							// Get prices in terms of refined now so we can determine if it went up or down
+							if(StrEqual(currency, "earbuds"))
+							{
+								valueOld = valueOld * budsToKeys * keysToRef;
+								value = value * budsToKeys * keysToRef;
+							}
+							else if(StrEqual(currency, "keys"))
+							{
+								valueOld = valueOld * keysToRef;
+								value *= keysToRef;
+							}
+
+							difference = value - valueOld;
+							if(difference < 0.0)
+							{
+								isNegative = true;
+								difference = difference * -1.0;
+							}
+							else
+							{
+								isNegative = false;
+							}
+
+							// Format a quality name
+							if(StrEqual(qualityIndex, QUALITY_UNIQUE))
+							{
+								Format(quality, sizeof(quality), ""); // if quality is unique, don't display a quality
+							}
+							else if(StrEqual(qualityIndex, QUALITY_UNUSUAL) && (StringToInt(defindex) != ITEM_HAUNTED_SCRAP
+								&& StringToInt(defindex) != ITEM_HEADTAKER))
+							{
+								char effect[16];
+								backpackTFPricelist.GetSectionName(effect, sizeof(effect));
+								if(!unusualNameTrie.GetString(effect, quality, sizeof(quality)))
 								{
+									LogError("Unknown unusual effect %s for item %s in OnBackpackTFComplete. Please report this!", effect, name);
+									char kvPath[PLATFORM_MAX_PATH];
+									BuildPath(Path_SM, kvPath, sizeof(kvPath), "data/backpack-tf.%d.txt", GetTime());
+									if(!FileExists(kvPath))
+									{
+										backpackTFPricelist.ExportToFile(kvPath);
+									}
 									continue;
 								}
-
-								FormatPriceRange(valueOld, 0.0, currency, oldPrice, sizeof(oldPrice), StrEqual(qualityIndex, QUALITY_UNUSUAL));
-								FormatPriceRange(value, valueHigh, currency, newPrice, sizeof(newPrice), StrEqual(qualityIndex, QUALITY_UNUSUAL));
-
-								// Get an average so we can determine if it went up or down
-								if(valueOldHigh != 0.0)
-								{
-									valueOld = (valueOld + valueOldHigh) / 2.0;
-								}
-
-								if(valueHigh != 0.0)
-								{
-									value = (value + valueHigh) / 2.0;
-								}
-
-								// Get prices in terms of refined now so we can determine if it went up or down
-								if(StrEqual(currency, "earbuds"))
-								{
-									valueOld = valueOld * budsToKeys * keysToRef;
-									value = value * budsToKeys * keysToRef;
-								}
-								else if(StrEqual(currency, "keys"))
-								{
-									valueOld = valueOld * keysToRef;
-									value *= keysToRef;
-								}
-
-								difference = value - valueOld;
-								if(difference < 0.0)
-								{
-									isNegative = true;
-									difference = difference * -1.0;
-								}
-								else
-								{
-									isNegative = false;
-								}
-
-								// Format a quality name
-								if(StrEqual(qualityIndex, QUALITY_UNIQUE))
-								{
-									Format(quality, sizeof(quality), ""); // if quality is unique, don't display a quality
-								}
-								else if(StrEqual(qualityIndex, QUALITY_UNUSUAL) && (StringToInt(defindex) != ITEM_HAUNTED_SCRAP
-									&& StringToInt(defindex) != ITEM_HEADTAKER))
-								{
-									char effect[16];
-									backpackTFPricelist.GetSectionName(effect, sizeof(effect));
-									if(!unusualNameTrie.GetString(effect, quality, sizeof(quality)))
-									{
-										LogError("Unknown unusual effect %s for item %s in OnBackpackTFComplete. Please report this!", effect, name);
-										char kvPath[PLATFORM_MAX_PATH];
-										BuildPath(Path_SM, kvPath, sizeof(kvPath), "data/backpack-tf.%d.txt", GetTime());
-										if(!FileExists(kvPath))
-										{
-											backpackTFPricelist.ExportToFile(kvPath);
-										}
-										continue;
-									}
-								}
-								else
-								{
-									if(!qualityNameTrie.GetString(qualityIndex, quality, sizeof(quality)))
-									{
-										LogError("Unknown quality index %s for item %s. Please report this!", qualityIndex, name);
-										continue;
-									}
-								}
-								Format(message, sizeof(message), "%s%s%s: %s #From %s #To %s", quality, StrEqual(quality, "") ? "" : " ", name, isNegative ? "#Down" : "#Up", oldPrice, newPrice);
-								array.PushString(message);
 							}
-							while(backpackTFPricelist.GotoNextKey()); // end: instances
-							backpackTFPricelist.GoBack();
+							else
+							{
+								if(!qualityNameTrie.GetString(qualityIndex, quality, sizeof(quality)))
+								{
+									LogError("Unknown quality index %s for item %s. Please report this!", qualityIndex, name);
+									continue;
+								}
+							}
+							Format(message, sizeof(message), "%s%s%s: %s #From %s #To %s", quality, StrEqual(quality, "") ? "" : " ", name, isNegative ? "#Down" : "#Up", oldPrice, newPrice);
+							array.PushString(message);
 						}
-						while(backpackTFPricelist.GotoNextKey()); // end: craftable
+						while(backpackTFPricelist.GotoNextKey()); // end: instances
 						backpackTFPricelist.GoBack();
 					}
-					while(backpackTFPricelist.GotoNextKey()); // end: tradable
+					while(backpackTFPricelist.GotoNextKey()); // end: craftable
 					backpackTFPricelist.GoBack();
 				}
-				while(backpackTFPricelist.GotoNextKey()); // end: qualities
+				while(backpackTFPricelist.GotoNextKey()); // end: tradable
 				backpackTFPricelist.GoBack();
 			}
-			while(backpackTFPricelist.GotoNextKey()); // end: items
+			while(backpackTFPricelist.GotoNextKey()); // end: qualities
+			backpackTFPricelist.GoBack();
 		}
+		while(backpackTFPricelist.GotoNextKey()); // end: items
 
 		SetHudTextParams(cvarHudXPos.FloatValue, cvarHudYPos.FloatValue, cvarHudHoldTime.FloatValue,
 			cvarHudRed.IntValue, cvarHudGreen.IntValue, cvarHudBlue.IntValue, 255);
@@ -788,6 +802,19 @@ void PrepPriceKv()
 	backpackTFPricelist.JumpToKey("items");
 }
 
+void PrepDefindexMap()
+{
+	delete defindexTrie;
+	defindexTrie = new StringMap();
+	defindexTrie.SetString("115", "Mildly Disturbing Halloween Mask");
+	defindexTrie.SetString("941", "The Skull Island Topper");
+	defindexTrie.SetString("279", "Ghastlier Gibus");
+	defindexTrie.SetString("584", "Ghastlierest Gibus");
+	defindexTrie.SetString("940", "Ghostly Gibus");
+	defindexTrie.SetString("343", "Professor Speks");
+	defindexTrie.SetString("1123", "The Necro Smasher");
+}
+
 public Action Command_PriceCheck(int client, int args)
 {
 	if(backpackTFPricelist == null)
@@ -917,7 +944,8 @@ public Action Command_PriceCheck(int client, int args)
 	menu.SetTitle("%t\n%t\n%t\n ", "Price check", resultItemName, "Prices are estimates only", "Prices courtesy of backpack.tf");
 	bool unusualDisplayed = false;
 	float value, valueHigh;
-	char currency[32], qualityIndex[16], quality[16], series[8], price[32], buffer[64], tradable[64], craftable[64], formatcraft[64];
+	char currency[32], qualityIndex[16], quality[16], series[12],
+		price[32], buffer[64], tradable[64], craftable[64], formatcraft[64], defindexItemName[128];
 	do // loop through qualities
 	{
 		backpackTFPricelist.GetSectionName(qualityIndex, sizeof(qualityIndex));
@@ -950,7 +978,7 @@ public Action Command_PriceCheck(int client, int args)
 
 						if(!qualityNameTrie.GetString(qualityIndex, quality, sizeof(quality)))
 						{
-							LogError("Unknown quality index: %s. Please report this!", qualityIndex);
+							LogError("Unknown quality index %s for item. Please report this!", qualityIndex, resultItemName);
 							continue;
 						}
 						if(isCrate)
@@ -967,6 +995,19 @@ public Action Command_PriceCheck(int client, int args)
 							else
 							{
 								Format(buffer, sizeof(buffer), "%s: Series %s: %s", quality, series, price);
+							}
+						}
+						else if(resultDefindex == ITEM_STRANGIFIER)
+						{
+							backpackTFPricelist.GetSectionName(series, sizeof(series));
+							if (defindexTrie.GetString(series, defindexItemName, sizeof(defindexItemName)))
+							{
+								Format(buffer, sizeof(buffer), "%s: %s", defindexItemName, price);
+							}
+							else
+							{
+								LogError("Unknown series index for item %s: %s. Please report this!", resultItemName, series);
+								continue;
 							}
 						}
 						else
@@ -1002,7 +1043,9 @@ public int Handler_ItemSelection(Menu menu, MenuAction action, int client, int p
 	{
 		char selection[128];
 		if(menu.GetItem(param, selection, sizeof(selection)))
+		{
 			FakeClientCommand(client, "sm_pricecheck \"%s\"", selection);
+		}
 	}
 }
 
@@ -1057,7 +1100,7 @@ public int Handler_PriceListMenu(Menu menu, MenuAction action, int client, int p
 			{
 				backpackTFPricelist.GetSectionName(effect, sizeof(effect));
 				if((defindex != ITEM_UNUSUALIFIER && !unusualNameTrie.GetString(effect, effectName, sizeof(effectName))) || (defindex == ITEM_UNUSUALIFIER &&
-					!unusualifierTauntTrie.GetString(effect, effectName, sizeof(effectName))))
+					!defindexTrie.GetString(effect, effectName, sizeof(effectName))))
 				{
 					int time = GetTime();
 					LogError("Unknown unusual effect %s for item %s in Handler_PriceListMenu, outputting data to data/backpack-tf.%d.txt. Please report this!", effect, itemName, time);

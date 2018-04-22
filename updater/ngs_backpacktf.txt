@@ -4,10 +4,10 @@
 	{
 		"Version"
 		{
-			"Latest"	"2.12.1"
+			"Latest"	"2.12.2"
 		}
 		
-		"Notes"	"Fixed Unusualifier! Defeated by an OR."
+		"Notes"	"Fixed Strangifier! Uses more memory now, but fast and futureproofed."
 	}
 	
 	"Files"

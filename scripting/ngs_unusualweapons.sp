@@ -500,7 +500,7 @@ stock int FixItemSlot(int iItemDefinitionIndex, TFClassType Class)
 	return -1;
 }
 
-public Action TF2Items_OnGiveNamedItem(int iClient, char[] classname, int iItemDefinitionIndex, Handle &hItem)
+public Action TF2Items_OnGiveNamedItem(int iClient, char[] classname, int iItemDefinitionIndex, TF2Item &hItem)
 {
 	if(!IsValidClient(iClient))	return Plugin_Continue;
 	if(IsFakeClient(iClient))	return Plugin_Continue;

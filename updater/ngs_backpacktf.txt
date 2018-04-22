@@ -4,10 +4,10 @@
 	{
 		"Version"
 		{
-			"Latest"	"2.12.2"
+			"Latest"	"2.12.3"
 		}
 		
-		"Notes"	"Fixed Strangifier! Uses more memory now, but fast and futureproofed."
+		"Notes"	"Fixed memory leak! This will improve memory usage :)"
 	}
 	
 	"Files"

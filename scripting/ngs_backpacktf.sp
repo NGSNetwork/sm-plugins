@@ -47,7 +47,7 @@ public Plugin myinfo = {
 	name        = "[NGS] backpack.tf Price Check",
 	author      = "Dr. McKay / TheXeon",
 	description = "Provides a price check command for use with backpack.tf",
-	version     = "2.12.2",
+	version     = "2.12.3",
 	url         = "https://www.neogenesisnetwork.net"
 }
 
@@ -381,6 +381,7 @@ public int OnBackpackTFComplete(bool successful, const char[] error, System2HTTP
 		if(status == 400)
 		{
 			LogError("backpack.tf API failed: You have not set an API key");
+			delete response;
 			delete request;
 			SMTimer.Make(600.0, Timer_Update); // Set this for 10 minutes instead of 1 minute
 			return;
@@ -388,6 +389,7 @@ public int OnBackpackTFComplete(bool successful, const char[] error, System2HTTP
 		else if(status == 403)
 		{
 			LogError("backpack.tf API failed: Your API key is invalid");
+			delete response;
 			delete request;
 			SMTimer.Make(600.0, Timer_Update); // Set this for 10 minutes instead of 1 minute
 			return;
@@ -397,6 +399,7 @@ public int OnBackpackTFComplete(bool successful, const char[] error, System2HTTP
 			char retry[16];
 			response.GetHeader("Retry-After", retry, sizeof(retry));
 			LogError("backpack.tf API failed: We are being rate-limited by backpack.tf, next request allowed in %s seconds, making a timer for it!", retry);
+			delete response;
 			delete request;
 			SMTimer.Make(float(StringToInt(retry) + 1), Timer_Update);
 			return;
@@ -422,11 +425,13 @@ public int OnBackpackTFComplete(bool successful, const char[] error, System2HTTP
 			LogError("backpack.tf API failed: Unable to connect to server or server returned no data");
 		}
 		delete request;
+		delete response;
 		SMTimer.Make(60.0, Timer_Update); // try again!
 		return;
 	}
 
 	delete request;
+	delete response;
 	LogMessage("backpack.tf price list successfully downloaded!");
 
 	char path[256];
@@ -493,7 +498,7 @@ public int OnBackpackTFComplete(bool successful, const char[] error, System2HTTP
 			backpackTFPricelist.GetString("0", defindex, sizeof(defindex));
 			backpackTFPricelist.GoBack();
 			#if defined DEBUG
-			PrintToServer("Adding defindex: %s, name: %s to defindexTrie in OnBackpackTFComplete!");
+			PrintToServer("Adding defindex: %s, name: %s to defindexTrie in OnBackpackTFComplete!", defindex, name);
 			#endif
 			defindexTrie.SetString(defindex, name);
 			if (!showChanges) continue;

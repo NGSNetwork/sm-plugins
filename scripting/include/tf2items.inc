@@ -400,7 +400,7 @@ methodmap TF2Item < Handle
  * @param iItemDefinitionIndex	Item definition index.
  * @param hItem					Handle to a TF2Item object wich describes what values will be overriden.
  */
-forward Action TF2Items_OnGiveNamedItem(int client, char[] classname, int iItemDefinitionIndex, Handle &hItem);
+forward Action TF2Items_OnGiveNamedItem(int client, char[] classname, int iItemDefinitionIndex, TF2Item &hItem);
 
 forward void TF2Items_OnGiveNamedItem_Post(int client, char[] classname, int itemDefinitionIndex, int itemLevel, int itemQuality, int entityIndex);
 

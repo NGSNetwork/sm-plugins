@@ -7,7 +7,7 @@
 * cfg/sourcemod/autorestart.cfg
 *
 * Dependencies:
-* sourcemod.inc, ngsutils.inc, ngsupdater.inc, multicolors.inc, afk_manager.inc
+* ngsutils.inc, ngsupdater.inc, multicolors.inc, afk_manager.inc
 */
 #pragma newdecls required
 #pragma semicolon 1
@@ -15,18 +15,17 @@
 #define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
 #define RELOAD_ON_UPDATE 1
 
-#include <sourcemod>
+#include <afk_manager>
+#include <multicolors>
 #include <ngsutils>
 #include <ngsupdater>
-#include <multicolors>
-#include <afk_manager>
 
 public Plugin myinfo = {
 	name = "[NGS] Timed Restart",
 	author = "TheXeon",
 	description = "Restart the server automagically :D",
-	version = "1.0.5",
-	url = "https://neogenesisnetwork.net/"
+	version = "1.0.6",
+	url = "https://www.neogenesisnetwork.net/"
 }
 
 ConVar cvarEnabled;
@@ -38,7 +37,7 @@ public void OnPluginStart()
 	RegAdminCmd("sm_forcerestarttimer", CommandForceRestart, ADMFLAG_ROOT, "Force a server restart timer.");
 	RegAdminCmd("sm_checkrestarttimer", CommandCheckRestartTimer, ADMFLAG_ROOT, "Check a server restart timer.");
 	cvarEnabled = CreateConVar("sm_ngsar_enabled", "1", "Enable autorestart on no players.", 0, true, 0.0, true, 1.0);
-	cvarUptimeRequirement = CreateConVar("sm_ngsar_uptime_requirement", "16", "How many hours the server should have since first connection to allow a restart.");
+	cvarUptimeRequirement = CreateConVar("sm_ngsar_uptime_requirement", "16.0", "How many hours the server should have since first connection to allow a restart.");
 	AutoExecConfig(true, "autorestart");
 }
 
@@ -75,7 +74,7 @@ public void OnClientPostAdminCheck(int client)
 {
 	if (autoRestartTimer != null && !IsFakeClient(client))
 	{
-		autoRestartTimer.Close();
+		delete autoRestartTimer;
 		CPrintToChatAll("{GREEN}[SM]{DEFAULT} Server restart aborted (someone joined)!");
 	}
 }
@@ -83,7 +82,7 @@ public void OnClientPostAdminCheck(int client)
 public void OnClientDisconnect_Post(int client)
 {
 	if (cvarEnabled.BoolValue && autoRestartTimer == null && (GetClientCount(false) == 0 ||
-		!NonAFKPlayersExist()) && RoundToNearest(GetGameTime() / 3600.0) > cvarUptimeRequirement.IntValue)
+		!NonAFKPlayersExist()) && (GetGameTime() / 3600.0) > cvarUptimeRequirement.FloatValue)
 	{
 		autoRestartTimer = new SMTimer(30.0, AutoRestartTimer);
 		CPrintToChatAll("{GREEN}[SM]{DEFAULT} The server will be restarting in 30 seconds!");
@@ -108,7 +107,7 @@ stock bool NonAFKPlayersExist()
 {
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		if (IsValidClient(i) && !AFKM_IsClientAFK(i))
+		if (IsValidClient(i, _, _, _, _, true))
 		{
 			return true;
 		}

@@ -4,12 +4,11 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.0.5"
+			"Latest"	"1.0.6"
 		}
 		
-		"Notes"	"Use new ngsutils"
-		"Notes"	"Remove ngs from commands."
-		"Notes" "Properly detect hibernate mode."
+		"Notes"	"Fix to use delete instead of SMTimer.Close()"
+		"Notes"	"Allow float values for time, so half hours or exact is possible."
 	}
 	
 	"Files"

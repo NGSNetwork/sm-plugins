@@ -931,7 +931,7 @@ enum curl_closepolicy {
   CURLCLOSEPOLICY_LAST /* last, never use this */
 };
 
-enum {
+enum curl_httpversion {
   CURL_HTTP_VERSION_NONE, /* setting this means we don't care, and that we'd
                              like the library to choose the best possible
                              for us! */
@@ -987,7 +987,7 @@ enum curl_usessl {
 };
 
 
-enum {
+enum curl_sslversion{
   CURL_SSLVERSION_DEFAULT,
   CURL_SSLVERSION_TLSv1,
   CURL_SSLVERSION_SSLv2,
@@ -1078,7 +1078,7 @@ enum curl_ftpccc {
 /*
  * Public API enums for RTSP requests
  */
-enum {
+enum curl_rtspreq {
     CURL_RTSPREQ_NONE, /* first in list */
     CURL_RTSPREQ_OPTIONS,
     CURL_RTSPREQ_DESCRIBE,

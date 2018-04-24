@@ -23,7 +23,7 @@ native bool IsDuelRestrictionClass(int client);
 
 
 /**
- * Get player Index who play duel with "client"  ?
+ * Get player Index who play duel with "client"
  *
  * @param client	Client Index.
  * @return			Player (dueler) Index.

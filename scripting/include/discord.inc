@@ -29,5 +29,8 @@ stock void Discord_EscapeString(char[] string, int maxlen)
 {
 	ReplaceString(string, maxlen, "@", "＠");
 	ReplaceString(string, maxlen, "'", "＇");
+	ReplaceString(string, maxlen, "\\", "\\\\");
+	ReplaceString(string, maxlen, "_", "—");
+	ReplaceString(string, maxlen, "*", "°");
 	ReplaceString(string, maxlen, "\"", "＂");
 }

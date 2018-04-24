@@ -1,0 +1,21 @@
+"Updater"
+{
+	"Information"
+	{
+		"Version"
+		{
+			"Latest"	"1.0.0"
+		}
+		
+		"Notes"	"First release!"
+		"Notes"	"Added updater support!"
+		"Notes"	"Removed unnecessary spacing from .sp."
+	}
+	
+	"Files"
+	{
+		"Plugin"	"Path_SM/plugins/ngs_discordsuite.smx"
+		
+		"Source"	"Path_SM/scripting/ngs_discordsuite.sp"
+	}
+}

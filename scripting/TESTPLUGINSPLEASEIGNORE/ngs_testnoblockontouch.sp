@@ -1,15 +1,15 @@
 #pragma newdecls required
 #pragma semicolon 1
 
-#include <sourcemod>
-#include <sdktools>
 #include <sdkhooks>
+#include <ngsutils>
+#include <collisionhook>
 #include <friendly>
-#include <colorvariables>
+#include <free_duels>
 
 ConVar friendlyNoblockValue;
-
-Handle antiStuckEndTimer[MAXPLAYERS + 1];
+bool isFriendly[MAXPLAYERS + 1];
+//SMTimer noblockTimer[MAXPLAYERS + 1];
 
 public Plugin myinfo = {
 	name = "[NGS] Test Antistuck with Friendlies",
@@ -21,86 +21,94 @@ public Plugin myinfo = {
 
 public void OnPluginStart()
 {
-    for (int i = 1; i <= MaxClients; i++)
-    {
-        if (IsValidClient(i))
-        {
-			SDKHook(i, SDKHook_StartTouch, StartTouchHook);
-			SDKHook(i, SDKHook_EndTouch, EndTouchHook);
-        }
-    }
-    
-    friendlyNoblockValue = FindConVar("sm_friendly_noblock");
+//	for (int i = 1; i <= MaxClients; i++)
+//	{
+//		if (IsValidClient(i))
+//		{
+//			SDKHook(i, SDKHook_StartTouchPost, StartTouchHook);
+//			SDKHook(i, SDKHook_EndTouchPost, EndTouchHook);
+//		}
+//	}
+
+	friendlyNoblockValue = FindConVar("sm_friendly_noblock");
+}
+
+public Action CH_ShouldCollide(int client, int other, bool &result)
+{
+	if (client >= 1 && client <= MaxClients && other >= 1 && other <= MaxClients)
+	{
+		if (isFriendly[client] ^ isFriendly[other] && friendlyNoblockValue.IntValue)
+		{
+			result = false;
+			return Plugin_Changed;
+		}
+		else if (IsPlayerInDuel(client) ^ IsPlayerInDuel(other))
+		{
+			result = false;
+			return Plugin_Changed;
+		}
+	}
+	return Plugin_Continue;
+}
+
+public int TF2Friendly_OnEnableFriendly(int client)
+{
+	isFriendly[client] = true;
+}
+
+public int TF2Friendly_OnDisableFriendly(int client)
+{
+	isFriendly[client] = false;
 }
 
 public void OnClientPutInServer(int client)
 {
-	KillAntiStuckTimer(client);
-	SDKHook(client, SDKHook_StartTouch, StartTouchHook);
-	SDKHook(client, SDKHook_EndTouch, EndTouchHook);
+//	SDKHook(client, SDKHook_StartTouchPost, StartTouchHook);
+//	SDKHook(client, SDKHook_EndTouchPost, EndTouchHook);
+	isFriendly[client] = false;
 }
-
-public void OnClientDisconnect(int client)
-{
-	KillAntiStuckTimer(client);
-}
-
-public void StartTouchHook(int client, int entity)
-{
-    if (IsValidClient(client) && IsValidClient(entity) && (TF2Friendly_IsFriendly(client) || TF2Friendly_IsFriendly(entity)))
-    {
-    	if (!TF2Friendly_IsFriendly(client) && TF2Friendly_IsFriendly(entity))
-    	{
-    		// CPrintToChatAll("A friendly touched a nonfriendly!");
-    		SetEntProp(client, Prop_Send, "m_CollisionGroup", friendlyNoblockValue.IntValue);
-		}
-		else if (!TF2Friendly_IsFriendly(entity) && TF2Friendly_IsFriendly(client))
-		{
-			// CPrintToChatAll("A friendly touched a nonfriendly!");
-			SetEntProp(entity, Prop_Send, "m_CollisionGroup", friendlyNoblockValue.IntValue);
-		}
-    }
-} 
-
-
-public void EndTouchHook(int client, int entity)
-{
-    if (IsValidClient(client) && IsValidClient(entity) && (TF2Friendly_IsFriendly(client) || TF2Friendly_IsFriendly(entity)))
-    {
-    	if (!TF2Friendly_IsFriendly(client) && TF2Friendly_IsFriendly(entity))
-    	{
-    		CreateTimer(0.5, OnEndTouchHookTimer, GetClientUserId(client));
-		}
-		else if (!TF2Friendly_IsFriendly(entity) && TF2Friendly_IsFriendly(client))
-		{
-			CreateTimer(0.5, OnEndTouchHookTimer, GetClientUserId(entity));
-		}
-    }
-}
-
-public Action OnEndTouchHookTimer(Handle timer, any client)
-{
-	if (IsValidClient(client) && !TF2Friendly_IsFriendly(client))
-	{
-		SetEntProp(client, Prop_Send, "m_CollisionGroup", 5);
-	}
-}
-
-stock void KillAntiStuckTimer(int client)
-{
-	if (antiStuckEndTimer[client] != null)
-	{
-		KillTimer(antiStuckEndTimer[client]);
-		antiStuckEndTimer[client] = null;
-	}
-}
-
-public bool IsValidClient(int client)
-{
-	if(client > 4096) client = EntRefToEntIndex(client);
-	if(client < 1 || client > MaxClients) return false;
-	if(!IsClientInGame(client)) return false;
-	if(IsFakeClient(client)) return false;
-	if(GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
-	return true;
-}
+//
+//public void OnClientDisconnect(int client)
+//{
+//	delete noblockTimer[client];
+//}
+//
+//public void StartTouchHook(int client, int entity)
+//{
+//	if (IsValidClient(client) && IsValidClient(entity))
+//	{
+//		bool isClientFriendly = TF2Friendly_IsFriendly(client);
+//		if (isClientFriendly ^ TF2Friendly_IsFriendly(entity))
+//		{
+////			PrintToChatAll("A friendly touched a nonfriendly, setting their collision!");
+//			SetEntProp(isClientFriendly ? entity : client, Prop_Send, "m_CollisionGroup", friendlyNoblockValue.IntValue);
+//		}
+//	}
+//}
+//
+//
+//public void EndTouchHook(int client, int entity)
+//{
+//	if (IsValidClient(client) && IsValidClient(entity))
+//	{
+//		bool isClientFriendly = TF2Friendly_IsFriendly(client);
+//		int clientToTime = isClientFriendly ? entity : client;
+//		if (isClientFriendly ^ TF2Friendly_IsFriendly(entity))
+//		{
+//			if (noblockTimer[clientToTime] != null) return;
+////			PrintToChatAll("%N stopped touching a friendly, starting collision reset at 0.5 sec!", clientToTime);
+//			noblockTimer[clientToTime] = new SMTimer(0.5, OnEndTouchHookTimer, GetClientUserId(clientToTime));
+//		}
+//	}
+//}
+//
+//public Action OnEndTouchHookTimer(Handle timer, any userid)
+//{
+//	int client = GetClientOfUserId(userid);
+//	if (IsValidClient(client) && !TF2Friendly_IsFriendly(client) && !IsPlayerInDuel(client))
+//	{
+//		noblockTimer[client] = null;
+////		PrintToChatAll("Resetting %N to regular collision.", client);
+//		SetEntProp(client, Prop_Send, "m_CollisionGroup", 5);
+//	}
+//}

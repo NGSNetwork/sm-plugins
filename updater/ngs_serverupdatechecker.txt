@@ -4,17 +4,20 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.0.3"
+			"Latest"	"1.0.4"
 		}
-		
-		"Notes"	"Add updater support!"
-		"Notes"	"Remove extra spaces from sp."
+
+		"Notes"	"Proper licensing!"
+		"Notes"	"Now requires System2 for tf2idb updating."
+		"Notes"	"Added ability to update tf2idb on Linux servers."
+		"Notes"	"Note: Use accompanying script from repository and set it up!"
 	}
-	
+
 	"Files"
 	{
 		"Plugin"	"Path_SM/plugins/ngs_serverupdatechecker.smx"
-		
+		"Plugin"	"Path_SM/data/tf2idbupdate.sh"
+
 		"Source"	"Path_SM/scripting/ngs_serverupdatechecker.sp"
 	}
 }

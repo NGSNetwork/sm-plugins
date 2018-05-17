@@ -1,16 +1,16 @@
-//  Automatic Steam Update (SteamWorks) (C) 2014-2014 Sarabveer Singh <me@sarabveer.me>
+//  Automatic Steam Update (SteamWorks) (C) 2014-2014 , 2014-2018 TheXeon <thexeon@neogenesisnetwork.net>
 //
-//  Automatic Steam Update (SteamWorks) is free software: you can redistribute it and/or modify
+//  Automatic Server Update Checker (SteamWorks) is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
 //  the Free Software Foundation, per version 3 of the License.
 //
-//  Automatic Steam Update (SteamWorks) is distributed in the hope that it will be useful,
+//  Automatic Server Update Checker (SteamWorks) is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
 //
 //  You should have received a copy of the GNU General Public License
-//  along with Automatic Steam Update (SteamWorks). If not, see <http://www.gnu.org/licenses/>.
+//  along with Automatic Server Update Checker (SteamWorks). If not, see <http://www.gnu.org/licenses/>.
 //
 //  This file is based off work(s) covered by the following copyright(s):
 //
@@ -19,6 +19,10 @@
 //   Licensed under GNU GPL version 3
 //   Page: <https://forums.alliedmods.net/showthread.php?t=170532>]
 //
+//   [ANY] Automatic Steam Update (SteamWorks)
+//   Copyright (C) Sarabveer Singh <me@sarabveer.me>
+//   Licensed under GNU GPL version 3
+//   Page: <https://forums.alliedmods.net/showthread.php?p=2238058>]
 
 /**
 * TheXeon
@@ -26,26 +30,31 @@
 *
 * Files:
 * addons/sourcemod/plugins/ngs_serverupdatechecker.smx
+* addons/sourcemod/data/tf2idbupdate.sh (if on TF2, Unix, and using tf2idb)
 * cfg/sourcemod/serverupdatechecker.cfg
 *
 * Dependencies:
-* sourcemod.inc, sdktools.inc, ngsutils.inc, ngsupdater.inc, SteamWorks.inc
+* sdktools.inc, system2.inc, afk_manager.inc, ngsutils.inc, ngsupdater.inc,
+* SteamWorks.inc
 */
 
 #pragma newdecls required
 #pragma semicolon 1
 
+#define ALL_PLUGINS_LOADED_FUNC AllPluginsLoaded
 #define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
 #define RELOAD_ON_UPDATE 1
 
-#include <sourcemod>
 #include <sdktools>
+#include <system2>
 #include <afk_manager>
 #include <ngsutils>
 #include <ngsupdater>
 #include <SteamWorks>
 
 #define ALERT_SOUND "ui/system_message_alert.wav"
+
+// #define DEBUG
 
 ConVar delayCvar, timerCvar, messageTimeCvar, lockCvar, passwordCvar, kickMessageCvar, shutdownMessageCvar;
 ConVar hudXCvar, hudYCvar, hudRCvar, hudGCvar, hudBCvar;
@@ -65,14 +74,15 @@ ConVar sv_password;
 public Plugin myinfo = {
 	name        = "Automatic Server Update Checker (SteamWorks)",
 	author      = "Dr. McKay, Sarabveer(VEER™), TheXeon",
-	description = "Automatically restarts the server to update via Steam",
-	version     = "1.0.3",
-	url         = "https://www.neogenesisnetwork.com"
+	description = "Automagically restarts the server to update via Steam",
+	version     = "1.0.4",
+	url         = "https://www.neogenesisnetwork.net"
 }
 
 public void OnPluginStart()
 {
 	AutoExecConfig(true, "serverupdatechecker");
+	isTF = (GetEngineVersion() == Engine_TF2);
 
 	delayCvar = CreateConVar("auto_steam_update_delay", "5", "How long in minutes the server should wait before starting another countdown after being postponed.");
 	timerCvar = CreateConVar("auto_steam_update_timer", "5", "How long in minutes the server should count down before restarting.");
@@ -101,8 +111,17 @@ public void OnPluginStart()
 	{
 		LogMessage("HUD text is supported on this mod. The persistant timer will display.");
 	}
+}
 
-	isTF = (GetEngineVersion() == Engine_TF2);
+public void AllPluginsLoaded()
+{
+	if (isTF)
+	{
+		#if defined DEBUG
+		PrintToServer("Game is TF2, utilizing tf2idb capabilities if existing!");
+		#endif
+		CheckForTF2IDBUpdate();
+	}
 }
 
 public void OnMapStart()
@@ -146,6 +165,15 @@ void startTimer(bool forced = false) {
 	{
 		return;
 	}
+	if (isTF && System2_GetOS() == OS_UNIX)
+	{
+		char path[PLATFORM_MAX_PATH];
+		BuildPath(Path_SM, path, sizeof(path), "data/tf2idbrequested");
+		if (!FileExists(path))
+		{
+			System2_ExecuteFormattedThreaded(TF2IDBUpdateCallback, 0, "touch tf/%s", path);
+		}
+	}
 	if(!IsServerPopulated(true))
 	{ // If there's no active clients in the server, go ahead and restart it
 		LogMessage("Received a master server restart request, and there are no players in the server. Restarting to update.");
@@ -170,11 +198,50 @@ void startTimer(bool forced = false) {
 	{
 		LogMessage("Received a master server restart request, beginning restart timer.");
 	}
-	timeRemaining = GetConVarInt(timerCvar) * 60;
+	timeRemaining = timerCvar.IntValue * 60;
 	timeRemaining++;
 	restartTimer = new SMTimer(1.0, DoTimer, _, TIMER_REPEAT);
 	suspendPlugin = true;
 	return;
+}
+
+void CheckForTF2IDBUpdate()
+{
+	if (System2_GetOS() == OS_UNIX && LibraryExists("tf2idb"))
+	{
+		char path[PLATFORM_MAX_PATH];
+		BuildPath(Path_SM, path, sizeof(path), "data/tf2idbrequested");
+		if (FileExists(path))
+		{
+			System2_ExecuteFormattedThreaded(TF2IDBUpdateCallback, 0, "rm tf/%s", path);
+			BuildPath(Path_SM, path, sizeof(path), "data/tf2idbupdate.sh");
+			if (!FileExists(path))
+			{
+				LogError("You are missing file %s, please get it from the repo! Aborting TF2IDB update, run it manually!", path);
+				return;
+			}
+			System2_ExecuteFormattedThreaded(TF2IDBUpdateCallback, 0, "./tf/%s", path);
+		}
+	}
+	#if defined DEBUG
+	else
+	{
+		PrintToServer("Stuff still failed.\nSystem is%s Unix!", (System2_GetOS() == OS_UNIX) ? "" : " not");
+		PrintToServer("TF2IDB is%s available.", (LibraryExists("tf2idb")) ? "" : " not");
+	}
+	#endif
+}
+
+public void TF2IDBUpdateCallback(bool success, const char[] command, System2ExecuteOutput output, any data) {
+	if (!success || output.ExitStatus != 0)
+	{
+		LogError("Couldn't execute command %s successfully!", command);
+  }
+	if (StrContains(command, "tf2idbupdate.sh") != -1)
+	{
+		ServerCommand("sm plugins reload tf2idb");
+		LogMessage("Successfully ran tf2idbupdate.sh, reloaded tf2idb.smx with new db!");
+	}
 }
 
 public Action DoTimer(Handle timer)

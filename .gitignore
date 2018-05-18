@@ -27,7 +27,8 @@
 *.out
 *.app
 *.sh
-compile.dat
+*.dat
+*.exe
 
 # Folders
 smac/

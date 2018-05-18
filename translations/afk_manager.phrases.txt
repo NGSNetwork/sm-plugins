@@ -1,4 +1,4 @@
-﻿"Phrases"
+"Phrases"
 {
 	// Mod Detection (Debug Messages)
 	"Insurgency"

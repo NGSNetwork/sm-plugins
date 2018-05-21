@@ -4,20 +4,19 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.1.1"
+			"Latest"	"1.1.2"
 		}
-		"Notes"	"Fix updater to actually work :)"
-		"Notes"	"Added hide crab command to get rid of text :)"
-		"Notes"	"Change tag color!"
-		"Notes"	"Prevent people from going too far ahead in taunts!"
-		"Notes"	"Remove extra spaces from sp."
+		"Notes"	"Added gag capability to disable requests on gag."
+		"Notes"	"Added cooldown on crab command, 20 seconds."
+		"Notes"	"Added !dontcrab/nocrab, allowing us to disable requests."
+		"Notes"	"Properly work with cookies, waiting till we are cached."
 	}
-	
+
 	"Files"
 	{
 		"Plugin"	"Path_SM/plugins/ngs_spycrab.smx"
 		"Plugin"	"Path_SM/configs/crablocations.cfg"
-		
+
 		"Source"	"Path_SM/scripting/ngs_spycrab.sp"
 	}
 }

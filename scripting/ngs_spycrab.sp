@@ -7,12 +7,15 @@
 * addons/sourcemod/configs/crablocations.cfg
 *
 * Dependencies:
-* clientprefs.inc, sdkhooks.inc, adminmenu.inc, multicolors.inc, 
-* tf2.inc, tf2_stocks.inc, ngsutils.inc, ngsupdater.inc
+* clientprefs.inc, sdkhooks.inc, adminmenu.inc, multicolors.inc,
+* tf2.inc, tf2_stocks.inc, ngsutils.inc, ngsupdater.inc, basecomm.inc,
+* sourcecomms.inc
 */
 #pragma newdecls required
 #pragma semicolon 1
 
+#define LIBRARY_ADDED_FUNC LibraryAdded
+#define LIBRARY_REMOVED_FUNC LibraryRemoved
 #define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
 #define RELOAD_ON_UPDATE 1
 
@@ -24,6 +27,11 @@
 #include <tf2_stocks>
 #include <ngsutils>
 #include <ngsupdater>
+
+#undef REQUIRE_PLUGIN
+#include <basecomm>
+#include <sourcecomms>
+#define REQUIRE_PLUGIN
 
 // Obviously inspired by Erreur 500
 enum CrabData
@@ -56,11 +64,14 @@ enum CrabStatus
 	Status_FinishedLoser
 }
 
+int CrabCooldown[MAXPLAYERS + 1];
+bool basecommExists, sourcecommsExists;
+
 Cookie hideHudTextCookie;
 ConVar mapNameContains;
 KeyValues mapLocations;
 
-bool spycrabInProgress, hideHudText[MAXPLAYERS + 1];
+bool spycrabInProgress, hideHudText[MAXPLAYERS + 1], crabRequestDisabled[MAXPLAYERS + 1];
 int playerCrabData[MAXPLAYERS + 1][CrabData];
 int hudTextChannel;
 float firstClientOrigin[3], secondClientOrigin[3];
@@ -69,7 +80,7 @@ public Plugin myinfo = {
 	name = "[NGS] Spycrab Suite",
 	author = "TheXeon / EasyE",
 	description = "Automate a spycrab with people.",
-	version = "1.1.1",
+	version = "1.1.2",
 	url = "https://www.neogenesisnetwork.net"
 }
 
@@ -77,6 +88,8 @@ public void OnPluginStart()
 {
 	RegConsoleCmd("sm_spycrab", CommandCrab, "Displays spycrab target menu.");
 	RegConsoleCmd("sm_crab", CommandCrab, "Displays spycrab target menu.");
+	RegConsoleCmd("sm_dontcrab", CommandDontCrab, "Disable receiving spycrab requests.");
+	RegConsoleCmd("sm_nocrab", CommandDontCrab, "Disable receiving spycrab requests.");
 	RegConsoleCmd("sm_hidecrab", CommandHideCrab, "Hide the on-screen display of text!");
 	RegAdminCmd("sm_cancelcrab", CommandCancelCrab, ADMFLAG_GENERIC, "Cancels the spycrab.");
 	RegAdminCmd("sm_reloadcrab", CommandReloadCrabConfig, ADMFLAG_GENERIC, "Reloads the map config file.");
@@ -99,24 +112,45 @@ public void OnPluginStart()
 	LoadConfig();
 }
 
+public void LibraryAdded(const char[] name)
+{
+	if (StrEqual(name, "basecomm", false))
+	{
+		basecommExists = true;
+	}
+	else if (StrEqual(name, "sourcecomms", false))
+	{
+		sourcecommsExists = true;
+	}
+}
+
+public void LibraryRemoved(const char[] name)
+{
+	if (StrEqual(name, "basecomm", false))
+	{
+		basecommExists = false;
+	}
+	else if (StrEqual(name, "sourcecomms", false))
+	{
+		sourcecommsExists = false;
+	}
+}
+
 public void OnClientPutInServer(int client)
 {
+	CrabCooldown[client] = 0;
+	crabRequestDisabled[client] = false;
 	SDKHook(client, SDKHook_OnTakeDamage, OnTakeDamage);
 }
 
-public void OnClientPostAdminCheck(int client)
+public void OnClientCookiesCached(int client)
 {
-	if (AreClientCookiesCached(client))
+	char sHideCookieValue[MAX_BUFFER_LENGTH];
+	hideHudTextCookie.GetValue(client, sHideCookieValue, sizeof(sHideCookieValue));
+	if (sHideCookieValue[0] != '\0' && StringToInt(sHideCookieValue) != 0)
 	{
-		char sHideCookieValue[MAX_BUFFER_LENGTH];
-		hideHudTextCookie.GetValue(client, sHideCookieValue, sizeof(sHideCookieValue));
-		if (sHideCookieValue[0] != '\0' && StringToInt(sHideCookieValue) != 0)
-		{
-			hideHudText[client] = true;
-		}
+		hideHudText[client] = true;
 	}
-	else
-		LogMessage("Client Cookies are not cached yet, for some reason.");
 }
 
 // Thank you Dr.Mckay and your CCC
@@ -199,6 +233,14 @@ void SetMapCoords(char[] sectionName)
 	}
 }
 
+public Action CommandDontCrab(int client, int args)
+{
+	if (!IsValidClient(client)) return Plugin_Handled;
+	crabRequestDisabled[client] = !crabRequestDisabled[client];
+	CPrintToChat(client, "{GREEN}[Crab]{DEFAULT} You have {LIGHTGREEN}%s{DEFAULT} crab requests.", (crabRequestDisabled[client]) ? "disabled" : "enabled");
+	return Plugin_Handled;
+}
+
 public Action CommandReloadCrabConfig(int client, int args)
 {
 	if (mapLocations == null)
@@ -219,7 +261,21 @@ public Action CommandReloadCrabConfig(int client, int args)
 public Action CommandCrab(int client, int args)
 {
 	if (!IsValidClient(client, true)) return Plugin_Handled;
-	if (spycrabInProgress)
+	if ((basecommExists && BaseComm_IsClientGagged(client)) || (sourcecommsExists && SourceComms_GetClientGagType(client) != bNot))
+	{
+		CPrintToChat(client, "{GREEN}[Crab]{DEFAULT} Sorry, you may not use Crab!");
+		return Plugin_Handled;
+	}
+	int currentTime = GetTime();
+	if (crabRequestDisabled[client])
+	{
+		CPrintToChat(client, "{GREEN}[Crab]{DEFAULT} You may not request crabs if requests are disabled. Use !dontcrab to reenable them!");
+	}
+	else if (currentTime - CrabCooldown[client] < 20)
+	{
+		CPrintToChat(client, "{GREEN}[Crab]{DEFAULT} You must wait {PURPLE}%d{DEFAULT} seconds to use this.", 20 - (currentTime - CrabCooldown[client]));
+	}
+	else if (spycrabInProgress)
 	{
 		CReplyToCommand(client, "{GREEN}[Crab]{DEFAULT} There is currently another spycrab happening.");
 	}
@@ -229,6 +285,7 @@ public Action CommandCrab(int client, int args)
 	}
 	else
 	{
+		CrabCooldown[client] = currentTime;
 		Menu spycrabMenu = new Menu(SpycrabMenuHandler);
 		spycrabMenu.SetTitle("Select a player:");
 		AddTargetsToMenu(spycrabMenu, 0, true, true);
@@ -267,17 +324,20 @@ public int SpycrabMenuHandler(Menu menu, MenuAction action, int param1, int para
 			if (param1 == iTarget)
 			{
 				CPrintToChat(param1, "{GREEN}[Crab]{DEFAULT} You may not target yourself!");
-				return;
 			}
 			else if (spycrabInProgress)
 			{
 				CPrintToChat(param1, "{GREEN}[Crab]{DEFAULT} There is currently another spycrab happening.");
 			}
+			else if (crabRequestDisabled[iTarget])
+			{
+				CPrintToChat(param1, "{GREEN}[Crab]{DEFAULT} The person has disabled requests!");
+			}
 			else
 			{
 				CPrintToChatAll("{GREEN}[Crab]{DEFAULT} {LIGHTGREEN}%N{DEFAULT} has challenged {LIGHTGREEN}%N{DEFAULT} to a spycrab showdown!", param1, iTarget);
 				Menu acceptMenu = new Menu(AcceptMenuHandler);
-				acceptMenu.SetTitle("Do you accept?");
+				acceptMenu.SetTitle("Do you accept?\nFirst to 3 loses.");
 				acceptMenu.AddItem("yes", "Yes!");
 				acceptMenu.AddItem("no", "No!");
 				acceptMenu.Display(iTarget, 20);
@@ -313,6 +373,7 @@ public int AcceptMenuHandler(Menu menu, MenuAction action, int param1, int param
 			else
 			{
 				CPrintToChatAll("{GREEN}[Crab]{DEFAULT} {LIGHTGREEN}%N{DEFAULT} declined {LIGHTGREEN}%N{DEFAULT}\'s spycrab!", param1, firstClient);
+				CPrintToChat(param1, "{GREEN}[Crab]{DEFAULT} You can disable crab requests with !dontcrab or !nocrab.");
 				LogAction(param1, firstClient, "%N has declined %N\'s spycrab.", param1, firstClient);
 				ResetSpycrabClients(false, param1);
 			}

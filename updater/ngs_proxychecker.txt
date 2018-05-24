@@ -1,0 +1,22 @@
+"Updater"
+{
+	"Information"
+	{
+		"Version"
+		{
+			"Latest"	"1.2.0"
+		}
+
+		"Notes"	"Utilize GetIPIntel properly, cache results!"
+		"Notes"	"Warning: Cache is not cleared within 6 hours as recommended."
+		"Notes"	"Add extra checks for per second processes!"
+		"Notes"	"Optimize caching and results."
+	}
+
+	"Files"
+	{
+		"Plugin"	"Path_SM/plugins/ngs_proxychecker.smx"
+
+		"Source"	"Path_SM/scripting/ngs_proxychecker.sp"
+	}
+}

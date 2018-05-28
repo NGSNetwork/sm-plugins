@@ -30,7 +30,7 @@ public Plugin myinfo = {
 	name = "[NGS] Help Menu",
 	author = "TheXeon",
 	description = "A help menu for NGS.",
-	version = "1.1.2",
+	version = "1.1.3",
 	url = "https://www.neogenesisnetwork.net"
 }
 
@@ -38,6 +38,8 @@ public void OnPluginStart()
 {
 	RegConsoleCmd("sm_helpmenu", CommandHelpMenu, "Usage: sm_helpmenu");
 	RegConsoleCmd("sm_vip", CommandVIP, "Usage: sm_vip");
+	RegConsoleCmd("sm_mycommands", CommandMyCmdList, "Usage: sm_mycommands");
+	RegConsoleCmd("sm_mycmds", CommandMyCmdList, "Usage: sm_mycmds");
 	RegConsoleCmd("sm_commands", CommandCmdList, "Usage: sm_commands");
 	RegConsoleCmd("sm_cmds", CommandCmdList, "Usage: sm_cmds");
 	LoadTranslations("common.phrases");
@@ -48,6 +50,7 @@ public void OnPluginStart()
 	helpMenu.SetTitle("=== NGS Help Menu ===");
 	helpMenu.AddItem("serverrules", "Server rules!");
 	helpMenu.AddItem("servercommands", "Server commands!");
+	helpMenu.AddItem("myservercommands", "Server commands for you!");
 	helpMenu.AddItem("extrasettings", "Change some extra settings!");
 
 	serverRulesMenu = new Menu(ServerRulesMenuHandler);
@@ -58,6 +61,7 @@ public void OnPluginStart()
 	serverCommandsMainMenu.SetTitle("=== NGS Server Commands ===");
 	serverCommandsMainMenu.AddItem("players", "Player Commands!");
 	serverCommandsMainMenu.AddItem("donors", "Donor Commands!");
+	serverCommandsMainMenu.AddItem("special", "Special Commands!");
 	serverCommandsMainMenu.ExitBackButton = true;
 
 	serverCommandsSubMenu = new Menu(ServerCommandsSubMenuHandler);
@@ -77,6 +81,27 @@ public Action CommandHelpMenu(int client, int args)
 {
 	if (!IsValidClient(client)) return Plugin_Handled;
 	helpMenu.Display(client, MENU_TIME_FOREVER);
+	return Plugin_Handled;
+}
+
+public Action CommandMyCmdList(int client, int args)
+{
+	if (!IsValidClient(client)) return Plugin_Handled;
+	Handle hIterator = GetCommandIterator();
+	char command[MAX_BUFFER_LENGTH], description[MAX_BUFFER_LENGTH], buffer[MAX_BUFFER_LENGTH];
+	int flags;
+	serverCommandsSubMenu.RemoveAllItems();
+	serverCommandsSubMenu.SetTitle("=== NGS Special Commands ===");
+	while (ReadCommandIterator(hIterator, command, sizeof(command), flags, description, sizeof(description)))
+	{
+		if (flags != 0 && CheckCommandAccess(client, command, flags))
+		{
+			Format(buffer, sizeof(buffer), "%s - %s", command, description);
+			serverCommandsSubMenu.AddItem(command, buffer);
+		}
+	}
+	delete hIterator;
+	serverCommandsSubMenu.Display(client, MENU_TIME_FOREVER);
 	return Plugin_Handled;
 }
 
@@ -107,6 +132,8 @@ public int HelpMenuHandler(Menu menu, MenuAction action, int param1, int param2)
 				serverRulesMenu.Display(param1, MENU_TIME_FOREVER);
 			else if (StrEqual(info, "servercommands", false))
 				serverCommandsMainMenu.Display(param1, MENU_TIME_FOREVER);
+			else if (StrEqual(info, "myservercommands", false))
+				FakeClientCommand(param1, "sm_mycmds");
 			else if (StrEqual(info, "extrasettings", false))
 				FakeClientCommand(param1, "sm_settings");
 		}
@@ -151,6 +178,10 @@ public int ServerCommandsMenuHandler(Menu menu, MenuAction action, int param1, i
 		{
 			FillCommands(false);
 			serverCommandsSubMenu.Display(param1, MENU_TIME_FOREVER);
+		}
+		else if (StrEqual(info, "special", false))
+		{
+			FakeClientCommand(param1, "sm_mycmds");
 		}
 	}
 }

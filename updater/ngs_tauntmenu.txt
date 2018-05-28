@@ -4,17 +4,19 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.3.5"
+			"Latest"	"1.4.0"
 		}
-		
-		"Notes"	"Add updater support!"
-		"Notes"	"Remove extra spaces from sp."
+
+		"Notes"	"Add TF2IDB support! Taunts will now update whenever TF2 updates (and the database is updated)!"
+		"Notes"	"Note: We have a nifty script in our repo for managing tf2idb automatically."
+		"Notes"	"Menus are now kept after usage, destroyed at plugin end only!"
+		"Notes"	"Thanks to fakuivan for his TF2IDB taunts plugin, it was integral to understanding TF2IDB."
 	}
-	
+
 	"Files"
 	{
 		"Plugin"	"Path_SM/plugins/ngs_tauntmenu.smx"
-		
+
 		"Source"	"Path_SM/scripting/ngs_tauntmenu.sp"
 	}
 }

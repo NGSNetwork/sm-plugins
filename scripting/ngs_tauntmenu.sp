@@ -21,15 +21,22 @@
 #include <ngsutils>
 #include <ngsupdater>
 
+#undef REQUIRE_PLUGIN
+#include <tf2idb>
+#define REQUIRE_PLUGIN
+
+//#define DEBUG
+
 public Plugin myinfo = {
 	name = "[NGS] Taunt Menu",
 	author = "FlaminSarge, Nighty, xCoderx / TheXeon",
 	description = "Displays a nifty taunt menu. TF2 only.",
-	version = "1.3.5",
+	version = "1.4.0",
 	url = "http://forums.alliedmods.net/showthread.php?t=242866"
 }
 
 Handle hPlayTaunt;
+Menu classTaunt[10];
 
 public void OnPluginStart()
 {
@@ -37,7 +44,7 @@ public void OnPluginStart()
 
 	if (conf == null)
 	{
-		SetFailState("Unable to load gamedata/tf2.tauntem.txt. Good luck figuring that out.");
+		SetFailState("Unable to load gamedata/tf2.tauntem.txt. Get it from the forums or repo!");
 		return;
 	}
 
@@ -53,13 +60,93 @@ public void OnPluginStart()
 		SetFailState("Unable to initialize call to CTFPlayer::PlayTauntSceneFromItem. Wait patiently for a fix.");
 		return;
 	}
+	delete conf;
+
+	LoadTauntMenus();
 
 	RegConsoleCmd("sm_taunt", Cmd_TauntMenu, "Taunt Menu");
+	RegConsoleCmd("sm_tauntmenu", Cmd_TauntMenu, "Taunt Menu");
 	RegConsoleCmd("sm_taunts", Cmd_TauntMenu, "Taunt Menu");
 
-	delete conf;
 	LoadTranslations("common.phrases");
 	PrecacheTaunts();
+}
+
+public void LoadTauntMenus()
+{
+	// Thanks to fakuivan for some inspiration
+	ArrayList tauntIds = view_as<ArrayList>(TF2IDB_FindItemCustom("SELECT `id` FROM tf2idb_item WHERE `slot` IS 'taunt'"));
+	int size = tauntIds.Length;
+	int nameSize = 128;
+
+	char[][] tauntNames = new char[size][nameSize];
+	int[] tauntBits = new int[size];
+
+	char name[128], tauntBuffer[128];
+	for (int i = 0; i < size; i++)
+	{
+		int id = tauntIds.Get(i);
+		TF2IDB_GetItemName(id, tauntBuffer, nameSize);
+		if (StrContains(name, "Taunt:") != 0)
+		{
+			ReplaceString(tauntBuffer, nameSize, "Taunt", "");
+			ReplaceString(tauntBuffer, nameSize, ":", "");
+			ReplaceString(tauntBuffer, nameSize, "  ", " ");
+			TrimString(tauntBuffer);
+			Format(tauntNames[i], nameSize, "Taunt: %s", tauntBuffer);
+		}
+		else
+		{
+			strcopy(tauntNames[i], nameSize, tauntBuffer);
+		}
+		tauntBits[i] = TF2IDB_UsedByClasses_Compat(id);
+		#if defined DEBUG
+		PrintToServer("At index %d adding id: %d, name: %s (possibly %s formatted), bits: %d to arrays.", i, id, tauntNames[i], tauntBuffer, tauntBits[i]);
+		PrintToServer("Retrieved string %s from names!", tauntNames[i]);
+		#endif
+	}
+	char strId[12];
+	for (int i = 1; i < sizeof(classTaunt); i++)
+	{
+		classTaunt[i] = new Menu(Taunt_MenuSelected);
+		classTaunt[i].SetTitle("===== NGS Taunt Menu =====");
+		int classBits = (1 << i);
+		for (int j = 0; j < size; j++)
+		{
+			int bitfield = tauntBits[j];
+			#if defined DEBUG
+			PrintToServer("Retrieved bitfield %d for item %s index %d, testing it against %d.", bitfield, tauntNames[j], j, classBits);
+			#endif
+			bool wasSpecific;
+			if (bitfield == 0b1111111110 || (wasSpecific = view_as<bool>(bitfield & classBits)))
+			{
+				int id = tauntIds.Get(j);
+				IntToString(id, strId, sizeof(strId));
+				#if defined DEBUG
+				PrintToServer("Retrieved item %s at index %d from names.", tauntNames[j], j);
+				#endif
+				if (wasSpecific)
+				{
+					classTaunt[i].InsertItem(0, strId, tauntNames[j]);
+				}
+				else
+				{
+					classTaunt[i].AddItem(strId, tauntNames[j]);
+				}
+			}
+		}
+	}
+	delete tauntIds;
+}
+
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
+{
+	if (GetEngineVersion() != Engine_TF2)
+	{
+		LogError("This plugin is currently only for TF2!");
+		return APLRes_Failure;
+	}
+	return APLRes_Success;
 }
 
 public void OnMapStart()
@@ -69,9 +156,10 @@ public void OnMapStart()
 
 public Action Cmd_TauntMenu(int client, int args)
 {
-	if (GetClientTeam(client) < 1 || GetClientTeam(client) > 4 || !IsClientConnected(client))
+	if (!IsValidClient(client)) return Plugin_Handled;
+	if (!IsPlayerAlive(client))
 	{
-		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You must join a team to use this command.");
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You can only use this when you are alive!");
 		return Plugin_Handled;
 	}
 	int item = 0;
@@ -87,124 +175,29 @@ public Action Cmd_TauntMenu(int client, int args)
 
 public void ShowMenu(int client, int itemNum)
 {
-	TFClassType class = TF2_GetPlayerClass(client);
-	Menu menu = new Menu(Taunt_MenuSelected);
-	menu.SetTitle("===== NGS Taunt Menu =====");
-
-	switch(class)
-	{
-		case TFClass_Scout:
-		{
-			menu.AddItem("1117", "Taunt: Battin' a Thousand");
-			menu.AddItem("1119", "Taunt: Deep Fried Desire");
-			menu.AddItem("1168", "Taunt: The Carlton");
-			menu.AddItem("30572", "Taunt: The Boston Breakdance");
-			menu.AddItem("30917", "Taunt: The Trackman's Touchdown");
-			menu.AddItem("30920", "Taunt: The Bunnyhopper");
-			menu.AddItem("30921", "Taunt: Runner's Rhythm");
-		}
-		case TFClass_Sniper:
-		{
-			menu.AddItem("1116", "Taunt: I See You");
-			menu.AddItem("30609", "Taunt: The Killer Solo");
-			menu.AddItem("30614", "Taunt: Most Wanted");
-			menu.AddItem("30839", "Taunt: Didgeridrongo");
-		}
-		case TFClass_Soldier:
-		{
-			menu.AddItem("1113", "Taunt: Fresh Brewed Victory");
-			menu.AddItem("30673", "Taunt: Soldier's Requiem");
-			menu.AddItem("30761", "Taunt: The Fubar Fanfare");
-		}
-		case TFClass_Heavy:
-		{
-			menu.AddItem("30616", "Taunt: The Proletariat Posedown");
-			menu.AddItem("1174", "Taunt: The Table Tantrum");
-			menu.AddItem("1175", "Taunt: The Boiling Point");
-			menu.AddItem("30843", "Taunt: The Russian Arms Race");
-			menu.AddItem("30844", "Taunt: The Soviet Strongarm");
-		}
-		case TFClass_DemoMan:
-		{
-			menu.AddItem("1114", "Taunt: Spent Well Spirits");
-			menu.AddItem("1120", "Taunt: Oblooterated");
-			menu.AddItem("30671", "Taunt: True Scotsman's Call");
-			menu.AddItem("30840", "Taunt: Scotsmann's Stagger");
-		}
-		case TFClass_Medic:
-		{
-			menu.AddItem("477", "Taunt: The Meet the Medic");
-			menu.AddItem("1109", "Taunt: Results Are In");
-			menu.AddItem("30918", "Taunt: Surgeon's Squeezebox");
-		}
-
-		case TFClass_Pyro:
-		{
-			menu.AddItem("1112", "Taunt: Party Trick");
-			menu.AddItem("30570", "Taunt: Pool Party");
-			menu.AddItem("30763", "Taunt: The Balloonibouncer");
-			menu.AddItem("30876", "Taunt: The Headcase");
-			menu.AddItem("30919", "Taunt: The Skating Scorcher");
-		}
-		case TFClass_Spy:
-		{
-			menu.AddItem("1108", "Taunt: Buy A Life");
-			menu.AddItem("30615", "Taunt: The Box Trot");
-			menu.AddItem("30762", "Taunt: Disco Fever");
-			menu.AddItem("30922", "Taunt: Luxury Lounge");
-		}
-		case TFClass_Engineer:
-		{
-			menu.AddItem("1115", "Taunt: Rancho Relaxo");
-			menu.AddItem("30618", "Taunt: Bucking Bronco");
-			menu.AddItem("30842", "Taunt: The Dueling Banjo");
-			menu.AddItem("30845", "Taunt: The Jumping Jack");
-		}
-	}
-
-	menu.AddItem("167", "Taunt: The High Five!");
-	menu.AddItem("438", "Taunt: The Director's Vision");
-	menu.AddItem("463", "Taunt: The Schadenfreude");
-	menu.AddItem("1015", "Taunt: The Shred Alert");
-	menu.AddItem("1106", "Taunt: Square Dance");
-	menu.AddItem("1107", "Taunt: Flippin' Awesome");
-	menu.AddItem("1110", "Taunt: Rock, Paper, Scissors");
-	menu.AddItem("1111", "Taunt: Skullcracker");
-	menu.AddItem("1118", "Taunt: Conga");
-	menu.AddItem("1157", "Taunt: Kazotsky Kick");
-	menu.AddItem("1162", "Taunt: Mannrobics");
-	menu.AddItem("30621", "Taunt: Burstchester");
-	menu.AddItem("30672", "Taunt: Zoomin' Broom");
-	menu.AddItem("1172", "Taunt: The Victory Lap");
-	menu.AddItem("30816", "Taunt: Second Rate Sorcery");
-	menu.AddItem("1182", "Taunt: Yeti Punch");
-	menu.AddItem("1183", "Taunt: Yeti Smash");
-
+	int iClass = view_as<int>(TF2_GetPlayerClass(client));
 	char itemBuffer[24];
-	if (itemNum > -1 && menu.GetItem(itemNum, itemBuffer, sizeof(itemBuffer)))
+
+	if (itemNum > -1 && classTaunt[iClass].GetItem(itemNum, itemBuffer, sizeof(itemBuffer)))
 	{
 		ExecuteTaunt(client, StringToInt(itemBuffer));
-		delete menu;
 	}
 	else
 	{
-		menu.Display(client, 20);
+		classTaunt[iClass].Display(client, 20);
 	}
 }
 
 public int Taunt_MenuSelected(Menu menu, MenuAction action, int iClient, int param2)
 {
-	if (action == MenuAction_End)
-	{
-		delete menu;
-	}
-
 	if (action == MenuAction_Select)
 	{
 		char info[12];
 
-		menu.GetItem(param2, info, sizeof(info));
-		ExecuteTaunt(iClient, StringToInt(info));
+		if (menu.GetItem(param2, info, sizeof(info)))
+		{
+			ExecuteTaunt(iClient, StringToInt(info));
+		}
 	}
 }
 
@@ -229,6 +222,38 @@ public void ExecuteTaunt(int client, int itemdef)
 	AcceptEntityInput(ent, "Kill");
 }
 
+// TF2IDB stuff, thank you Faukivan
+stock int TF2IDB_UsedByClasses_Compat(int i_id)
+{
+	if (GetFeatureStatus(FeatureType_Native, "TF2IDB_UsedByClasses") == FeatureStatus_Available)
+	{
+		//your include needs to declare ``TF2IDB_UsedByClasses`` for this to compile correctly,
+		//and have ``REQUIRE_PLUGIN`` undefined.
+		return TF2IDB_UsedByClasses(i_id);
+	}
+	char s_query[255 /* the query without the id is ~249 chars */ - 2 + 12];
+
+	Format(s_query, sizeof(s_query),
+		"SELECT replace(replace(replace(replace(replace(replace(replace(replace(replace(" ...
+		"`class`, 'scout', 1), 'sniper', 2), 'soldier', 3), 'demoman', 4), 'medic', 5), 'heavy', 6), 'pyro', 7), 'spy', 8), 'engineer', 9) " ...
+		"FROM `tf2idb_class` WHERE `id` IS %d",
+		i_id);
+
+	ArrayList h_classes = view_as<ArrayList>(TF2IDB_FindItemCustom(s_query));
+	int i_bitmask;
+
+	for (int i_iter = 0; i_iter < h_classes.Length; i_iter++)
+	{
+		int class = h_classes.Get(i_iter);
+		i_bitmask |= (1 << class);
+		#if defined DEBUG
+		PrintToServer("For item %d, i_bitmask is now %d from class %d.", i_id, i_bitmask, class);
+		#endif
+	}
+	return i_bitmask;
+}
+
+// Looks like this stuff doesnt even work.
 public void PrecacheTaunts()
 {
 	PrecacheModel("models/player/items/taunts/cash_wad.mdl", false);

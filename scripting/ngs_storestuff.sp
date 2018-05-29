@@ -4,6 +4,7 @@
 *
 * Files:
 * addons/sourcemod/plugins/ngs_storestuff.smx
+* addons/sourcemod/configs/storelocations.cfg
 *
 * Dependencies:
 * tf2_stocks.inc, clientprefs.inc, store.inc, afk_manager.inc,
@@ -15,20 +16,30 @@
 #define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
 #define RELOAD_ON_UPDATE 1
 
+//#define DEBUG
+
 #include <tf2_stocks>
+
+#if defined DEBUG
+	#undef REQUIRE_PLUGIN
+#endif
 #include <clientprefs>
 #include <store>
 #include <afk_manager>
 #include <friendly>
+#if defined DEBUG
+	#define REQUIRE_PLUGIN
+#endif
+
 #include <ngsutils>
 #include <ngsupdater>
 
 
 public Plugin myinfo = {
 	name = "[NGS] Store Additions",
-	author = "MasterOfTheXP / TheXeon",
+	author = "MasterOfTheXP / WhiteThunder / TheXeon",
 	description = "Additional store items!",
-	version = "1.1.1",
+	version = "1.1.2",
 	url = "https://neogenesisnetwork.net/"
 }
 
@@ -37,11 +48,13 @@ ConVar cvarHealthPerPlayer;
 ConVar cvarHealthPerLevel;
 ConVar host_timescale;
 ConVar sm_timewarp_cooldown;
+ConVar mapNameContains;
 
 Cookie dailyTradeTimeCookie;
 Cookie dailyLoginTimeCookie;
 SMTimer killMerasmusTimer;
 
+KeyValues mapLocations;
 float merasmusLocation[3];
 
 int g_spawn_count;
@@ -69,14 +82,18 @@ public void OnPluginStart()
 	RegAdminCmd("sm_spawnspectralmonoculus", CommandTeamMonoculus, ADMFLAG_SLAY, "Spawns a spectral monoculus where the arg is looking!");
 	RegAdminCmd("sm_ultimatenecromash", CommandUltimateNecromash, ADMFLAG_SLAY, "Spawns the ultimate necromash.");
 	RegAdminCmd("sm_judgingnecromash", CommandJudgingNecromash, ADMFLAG_SLAY, "Judges a random person with the blessed hammer!");
+	RegAdminCmd("sm_reloadstorelocs", CommandReloadStoreConfig, ADMFLAG_GENERIC, "Reloads the map config file.");
 	host_timescale = FindConVar("host_timescale");
 	current_timescale = 1.0;
 
 	RegAdminCmd("sm_warptime", Command_warpTime, ADMFLAG_RCON);
 	sm_timewarp_cooldown = CreateConVar("sm_timewarp_cooldown", "180", "The serverwide cooldown for the timewarp item.");
+	mapNameContains = CreateConVar("storestuff_config_contains", "1", "Whether map names in config will be checked partially or fully.");
 
 	dailyLoginTimeCookie = new Cookie("dailycreditloginreward", "Timestamp to check credit reward against.", CookieAccess_Private);
 	dailyTradeTimeCookie = new Cookie("dailytradereward", "Timestamp to check trade reward against.", CookieAccess_Private);
+
+	LoadConfig();
 
 	sm_timewarp_cooldown.AddChangeHook(OnConVarChanged);
 	LoadTranslations("store.phrases");
@@ -88,35 +105,29 @@ public void OnPluginStart()
 	HookEvent("merasmus_escape_warning", OnMerasmusEscapeWarning);
 }
 
+// Thank you Dr.Mckay and your CCC
+public void LoadConfig()
+{
+	char configFile[PLATFORM_MAX_PATH];
+	BuildPath(Path_SM, configFile, sizeof(configFile), "configs/storelocations.cfg");
+	if (!FileExists(configFile))
+	{
+		SetFailState("Missing config file (should be at %s)! Please get it from the repo!", configFile);
+	}
+	delete mapLocations;
+	mapLocations = new KeyValues("Locations");
+	if (!mapLocations.ImportFromFile(configFile))
+	{
+		SetFailState("Invalid config file at %s! Please fix it!", configFile);
+	}
+}
+
 public void OnMapStart()
 {
 	char mapName[MAX_BUFFER_LENGTH];
 	GetCurrentMap(mapName, sizeof(mapName));
-	if (StrContains(mapName, "trade_unusual_center", false) != -1)
-	{
-		monoculusLocation[0] = -9.322622;
-		monoculusLocation[1] = -141.377335;
-		monoculusLocation[2] = 284.661011;
-	}
-	else if (StrContains(mapName, "trade_rawr_club_day_v3", false) != -1)
-	{
-		merasmusLocation[0] = -761.948303;
-		merasmusLocation[1] = -1175.529785;
-		merasmusLocation[2] = 276.141998;
-		monoculusLocation[0] = -769.465576;
-		monoculusLocation[1] = -1130.268311;
-		monoculusLocation[2] = 646.594238;
-	}
-	else if (StrContains(mapName, "trade_ngs_evening", false) != -1)
-	{
-		monoculusLocation[0] = -2049.652832;
-		monoculusLocation[1] = -8.477018;
-		monoculusLocation[2] = 1062.199829;
-	}
-	else
-	{
-		LogError("Unsupported map %s!", mapName);
-	}
+	FindMapCoords(mapName);
+
 	PrecacheMonoculus();
 	PrecacheMerasmus();
 	findSpawnPoints();
@@ -125,6 +136,78 @@ public void OnMapStart()
 
 	PrecacheSound("ui/halloween_loot_spawn.wav", true);
 	PrecacheSound("ui/halloween_loot_found.wav", true);
+}
+
+void FindMapCoords(char[] mapName)
+{
+	merasmusLocation = NULL_VECTOR;
+	monoculusLocation = NULL_VECTOR;
+	char buffer[MAX_BUFFER_LENGTH];
+	mapLocations.Rewind();
+	if (!mapLocations.JumpToKey(mapName))
+	{
+		if (mapNameContains.BoolValue)
+		{
+			mapLocations.Rewind();
+			mapLocations.GotoFirstSubKey();
+			bool found;
+			do
+			{
+				mapLocations.GetSectionName(buffer, sizeof(buffer));
+				if (StrContains(mapName, buffer, false) != -1)
+				{
+					SetMapCoords(buffer);
+					found = true;
+					break;
+				}
+			}
+			while (mapLocations.GotoNextKey());
+
+			if (!found)
+			{
+				LogError("Map %s is not in config file!", mapName);
+			}
+		}
+		else
+		{
+			LogError("Map %s is not in config file!", mapName);
+		}
+	}
+	else
+	{
+		SetMapCoords(mapName);
+	}
+}
+
+void SetMapCoords(char[] sectionName)
+{
+	char monoculusBuffer[MAX_BUFFER_LENGTH], merasmusBuffer[MAX_BUFFER_LENGTH],
+		monoculusVector[3][MAX_BUFFER_LENGTH], merasmusVector[3][MAX_BUFFER_LENGTH];
+	mapLocations.GetString("monoculus", monoculusBuffer, sizeof(monoculusBuffer), "INV");
+	mapLocations.GetString("merasmus", merasmusBuffer, sizeof(merasmusBuffer), "INV");
+	if (monoculusBuffer[0] != 'I' || merasmusBuffer[0] != 'I')
+	{
+		if (monoculusBuffer[0] != 'I')
+		{
+			ExplodeString(monoculusBuffer, ",", monoculusVector, sizeof(monoculusVector), sizeof(monoculusVector[]));
+			for (int i = 0; i < 3; i++)
+			{
+				monoculusLocation[i] = StringToFloat(monoculusVector[i]);
+			}
+		}
+		if (merasmusBuffer[0] != 'I')
+		{
+			ExplodeString(merasmusBuffer, ",", merasmusVector, sizeof(merasmusVector), sizeof(merasmusVector[]));
+			for (int i = 0; i < 3; i++)
+			{
+				merasmusLocation[i] = StringToFloat(merasmusVector[i]);
+			}
+		}
+	}
+	else
+	{
+		LogError("Invalidly formatted or missing location string in config file around Section \'%s\'. Make sure it is a comma separated 3d vector!", sectionName);
+	}
 }
 
 public void OnConfigsExecuted()
@@ -187,7 +270,7 @@ public void OnPostInventoryApplication(Event hEvent, const char[] szName, bool b
 			int cookieValue = StringToInt(sCookieValue);
 			int currentTime = GetTime();
 			char newCookieValue[MAX_BUFFER_LENGTH];
-	 		if (loginCookiesJustMade[client] || currentTime > (cookieValue + 86400))
+	 		if (GetFeatureStatus(FeatureType_Native, "Store_GiveCredits") == FeatureStatus_Available && (loginCookiesJustMade[client] || currentTime > (cookieValue + 86400)))
 			{
 				Store_GiveCredits(accountID, 200);
 				CPrintToChat(client, "%tCongrats, you have been awarded {PURPLE}200{DEFAULT} credits for logging in today. We hope you enjoy the NGS family!", "Store Tag Colored");
@@ -200,6 +283,23 @@ public void OnPostInventoryApplication(Event hEvent, const char[] szName, bool b
 	}
 }
 
+public Action CommandReloadStoreConfig(int client, int args)
+{
+	if (mapLocations == null)
+	{
+		CReplyToCommand(client, "The config file does not currently exist!");
+	}
+	else
+	{
+		char mapName[MAX_BUFFER_LENGTH];
+		GetCurrentMap(mapName, sizeof(mapName));
+		LoadConfig();
+		FindMapCoords(mapName);
+		CReplyToCommand(client, "Locations have been reloaded!");
+	}
+	return Plugin_Handled;
+}
+
 public Action CommandSpawnMerasmusCenter(int client, int args)
 {
 	if (args > 0)
@@ -209,7 +309,14 @@ public Action CommandSpawnMerasmusCenter(int client, int args)
 
 		int target = FindTarget(client, arg1, false, false);
 		if (target == -1) return Plugin_Handled;
-		if (TF2Friendly_IsFriendly(target))
+
+		if (merasmusLocation[0] == NULL_VECTOR[0])
+		{
+			CPrintToChat(target, "%tThe map is not configured for this boss, notify an admin!", "Store Tag Colored");
+			Store_GiveItem(GetSteamAccountID(target), 485);
+			return Plugin_Handled;
+		}
+		else if (TF2Friendly_IsFriendly(target))
 		{
 			CPrintToChat(target, "%tYou may not use the item because you are friendly.", "Store Tag Colored");
 			return Plugin_Handled;
@@ -226,9 +333,16 @@ public Action CommandSpawnMerasmusCenter(int client, int args)
 		CPrintToChatAll("%t{OLIVE}%N{DEFAULT} spawned in {GREY}MERASMUS{DEFAULT}!", "Store Tag Colored", target);
 	}
 
+	if (args == 0 && merasmusLocation[0] == NULL_VECTOR[0])
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} The map is not configured for this boss!");
+		return Plugin_Handled;
+	}
+
 	int BaseHealth = GetConVarInt(cvarHealth), HealthPerPlayer = GetConVarInt(cvarHealthPerPlayer), HealthPerLevel = GetConVarInt(cvarHealthPerLevel);
 	SetConVarInt(cvarHealth, 4200), SetConVarInt(cvarHealthPerPlayer, 300), SetConVarInt(cvarHealthPerLevel, 2000);
 	int ent = CreateEntityByName("merasmus");
+	if (!IsValidEntity(ent)) return Plugin_Handled;
 	SetEntProp(ent, Prop_Send, "m_CollisionGroup", 2);
 	TeleportEntity(ent, merasmusLocation, NULL_VECTOR, NULL_VECTOR);
 	DispatchSpawn(ent);
@@ -245,7 +359,14 @@ public Action CommandSpawnMonoculusCenter(int client, int args)
 
 		int target = FindTarget(client, arg1, false, false);
 		if (target == -1) return Plugin_Handled;
-		if (TF2Friendly_IsFriendly(target))
+
+		if (monoculusLocation[0] == NULL_VECTOR[0])
+		{
+			CPrintToChat(target, "%tThe map is not configured for this plugin, notify an admin!", "Store Tag Colored");
+			Store_GiveItem(GetSteamAccountID(target), 405);
+			return Plugin_Handled;
+		}
+		else if (TF2Friendly_IsFriendly(target))
 		{
 			CPrintToChat(target, "%tYou may not use the item because you are friendly.", "Store Tag Colored");
 			return Plugin_Handled;
@@ -262,9 +383,16 @@ public Action CommandSpawnMonoculusCenter(int client, int args)
 		CPrintToChatAll("%t{OLIVE}%N{DEFAULT} spawned in {PURPLE}MONOCULUS{DEFAULT}!", "Store Tag Colored", target);
 	}
 
+	if (args == 0 && monoculusLocation[0] == NULL_VECTOR[0])
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} The map is not configured for this boss!");
+		return Plugin_Handled;
+	}
+
 	int BaseHealth = GetConVarInt(cvarHealth), HealthPerPlayer = GetConVarInt(cvarHealthPerPlayer), HealthPerLevel = GetConVarInt(cvarHealthPerLevel);
 	SetConVarInt(cvarHealth, 4200), SetConVarInt(cvarHealthPerPlayer, 300), SetConVarInt(cvarHealthPerLevel, 2000);
 	int Ent = CreateEntityByName("eyeball_boss");
+	if (!IsValidEntity(Ent)) return Plugin_Handled;
 	SetEntProp(Ent, Prop_Data, "m_iTeamNum", 5);
 	SetEntProp(Ent, Prop_Send, "m_CollisionGroup", 2);
 	TeleportEntity(Ent, monoculusLocation, NULL_VECTOR, NULL_VECTOR);
@@ -284,7 +412,7 @@ public Action CommandTeamMonoculus(int client, int args)
 	if (target == -1) return Plugin_Handled;
 	if (TF2Friendly_IsFriendly(target))
 	{
-		CPrintToChat(target, "%tYou may not use the item because you are friendly.", "Store Tag Colored");
+		CPrintToChat(target, "%tYou may not use this item because you are friendly.", "Store Tag Colored");
 		return Plugin_Handled;
 	}
 	int playerTeam = view_as<int>(GetClientTeam(target));
@@ -295,11 +423,18 @@ public Action CommandTeamMonoculus(int client, int args)
 		Store_GiveItem(GetSteamAccountID(target), 406);
 		return Plugin_Handled;
 	}
-	SpecMonoculusCooldown[playerTeam - 2] = currentTime;
 
 	int BaseHealth = cvarHealth.IntValue, HealthPerPlayer = cvarHealthPerPlayer.IntValue, HealthPerLevel = cvarHealthPerLevel.IntValue;
 	cvarHealth.IntValue = 4200, cvarHealthPerPlayer.IntValue = 300, cvarHealthPerLevel.IntValue = 2000;
 	int Ent = CreateEntityByName("eyeball_boss");
+	if (!IsValidEntity(Ent))
+	{
+		CPrintToChat(target, "%Could not create the entity, please try again!", "Store Tag Colored", 90 - (currentTime - SpecMonoculusCooldown[playerTeam - 2]));
+		Store_GiveItem(GetSteamAccountID(target), 406);
+		return Plugin_Handled;
+	}
+	SpecMonoculusCooldown[playerTeam - 2] = currentTime;
+
 	SetEntProp(Ent, Prop_Data, "m_iTeamNum", playerTeam);
 	SetEntProp(Ent, Prop_Send, "m_CollisionGroup", 2);
 
@@ -320,7 +455,7 @@ public Action CommandTeamMonoculus(int client, int args)
 
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		if (!IsValidClient(i) || !IsPlayerAlive(i) || target == i) continue;
+		if (target == i || !IsValidClient(i, true)) continue;
 		float clientPos[3];
 		GetEntPropVector(i, Prop_Send, "m_vecOrigin", clientPos);
 		if (GetVectorDistance(clientPos, end) < 175.0)
@@ -448,7 +583,7 @@ public void EventItemFound(Event event, const char[] name, bool dontBroadcast)
 		dailyTradeTimeCookie.GetValue(client, sCookieValue, sizeof(sCookieValue));
 		int cookieValue = StringToInt(sCookieValue);
 		int currentTime = GetTime();
- 		if (tradeCookiesJustMade[client] || currentTime > (cookieValue + 86400))
+ 		if (GetFeatureStatus(FeatureType_Native, "Store_GiveCredits") == FeatureStatus_Available && (tradeCookiesJustMade[client] || currentTime > (cookieValue + 86400)))
 		{
 			Store_GiveCredits(accountID, 500);
 			CPrintToChat(client, "%tCongrats, you have been awarded {PURPLE}500{DEFAULT} credits for trading an item today.", "Store Tag Colored");

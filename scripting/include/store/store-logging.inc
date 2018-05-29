@@ -69,7 +69,7 @@ native void Store_LogWarning(const char[] format , any ...);
  */
 native void Store_LogError(const char[] format , any ...);
 
-public SharedPlugin __pl_store_logging = 
+public SharedPlugin __pl_store_logging =
 {
 	name = "store-logging",
 	file = "store-logging.smx",
@@ -80,8 +80,8 @@ public SharedPlugin __pl_store_logging =
 #endif
 };
 
-#if defined REQUIRE_PLUGIN
-public void __pl_store_logging_SetNTVOptional() 
+#if !defined REQUIRE_PLUGIN
+public void __pl_store_logging_SetNTVOptional()
 {
 	MarkNativeAsOptional("Store_Log");
 	MarkNativeAsOptional("Store_LogTrace");

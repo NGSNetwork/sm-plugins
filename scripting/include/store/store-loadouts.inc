@@ -36,7 +36,7 @@ public SharedPlugin __pl_store_loadouts =
 #endif
 };
 
-#if defined REQUIRE_PLUGIN
+#if !defined REQUIRE_PLUGIN
 public void __pl_store_loadouts_SetNTVOptional()
 {
 	MarkNativeAsOptional("Store_OpenLoadoutMenu");

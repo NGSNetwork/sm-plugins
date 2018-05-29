@@ -15,7 +15,9 @@
 #include <colorvariables>
 
 //Optional Includes
-#undef REQUIRE_PLUGIN
+#if defined REQUIRE_PLUGIN
+  #undef REQUIRE_PLUGIN
+#endif
 #include <updater>
 
 #define STORE_AUTHORS "Alongub, Keith Warren(Drixevel), Arrow768 / TheXeon"

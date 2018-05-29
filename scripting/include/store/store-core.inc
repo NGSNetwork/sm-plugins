@@ -115,7 +115,7 @@ public SharedPlugin __pl_store =
 #endif
 };
 
-#if defined REQUIRE_PLUGIN
+#if !defined REQUIRE_PLUGIN
 public void __pl_store_SetNTVOptional()
 {
 	MarkNativeAsOptional("Store_OpenMainMenu");

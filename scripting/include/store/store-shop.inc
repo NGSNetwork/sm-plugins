@@ -37,10 +37,10 @@ public SharedPlugin __pl_store_shop =
 #endif
 };
 
-#if defined REQUIRE_PLUGIN
+#if !defined REQUIRE_PLUGIN
 public void __pl_store_shop_SetNTVOptional()
 {
-	MarkNativeAsOptional("Store_OpenShop");  
-	MarkNativeAsOptional("Store_OpenShopCategory");  	
+	MarkNativeAsOptional("Store_OpenShop");
+	MarkNativeAsOptional("Store_OpenShopCategory");
 }
 #endif

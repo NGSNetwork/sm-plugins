@@ -35,14 +35,14 @@ native void Store_OpenInventory(int client);
 native void Store_OpenInventoryCategory(int client, int categoryId);
 
 /**
- * Registers an item type. 
+ * Registers an item type.
  *
- * A type of an item defines its behaviour. Once you register a type, 
+ * A type of an item defines its behaviour. Once you register a type,
  * the store will provide two callbacks for you:
  * 	- Use callback: called when a player selects your item in his inventory.
  *	- Attributes callback: called when the store loads the attributes of your item (optional).
  *
- * It is recommended that each plugin registers *one* item type. 
+ * It is recommended that each plugin registers *one* item type.
  *
  * @param type			Item type unique identifer - maximum 32 characters, no whitespaces, lower case only.
  * @param useCallback	Called when a player selects your item in his inventory.
@@ -86,15 +86,15 @@ public SharedPlugin __pl_store_inventory =
 #endif
 };
 
-#if defined REQUIRE_PLUGIN
+#if !defined REQUIRE_PLUGIN
 public void __pl_store_inventory_SetNTVOptional()
 {
-	MarkNativeAsOptional("Store_OpenInventory");  
-	MarkNativeAsOptional("Store_OpenInventoryCategory");  	
-	
-	MarkNativeAsOptional("Store_RegisterItemType"); 
+	MarkNativeAsOptional("Store_OpenInventory");
+	MarkNativeAsOptional("Store_OpenInventoryCategory");
+
+	MarkNativeAsOptional("Store_RegisterItemType");
 	MarkNativeAsOptional("Store_IsItemTypeRegistered");
-	
+
 	MarkNativeAsOptional("Store_CallItemAttrsCallback");
 }
 #endif

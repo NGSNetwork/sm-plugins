@@ -4,17 +4,16 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.1.2"
+			"Latest"	"1.1.3"
 		}
-		
-		"Notes"	"Only show the commands menu when we are clear :)"
-		"Notes"	"Fix some spacing issues and extra weirdness."
+
+		"Notes"	"Added !mycmds for flagged people to see what commands they have available."
 	}
-	
+
 	"Files"
 	{
 		"Plugin"	"Path_SM/plugins/ngs_helpmenu.smx"
-		
+
 		"Source"	"Path_SM/scripting/ngs_helpmenu.sp"
 	}
 }

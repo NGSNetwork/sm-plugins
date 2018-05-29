@@ -12,6 +12,7 @@
 #pragma newdecls required
 #pragma semicolon 1
 
+#define ALL_PLUGINS_LOADED_FUNC AllPluginsLoaded
 #define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
 #define RELOAD_ON_UPDATE 1
 
@@ -31,7 +32,7 @@ public Plugin myinfo = {
 	name = "[NGS] Taunt Menu",
 	author = "FlaminSarge, Nighty, xCoderx / TheXeon",
 	description = "Displays a nifty taunt menu. TF2 only.",
-	version = "1.4.0",
+	version = "1.4.1",
 	url = "http://forums.alliedmods.net/showthread.php?t=242866"
 }
 
@@ -62,14 +63,16 @@ public void OnPluginStart()
 	}
 	delete conf;
 
-	LoadTauntMenus();
-
 	RegConsoleCmd("sm_taunt", Cmd_TauntMenu, "Taunt Menu");
 	RegConsoleCmd("sm_tauntmenu", Cmd_TauntMenu, "Taunt Menu");
 	RegConsoleCmd("sm_taunts", Cmd_TauntMenu, "Taunt Menu");
 
 	LoadTranslations("common.phrases");
-	PrecacheTaunts();
+}
+
+public void AllPluginsLoaded()
+{
+	LoadTauntMenus();
 }
 
 public void LoadTauntMenus()

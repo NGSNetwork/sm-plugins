@@ -4,13 +4,10 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.4.0"
+			"Latest"	"1.4.1"
 		}
 
-		"Notes"	"Add TF2IDB support! Taunts will now update whenever TF2 updates (and the database is updated)!"
-		"Notes"	"Note: We have a nifty script in our repo for managing tf2idb automatically."
-		"Notes"	"Menus are now kept after usage, destroyed at plugin end only!"
-		"Notes"	"Thanks to fakuivan for his TF2IDB taunts plugin, it was integral to understanding TF2IDB."
+		"Notes"	"Fix TF2IDB support, will now load after plugins!""
 	}
 
 	"Files"

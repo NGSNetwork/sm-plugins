@@ -1,0 +1,372 @@
+"Phrases"
+{
+	"Store Tag"
+	{
+		"#format"			""
+		"en"				"[Store] "
+	}
+	
+	"Store Tag Colored"
+	{
+		"#format"			""
+		"en"				"{CRIMSON}[Store] {DEFAULT}"
+	}
+	
+	"Store Menu Title"
+	{
+		"#format"			"{1:s}"
+		"en"				"NGS Store [{1}]"
+	}
+	
+	"Store Menu Credits"
+	{
+		"#format"			"{1:d},{2:s}"
+		"en"				"You have {1} {2}."
+	}
+
+	"Inventory"
+	{
+		"en"				"Inventory"	
+	}
+
+	"Shop"
+	{
+		"en"				"Shop"	
+	}
+
+	"Loadout"
+	{
+		"en"				"Loadout"	
+	}
+	
+	"No categories available"
+	{
+		"en"				"No categories are currently available."
+	}
+
+	"No items in this category"
+	{
+		"en"				"There are no items in this category."
+	}
+	
+	"Inventory category is empty"
+	{
+		"en"				"You don't currently own any items in this category."
+	}
+
+	"Item type not registered"
+	{
+		"#format"			"{1:s}"
+		"en"				"The item type '{1}' wasn't registered by any plugin."
+	}
+
+	"Not enough credits to buy"
+	{
+		"#format"			"{1:s}"
+		"en"				"You don't have enough {1} to buy this item."
+	}
+
+	"No item attributes"
+	{
+		"en"				"No item attributes found."
+	}
+
+	"Equipped item"
+	{
+		"#format"			"{1:s}"
+		"en"				"You have equipped {1}."
+	}
+
+	"Unequipped item"
+	{
+		"#format"			"{1:s}"
+		"en"				"You have unequipped {1}."
+	}
+
+	"Must be alive to equip"
+	{
+		"en"				"You must be alive to equip this item."
+	}
+
+	"Must be alive to use"
+	{
+		"en"				"You must be alive to use this item."
+	}	
+
+	"Must be human to equip"
+	{
+		"en"				"You must be a human to equip this item."	
+	}
+
+	"Must be human to use"
+	{
+		"en"				"You must be a human to use this item."	
+	}	
+
+	"Limit item uses in a round"
+	{
+		"#format"			"{1:s}"
+		"en"				"You can only use this item {1} times per round."
+	}
+
+	"Player model unsupported"
+	{
+		"en"				"You player model doesn't support equipment."
+	}
+
+	"Received Credits"
+	{
+		"#format"			"{1:d},{2:s}"
+		"en"				"You have just received {1} {2}!"
+	}
+	
+	"Deducted Credits"
+	{
+		"#format"			"{1:d},{2:s}"
+		"en"				"You have just been deducted {1} {2}!"
+	}
+	
+	"Deducted Credits Less Than Zero"
+	{
+		"#format"			"{1:s}"
+		"en"				"Your {1} has been set to 0 due to going into the negative!"
+	}
+
+	"Item Purchase Confirmation"
+	{
+		"#format"			"{1:s}"
+		"en"				"Are you sure you want to purchase {1}?"
+	}
+
+	"Item Purchase Successful"
+	{
+		"#format"			"{1:s}"
+		"en"				"You bought '{olive}{1}{default}'!"
+	}
+	
+	"Item Purchase Menu Title"
+	{
+		"#format"			"{1:s}"
+		"en"				"Equip {1} now?"
+	}
+	
+	"Item Purchase Equipped"
+	{
+		"#format"			"{1:s},{2:d}"
+		"en"				"You have equipped '{olive}{1}{default}' into loadout {olive}{2}{default}.!"
+	}
+
+	"Refund"
+	{
+		"en"				"Refund"
+	}
+
+	"Gift"
+	{
+		"en"				"Gift"
+	}
+	
+	"Refund Message"
+	{
+		"#format"			"{1:s},{2:d},{3:s}"
+		"en"				"You have refunded {1} for {2} {3}."
+	}
+
+	"Item Refund Confirmation"
+	{
+		"#format"			"{1:s},{2:d},{3:s}"
+		"en"				"Are you sure you want to refund {1} for {2} {3}?"
+	}
+
+	"Equipped item apply next spawn"
+	{
+		"en"				"You've equipped an item. It will take effect in your next spawn."
+	}
+
+	"Shop Description"
+	{
+		"en"				"Buy awesome stuff here!"
+	}
+
+	"Inventory Description"
+	{
+		"en"				"Equip or use your items."
+	}
+
+	"Refund Description"
+	{
+		"en"				"Not satisfied? Refund it here."
+	}
+
+	"Gift Description"
+	{
+		"en"				"Donate cash or items to the needy!"
+	}
+
+	"Loadout Description"
+	{
+		"en"				"Configure all your items."
+	}
+
+	"Gift Type Menu Title"
+	{
+		"en"				"What do you want to gift?"
+	}
+
+	"Gift Delivery Method"
+	{
+		"en"				"How do you want to deliver the gift?"
+	}
+
+	"Gift Method Send"
+	{
+		"en"				"Send to player"
+	}
+
+	"Gift Method Drop"
+	{
+		"en"				"Drop on ground"
+	}
+
+	"Item"
+	{
+		"en"				"Item"
+	}
+
+	"Gift Credit Confirmation"
+	{
+		"#format"			"{1:s},{2:d},{3:s}"
+		"en"				"Are you sure you want to give {1} {2} {3}?"
+	}
+
+	"Gift Item Confirmation"
+	{
+		"#format"			"{1:s},{2:s}"
+		"en"				"Are you sure you want to give {1} a {2} item?"
+	}
+
+	"Drop Credit Confirmation"
+	{
+		"#format"			"{1:d},{2:s}"
+		"en"				"Are you sure you want to drop {1} {2}?"
+	}
+
+	"Drop Item Confirmation"
+	{
+		"#format"			"{1:s}"
+		"en"				"Are you sure you want to drop {1}?"
+	}
+
+	"Gift Item Dropped"
+	{
+		"#format"			"{1:s}"
+		"en"				"You dropped {olive}{1}{default}!"
+	}
+
+	"Gift Credits Dropped"
+	{
+		"#format"			"{1:d}{2:s}"
+		"en"				"You dropped {olive}{1}{default} {2}!"
+	}
+
+	"Gift Credits Found"
+	{
+		"#format"			"{1:d},{2:s}"
+		"en"				"You found {olive}{1}{default} {2}!"
+	}
+
+	"Gift Item Found"
+	{
+		"#format"			"{1:s}"
+		"en"				"You found {olive}{1}{default}!"
+	}
+
+	"No items"
+	{
+		"en"				"You have no items."
+	}
+
+	"Gift Request Accept"
+	{
+		"#format"			"{1:s},{2:s}"
+		"en"				"{teamcolor}{1} {default}wants to give you {olive}{2}{default}. Type {teamcolor}!accept {default}to accept the gift."
+	}
+
+	"Gift Waiting to accept"
+	{
+		"#format"			"{1:s}"
+		"en"				"Waiting for {teamcolor}{1} {default}to accept the gift."
+	}
+	
+	"Gift Cancel"
+	{
+		"#format"			""
+		"en"				"You have cancelled your currently active gift before acceptance."
+	}
+	
+	"Gift Active Session"
+	{
+		"#format"			""
+		"en"				"You can only have one active gift session at a time, please cancel the session and try again."
+	}
+
+	"Not enough credits"
+	{
+		"#format"			"{1:s}"
+		"en"				"You don't have enough {1}."
+	}
+
+	"Gift accepted - sender"
+	{
+		"#format"			"{1:s}"
+		"en"				"{teamcolor}{1} {default}has accepted your gift."
+	}
+
+	"Gift accepted - receiver"
+	{
+		"#format"			"{1:s}"
+		"en"				"You have accepted {teamcolor}{1}{default}'s gift."
+	}
+
+	"Already purchased item"
+	{
+		"#format"			"{1:s}"
+		"en"				"You have already purchased this item: {1}"
+	}
+	
+	"You can't wear this item"
+	{
+		"en"				"You can't wear this item."
+	}
+	
+	"Reloading categories and items"
+	{
+		"en"				"Reloading categories and items..."
+	}
+	
+	"Reloaded categories"
+	{
+		"en"				"All categories have been reloaded successfully."
+	}
+	
+	"Reloaded items"
+	{
+		"en"				"All items have been reloaded successfully."
+	}
+	
+	"Check console for reload outputs"
+	{
+		"en"				"Check your console for reload outputs."
+	}
+	
+	"Store Developer Toggled"
+	{
+		"#format"			"{1:s}"
+		"en"				"Developer mode: [{1}]"
+	}
+	
+	"Cannot access while developer"
+	{
+		"en"				"You cannot access this menu while in developer mode."
+	}
+}

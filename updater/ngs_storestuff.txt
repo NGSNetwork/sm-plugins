@@ -4,17 +4,19 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.1.1"
+			"Latest"	"1.1.2"
 		}
-		
-		"Notes"	"More methodmaps!"
-		"Notes"	"Fixed a leaky handle, multiple overwrites, oh my!"
+
+		"Notes"	"Add ability to configure locations for bosses per-map!"
+		"Notes"	"Note: This requires the new config file from the repo!"
+		"Notes"	"Added sm_reloadstorelocs to reload store locations."
+		"Notes"	"Added storestuff_config_contains cvar to configure how map-finding works."
 	}
-	
+
 	"Files"
 	{
 		"Plugin"	"Path_SM/plugins/ngs_storestuff.smx"
-		
+
 		"Source"	"Path_SM/scripting/ngs_storestuff.sp"
 	}
 }

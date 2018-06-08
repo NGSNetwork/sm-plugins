@@ -4,17 +4,22 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.1.1"
+			"Latest"	"1.2.0"
 		}
-		
-		"Notes"	"Add updater support!"
+
+		"Notes"	"New: Changed to use a config file for map locations!"
+		"Notes"	"For skybox, only one side needs to be configured (allows for single-team teleports, though untested)."
+		"Notes"	"Patched some unintended behavior with god mode, skybox, and admin room."
+		"Notes"	"To better sync with updater, we now update your configs with new cvars automatically!"
+		"Notes"	"Removed some sm_ prefixes from some convars."
+		"Notes"	"Added better checks for certain areas."
 		"Notes"	"Remove extra spaces from sp."
 	}
-	
+
 	"Files"
 	{
 		"Plugin"	"Path_SM/plugins/ngs_map_teleporter.smx"
-		
+
 		"Source"	"Path_SM/scripting/ngs_map_teleporter.sp"
 	}
 }

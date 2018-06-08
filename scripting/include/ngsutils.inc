@@ -26,7 +26,7 @@ stock bool IsValidClient(int client, bool aliveTest=false, bool botTest=true,
 	if (GetEntProp(client, Prop_Send, "m_bIsCoaching")) return false;
 	if (aliveTest && !IsPlayerAlive(client)) return false;
 	#if defined _afkmanager_included
-		bool afkavailable = (GetFeatureStatus(FeatureType_Native, "AFKM_IsClientAFK") == 
+		bool afkavailable = (GetFeatureStatus(FeatureType_Native, "AFKM_IsClientAFK") ==
 				FeatureStatus_Available);
 		if (afkTest)
 		{
@@ -127,7 +127,7 @@ stock int ShowHudTextAll(int channel, const char[] message, any ...)
 }
 
 /**
- * Shows a synchronized HUD message to all clients.  
+ * Shows a synchronized HUD message to all clients.
  *
  * As of this writing, only TF, HL2MP, and SourceForts support HUD Text.
  *
@@ -155,7 +155,7 @@ stock int ShowSyncHudTextAll(Handle sync, const char[] message, any ...)
 }
 
 /**
- * Shows a synchronized HUD message to all clients.  
+ * Shows a synchronized HUD message to all clients.
  *
  * @param index				A client index.
  * @param aliveTest			If true, tests if a client is alive.
@@ -187,6 +187,26 @@ stock int abs(int value)
 {
 	return RoundToNearest(FloatAbs(float(value)));
 }
+
+#if defined _tf2_stocks_included
+#define TF_MAX_CLASS_NAME_LENGTH 12
+stock int TF2_ClassEnumToString(TFClassType i_class, char s_class[TF_MAX_CLASS_NAME_LENGTH])
+{
+	switch (i_class)
+	{
+			case TFClass_Scout: 	return Format(s_class, TF_MAX_CLASS_NAME_LENGTH, "scout");
+			case TFClass_Soldier: 	return Format(s_class, TF_MAX_CLASS_NAME_LENGTH, "soldier");
+			case TFClass_Pyro: 		return Format(s_class, TF_MAX_CLASS_NAME_LENGTH, "pyro");
+			case TFClass_DemoMan: 	return Format(s_class, TF_MAX_CLASS_NAME_LENGTH, "demoman");
+			case TFClass_Heavy: 	return Format(s_class, TF_MAX_CLASS_NAME_LENGTH, "heavy");
+			case TFClass_Medic: 	return Format(s_class, TF_MAX_CLASS_NAME_LENGTH, "medic");
+			case TFClass_Sniper: 	return Format(s_class, TF_MAX_CLASS_NAME_LENGTH, "sniper");
+			case TFClass_Spy: 		return Format(s_class, TF_MAX_CLASS_NAME_LENGTH, "spy");
+			case TFClass_Engineer: 	return Format(s_class, TF_MAX_CLASS_NAME_LENGTH, "engineer");
+	}
+	return 0;
+}
+#endif
 
 #if defined _timers_included
 // TIMER METHODMAPS
@@ -262,7 +282,6 @@ methodmap SMTimer < Handle
 		TriggerTimer(this, reset);
 	}
 }
-#endif
 
 methodmap SMDataTimer < SMTimer
 {
@@ -305,6 +324,7 @@ methodmap SMDataTimer < SMTimer
 		return new SMDataTimer(interval, func, datapack, flags);
 	}
 }
+#endif
 
 #if defined _clientprefs_included
 // Cookie Methodmaps!
@@ -530,11 +550,10 @@ methodmap SMQueue < ArrayList
 	/**
 	 * Retrieves the front element in the Queue.
 	 *
-	 * @param block		Optionally specify which block to read from
-	 * 					(useful if the blocksize > 0).
-	 * @param asChar	Optionally read as a byte instead of a cell.
-	 * @return			Contents of first element.
-	 * @error			Empty queue.
+	 * @param block					Optionally specify which block to read (useful if the blocksize > 0).
+	 * @param asChar				Optionally read as a byte instead of a cell.
+	 * @return							Contents of first element.
+	 * @error								Empty queue.
 	 */
 	public any GetFront(int block = 0, bool asChar=false)
 	{
@@ -560,6 +579,518 @@ methodmap SMQueue < ArrayList
 			ThrowError("Error: GetFrontString() called on empty Queue!");
 		}
 		return this.GetString(0, buffer, maxlength);
+	}
+
+	/**
+	 * Retrieves an array from the front of a Queue.
+	 *
+	 * @param buffer        Buffer to copy to.
+	 * @param maxlength     Maximum size of the buffer.
+	 * @param size          Size given, otherwise blocksize.
+	 * @return              Number of characters copied.
+	 * @error               Invalid index.
+	 */
+	public int GetFrontArray(any[] buffer, int size = -1)
+	{
+		if (this.isEmpty())
+		{
+			ThrowError("Error: GetFrontArray() called on empty Queue!");
+		}
+		return this.GetArray(0, buffer, size);
+	}
+
+	/**
+	 * Places new data element at the end of Queue
+	 *
+	 * @param data         Item to put at rear.
+	 * @noreturn
+	 */
+	public void Enqueue(any data)
+	{
+		this.Push(data);
+	}
+
+	/**
+	 * Places a string at the end of a Queue, truncating it if it is too big.
+	 *
+	 * @param value         String to push.
+	 * @noreturn
+	 */
+	public void EnqueueString(const char[] value)
+	{
+		this.PushString(value);
+	}
+
+	/**
+	 * Places an array at the end of a Queue.
+	 *
+	 * @param values        Block of values to copy.
+	 * @param size          If not set, the number of elements copied from the array
+	 *                      will be equal to the blocksize.  If set higher than the
+	 *                      blocksize, the operation will be truncated.
+	 * @noreturn
+	 */
+	public void EnqueueArray(const any[] values, int size = -1)
+	{
+		this.PushArray(values, size);
+	}
+
+	/**
+	 * Retrieves and remove a cell value from front of Queue.
+	 *
+	 * @param block         Optionally specify which block to read from
+	 *                      (useful if the blocksize > 0).
+	 * @param asChar        Optionally read as a byte instead of a cell.
+	 * @return              Value read.
+	 * @error               Queue is empty.
+	 */
+	public any Dequeue(int block = 0, bool asChar = false)
+	{
+		if (this.isEmpty())
+		{
+			ThrowError("Error: Dequeue() called on empty Queue!");
+		}
+		any item = this.Get(0, block, asChar);
+		this.Erase(0);
+		return item;
+	}
+
+	/**
+	 * Retrieves and remove a string value from front of Queue.
+	 *
+	 * @param buffer        Buffer to copy to.
+	 * @param maxlength     Maximum size of the buffer.
+	 * @return              Number of characters copied.
+	 * @error               Queue is empty.
+	 */
+	public int DequeueString(char[] buffer, int maxlength)
+	{
+		if (this.isEmpty())
+		{
+			ThrowError("Error: DequeueString() called on empty Queue!");
+		}
+
+		int val = this.GetString(0, buffer, maxlength);
+		this.Erase(0);
+		return val;
+	}
+
+	/**
+	 * Retrieves an array of cells from an array.
+	 *
+	 * @param buffer        Buffer to store the array in.
+	 * @param size          If not set, assumes the buffer size is equal to the
+	 *                      blocksize.  Otherwise, the size passed is used.
+	 * @return              Number of cells copied.
+	 * @error               Queue is empty.
+	 */
+	 public int DequeueArray(any[] buffer, int size = -1)
+ 	{
+ 		if (this.isEmpty())
+ 		{
+ 			ThrowError("Error: DequeueArray() called on empty Queue!");
+ 		}
+
+ 		int val = this.GetArray(0, buffer, size);
+ 		this.Erase(0);
+ 		return val;
+ 	}
+}
+#endif
+
+#if defined _adt_trie_included
+methodmap String < StringMap
+{
+	/**
+	 * Creates a new java-like String Object (must be closed or deleted).
+	 *
+	 * @param buffer        Buffer to store the array in.
+	 * @noreturn
+	 */
+	public String(const char[] buffer)
+	{
+		StringMap map = new StringMap();
+		map.SetString("value", buffer);
+		map.SetValue("length", strlen(buffer));
+		return view_as<String>(map);
+	}
+
+	/**
+	 * Gets the cached length of the string.
+	 */
+	property int length
+	{
+		public get()
+		{
+			int length;
+			this.GetValue("length", length);
+			return length;
+		}
+	}
+
+	/**
+	 * Returns the char value at the specified index.
+	 *
+	 * @param index			Index to retrieve character from.
+	 */
+	public char charAt(int index)
+	{
+		int length = this.length;
+		if (index >= length || index < 0)
+		{
+			ThrowError("String Error: Attempted to access index out of bounds!");
+		}
+		char[] value = new char[length];
+		this.GetString("value", value, length);
+		return view_as<char>(value[index]);
+	}
+
+	/**
+	 * Turn a string into a character array. Implementation of strlcpy.
+	 *
+	 * @param dest					Character array to copy into.
+	 * @param arraySize			Size of array to copy into.
+	 * @returns							Number of bytes written to dest buffer.
+	 */
+	public int toCharArray(char[] dest, int destLen)
+	{
+		int written;
+		this.GetString("value", dest, destLen, written);
+
+		return written;	/* count does not include NUL */
+	}
+
+	/**
+	 * Compares two strings to each other. From GNU C Library.
+	 *
+	 * @param anotherString			Right String to compare to.
+	 * @param	caseSensitive			If true (default), comparison is case sensitive. If false,
+	 *														comparison is case insensitive.
+	 * @return 			-1 if str1 < str2 0 if str1 == str2 1 if str1 > str2
+	 */
+	public int compareTo(String anotherString, bool caseSensitive)
+	{
+		int length = this.length, otherLength = anotherString.length;
+
+		char[] str1 = new char[length], str2 = new char[otherLength];
+
+		this.toCharArray(str1, length);
+		anotherString.toCharArray(str2, otherLength);
+
+		return strcmp(str1, str2, caseSensitive);
+	}
+
+	/**
+	 * Returns whether a string is empty.
+	 *
+	 * @return			String is empty?
+	 */
+	public bool isEmpty()
+	{
+		return (this.length == 0);
+	}
+
+}
+// Object METHODMAPS similar to Java
+methodmap Object < StringMap
+{
+	/**
+	 * Create a new object with properties you can set/add to.
+	 *
+	 * @return							A new Object that is cool.
+	 */
+	public Object()
+	{
+		StringMap map = new StringMap();
+		map.SetValue("bool", new StringMap());
+		map.SetValue("char", new StringMap());
+		map.SetValue("float", new StringMap());
+		map.SetValue("function", new StringMap());
+		map.SetValue("handle", new StringMap());
+		map.SetValue("int", new StringMap());
+		map.SetValue("object", new StringMap());
+		map.SetValue("string", new StringMap());
+
+		map.SetValue("class", "Object");
+		map.SetValue("destroyhandles", new StringMap());
+		return view_as<Object>(map);
+	}
+
+	/**
+	 * Returns if two objects are equal.
+	 *
+	 * @param obj					Object to check for equality.
+	 * @return						True if objects are the same, otherwise no.
+	 */
+	public bool equals(Object obj)
+	{
+		return obj == this;
+	}
+
+	/**
+	 * Creates and returns a clone of the Object.
+	 *
+	 * @param plugin			Possible new plugin's ownership handle.
+	 * @return						Cloned object that must be disposed of by itself.
+	 */
+	public Object clone(Handle plugin=INVALID_HANDLE)
+	{
+		Object newObj = view_as<Object>(CloneHandle(this, plugin));
+		return newObj;
+	}
+
+	/////////////////////////
+	///				TYPES				///
+	/////////////////////////
+
+	public StringMap retrieveMapOfType(const char[] type)
+	{
+		StringMap typeMap;
+		this.GetValue(type, typeMap);
+		return typeMap;
+	}
+
+	/**
+	 * Adds a boolean member to Object.
+	 *
+	 * @param memberName	New member to add to Object.
+	 * @param val					Optional default value to give.
+	 * @noreturn
+	 */
+	public void addBool(char[] memberName, bool val=false)
+	{
+		StringMap typeMap = this.retrieveMapOfType("bool");
+
+		if (!typeMap.SetValue(memberName, val, false))
+		{
+			ThrowError("Error in AddBool. Attempted to add member %s that already existed!", memberName);
+		}
+	}
+
+	/**
+	 * Adds a character member to Object.
+	 *
+	 * @param memberName	New member to add to Object.
+	 * @param val					Optional default value to give.
+	 * @noreturn
+	 */
+	public void addChar(char[] memberName, any val=' ')
+	{
+		StringMap typeMap = this.retrieveMapOfType("char");
+
+		if (!typeMap.SetValue(memberName, val, false))
+		{
+			ThrowError("Error in AddChar. Attempted to add member %s that already existed!", memberName);
+		}
+	}
+
+	/**
+	 * Adds a float member to Object.
+	 *
+	 * @param memberName	New member to add to Object.
+	 * @param val					Optional default value to give.
+	 * @return						Cloned object that must be disposed of by itself.
+	 */
+	public void addFloat(char[] memberName, float val=0.0)
+	{
+		StringMap typeMap = this.retrieveMapOfType("float");
+
+		if (!typeMap.SetValue(memberName, val, false))
+		{
+			ThrowError("Error in AddFloat. Attempted to add member %s that already existed!", memberName);
+		}
+	}
+
+	/**
+	 * Adds a float member to Object.
+	 *
+	 * @param memberName	New member to add to Object.
+	 * @param val					Name of function to put in.
+	 * @return						Cloned object that must be disposed of by itself.
+	 */
+	public void addFunction(char[] memberName, const char[] val="")
+	{
+		StringMap typeMap = this.retrieveMapOfType("function");
+
+		if (!typeMap.SetString(memberName, val, false))
+		{
+			ThrowError("Error in AddFunction. Attempted to add member %s that already existed!", memberName);
+		}
+	}
+
+	/**
+	 * Adds a Handle member to Object.
+	 *
+	 * @param memberName	New member to add to Object.
+	 * @param val					Name of function to put in.
+	 * @return						Cloned object that must be disposed of by itself.
+	 */
+	public void addHandle(char[] memberName, Handle val = null, bool deleteAtDispose = true)
+	{
+		StringMap typeMap = this.retrieveMapOfType("handle");
+
+		if (!typeMap.SetValue(memberName, val, false))
+		{
+			ThrowError("Error in AddHandle. Attempted to add member %s that already existed!", memberName);
+		}
+
+		if (deleteAtDispose)
+		{
+			typeMap = this.retrieveMapOfType("destroyhandles");
+			if (!typeMap.SetValue(memberName, val, false))
+			{
+				ThrowError("Error in AddHandle. Attempt to add %s to delete Map failed!", memberName);
+			}
+		}
+	}
+
+	/**
+	 * Adds a integer member to Object.
+	 *
+	 * @param memberName	New member to add to Object.
+	 * @param val					Optional default value to give.
+	 * @noreturn
+	 */
+	public void addInt(char[] memberName, int val=0)
+	{
+		StringMap typeMap = this.retrieveMapOfType("int");
+
+		if (!typeMap.SetValue(memberName, val, false))
+		{
+			ThrowError("Error in AddInt. Attempted to add member %s that already existed!", memberName);
+		}
+	}
+
+	/**
+	 * Adds a integer member to Object.
+	 *
+	 * @param memberName	New member to add to Object.
+	 * @param val					Optional default value to give.
+	 * @noreturn
+	 */
+	public void addObject(char[] memberName, Object val=null)
+	{
+		StringMap typeMap = this.retrieveMapOfType("object");
+
+		if (!typeMap.SetValue(memberName, val, false))
+		{
+			ThrowError("Error in AddObject. Attempted to add member %s that already existed!", memberName);
+		}
+	}
+
+	/**
+	 * Adds a boolean member to Object.
+	 *
+	 * @param memberName	New member to add to Object.
+	 * @param val					Optional default value to give.
+	 * @return						Cloned object that must be disposed of by itself.
+	 */
+	public void addString(char[] memberName, const char[] val = "") // TODO: finish this with arrays
+	{
+		StringMap typeMap = this.retrieveMapOfType("string");
+
+		if (!typeMap.SetString(memberName, val, false))
+		{
+			ThrowError("Error in AddString. Attempted to add member %s that already existed!", memberName);
+		}
+	}
+
+	/**
+	 * Disposes of all members.
+	 *
+	 * @param deleteThis	Optionally delete this object (set to null)
+	 * @noreturn
+	 */
+	public void dispose(bool deleteThis=true)
+	{
+		StringMapSnapshot snap = this.Snapshot();
+		int len;
+		for (int i = 0; i < snap.Length; i++)
+		{
+			len = snap.KeyBufferSize(i);
+			char[] buffer = new char[len];
+			snap.GetKey(i, buffer, len);
+			StringMap map;
+			if (this.GetValue(buffer, map))
+			{
+				if (StrEqual("handle", buffer))
+				{
+					delete map;
+					continue;
+				}
+				else if (StrEqual("object", buffer))
+				{
+					int objectKeyLen;
+					Object member;
+					StringMapSnapshot objectSnap = map.Snapshot();
+					for (int j = 0; j < objectSnap.Length; j++)
+					{
+						objectKeyLen = objectSnap.KeyBufferSize(j);
+						char[] objectKey = new char[objectKeyLen];
+						objectSnap.GetKey(j, objectKey, objectKeyLen);
+						map.GetValue(objectKey, member);
+						/* member.dispose(); */
+					}
+					delete objectSnap;
+					delete map;
+				}
+				/* else if (StrEqual()) */
+				else
+				{
+
+				}
+			}
+		}
+	}
+}
+#endif
+
+#if defined _autoexecconfig_included
+/**
+ * Creates a Convar using AutoExecConfig_CreateConVar and sets a reference bool
+ * to whether the file was appended to or not.
+ *
+ * @param wasAppended         Reference variable to set to true if appended.
+ * @param name                Name of new convar.
+ * @param defaultValue        String containing the default value of new convar.
+ * @param description         Optional description of the convar.
+ * @param flags               Optional bitstring of flags determining how the convar should be handled. See FCVAR_* constants for more details.
+ * @param hasMin              Optional boolean that determines if the convar has a minimum value.
+ * @param min                 Minimum floating point value that the convar can have if hasMin is true.
+ * @param hasMax              Optional boolean that determines if the convar has a maximum value.
+ * @param max                 Maximum floating point value that the convar can have if hasMax is true.
+ * @return                    A handle to the newly created convar. If the convar already exists, a handle to it will still be returned.
+ * @error                     Convar name is blank or is the same as an existing console command.
+ */
+stock ConVar AutoExecConfig_CreateConVarCheckAppend(bool &wasAppended, const char[] name, const char[] defaultValue, const char[] description="", int flags=0, bool hasMin=false, float min=0.0, bool hasMax=false, float max=0.0)
+{
+	ConVar returnCvar = AutoExecConfig_CreateConVar(name, defaultValue, description, flags, hasMin, min, hasMax, max);
+	if (AutoExecConfig_GetAppendResult() == AUTOEXEC_APPEND_SUCCESS)
+	{
+		wasAppended = true;
+	}
+	return returnCvar;
+}
+
+/**
+ * Executes and cleans if the file was appended to. Can also be used to force a
+ * clean and/or execute.
+ *
+ * @param appended            Variable that indicates whether a convar was
+ *                            appended during the creation process. Use
+ *                            AutoExecConfig_CreateConVarCheckAppend with this.
+ * @param exec                Optional: Should file be executed?
+ * @noreturn
+ */
+stock ConVar AutoExecConfig_ExecAndClean(bool appended, bool exec=true)
+{
+	if (exec)
+	{
+		AutoExecConfig_ExecuteFile();
+	}
+	if (appended)
+	{
+		AutoExecConfig_CleanFile();
 	}
 }
 #endif

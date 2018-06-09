@@ -4,6 +4,11 @@
 * Released under Unlicense License.
 */
 
+#if defined _ngsutil_included
+ #endinput
+#endif
+#define _ngsutil_included
+
 
 /**
  * Checks if a client is valid. From another include whose author I can't find
@@ -611,6 +616,34 @@ methodmap SMQueue < ArrayList
 	}
 
 	/**
+	 * Enqueues at a given index. If the index is greater than the Length, this
+	 * will optionally just append. Useful if you want to prioritize elements.
+	 *
+	 * @param index                Index to place item at.
+	 * @param data                 Item to put at index.
+	 * @param appendOutBounds      Optionally set to append if index is greater
+	 *                             than queue size.
+	 * @noreturn
+	 */
+	public void EnqueueAt(int index, any data, bool appendOutBounds = true)
+	{
+		int queueLen = this.Length;
+		if (index < 0 || (!appendOutBounds && queueLen <= index))
+		{
+			ThrowError("SMQueue Error: Attempted to add item at %d to queue of size %d!", index, queueLen);
+		}
+		if (queueLen > index)
+		{
+			this.ShiftUp(index);
+			this.Set(index, data);
+		}
+		else if (appendOutBounds)
+		{
+			this.Enqueue(data);
+		}
+	}
+
+	/**
 	 * Places a string at the end of a Queue, truncating it if it is too big.
 	 *
 	 * @param value         String to push.
@@ -619,6 +652,34 @@ methodmap SMQueue < ArrayList
 	public void EnqueueString(const char[] value)
 	{
 		this.PushString(value);
+	}
+
+	/**
+	 * Enqueues at a given index. If the index is greater than the Length, this
+	 * will optionally just append. Useful if you want to prioritize elements.
+	 *
+	 * @param index                Index to place item at.
+	 * @param value                String to put at index.
+	 * @param appendOutBounds      Optionally set to append if index is greater
+	 *                             than queue size.
+	 * @noreturn
+	 */
+	public void EnqueueStringAt(int index, const char[] value, bool appendOutBounds = true)
+	{
+		int queueLen = this.Length;
+		if (index < 0 || (!appendOutBounds && queueLen <= index))
+		{
+			ThrowError("SMQueue Error: Attempted to add string at %d to queue of size %d!", index, queueLen);
+		}
+		if (queueLen > index)
+		{
+			this.ShiftUp(index);
+			this.SetString(index, value);
+		}
+		else if (appendOutBounds)
+		{
+			this.EnqueueString(value);
+		}
 	}
 
 	/**
@@ -633,6 +694,34 @@ methodmap SMQueue < ArrayList
 	public void EnqueueArray(const any[] values, int size = -1)
 	{
 		this.PushArray(values, size);
+	}
+
+	/**
+	 * Enqueues at a given index. If the index is greater than the Length, this
+	 * will optionally just append. Useful if you want to prioritize elements.
+	 *
+	 * @param index                Index to place item at.
+	 * @param value                String to put at index.
+	 * @param appendOutBounds      Optionally set to append if index is greater
+	 *                             than queue size.
+	 * @noreturn
+	 */
+	public void EnqueueArrayAt(int index, const any[] value, bool appendOutBounds = true)
+	{
+		int queueLen = this.Length;
+		if (index < 0 || (!appendOutBounds && queueLen <= index))
+		{
+			ThrowError("SMQueue Error: Attempted to add array at %d to queue of size %d!", index, queueLen);
+		}
+		if (queueLen > index)
+		{
+			this.ShiftUp(index);
+			this.SetArray(index, value);
+		}
+		else if (appendOutBounds)
+		{
+			this.EnqueueArray(value);
+		}
 	}
 
 	/**
@@ -802,9 +891,7 @@ methodmap Object < StringMap
 	public Object()
 	{
 		StringMap map = new StringMap();
-		map.SetValue("bool", new StringMap());
-		map.SetValue("char", new StringMap());
-		map.SetValue("float", new StringMap());
+		map.SetValue("any", new StringMap());
 		map.SetValue("function", new StringMap());
 		map.SetValue("handle", new StringMap());
 		map.SetValue("int", new StringMap());
@@ -859,7 +946,7 @@ methodmap Object < StringMap
 	 */
 	public void addBool(char[] memberName, bool val=false)
 	{
-		StringMap typeMap = this.retrieveMapOfType("bool");
+		StringMap typeMap = this.retrieveMapOfType("any");
 
 		if (!typeMap.SetValue(memberName, val, false))
 		{
@@ -876,7 +963,7 @@ methodmap Object < StringMap
 	 */
 	public void addChar(char[] memberName, any val=' ')
 	{
-		StringMap typeMap = this.retrieveMapOfType("char");
+		StringMap typeMap = this.retrieveMapOfType("any");
 
 		if (!typeMap.SetValue(memberName, val, false))
 		{
@@ -893,7 +980,7 @@ methodmap Object < StringMap
 	 */
 	public void addFloat(char[] memberName, float val=0.0)
 	{
-		StringMap typeMap = this.retrieveMapOfType("float");
+		StringMap typeMap = this.retrieveMapOfType("any");
 
 		if (!typeMap.SetValue(memberName, val, false))
 		{
@@ -953,7 +1040,7 @@ methodmap Object < StringMap
 	 */
 	public void addInt(char[] memberName, int val=0)
 	{
-		StringMap typeMap = this.retrieveMapOfType("int");
+		StringMap typeMap = this.retrieveMapOfType("any");
 
 		if (!typeMap.SetValue(memberName, val, false))
 		{

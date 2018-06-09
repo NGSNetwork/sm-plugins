@@ -4,11 +4,17 @@
 *
 * Files:
 * addons/sourcemod/plugins/ngs_proxychecker.smx
+* addons/sourcemod/configs/proxychecker.cfg
 * cfg/sourcemod/proxychecker.cfg
 *
 * Dependencies:
-* SteamWorks.inc, ngsutils.inc, ngsupdater.inc
+* SteamWorks.inc, autoexecconfig.inc, json.inc, ngsutils.inc, ngsupdater.inc
+*
+*
+* Install by configuring api key for proxycheck.io in config/proxychecker.cfg
+* and email in cfg/sourcemod/proxychecker.cfg
 */
+#pragma dynamic 16384
 #pragma newdecls required
 #pragma semicolon 1
 
@@ -18,101 +24,358 @@
 //#define DEBUG
 
 #include <SteamWorks>
+#include <autoexecconfig>
+#include <json>
 #include <ngsutils>
 #include <ngsupdater>
 
-ConVar contactEmail, getIpIntelProbability;
+ConVar cvarContactEmail, cvarLowestTolerableTime;
 
-bool disallowRequests;
-StringMap processCache;
+float getIpIntelProbability;
+SMQueue processQueue;
+SMTimer processQueueTimer;
+KeyValues config;
+ArrayList vpnList;
 StringMap requestCache;
-SMTimer processCacheTimer;
-int numRequests, numRequestsPerMin;
+int vpnToUse; // an index of vpnList
+int twentyFourHourTimeStamp;
+
+char getIPIntelURL[1024], proxyCheckIOURL[1024]; // TODO: Fill this out when reading the config, use the url to send the request.
+
+// VPN METHODMAP
+methodmap VPN < StringMap
+{
+	public VPN(const char[] type, const char[] url, int requestsPerMin, int requestsPerDay, float probability=-1.0)
+	{
+		StringMap coolBean = new StringMap();
+		coolBean.SetString("type", type);
+		coolBean.SetString("url", url);
+		coolBean.SetValue("perDaySoFar", 0);
+		coolBean.SetValue("perMin", requestsPerMin);
+		coolBean.SetValue("perDay", requestsPerDay);
+		coolBean.SetValue("probability", probability);
+		return view_as<VPN>(coolBean);
+	}
+}
 
 public Plugin myinfo = {
 	name        = "[NGS] Proxy Checker",
 	author      = "TheXeon",
 	description = "Simple checker against API for proxies/VPNs.",
-	version     = "1.2.0",
+	version     = "1.3.0",
 	url         = "https://www.neogenesisnetwork.net"
 }
 
 public void OnPluginStart()
 {
-	contactEmail = CreateConVar("sm_proxychecker_email", "dummy@dummy.dummy", "Contact email for free APIs to use.");
-	getIpIntelProbability = CreateConVar("sm_proxychecker_getintel_prob", "0.95", "Probablity to use with GetIPIntel.");
-	AutoExecConfig(true, "proxychecker");
+	AutoExecConfig_SetCreateDirectory(true);
+	AutoExecConfig_SetCreateFile(true);
+	AutoExecConfig_SetFile("proxychecker");
+	bool appended;
+	cvarContactEmail = AutoExecConfig_CreateConVarCheckAppend(appended, "proxychecker_email", "dummy@dummy.dummy", "Contact email for free APIs to use.");
+	cvarLowestTolerableTime = AutoExecConfig_CreateConVarCheckAppend(appended, "proxychecker_lowest_time", "45.0", "Lowest possible time for the processing timer to be.");
+	AutoExecConfig_ExecAndClean(appended);
+
+	#if defined DEBUG
+	RegAdminCmd("sm_triggerproxytimer", CommandTriggerTimer, ADMFLAG_ROOT);
+	RegAdminCmd("sm_clearproxycache", CommandClearProxyCache, ADMFLAG_ROOT);
+	#endif
+	RegAdminCmd("sm_reloadproxyconfig", CommandReloadProxyConfig, ADMFLAG_GENERIC, "Reloads all proxy services from config file.");
+
 	requestCache = new StringMap();
-	SMTimer.Make(60.0, OnRequestPerMinuteTimer, _, TIMER_REPEAT);
+}
+
+public void OnConfigsExecuted()
+{
+	#if defined DEBUG
+	char cvarValue[256];
+	cvarContactEmail.GetString(cvarValue, sizeof(cvarValue));
+	PrintToServer("After AutoExecConfig is all run, email is %s", cvarValue);
+	cvarLowestTolerableTime.GetString(cvarValue, sizeof(cvarValue));
+	PrintToServer("After AutoExecConfig is all run, lowest tolerable time is %s", cvarValue);
+	#endif
+	char path[PLATFORM_MAX_PATH];
+	BuildPath(Path_SM, path, sizeof(path), "configs/proxychecker.cfg");
+	if (FileExists(path))
+	{
+		ReadProxyConfigFile(path, true);
+	}
+	else
+	{
+		SetFailState("Required configuration file at %s is not there! Get it from the repo!", path);
+	}
+}
+
+void ReadProxyConfigFile(const char[] path, bool stopNotNull=false)
+{
+	if (stopNotNull && vpnList != null)
+	{
+		return;
+	}
+	delete config;
+	delete processQueueTimer;
+	if (vpnList != null && vpnList.Length > 0)
+	{
+		for (int i = 0; i < vpnList.Length; i++)
+		{
+			VPN removeVPN = vpnList.Get(i);
+			delete removeVPN;
+		}
+	}
+	delete vpnList;
+	vpnList = new ArrayList();
+	config = new KeyValues("Checkers");
+	if (!config.ImportFromFile(path))
+	{
+		SetFailState("Could not read from required config at %s, please get it from the repo!", path);
+	}
+
+	if (!config.GotoFirstSubKey())
+	{
+		delete config;
+		SetFailState("Malformed config at %s, please correct it from the repo!", path);
+	}
+
+	// Iterate over subsections at the same nesting level
+	char buffer[256], url[1024], email[256];
+	float probability, lowestPerMin;
+	int perMin, perDay, totalPerDay;
+	cvarContactEmail.GetString(email, sizeof(email));
+	if (StrEqual(email, "dummy@dummy.dummy"))
+	{
+		SetFailState("Please set a valid email in the config and reload the plugin, currently %s!", email);
+	}
+
+	do
+	{
+		config.GetSectionName(buffer, sizeof(buffer));
+		config.GetString("url", url, sizeof(url));
+		ReplaceString(url, sizeof(url), "{CONTACTEMAIL}", email);
+		perMin = config.GetNum("requestspermin");
+		perDay = config.GetNum("requestsperday");
+		probability = config.GetFloat("probability", -1.0);
+		vpnList.Push(new VPN(buffer, url, perMin, perDay, probability));
+		if (StrEqual(buffer, "getipintel"))
+		{
+			strcopy(getIPIntelURL, sizeof(getIPIntelURL), url);
+			getIpIntelProbability = probability;
+		}
+		else if (StrEqual(buffer, "proxycheck.io"))
+		{
+			strcopy(proxyCheckIOURL, sizeof(proxyCheckIOURL), url);
+		}
+		if (!lowestPerMin || lowestPerMin > perMin)
+		{
+			lowestPerMin = float(perMin);
+		}
+		totalPerDay += perDay;
+	}
+	while (config.GotoNextKey());
+
+	float possibleTotal = float(RoundToCeil(84600.0 / totalPerDay) + 5);
+	lowestPerMin = 60.0 / lowestPerMin; // stretch over seconds.
+
+	float lowestTolerableTime = cvarLowestTolerableTime.FloatValue;
+	float time = (possibleTotal > lowestTolerableTime && possibleTotal > lowestPerMin) ?
+		possibleTotal : (lowestPerMin > lowestTolerableTime) ? lowestPerMin : lowestTolerableTime;
+
+	if (processQueue == null)
+	{
+		processQueue = new SMQueue();
+	}
+	processQueueTimer = new SMTimer(time, OnProcessQueueTimer, _, TIMER_REPEAT); // saved for later delete/reuse if needed
+	#if defined DEBUG
+	PrintToServer("Set process queue timer to %0.2f with lowestPerMin at %0.2f and " ...
+	"totalPerDay at %d", time, lowestPerMin, totalPerDay);
+	#endif
+}
+
+#if defined DEBUG
+public Action CommandTriggerTimer(int client, int args)
+{
+	ReplyToCommand(client, "Triggered proxy check timer!");
+	processQueueTimer.Trigger();
+	return Plugin_Handled;
+}
+
+public Action CommandClearProxyCache(int client, int args)
+{
+	delete requestCache;
+	requestCache = new StringMap();
+	ReplyToCommand(client, "Cleared the proxy cache entirely!");
+	return Plugin_Handled;
+}
+#endif
+
+public Action CommandReloadProxyConfig(int client, int args)
+{
+	char path[PLATFORM_MAX_PATH];
+	BuildPath(Path_SM, path, sizeof(path), "configs/proxychecker.cfg");
+	if (FileExists(path))
+	{
+		ReadProxyConfigFile(path);
+	}
+	else
+	{
+		SetFailState("Required configuration file at %s is not there! Get it from the repo!", path);
+	}
+	ReplyToCommand(client, "Proxies have been reloaded!");
+	return Plugin_Handled;
 }
 
 public void OnClientPutInServer(int client)
 {
-	if (!IsFakeClient(client) && numRequests < 500)
+	if (!IsFakeClient(client))
 	{
-		float probability;
+		bool isSafe;
 		char ip[24];
 		GetClientIP(client, ip, sizeof(ip));
 
-		if (requestCache != null && requestCache.GetValue(ip, probability) && probability < getIpIntelProbability.FloatValue)
+		if (requestCache != null && requestCache.GetValue(ip, isSafe) && isSafe)
 		{
 			#if defined DEBUG
-			PrintToServer("Retrieved probability %.02f from cache for client %L.", probability, client);
+			PrintToServer("Retrieved notion that client %L is safe", client);
 			#endif
 			return;
 		}
 
-		DataPack pack = new DataPack(), dummy;
-		if (processCache != null && disallowRequests)
+		DataPack pack = new DataPack();
+		if (processQueue != null)
 		{
 			pack.WriteCell(GetClientUserId(client));
 			pack.WriteString(ip);
-			if (!processCache.GetValue(ip, dummy))
+			processQueue.Enqueue(pack);
+		}
+	}
+}
+
+public Action OnProcessQueueTimer(Handle timer)
+{
+	char ip[24];
+	bool dummy;
+	DataPack pack;
+	while (!processQueue.isEmpty())
+	{
+		pack = processQueue.Dequeue();
+		pack.Reset();
+		pack.ReadCell();
+		pack.ReadString(ip, sizeof(ip));
+		#if defined DEBUG
+		PrintToServer("ProcessQueue is not empty, processing %s.", ip);
+		#endif
+		if (requestCache.GetValue(ip, dummy))
+		{
+			#if defined DEBUG
+			PrintToServer("Got ip %s from cache, already processed.", ip);
+			#endif
+			delete pack; // already cached
+		}
+		else
+		{
+			#if defined DEBUG
+			PrintToServer("Ip %s not in cache, sending request.", ip);
+			#endif
+			SendCheckRequest(pack);
+			break;
+		}
+	}
+}
+
+void SendCheckRequest(DataPack pack)
+{
+	if (vpnList != null)
+	{
+		int now = GetTime();
+		if (!twentyFourHourTimeStamp)
+		{
+			twentyFourHourTimeStamp = now;
+		}
+		else if (now - twentyFourHourTimeStamp >= 86400)
+		{
+			#if defined DEBUG
+			PrintToServer("now: %d minus priortimestamp: %d is greater than a day, reseting daily values.", now, twentyFourHourTimeStamp);
+			#endif
+			for (int i = 0; i < vpnList.Length; i++)
 			{
-				processCache.SetValue(ip, pack);
+				VPN vpn = vpnList.Get(i);
+				vpn.SetValue("perDaySoFar", 0);
 			}
-			else
+			now = twentyFourHourTimeStamp;
+			if (vpnList.Length > 0 && vpnToUse < 0)
 			{
-				delete pack;
+				vpnToUse = 0; // this should never be needed, but just in case
+			}
+		}
+
+		if (vpnToUse >= 0)
+		{
+			char type[256];
+			VPN vpn = vpnList.Get(vpnToUse);
+			vpn.GetString("type", type, sizeof(type));
+			if (StrEqual(type, "getipintel"))
+			{
+				SendGetIPIntelRequest(pack);
+			}
+			else if (StrEqual(type, "proxycheck.io"))
+			{
+				SendProxyCheckIORequest(pack);
+			}
+			int soFarToday, allowedPerDay;
+			vpn.GetValue("perDaySoFar", soFarToday);
+			vpn.SetValue("perDaySoFar", soFarToday + 1);
+			vpn.GetValue("perDay", allowedPerDay);
+			if (soFarToday + 1 == allowedPerDay)
+			{
+				#if defined DEBUG
+				PrintToServer("soFarToday + 1 == allowedPerDay for service %s!", type);
+				#endif
+				if (vpnToUse + 1 == vpnList.Length)
+				{
+					#if defined DEBUG
+					PrintToServer("vpnToUse runs off the end of the list, invalidating vpnToUse");
+					#endif
+					vpnToUse = -1; // wait to cycle back
+				}
+				else
+				{
+					#if defined DEBUG
+					PrintToServer("vpnToUse is being iterated by 1 to %d.", vpnToUse + 1);
+					#endif
+					vpnToUse++;
+				}
 			}
 		}
 		else
 		{
-			pack.WriteCell(GetClientUserId(client));
-			pack.WriteString(ip);
-			SendGetIPIntelRequest(pack);
+			#if defined DEBUG
+			PrintToServer("vpnToUse is -1 requeuing datapack at beginning");
+			#endif
+			processQueue.EnqueueAt(0, pack);
 		}
 	}
 }
 
 void SendGetIPIntelRequest(DataPack pack)
 {
-	if (numRequests >= 500 || numRequestsPerMin >= 15)
-	{
-		delete pack; // TODO: Actually queue these, otherwise we are ignoring some requests.
-		return;
-	}
-	numRequests++;
-	numRequestsPerMin++;
-	char contactAddr[256], ip[24];
+	char contactAddr[256], ip[24], formatURL[1024];
 	pack.Reset();
 	pack.ReadCell();
 	pack.ReadString(ip, sizeof(ip));
-	contactEmail.GetString(contactAddr, sizeof(contactAddr));
+	cvarContactEmail.GetString(contactAddr, sizeof(contactAddr));
 	if (StrEqual("dummy@dummy.dummy", contactAddr))
 	{
 		LogError("SPAMMY ERRORS! Please change the email used with the proxy checker to something valid!");
 		delete pack;
 		return;
 	}
-	SWHTTPRequest request = new SWHTTPRequest(k_EHTTPMethodGET, "https://check.getipintel.net/check.php");
-	request.SetParam("ip", ip);
-	request.SetParam("contact", contactAddr);
+	strcopy(formatURL, sizeof(formatURL), getIPIntelURL);
+	ReplaceString(formatURL, sizeof(formatURL), "{CLIENTIP}", ip);
+	SWHTTPRequest request = new SWHTTPRequest(k_EHTTPMethodGET, formatURL);
 	request.SetContextValue(pack);
 	request.SetCallbacks(OnGetIPIntelRequestDone);
 	request.Send();
 	#if defined DEBUG
-	PrintToServer("Sending request for ip %s for contact %s.", ip, contactAddr);
+	PrintToServer("Sending getipintel request at url %s .", formatURL);
 	#endif
 }
 
@@ -134,21 +397,8 @@ public void OnGetIPIntelRequestDone(SWHTTPRequest hRequest, bool bFailure, bool 
 		}
 		else if (eStatusCode == k_EHTTPStatusCode429TooManyRequests)
 		{
-			LogError("Get IP Intel request failed for userid %d! At %d requests as of async request completion, caching requests!", userid, numRequests);
-			if (processCache == null)
-			{
-				processCache = new StringMap();
-				disallowRequests = true;
-			}
-			DataPack dummy; // dont delete if used.
-			if (!processCache.GetValue(ip, dummy))
-			{
-				processCache.SetValue(ip, pack);
-			}
-			if (processCacheTimer == null)
-			{
-				processCacheTimer = new SMTimer(86500.0, OnCacheTimerComplete); // wait 24 hours + 100 seconds.
-			}
+			LogError("Get IP Intel request failed for userid %d! There were too many requests, please investigate this!", userid);
+			processQueue.Enqueue(pack);
 		}
 		else
 		{
@@ -174,71 +424,113 @@ public void OnGetIPIntelRequestDone(SWHTTPRequest hRequest, bool bFailure, bool 
 	#if defined DEBUG
 	PrintToServer("Probability for proxy is %.2f for ip %s!", probability, ip);
 	#endif
-	if (probability >= getIpIntelProbability.FloatValue)
+	if (probability >= getIpIntelProbability)
 	{
 		ServerCommand("sm_banip %s 0 Suspicion of proxy with probability %.2f", ip, probability);
 		if (userid != 0 && client != 0) // might be redundant, only client is needed.
 		{
-			KickClient(client, "%.2f percent Suspicion of proxy server.");
+			KickClient(client, "%.2f percent suspicion of proxy server.");
 		}
+		requestCache.SetValue(ip, false); // TODO: Make cache erase after a while
 	}
-	requestCache.SetValue(ip, probability); // TODO: Make cache erase after a while
+	else
+	{
+		requestCache.SetValue(ip, true); // TODO: Make cache erase after a while
+	}
 	#if defined DEBUG
 	PrintToServer("Caching probability %.02f for client %L.", probability, client);
 	#endif
 }
 
-public Action OnCacheTimerComplete(Handle timer)
+void SendProxyCheckIORequest(DataPack pack)
 {
-	numRequests = 0; // this will cause a bit of rounding weirdness
-	processCacheTimer = null;
-	disallowRequests = false;
-	SMTimer.Make(60.0, ProcessCachePortion, _, TIMER_REPEAT);
+	char ip[24], formatURL[1024];
+	pack.Reset();
+	pack.ReadCell();
+	pack.ReadString(ip, sizeof(ip));
+	strcopy(formatURL, sizeof(formatURL), proxyCheckIOURL);
+	ReplaceString(formatURL, sizeof(formatURL), "{CLIENTIP}", ip);
+	SWHTTPRequest request = new SWHTTPRequest(k_EHTTPMethodGET, formatURL);
+	request.SetContextValue(pack);
+	request.SetCallbacks(OnProxyCheckIORequestDone);
+	request.Send();
+	#if defined DEBUG
+	PrintToServer("Sending proxycheckio request at url %s .", formatURL);
+	#endif
 }
 
-public Action ProcessCachePortion(Handle timer)
+public void OnProxyCheckIORequestDone(SWHTTPRequest hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, DataPack pack)
 {
+	pack.Reset();
+	int userid = pack.ReadCell();
 	char ip[24];
-	StringMapSnapshot snap = processCache.Snapshot();
-	int len = (snap.Length <= 15) ? snap.Length : 15;
-	for (int i = 0; i < len; i++)
+	pack.ReadString(ip, sizeof(ip));
+	if(eStatusCode != k_EHTTPStatusCode200OK || !bRequestSuccessful)
 	{
-		if (numRequestsPerMin >= 15)
+		LogError("ProxyCheck.io request failed for userid %d! Status code is %d, success was %s.", userid, eStatusCode, (bRequestSuccessful) ? "true" : "false");
+		processQueue.Enqueue(pack); // deprioritize this
+		delete hRequest;
+		return;
+	}
+
+	int client = 0;
+	if (userid != 0)
+	{
+		client = GetClientOfUserId(userid);
+	}
+
+	char[] buffer = new char[hRequest.ResponseSize + 1];
+	hRequest.GetBodyData(buffer, hRequest.ResponseSize);
+	delete hRequest;
+	delete pack;
+
+	#if defined DEBUG
+	PrintToServer("ProxyCheck.io request returned %s", buffer);
+	#endif
+
+	JSON_Object reponse = new JSON_Object();
+	reponse.Decode(buffer);
+	char status[24];
+	reponse.GetString("status", status, sizeof(status));
+	if (!StrEqual(status, "ok"))
+	{
+		char message[256];
+		reponse.GetString("message", message, sizeof(message));
+		if (StrEqual("warning", status))
 		{
-			return Plugin_Continue; // continue again when requests allow for it
-		}
-		snap.GetKey(i, ip, sizeof(ip));
-		DataPack pack;
-		if (processCache.GetValue(ip, pack))
-		{
-			pack.Reset();
-			if (GetClientOfUserId(pack.ReadCell()) == 0)
-			{
-				pack.ReadString(ip, sizeof(ip));
-				delete pack;
-				pack = new DataPack();
-				pack.WriteCell(0); // userid to 0
-				pack.WriteString(ip);
-			}
-			processCache.Remove(ip);
-			SendGetIPIntelRequest(pack);
+			LogMessage("ProxyCheck.io error: %s", message);
 		}
 		else
 		{
-			LogError("Error in plugin function, unable to retrieve from processCache when length is %d!", snap.Length);
+			LogError("ProxyCheck.io error: %s", message);
 		}
 	}
-	if (snap.Length <= 15)
+	else
 	{
-		delete processCache;
-		delete snap;
-		return Plugin_Stop;
+		char isProxy[8], proxyType[24];
+		JSON_Object ipObj = reponse.GetObject(ip);
+		ipObj.GetString("proxy", isProxy, sizeof(isProxy));
+		#if defined DEBUG
+		PrintToServer("Result for proxy is %s <%s> for ip %s!", isProxy, (isProxy[0] == 'y') ? proxyType : "none", ip);
+		#endif
+		if (StrEqual(isProxy, "yes"))
+		{
+			ipObj.GetString("type", proxyType, sizeof(proxyType));
+			ServerCommand("sm_banip %s 0 Suspicion of proxy with type %s", ip, proxyType);
+			if (userid != 0 && client != 0) // might be redundant, only client is needed.
+			{
+				KickClient(client, "Suspicion of proxy server with type %s.", proxyType);
+			}
+			requestCache.SetValue(ip, false); // TODO: Make cache erase after a while
+		}
+		else
+		{
+			requestCache.SetValue(ip, true); // TODO: Make cache erase after a while
+		}
+		#if defined DEBUG
+		PrintToServer("Caching suspicion of %s for ip %s.", isProxy, ip);
+		#endif
 	}
-	delete snap;
-	return Plugin_Continue;
-}
-
-public Action OnRequestPerMinuteTimer(Handle timer)
-{
-	numRequestsPerMin = 0;
+	reponse.Cleanup();
+	delete reponse;
 }

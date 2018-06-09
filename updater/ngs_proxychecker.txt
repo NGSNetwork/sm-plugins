@@ -4,18 +4,20 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.2.0"
+			"Latest"	"1.3.0"
 		}
 
-		"Notes"	"Utilize GetIPIntel properly, cache results!"
-		"Notes"	"Warning: Cache is not cleared within 6 hours as recommended."
-		"Notes"	"Add extra checks for per second processes!"
-		"Notes"	"Optimize caching and results."
+		"Notes"	"Added: Proxychecker config to configure proxychecking services. Natives maybe?"
+		"Notes"	"Changed: Actually utilize GetIPIntel properly, cache results!"
+		"Notes"	"Warning: Cache is still not cleared within the recommended 6 hours."
+		"Notes"	"Changed: Utilize a queue timer now to stretch out available requests over the day."
+		"Notes"	"Optimize EVERYTHING, including caching to prevent the checking of same IPs twice."
 	}
 
 	"Files"
 	{
 		"Plugin"	"Path_SM/plugins/ngs_proxychecker.smx"
+		"Plugin"	"Path_SM/configs/proxychecker.cfg"
 
 		"Source"	"Path_SM/scripting/ngs_proxychecker.sp"
 	}

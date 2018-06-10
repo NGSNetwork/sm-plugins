@@ -19,10 +19,10 @@ env:
     - SMVERSION=1.9 # Unstable
     - SMVERSION=1.10 # Unstable
 
- 
+
 before_install:
   - mkdir build-env
-    
+
 # And compile!
 install:
    - cd build-env
@@ -31,18 +31,19 @@ install:
    - ls
    - cd ../
    - rm build-env/addons/sourcemod/scripting/*.sp
-   - \cp -rv scripting/* build-env/addons/sourcemod/scripting/ 
+   - \cp -rv scripting/* build-env/addons/sourcemod/scripting/
    # > /dev/null 2>&1
    - \cp -rv scripting/include/* build-env/addons/sourcemod/scripting/include/
    # > /dev/null 2>&1
-    
+
 before_script:
   - chmod +rx build-env/addons/sourcemod/scripting/spcomp
   - chmod +rx build-env/addons/sourcemod/scripting/compile.sh
   - cd build-env/addons/sourcemod/scripting/
-    
+
 script: ./compile.sh
 
 # Notifications
 notifications:
     email: false
+    webhooks: https://www.neogenesisnetwork.net/travis-ci.php

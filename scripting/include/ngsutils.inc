@@ -788,7 +788,7 @@ methodmap SMQueue < ArrayList
 #endif
 
 #if defined _adt_trie_included
-methodmap String < StringMap
+methodmap StringObj < StringMap
 {
 	/**
 	 * Creates a new java-like String Object (must be closed or deleted).
@@ -796,7 +796,7 @@ methodmap String < StringMap
 	 * @param buffer        Buffer to store the array in.
 	 * @noreturn
 	 */
-	public String(const char[] buffer)
+	public StringObj(const char[] buffer)
 	{
 		StringMap map = new StringMap();
 		map.SetString("value", buffer);
@@ -827,7 +827,7 @@ methodmap String < StringMap
 		int length = this.length;
 		if (index >= length || index < 0)
 		{
-			ThrowError("String Error: Attempted to access index out of bounds!");
+			ThrowError("StringObj Error: Attempted to access index out of bounds!");
 		}
 		char[] value = new char[length];
 		this.GetString("value", value, length);
@@ -857,7 +857,7 @@ methodmap String < StringMap
 	 *														comparison is case insensitive.
 	 * @return 			-1 if str1 < str2 0 if str1 == str2 1 if str1 > str2
 	 */
-	public int compareTo(String anotherString, bool caseSensitive)
+	public int compareTo(StringObj anotherString, bool caseSensitive)
 	{
 		int length = this.length, otherLength = anotherString.length;
 
@@ -878,9 +878,8 @@ methodmap String < StringMap
 	{
 		return (this.length == 0);
 	}
-
 }
-// Object METHODMAPS similar to Java
+// Object METHODMAPS similar to Java, designed to be extended with methodmaps.
 methodmap Object < StringMap
 {
 	/**
@@ -894,7 +893,6 @@ methodmap Object < StringMap
 		map.SetValue("any", new StringMap());
 		map.SetValue("function", new StringMap());
 		map.SetValue("handle", new StringMap());
-		map.SetValue("int", new StringMap());
 		map.SetValue("object", new StringMap());
 		map.SetValue("string", new StringMap());
 
@@ -961,7 +959,7 @@ methodmap Object < StringMap
 	 * @param val					Optional default value to give.
 	 * @noreturn
 	 */
-	public void addChar(char[] memberName, any val=' ')
+	public void addChar(char[] memberName, any val='\0')
 	{
 		StringMap typeMap = this.retrieveMapOfType("any");
 

@@ -1,0 +1,24 @@
+"Updater"
+{
+	"Information"
+	{
+		"Version"
+		{
+			"Latest"	"2.0.2"
+		}
+
+		"Notes"	"Add updater support!"
+		"Notes"	"Add central menu command!"
+		"Notes"	"Add full argument string support!"
+		"Notes"	"Remove sm_ prefixes from cvars."
+		"Notes"	"Properly handle mute-dodgers."
+		"Notes"	"Remove extra spaces from .sp."
+	}
+
+	"Files"
+	{
+		"Plugin"	"Path_SM/plugins/ngs_advert_antiflood.smx"
+
+		"Source"	"Path_SM/scripting/ngs_advert_antiflood.sp"
+	}
+}

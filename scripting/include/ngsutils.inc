@@ -9,6 +9,11 @@
 #endif
 #define _ngsutil_included
 
+#tryinclude <adt_array>
+#tryinclude <adt_trie>
+#tryinclude <autoexecconfig>
+#tryinclude <clientprefs>
+#tryinclude <timers>
 
 /**
  * Checks if a client is valid. From another include whose author I can't find
@@ -880,14 +885,14 @@ methodmap StringObj < StringMap
 	}
 }
 // Object METHODMAPS similar to Java, designed to be extended with methodmaps.
-methodmap Object < StringMap
+methodmap SMObject < StringMap
 {
 	/**
 	 * Create a new object with properties you can set/add to.
 	 *
 	 * @return							A new Object that is cool.
 	 */
-	public Object()
+	public SMObject()
 	{
 		StringMap map = new StringMap();
 		map.SetValue("any", new StringMap());
@@ -898,7 +903,31 @@ methodmap Object < StringMap
 
 		map.SetValue("class", "Object");
 		map.SetValue("destroyhandles", new StringMap());
-		return view_as<Object>(map);
+		return view_as<SMObject>(map);
+	}
+
+	/**
+	 * Returns the memory value of this, might be usable as a hashCode, iunno.
+	 *
+	 * @return						Memory location of this object.
+	 */
+	public int hashCode()
+	{
+		return view_as<int>(this);
+	}
+
+	/**
+	 * Returns the class of the item.
+	 *
+	 * @param buffer			Buffer to save class to.
+	 * @param buffSize		Size of buffer.
+	 * @return						Number of bytes written to buffer.
+	 */
+	public int getClass(char[] buffer, int buffSize)
+	{
+		int len;
+		this.GetString("class", buffer, buffSize, len);
+		return len;
 	}
 
 	/**
@@ -907,7 +936,7 @@ methodmap Object < StringMap
 	 * @param obj					Object to check for equality.
 	 * @return						True if objects are the same, otherwise no.
 	 */
-	public bool equals(Object obj)
+	public bool equals(SMObject obj)
 	{
 		return obj == this;
 	}
@@ -918,10 +947,23 @@ methodmap Object < StringMap
 	 * @param plugin			Possible new plugin's ownership handle.
 	 * @return						Cloned object that must be disposed of by itself.
 	 */
-	public Object clone(Handle plugin=INVALID_HANDLE)
+	public SMObject clone(Handle plugin=INVALID_HANDLE)
 	{
-		Object newObj = view_as<Object>(CloneHandle(this, plugin));
-		return newObj;
+		return view_as<SMObject>(CloneHandle(this, plugin));
+	}
+
+	/**
+	 * Saves a string representation of the object to buffer.
+	 *
+	 * @param buffer			Character buffer to save object to.
+	 * @param buffSize		Size of buffer to put it
+	 * @return						Number of bytes written to buffer.
+	 */
+	public int toString(char[] buffer, int buffSize)
+	{
+		char class[256];
+		this.getClass(class, sizeof(class));
+		return Format(buffer, buffSize, "%s@%x", class, this.hashCode());
 	}
 
 	/////////////////////////
@@ -1053,7 +1095,7 @@ methodmap Object < StringMap
 	 * @param val					Optional default value to give.
 	 * @noreturn
 	 */
-	public void addObject(char[] memberName, Object val=null)
+	public void addObject(char[] memberName, SMObject val=null)
 	{
 		StringMap typeMap = this.retrieveMapOfType("object");
 
@@ -1088,44 +1130,49 @@ methodmap Object < StringMap
 	 */
 	public void dispose(bool deleteThis=true)
 	{
-		StringMapSnapshot snap = this.Snapshot();
-		int len;
-		for (int i = 0; i < snap.Length; i++)
-		{
-			len = snap.KeyBufferSize(i);
-			char[] buffer = new char[len];
-			snap.GetKey(i, buffer, len);
-			StringMap map;
-			if (this.GetValue(buffer, map))
-			{
-				if (StrEqual("handle", buffer))
-				{
-					delete map;
-					continue;
-				}
-				else if (StrEqual("object", buffer))
-				{
-					int objectKeyLen;
-					Object member;
-					StringMapSnapshot objectSnap = map.Snapshot();
-					for (int j = 0; j < objectSnap.Length; j++)
-					{
-						objectKeyLen = objectSnap.KeyBufferSize(j);
-						char[] objectKey = new char[objectKeyLen];
-						objectSnap.GetKey(j, objectKey, objectKeyLen);
-						map.GetValue(objectKey, member);
-						/* member.dispose(); */
-					}
-					delete objectSnap;
-					delete map;
-				}
-				/* else if (StrEqual()) */
-				else
-				{
+		DisposeObj(this, deleteThis);
+	}
+}
 
-				}
-			}
-		}
+stock void DisposeObj(SMObject me, bool deleteThis=true)
+{
+	StringMap map;
+	me.GetValue("any", map);
+	delete map;
+	me.GetValue("function", map);
+	delete map;
+	me.GetValue("handle", map);
+	delete map;
+	me.GetValue("string", map);
+	delete map;
+
+	char key[24];
+	me.GetValue("destroyhandles", map);
+	StringMapSnapshot snap = map.Snapshot();
+	Handle subHandle;
+	for (int i = 0; i < snap.Length; i++)
+	{
+		snap.GetKey(i, key, sizeof(key));
+		map.GetValue(key, subHandle);
+		delete subHandle;
+	}
+	delete snap;
+	delete map;
+
+	SMObject objs;
+	me.GetValue("object", map);
+	snap = map.Snapshot();
+	for (int i = 0; i < snap.Length; i++)
+	{
+		snap.GetKey(i, key, sizeof(key));
+		map.GetValue(key, objs);
+		objs.dispose(deleteThis);
+	}
+	delete snap;
+	delete map;
+	if (deleteThis)
+	{
+		delete me;
 	}
 }
 #endif

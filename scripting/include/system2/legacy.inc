@@ -5,19 +5,19 @@
  * License     GPLv3
  * Web         http://dordnung.de
  * -----------------------------------------------------
- * 
+ *
  * Copyright (C) 2013-2018 David Ordnung
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>
  */
@@ -95,7 +95,7 @@ typeset TransferUpdated
  *
  * @param callback              Callback function when finished. Check callback.status to check if process is finished.
  * @param url                   The URL of the page to load. Attach GET parameters here and leave post parameter empty to perform a GET request.
- * @param post                  POST parameters (use like this: "name=test&pw=test2"). Leave empty to perform a GET request. 
+ * @param post                  POST parameters (use like this: "name=test&pw=test2"). Leave empty to perform a GET request.
  * @param userAgent             Useragent to use. Leave empty for default one.
  * @param data                  Additional data to pass to the callback.
  *
@@ -240,7 +240,7 @@ stock void URLEncode(char[] stringToEncode, int maxlength, char[] safe = "/", bo
 {
     char sAlwaysSafe[256];
     Format(sAlwaysSafe, sizeof(sAlwaysSafe), "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.-%s", safe);
-    
+
     // Need 2 '%' since sp's Format parses one as a parameter to replace
     // http://wiki.alliedmods.net/Format_Class_Functions_%28SourceMod_Scripting%29
     if (format)
@@ -251,11 +251,11 @@ stock void URLEncode(char[] stringToEncode, int maxlength, char[] safe = "/", bo
     {
         ReplaceString(stringToEncode, maxlength, "%", "%25");
     }
-    
-    
+
+
     char sChar[8];
     char sReplaceChar[8];
-    
+
     for (new int i = 1; i < 256; i++)
     {
         // Skip the '%' double replace ftw..
@@ -263,8 +263,8 @@ stock void URLEncode(char[] stringToEncode, int maxlength, char[] safe = "/", bo
         {
             continue;
         }
-        
-        
+
+
         Format(sChar, sizeof(sChar), "%c", i);
 
         if (StrContains(sAlwaysSafe, sChar) == -1 && StrContains(stringToEncode, sChar) != -1)
@@ -277,7 +277,7 @@ stock void URLEncode(char[] stringToEncode, int maxlength, char[] safe = "/", bo
             {
                 Format(sReplaceChar, sizeof(sReplaceChar), "%%%02X", i);
             }
-            
+
             ReplaceString(stringToEncode, maxlength, sChar, sReplaceChar);
         }
     }

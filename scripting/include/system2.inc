@@ -5,19 +5,19 @@
  * License     GPLv3
  * Web         http://dordnung.de
  * -----------------------------------------------------
- * 
+ *
  * Copyright (C) 2013-2018 David Ordnung
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>
  */
@@ -129,7 +129,7 @@ methodmap System2ExecuteOutput < Handle {
      *                  You can use this to retrieve the output step by step.
      * @param delimiter Delimiter until which the content should be retrieved.
      * @param include   Whether the delimiter should be included or not.
-     * 
+     *
      * @return          Number of read bytes.
      * @error           Invalid Output.
      */
@@ -366,11 +366,13 @@ public Extension __ext_system2 =
         MarkNativeAsOptional("System2Request.GetOutputFile");
         MarkNativeAsOptional("System2Request.SetVerifySSL");
         MarkNativeAsOptional("System2Request.GetVerifySSL");
+        MarkNativeAsOptional("System2Request.SetProxy");
+        MarkNativeAsOptional("System2Request.SetProxyAuthentication");
         MarkNativeAsOptional("System2Request.Timeout.get");
         MarkNativeAsOptional("System2Request.Timeout.set");
         MarkNativeAsOptional("System2Request.Any.get");
         MarkNativeAsOptional("System2Request.Any.set");
-        
+
         MarkNativeAsOptional("System2HTTPRequest.System2HTTPRequest");
         MarkNativeAsOptional("System2HTTPRequest.SetProgressCallback");
         MarkNativeAsOptional("System2HTTPRequest.SetData");
@@ -389,7 +391,7 @@ public Extension __ext_system2 =
         MarkNativeAsOptional("System2HTTPRequest.FollowRedirects.get");
         MarkNativeAsOptional("System2HTTPRequest.FollowRedirects.set");
         MarkNativeAsOptional("System2HTTPRequest.Headers.get");
-        
+
         MarkNativeAsOptional("System2FTPRequest.System2FTPRequest");
         MarkNativeAsOptional("System2FTPRequest.SetProgressCallback");
         MarkNativeAsOptional("System2FTPRequest.SetAuthentication");
@@ -402,7 +404,7 @@ public Extension __ext_system2 =
         MarkNativeAsOptional("System2FTPRequest.CreateMissingDirs.set");
         MarkNativeAsOptional("System2FTPRequest.ListFilenamesOnly.get");
         MarkNativeAsOptional("System2FTPRequest.ListFilenamesOnly.set");
-        
+
         MarkNativeAsOptional("System2Response.GetLastURL");
         MarkNativeAsOptional("System2Response.GetContent");
         MarkNativeAsOptional("System2Response.ContentLength.get");
@@ -412,7 +414,7 @@ public Extension __ext_system2 =
         MarkNativeAsOptional("System2Response.UploadSize.get");
         MarkNativeAsOptional("System2Response.DownloadSpeed.get");
         MarkNativeAsOptional("System2Response.UploadSpeed.get");
-        
+
         MarkNativeAsOptional("System2HTTPResponse.GetContentType");
         MarkNativeAsOptional("System2HTTPResponse.GetHeader");
         MarkNativeAsOptional("System2HTTPResponse.GetHeaderName");

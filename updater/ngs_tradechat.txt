@@ -4,13 +4,10 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.6.2"
+			"Latest"	"1.6.3"
 		}
 		
-		"Notes"	"Use CommandListeners for chat!"
-		"Notes"	"Add sourcecomms support for gagging."
-		"Notes"	"Add missing translation files check."
-		"Notes"	"Remove OnAllPluginsLoaded hook."
+		"Notes"	"Fixed percent sign in hint message not showing!"
 	}
 	
 	"Files"

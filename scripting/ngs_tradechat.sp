@@ -32,7 +32,7 @@ public Plugin myinfo = {
 	name = "[NGS] Trade Chat",
 	author = "Luki / TheXeon",
 	description = "This plugin adds a special trade chat, players can hide it.",
-	version = "1.6.2",
+	version = "1.6.3",
 	url = "https://neogenesisnetwork.net/"
 }
 
@@ -215,7 +215,8 @@ public Action Command_MyLastTrade(int client, int args)
 stock bool DoTradeChat(int client, char[] msg, bool fromChatTriggers=false)
 {
 	TrimString(msg);
-	if (strlen(msg) == 0)
+	int len = strlen(msg);
+	if (len == 0)
 		return true;
 
 	if (TradeChatGag[client] || ((basecommExists && BaseComm_IsClientGagged(client)) || (sourcecommsExists && SourceComms_GetClientGagType(client) != bNot)))
@@ -262,6 +263,12 @@ stock bool DoTradeChat(int client, char[] msg, bool fromChatTriggers=false)
 
 	bool HintCommandAccess = CheckCommandAccess(client, "sm_trade_hudtext_override", ADMFLAG_RESERVATION);
 
+	char[] hintMessage = new char[len * 2 + 1];
+
+	strcopy(hintMessage, len * 2 + 1, msg);
+
+	ReplaceString(hintMessage, len * 2 + 1, "%", "%%");
+
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsValidClient(i) && !HideTradeChat[i])
@@ -269,10 +276,11 @@ stock bool DoTradeChat(int client, char[] msg, bool fromChatTriggers=false)
 			CPrintToChat(i, "%t", "Offer", sChatTag, name, msg);
 			if (HintCommandAccess)
 			{
-				PrintHintText(i, "[%s] %s: %s", sChatTag, name, msg);
+				PrintHintText(i, "[%s] %s: %s", sChatTag, name, hintMessage);
 			}
 		}
 	}
+
 	LogToFile(logfile, "%L says \"%s\"", client, msg);
 	return false;
 }

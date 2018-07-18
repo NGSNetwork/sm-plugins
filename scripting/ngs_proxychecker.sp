@@ -62,7 +62,7 @@ public Plugin myinfo = {
 	name        = "[NGS] Proxy Checker",
 	author      = "TheXeon",
 	description = "Simple checker against API for proxies/VPNs.",
-	version     = "1.3.0",
+	version     = "1.3.1",
 	url         = "https://www.neogenesisnetwork.net"
 }
 
@@ -429,7 +429,7 @@ public void OnGetIPIntelRequestDone(SWHTTPRequest hRequest, bool bFailure, bool 
 		ServerCommand("sm_banip %s 0 Suspicion of proxy with probability %.2f", ip, probability);
 		if (userid != 0 && client != 0) // might be redundant, only client is needed.
 		{
-			KickClient(client, "%.2f percent suspicion of proxy server.");
+			KickClient(client, "%.2f percent suspicion of proxy server.", probability);
 		}
 		requestCache.SetValue(ip, false); // TODO: Make cache erase after a while
 	}

@@ -24,26 +24,29 @@ bool allowVoiceMenuSpam;
 SMTimer authClientTimer[MAXPLAYERS + 1];
 SMTimer voiceMenuTimer[MAXPLAYERS + 1];
 
-public Plugin myinfo =
-{
+public Plugin myinfo = {
 	name = "[NGS] Game Fixes",
 	author = "TheXeon",
 	description = "Small plugin including changes for NGS server.",
-	version = "1.0.3",
+	version = "1.0.4",
 	url = "https://www.neogenesisnetwork.net/"
 }
 
 public void OnPluginStart()
 {
-	cvarDisableNonAuthedSpam = CreateConVar("sm_ngsfixes_disable_authspam", "1", "Should players be kicked if they don\'t auth?");
-	cvarDisableVoiceMenuSpam = CreateConVar("sm_ngsfixes_disable_voicespam", "1", "Should we limit the voicemenu spam on the server?");
+	AutoExecConfig_SetCreateDirectory(true);
+	AutoExecConfig_SetFile("ngs_fixes");
+	AutoExecConfig_SetCreateFile(true);
+	bool appended;
+	cvarDisableNonAuthedSpam = AutoExecConfig_CreateConVarCheckAppend(appended, "ngsfixes_disable_authspam", "1", "Should players be kicked if they don\'t auth?");
+	cvarDisableVoiceMenuSpam = AutoExecConfig_CreateConVarCheckAppend(appended, "ngsfixes_disable_voicespam", "1", "Should we limit the voicemenu spam on the server?");
 	cvarDisableVoiceMenuSpam.AddChangeHook(OnVoiceMenuSpamChanged);
 	if (GetEngineVersion() == Engine_TF2)
 	{
-		cvarDisableDoveSpawn = CreateConVar("sm_ngsfixes_disable_doves", "1", "Should the plugin disable dove spawning?");
+		cvarDisableDoveSpawn = AutoExecConfig_CreateConVarCheckAppend(appended, "ngsfixes_disable_doves", "1", "Should the plugin disable dove spawning?");
 		HookUserMessage(GetUserMessageId("SpawnFlyingBird"), UserMsg_SpawnBird, true);
 	}
-	AutoExecConfig(true, "ngs_fixes");
+	AutoExecConfig_ExecAndClean(appended);
 
 	AddCommandListener(CmdVoiceMenu, "voicemenu");
 }
@@ -129,6 +132,6 @@ public Action AuthCheckTimer(Handle timer, int userid)
 
 public void OnClientDisconnect(int client)
 {
-	authClientTimer[client].Close();
-	voiceMenuTimer[client].Close();
+	delete authClientTimer[client];
+	delete voiceMenuTimer[client];
 }

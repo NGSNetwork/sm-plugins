@@ -4,10 +4,10 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.0.3"
+			"Latest"	"1.0.4"
 		}
 		
-		"Notes"	"Add ability to throttle voice lines (retiring ngs_voicemenuthrottler)"
+		"Notes"	"Fix invalid timer handle spam."
 	}
 	
 	"Files"

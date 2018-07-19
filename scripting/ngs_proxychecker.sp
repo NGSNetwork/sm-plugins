@@ -62,7 +62,7 @@ public Plugin myinfo = {
 	name        = "[NGS] Proxy Checker",
 	author      = "TheXeon",
 	description = "Simple checker against API for proxies/VPNs.",
-	version     = "1.3.1",
+	version     = "1.3.2",
 	url         = "https://www.neogenesisnetwork.net"
 }
 
@@ -85,6 +85,28 @@ public void OnPluginStart()
 	requestCache = new StringMap();
 }
 
+public void OnPluginEnd()
+{
+	KeyValues kv = new KeyValues("Cache");
+	kv.SetNum("cachedTime", twentyFourHourTimeStamp);
+	char buffer[256];
+	int perDaySoFar;
+	for (int i = 0; i < vpnList.Length; i++)
+	{
+		VPN vpn = vpnList.Get(i);
+		vpn.GetString("type", buffer, sizeof(buffer));
+		vpn.GetValue("perDaySoFar", perDaySoFar);
+		kv.JumpToKey(buffer, true);
+		kv.SetNum("perDaySoFar", perDaySoFar);
+		kv.GoBack();
+	}
+	kv.Rewind();
+	char cachePath[PLATFORM_MAX_PATH];
+	BuildPath(Path_SM, cachePath, sizeof(cachePath), "data/proxycheckercache.cfg");
+	kv.ExportToFile(cachePath);
+	delete kv;
+}
+
 public void OnConfigsExecuted()
 {
 	#if defined DEBUG
@@ -94,19 +116,20 @@ public void OnConfigsExecuted()
 	cvarLowestTolerableTime.GetString(cvarValue, sizeof(cvarValue));
 	PrintToServer("After AutoExecConfig is all run, lowest tolerable time is %s", cvarValue);
 	#endif
-	char path[PLATFORM_MAX_PATH];
-	BuildPath(Path_SM, path, sizeof(path), "configs/proxychecker.cfg");
-	if (FileExists(path))
+	char configPath[PLATFORM_MAX_PATH], cachePath[PLATFORM_MAX_PATH];
+	BuildPath(Path_SM, configPath, sizeof(configPath), "configs/proxychecker.cfg");
+	BuildPath(Path_SM, cachePath, sizeof(cachePath), "data/proxycheckercache.cfg");
+	if (FileExists(configPath))
 	{
-		ReadProxyConfigFile(path, true);
+		ReadProxyConfigFile(configPath, cachePath, true);
 	}
 	else
 	{
-		SetFailState("Required configuration file at %s is not there! Get it from the repo!", path);
+		SetFailState("Required configuration file at %s is not there! Get it from the repo!", configPath);
 	}
 }
 
-void ReadProxyConfigFile(const char[] path, bool stopNotNull=false)
+void ReadProxyConfigFile(const char[] configPath, const char[] cachePath, bool stopNotNull=false)
 {
 	if (stopNotNull && vpnList != null)
 	{
@@ -125,15 +148,15 @@ void ReadProxyConfigFile(const char[] path, bool stopNotNull=false)
 	delete vpnList;
 	vpnList = new ArrayList();
 	config = new KeyValues("Checkers");
-	if (!config.ImportFromFile(path))
+	if (!config.ImportFromFile(configPath))
 	{
-		SetFailState("Could not read from required config at %s, please get it from the repo!", path);
+		SetFailState("Could not read from required config at %s, please get it from the repo!", configPath);
 	}
 
 	if (!config.GotoFirstSubKey())
 	{
 		delete config;
-		SetFailState("Malformed config at %s, please correct it from the repo!", path);
+		SetFailState("Malformed config at %s, please correct it from the repo!", configPath);
 	}
 
 	// Iterate over subsections at the same nesting level
@@ -179,6 +202,51 @@ void ReadProxyConfigFile(const char[] path, bool stopNotNull=false)
 	float time = (possibleTotal > lowestTolerableTime && possibleTotal > lowestPerMin) ?
 		possibleTotal : (lowestPerMin > lowestTolerableTime) ? lowestPerMin : lowestTolerableTime;
 
+	if (FileExists(cachePath) && vpnList.Length > 0)
+	{
+		KeyValues kv = new KeyValues("Cache");
+		if (kv.ImportFromFile(cachePath))
+		{
+			kv.Rewind();
+			twentyFourHourTimeStamp = kv.GetNum("cachedTime");
+			int offsetTime = GetTime() - twentyFourHourTimeStamp;
+			if (offsetTime < 86400)
+			{
+				vpnToUse = 0;
+				for (int i = 0; i < vpnList.Length; i++)
+				{
+					VPN vpn = vpnList.Get(i);
+					vpn.GetString("type", buffer, sizeof(buffer));
+					if (kv.JumpToKey(buffer))
+					{
+						int perDaySoFar = kv.GetNum("perDaySoFar");
+						vpn.GetValue("perDay", perDay);
+						vpn.SetValue("perDaySoFar", perDaySoFar);
+						if (perDaySoFar >= perDay)
+						{
+							vpnToUse++;
+							#if defined DEBUG
+							PrintToServer("Rolling vpnList to %d as perDaySoFar of %d is >= %s\'s perDay of %d", vpnToUse, perDaySoFar, buffer, perDay);
+							#endif
+							if (vpnToUse == vpnList.Length)
+							{
+								#if defined DEBUG
+								PrintToServer("Just totally invalidating vpnToUse as all are taken up. List length is %d", vpnList.Length);
+								#endif
+								vpnToUse = -1;
+							}
+						}
+						#if defined DEBUG
+						PrintToServer("Setting %s perDaySoFar to %d!", buffer, kv.GetNum("perDaySoFar"));
+						#endif
+					}
+					kv.GoBack();
+				}
+			}
+		}
+		delete kv;
+	}
+
 	if (processQueue == null)
 	{
 		processQueue = new SMQueue();
@@ -209,15 +277,16 @@ public Action CommandClearProxyCache(int client, int args)
 
 public Action CommandReloadProxyConfig(int client, int args)
 {
-	char path[PLATFORM_MAX_PATH];
-	BuildPath(Path_SM, path, sizeof(path), "configs/proxychecker.cfg");
-	if (FileExists(path))
+	char configPath[PLATFORM_MAX_PATH], cachePath[PLATFORM_MAX_PATH];
+	BuildPath(Path_SM, configPath, sizeof(configPath), "configs/proxychecker.cfg");
+	BuildPath(Path_SM, cachePath, sizeof(cachePath), "data/proxycheckercache.cfg");
+	if (FileExists(configPath))
 	{
-		ReadProxyConfigFile(path);
+		ReadProxyConfigFile(configPath, cachePath);
 	}
 	else
 	{
-		SetFailState("Required configuration file at %s is not there! Get it from the repo!", path);
+		SetFailState("Required configuration file at %s is not there! Get it from the repo!", configPath);
 	}
 	ReplyToCommand(client, "Proxies have been reloaded!");
 	return Plugin_Handled;
@@ -300,14 +369,14 @@ void SendCheckRequest(DataPack pack)
 				VPN vpn = vpnList.Get(i);
 				vpn.SetValue("perDaySoFar", 0);
 			}
-			now = twentyFourHourTimeStamp;
+			twentyFourHourTimeStamp = now;
 			if (vpnList.Length > 0 && vpnToUse < 0)
 			{
 				vpnToUse = 0; // this should never be needed, but just in case
 			}
 		}
 
-		if (vpnToUse >= 0)
+		if (vpnList.Length > 0 && vpnToUse >= 0)
 		{
 			char type[256];
 			VPN vpn = vpnList.Get(vpnToUse);

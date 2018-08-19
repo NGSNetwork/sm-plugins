@@ -30,6 +30,9 @@
 *.dat
 *.exe
 
+# Editor Extras
+.vscode/
+
 # Folders
 smac/
 scripting/compiled

@@ -1,0 +1,154 @@
+"Phrases"
+{
+    "ChatTag"
+    {
+        "en"            "{GREEN}[SM]{DEFAULT}"
+    }
+
+    "NameBanUsage"
+    {
+        "en"            "Usage: sm_nameban <#userid|name>"
+    }
+
+    "NameBanAlreadyBanned"
+    {
+        "en"            "That player has already been name banned. Use sm_nameunban to unban them."
+    }
+
+    "NameUnbanUsage"
+    {
+        "en"            "Usage: sm_nameunban <#userid|name>"
+    }
+    
+    "NameUnbanAlreadyUnbanned"
+    {
+        "en"            "That player has not been name banned. Use sm_nameban to ban them."
+    }
+
+    "NameUnbanNameUnlocked"
+    {
+        "en"            "Your name has been unlocked, feel free to change it."
+    }
+
+    "ForceRespawnUsage"
+    {
+        "en"            "Usage: sm_forcerespawn [target]"
+    }
+
+    "PositionLookingAt"
+    {
+        "#format"       "{1:f},{2:f},{3:f}"
+        "en"            "Position you are looking at is x = {1}, y = {2}, z = {3}."
+    }
+
+    "ChangeTeamUsage"
+    {
+        "en"            "Usage: sm_changeteam [name] <team: 1/2/3>"
+    }
+
+    "ChangeTeamChooseTeam"
+    {
+        "en"            "Please choose a team!"
+    }
+
+    "SetHealthUsage"
+    {
+        "en"            "Usage: sm_sethealth <#userid|name> <amount>"
+    }
+
+    "BamboozledEveryone"
+    {
+        "#format"       "{1:N}"
+        "en"            "{LIGHTGREEN}{1}{DEFAULT} just {RED}B{ORANGE}A{YELLOW}M{GREEN}B{BLUE}O{PURPLE}O{MAGENTA}Z{BLACK}L{WHITE}E{GREEN}D{DEFAULT} {LIGHTGREEN}EVERYONE{DEFAULT}!"
+    }
+
+    "BamboozledFeelIt"
+    {
+        "en"            "FEEL THE {BLACK}B{BLUE}A{YELLOW}M{GREEN}B{ORANGE}O{PURPLE}O{MAGENTA}Z{RED}L{WHITE}E{DEFAULT}!"
+    }
+
+    "MuteNonAdminsUsage"
+    {
+        "en"            "Nonadmins are already muted. Use sm_unmutenonadmins to unmute."
+    }
+
+    "UnmuteNonAdminsUsage"
+    {
+        "en"            "Nonadmins aren\'t muted. Use sm_mutenonadmins to mute."
+    }
+
+    "CheckCommandAccessUsage"
+    {
+        "en"            "Usage: sm_checkcommandaccess <#userid|name> <cmdstring>"
+    }
+
+    "CheckCommandAccessHasCCA"
+    {
+        "#format"       "{1:N},{2:s}"
+        "en"            "{LIGHTGREEN}{1}{DEFAULT} has CheckCommandAccess access to {OLIVE}{2}{DEFAULT}!"
+    }
+
+    "CheckCommandAccessDoesNotHaveCCA"
+    {
+        "#format"       "{1:N},{2:s}"
+        "en"            "{LIGHTGREEN}{1}{DEFAULT} doesn\'t have CheckCommandAccess access to {OLIVE}{2}{DEFAULT}!"
+    }
+
+    "CheckCommandAccessHasCA"
+    {
+        "#format"       "{1:N},{2:s}"
+        "en"            "{LIGHTGREEN}{1}{DEFAULT} has CheckAccess access to {OLIVE}{2}{DEFAULT}!"
+    }
+
+    "CheckCommandAccessDoesNotHaveCA"
+    {
+        "#format"       "{1:N},{2:s}"
+        "en"            "{LIGHTGREEN}{1}{DEFAULT} doesn\'t have CheckAccess access to {OLIVE}{2}{DEFAULT}!"
+    }
+
+    "GetClientInfoUsage"
+    {
+        "en"            "Usage: sm_getclientinfo <#userid|name> <cmdstring>"
+    }
+
+    "GetClientInfoValueIs"
+    {
+        "#format"       "{1:N},{2:s},{3:s}"
+        "en"            "{LIGHTGREEN}{1}{DEFAULT}\'s value for {YELLOW}{2}{DEFAULT} is {OLIVE}{3}{DEFAULT}!"
+    }
+
+    "GetClientInfoNoValue"
+    {
+        "#format"       "{1:N}"
+        "en"            "Could not get client info of {LIGHTGREEN}{1}{DEFAULT}!"
+    }
+
+    "QueryClientConvarUsage"
+    {
+        "en"            "Usage: sm_queryclientconvar <#userid|name> <cmdstring>"
+    }
+
+    "ClientConVarFailed"
+    {
+        "#format"       "{1:N}"
+        "en"            "{LIGHTGREEN}{1}{DEFAULT}\'s query was invalid!"
+    }
+
+    "ClientConVarIs"
+    {
+        "#format"       "{1:N},{2:s},{3:s}"
+        "en"            "{LIGHTGREEN}{1}{DEFAULT}\'s value for {YELLOW}{2}{DEFAULT} is {OLIVE}{3}{DEFAULT}!"
+    }
+
+    "ClientConVarProtected"
+    {
+        "#format"       "{1:N},{2:s}"
+        "en"            "{LIGHTGREEN}{1}{DEFAULT}\'s value for {YELLOW}{2}{DEFAULT} is {PURPLE}PROTECTED{DEFAULT}!"
+    }
+
+    "ClientConVarNotFound"
+    {
+        "#format"       "{1:N}"
+        "en"            "Invalid ConVar or ConVar not found for {LIGHTGREEN}{1}{DEFAULT}!"
+    }
+}

@@ -1,0 +1,155 @@
+"Phrases"
+{
+    "ChatTag"
+    {
+        "es"            "{GREEN}[SM]{DEFAULT}"
+    }
+
+    "NameBanUsage"
+    {
+        "es"            "Utiliza: sm_nameban <#id|nombre>"
+    }
+
+    "NameBanAlreadyBanned"
+    {
+        "es"            "El nombre de ese jugador ya ha sido baneado. Utiliza sm_nameunban para desbanearlo."
+    }
+
+    "NameUnbanUsage"
+    {
+        "es"            "Utiliza: sm_nameunban <#id|nombre>"
+    }
+    
+    "NameUnbanAlreadyUnbanned"
+    {
+        "es"            "El nombre de ese jugador no ha sido baneado. Utiliza sm_nameban para banearlo."
+    }
+
+    "NameUnbanNameUnlocked"
+    {
+        "es"            "Su nombre ha sido desbloqueado, sientase libre de cambiarlo."
+    }
+
+    "ForceRespawnUsage"
+    {
+        "es"            "Utiliza: sm_forcerespawn [objetivo]"
+    }
+
+    "PositionLookingAt"
+    {
+        "#format"       "{1:f},{2:f},{3:f}"
+        "es"            "Esta mirando a la posicion x = {1}, y = {2}, z = {3}."
+    }
+
+    "ChangeTeamUsage"
+    {
+        "es"            "Utiliza: sm_changeteam [nombre] <equipo: 1/2/3>"
+    }
+
+    "ChangeTeamChooseTeam"
+    {
+        "es"            "Porfavor eliga un equipo!"
+    }
+
+    "SetHealthUsage"
+    {
+        "es"            "Utiliza: sm_sethealth <#id|nombre> <cantidad>"
+    }
+
+    "BamboozledEveryone"
+    {
+        "#format"       "{1:N}"
+        "es"            "{LIGHTGREEN}{1}{DEFAULT} acaba {RED}B{ORANGE}A{YELLOW}M{GREEN}B{BLUE}O{PURPLE}O{MAGENTA}Z{BLACK}L{WHITE}E{GREEN}D{DEFAULT} {LIGHTGREEN}TODOS{DEFAULT}!"
+    }
+
+    "BamboozledFeelIt"
+    {
+        "es"            "SIENTE EL {BLACK}B{BLUE}A{YELLOW}M{GREEN}B{ORANGE}O{PURPLE}O{MAGENTA}Z{RED}L{WHITE}E{DEFAULT}!"
+    }
+
+    "MuteNonAdminsUsage"
+    {
+        "es"            "Las voces de los no admin ya han sido silenciadas. Utiliza sm_unmutenonadmins para desilenciarlos."
+    }
+
+    "UnmuteNonAdminsUsage"
+    {
+        "es"            "Las voces de los no admin no han sido silenciadas. Utiliza sm_mutenonadmins para desilenciarlos ."
+    }
+
+    "CheckCommandAccessUsage"
+    {
+        "es"            "Utiliza: sm_checkcommandaccess <#id|nombre> <LineaDeComandos>"
+    }
+
+        "CheckCommandAccessHasCCA"
+    {
+        "#format"       "{1:N},{2:s}"
+        "es"            "{LIGHTGREEN}{1}{DEFAULT} tiene acceso a CheckCommandAccess para {OLIVE}{2}{DEFAULT}!"
+    }
+
+    "CheckCommandAccessDoesNotHaveCCA"
+    {
+        "#format"       "{1:N},{2:s}"
+        "es"            "{LIGHTGREEN}{1}{DEFAULT} no tiene acceso a CheckCommandAccess para {OLIVE}{2}{DEFAULT}!"
+    }
+
+    "CheckCommandAccessHasCA"
+    {
+        "#format"       "{1:N},{2:s}"
+        "es"            "{LIGHTGREEN}{1}{DEFAULT} tiene acceso a CheckAccess para {OLIVE}{2}{DEFAULT}!"
+    }
+
+    "CheckCommandAccessDoesNotHaveCA"
+    {
+        "#format"       "{1:N},{2:s}"
+        "es"            "{LIGHTGREEN}{1}{DEFAULT} no tiene acceso a CheckAccess para {OLIVE}{2}{DEFAULT}!"
+    }
+
+    "GetClientInfoUsage"
+    {
+        "es"            "Utiliza: sm_getclientinfo <#id|nombre> <LineaDeComandos>"
+    }
+
+    "GetClientInfoValueIs"
+    {
+        "#format"       "{1:N},{2:s},{3:s}"
+        "es"            "El valor de {LIGHTGREEN}{1}{DEFAULT} para {YELLOW}{2}{DEFAULT} es {OLIVE}{3}{DEFAULT}!"
+    }
+
+    "GetClientInfoNoValue"
+    {
+        "#format"       "{1:N}"
+        "es"            "No se pudo obtener la informacion de {LIGHTGREEN}{1}{DEFAULT}!"
+    }
+
+    "QueryClientConvarUsage"
+    {
+        "es"            "Utiliza: sm_queryclientconvar <#id|nombre> <LineaDeComandos>"
+    }
+
+    "ClientConVarFailed"
+    {
+        "#format"       "{1:N}"
+        "es"            "La consulta del comando {LIGHTGREEN}{1}{DEFAULT} fue invalida!"
+    }
+
+    "ClientConVarIs"
+    {
+        "#format"       "{1:N},{2:s},{3:s}"
+        "es"            "El valor de {LIGHTGREEN}{1}{DEFAULT} para {YELLOW}{2}{DEFAULT} es {OLIVE}{3}{DEFAULT}!"
+    }
+
+    "ClientConVarProtected"
+    {
+        "#format"       "{1:N},{2:s}"
+        "es"            "El valor de {LIGHTGREEN}{1}{DEFAULT} para {YELLOW}{2}{DEFAULT} es {PURPLE}PROTECTED{DEFAULT}!"
+    }
+
+    "ClientConVarNotFound"
+    {
+        "#format"       "{1:N}"
+        "es"            "ConVar invalido o ConVar no fue hallado para {LIGHTGREEN}{1}{DEFAULT}!"
+    }
+}
+}

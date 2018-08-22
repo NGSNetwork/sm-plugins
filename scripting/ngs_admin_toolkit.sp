@@ -10,7 +10,6 @@
 * multicolors.inc, clientprefs.inc, basecomm.inc, sourcecomms.inc,
 * ngsutils.inc, ngsupdater.inc
 */
-
 #pragma newdecls required
 #pragma semicolon 1
 
@@ -67,6 +66,7 @@ public void OnPluginStart()
 
 
 	LoadTranslations("common.phrases");
+	LoadTranslations("ngs_admin_toolkit.phrases");
 
 	nameBannedCookie = new Cookie("NameBanned", "Is the player name-banned?", CookieAccess_Private);
 
@@ -122,7 +122,7 @@ public Action CommandNameBan(int client, int args)
 {
 	if (args < 1)
 	{
-		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_nameban <#userid|name>");
+		CReplyToCommand(client, "%t %t", "ChatTag", "NameBanUsage");
 		return Plugin_Handled;
 	}
 
@@ -134,7 +134,7 @@ public Action CommandNameBan(int client, int args)
 
 	if (isPlayerNameBanned[target])
 	{
-		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} That player has already been name banned. Use sm_nameunban to unban them.");
+		CReplyToCommand(client, "%t %t", "ChatTag", "NameBanAlreadyBanned");
 		return Plugin_Handled;
 	}
 
@@ -155,7 +155,7 @@ public Action CommandNameUnban(int client, int args)
 {
 	if (args < 1)
 	{
-		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_nameunban <#userid|name>");
+		CReplyToCommand(client, "%t %t", "ChatTag", "NameUnbanUsage");
 		return Plugin_Handled;
 	}
 
@@ -167,7 +167,7 @@ public Action CommandNameUnban(int client, int args)
 
 	if (!isPlayerNameBanned[target])
 	{
-		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} That player has not been name banned. Use sm_nameban to ban them.");
+		CReplyToCommand(client, "%t %t", "ChatTag", "NameUnbanAlreadyUnbanned");
 		return Plugin_Handled;
 	}
 
@@ -176,7 +176,7 @@ public Action CommandNameUnban(int client, int args)
 		int userid = GetClientUserId(target);
 		ServerCommand("sm_namelock #%d 0", userid);
 		nameBannedCookie.SetValue(target, "0");
-		CPrintToChat(client, "{GREEN}[SM]{DEFAULT} Your name has been unlocked, feel free to change it.");
+		CPrintToChat(client, "%t %t", "ChatTag", "NameUnbanNameUnlocked");
 	}
 
 	LogAction(client, target, "%N unbanned %N's name!", client, target);
@@ -187,7 +187,7 @@ public Action CommandForceRespawn(int client, int args)
 {
 	if (args < 1)
 	{
-		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_forcerespawn [target]");
+		CReplyToCommand(client, "%t %t", "ChatTag", "ForceRespawnUsage");
 		return Plugin_Handled;
 	}
 	char arg1[32];
@@ -240,7 +240,7 @@ public Action CommandGetLookingPosition(int client, int args)
 	{
 		TR_GetEndPosition(end);
 	}
-	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Position you are looking at is x = %f, y = %f, z = %f.", end[0], end[1], end[2]);
+	CReplyToCommand(client, "%t %t", "ChatTag", "PositionLookingAt", end[0], end[1], end[2]);
 	return Plugin_Handled;
 }
 
@@ -254,7 +254,7 @@ public Action CommandChangeTeam(int client, int args)
 {
 	if (args < 2)
 	{
-		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_changeteam [name] <team: 1/2/3>");
+		CReplyToCommand(client, "%t %t", "ChatTag", "ChangeTeamUsage");
 	}
 
 	char arg1[MAX_NAME_LENGTH], arg2[32];
@@ -287,7 +287,7 @@ public Action CommandChangeTeam(int client, int args)
 	}
 	else
 	{
-		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Please choose a team!");
+		CReplyToCommand(client, "%t %t", "ChatTag", "ChangeTeamChooseTeam");
 		return Plugin_Handled;
 	}
 
@@ -306,14 +306,14 @@ public Action CommandChangeTeam(int client, int args)
 
 public Action CommandSetHealth(int client, int args)
 {
-	char arg1[MAX_TARGET_LENGTH], arg2[10], mod[32];
+	char arg1[MAX_TARGET_LENGTH], arg2[10];
 	int iHealth;
 
-	GetGameFolderName(mod, sizeof(mod));
+	EngineVersion engine = GetEngineVersion();
 
 	if (args < 2)
 	{
-		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_sethealth <#userid|name> <amount>");
+		CReplyToCommand(client, "%t %t", "ChatTag", "SetHealthUsage");
 		return Plugin_Handled;
 	}
 	else
@@ -325,8 +325,7 @@ public Action CommandSetHealth(int client, int args)
 
 	if (iHealth < 0)
 	{
-		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Health must be greater than zero.");
-		return Plugin_Handled;
+		iHealth = 0;
 	}
 
 	char target_name[MAX_TARGET_LENGTH];
@@ -349,7 +348,7 @@ public Action CommandSetHealth(int client, int args)
 
 	for (int i = 0; i < target_count; i++)
 	{
-		if (StrEqual(mod, "tf", false))
+		if (engine == Engine_TF2)
 		{
 			if (iHealth == 0)
 				FakeClientCommand(target_list[i], "explode");
@@ -377,35 +376,33 @@ public Action CommandSetHealth(int client, int args)
 		CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "Set {LIGHTGREEN}%s{DEFAULT}'s health to {LIGHTGREEN}%d{DEFAULT}.", target_name, iHealth);
 
 	return Plugin_Handled;
-
 }
 
 public Action CommandBamboozleAll(int client, int args)
 {
 	if (args < 1) return Plugin_Handled;
-	char arg1[MAX_BUFFER_LENGTH], playerName[MAX_NAME_LENGTH];
+	char arg1[MAX_BUFFER_LENGTH];
 	GetCmdArg(1, arg1, sizeof(arg1));
 
 	int target = FindTarget(client, arg1, false, false);
 	if (target == -1) return Plugin_Handled;
-	GetClientName(target, playerName, sizeof(playerName));
 
 	SetHudTextParams(-1.0, 0.1, 3.0, 255, 0, 0, 255, 1, 1.0, 1.0, 1.0);
+	Handle hHudText = CreateHudSynchronizer();
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsValidClient(i))
 		{
 			EmitSoundToClient(i, "vo/demoman_specialcompleted11.mp3");
 			EmitSoundToClient(i, "vo/demoman_specialcompleted11.mp3");
-			Handle hHudText = CreateHudSynchronizer();
 			ShowSyncHudText(i, hHudText, "BAMBOOZLED");
-			delete hHudText;
-			LogAction(target, i, "\"%s\" bamboozled \"%L\"!", playerName, i);
+			LogAction(target, i, "\"%L\" bamboozled \"%L\"!", target, i);
 		}
 	}
+	delete hHudText;
 
-	CPrintToChatAll("{GREEN}[SM]{DEFAULT} {LIGHTGREEN}%s{DEFAULT} just {RED}B{ORANGE}A{YELLOW}M{GREEN}B{BLUE}O{PURPLE}O{MAGENTA}Z{BLACK}L{WHITE}E{GREEN}D{DEFAULT} {LIGHTGREEN}EVERYONE{DEFAULT}!", playerName);
-	CPrintToChatAll("{GREEN}[SM]{DEFAULT} FEEL THE {BLACK}B{BLUE}A{YELLOW}M{GREEN}B{ORANGE}O{PURPLE}O{MAGENTA}Z{RED}L{WHITE}E{DEFAULT}!");
+	CPrintToChatAll("%t %t", "ChatTag", "BamboozledEveryone", target);
+	CPrintToChatAll("%t %t", "ChatTag", "BamboozledFeelIt");
 	return Plugin_Handled;
 }
 
@@ -413,19 +410,21 @@ public Action CommandMuteNonAdmins(int client, int args)
 {
 	if (muteNonAdminsEnabled)
 	{
-		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Nonadmins are already muted. Use sm_unmutenonadmins to unmute.");
-		return Plugin_Handled;
+		CReplyToCommand(client, "%t %t", "ChatTag", "MuteNonAdminsUsage");
 	}
-	for (int i = 1; i <= MaxClients; i++)
+	else
 	{
-		if (IsValidClient(i) && !CheckCommandAccess(i, "sm_admin", ADMFLAG_GENERIC))
+		for (int i = 1; i <= MaxClients; i++)
 		{
-			SetClientListeningFlags(i, VOICE_MUTED);
+			if (IsValidClient(i) && !CheckCommandAccess(i, "sm_admin", ADMFLAG_GENERIC))
+			{
+				SetClientListeningFlags(i, VOICE_MUTED);
+			}
 		}
+		CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "Muted all nonadmins!");
+		LogAction(client, -1, "Muted all nonadmins!");
+		muteNonAdminsEnabled = true;
 	}
-	CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "Muted all nonadmins!");
-	LogAction(client, -1, "Muted all nonadmins!");
-	muteNonAdminsEnabled = true;
 	return Plugin_Handled;
 }
 
@@ -433,19 +432,21 @@ public Action CommandUnmuteNonAdmins(int client, int args)
 {
 	if (!muteNonAdminsEnabled)
 	{
-		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Nonadmins aren\'t muted. Use sm_mutenonadmins to mute.");
-		return Plugin_Handled;
+		CReplyToCommand(client, "%t %t", "ChatTag", "UnmuteNonAdminsUsage");
 	}
-	for (int i = 1; i <= MaxClients; i++)
+	else
 	{
-		if (IsValidClient(i) && ((sourcecommsExists && SourceComms_GetClientMuteType(i) == bNot) || (basecommExists && !BaseComm_IsClientMuted(i))))
+		for (int i = 1; i <= MaxClients; i++)
 		{
-			SetClientListeningFlags(i, VOICE_NORMAL);
+			if (IsValidClient(i) && ((sourcecommsExists && SourceComms_GetClientMuteType(i) == bNot) || (basecommExists && !BaseComm_IsClientMuted(i))))
+			{
+				SetClientListeningFlags(i, VOICE_NORMAL);
+			}
 		}
+		CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "Unmuted all nonadmins!");
+		LogAction(client, -1, "Unmuted all nonadmins!");
+		muteNonAdminsEnabled = false;
 	}
-	CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "Unmuted all nonadmins!");
-	LogAction(client, -1, "Unmuted all nonadmins!");
-	muteNonAdminsEnabled = false;
 	return Plugin_Handled;
 }
 
@@ -453,7 +454,7 @@ public Action CommandCheckCommandAccess(int client, int args)
 {
 	if (args < 1)
 	{
-		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_checkcommandaccess <#userid|name> <cmdstring>");
+		CReplyToCommand(client, "%t %t", "ChatTag", "CheckCommandAccessUsage");
 		return Plugin_Handled;
 	}
 
@@ -465,13 +466,13 @@ public Action CommandCheckCommandAccess(int client, int args)
 
 	AdminId admin = GetUserAdmin(target);
 	if (CheckCommandAccess(target, arg2, ADMFLAG_ROOT))
-		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} {LIGHTGREEN}%N{DEFAULT} has CheckCommandAccess access to {OLIVE}%s{DEFAULT}!", target, arg2);
+		CReplyToCommand(client, "%t %t", "ChatTag", "CheckCommandAccessHasCCA", target, arg2);
 	else
-		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} {LIGHTGREEN}%N{DEFAULT} doesn\'t have CheckCommandAccess access to {OLIVE}%s{DEFAULT}!", target, arg2);
+		CReplyToCommand(client, "%t %t", "ChatTag", "CheckCommandAccessDoesNotHaveCCA", target, arg2);
 	if (CheckAccess(admin, arg2, ADMFLAG_ROOT))
-		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} {LIGHTGREEN}%N{DEFAULT} has CheckAccess access to {OLIVE}%s{DEFAULT}!", target, arg2);
+		CReplyToCommand(client, "%t %t", "ChatTag", "CheckCommandAccessHasCA", target, arg2);
 	else
-		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} {LIGHTGREEN}%N{DEFAULT} doesn\'t have CheckAccess access to {OLIVE}%s{DEFAULT}!", target, arg2);
+		CReplyToCommand(client, "%t %t", "ChatTag", "CheckCommandAccessDoesNotHaveCA", target, arg2);
 	return Plugin_Handled;
 }
 
@@ -479,7 +480,7 @@ public Action CommandGetClientInfo(int client, int args)
 {
 	if (args < 1)
 	{
-		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_getclientinfo <#userid|name> <cmdstring>");
+		CReplyToCommand(client, "%t %t", "ChatTag", "GetClientInfoUsage");
 		return Plugin_Handled;
 	}
 
@@ -492,9 +493,9 @@ public Action CommandGetClientInfo(int client, int args)
 	char varString[MAX_BUFFER_LENGTH];
 
 	if (GetClientInfo(target, arg2, varString, sizeof(varString)))
-		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} {LIGHTGREEN}%N{DEFAULT}\'s value for {YELLOW}%s{DEFAULT} is {OLIVE}%s{DEFAULT}!", target, arg2, varString);
+		CReplyToCommand(client, "%t %t", "ChatTag", "GetClientInfoValueIs", target, arg2, varString);
 	else
-		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Could not get client info of {LIGHTGREEN}%N{DEFAULT}!", target);
+		CReplyToCommand(client, "%t %t", "ChatTag", "GetClientInfoNoValue", target);
 	return Plugin_Handled;
 }
 
@@ -502,7 +503,7 @@ public Action CommandQueryClientConVar(int client, int args)
 {
 	if (args < 1)
 	{
-		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Usage: sm_queryclientconvar <#userid|name> <cmdstring>");
+		CReplyToCommand(client, "%t %t", "ChatTag", "QueryClientConvarUsage");
 		return Plugin_Handled;
 	}
 
@@ -520,16 +521,16 @@ void ClientConVar(QueryCookie cookie, int client, ConVarQueryResult result, cons
 {
 	if (cookie == QUERYCOOKIE_FAILED)
 	{
-		CReplyToCommand(value, "{GREEN}[SM]{DEFAULT} {LIGHTGREEN}%N{DEFAULT}\'s query was invalid!", client);
+		CReplyToCommand(value, "%t %t", "ChatTag", "ClientConVarFailed" client);
 		return;
 	}
 	switch (result)
 	{
 		case ConVarQuery_Okay:
-			CReplyToCommand(value, "{GREEN}[SM]{DEFAULT} {LIGHTGREEN}%N{DEFAULT}\'s value for {YELLOW}%s{DEFAULT} is {OLIVE}%s{DEFAULT}!", client, cvarName, cvarValue);
+			CReplyToCommand(value, "%t %t", "ChatTag", "ClientConVarIs", client, cvarName, cvarValue);
 		case ConVarQuery_Protected:
-			CReplyToCommand(value, "{GREEN}[SM]{DEFAULT} {LIGHTGREEN}%N{DEFAULT}\'s value for {YELLOW}%s{DEFAULT} is {PURPLE}PROTECTED{DEFAULT}!", client, cvarName);
+			CReplyToCommand(value, "%t %t", "ChatTag", "ClientConVarProtected", client, cvarName);
 		default:
-			CReplyToCommand(value, "{GREEN}[SM]{DEFAULT} Invalid ConVar or ConVar not found for {LIGHTGREEN}%N{DEFAULT}!", client);
+			CReplyToCommand(value, "%t %t", "ChatTag", "ClientConVarNotFound", client);
 	}
 }

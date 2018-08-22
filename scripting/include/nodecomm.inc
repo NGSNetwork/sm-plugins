@@ -8,7 +8,7 @@
 /**
  * Sends a request to a listening Node application to do processing.
  *
- * @param json			JSON to send in Post Body. Is essentially your data.
+ * @param json			JSON to send to Node app. Is essentially your data.
  */
 native bool NodeComm_SendRequest(char[] json);
 
@@ -20,6 +20,13 @@ native bool NodeComm_SendRequest(char[] json);
  * @return					True if the response was successful, false otherwise.
  */
 forward Action NodeComm_ReceiveResponse(JSON_Object &response);
+
+/**
+ * Upon receiving that a heartbeat was fired!
+ *
+ * @param successful		Whether or not the heartbeat was successful.
+ */
+forward void NodeComm_HeartbeatResult(bool successful);
 
 public SharedPlugin __pl_ngs_nodecomm =
 {

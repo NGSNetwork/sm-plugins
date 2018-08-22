@@ -6,7 +6,7 @@
 * addons/sourcemod/plugins/ngs_nodecomm.smx
 *
 * Dependencies:
-* json.inc, websocket.inc, ngsutils.inc, ngsupdater.inc
+* json.inc, socket.inc, ngsutils.inc, ngsupdater.inc
 */
 #pragma newdecls required
 #pragma semicolon 1
@@ -31,10 +31,10 @@ public Plugin myinfo = {
 }
 
 Socket relaySocket;
-bool canHandleRequests;
+SMTimer heartbeatTimer, timeoutTimer;
 
 ConVar cvarServerAddr;
-Handle responseForward;
+Handle responseForward, heartbeatForward;
 
 public void OnPluginStart()
 {
@@ -45,6 +45,7 @@ public void OnPluginStart()
 	AutoExecConfig_ExecAndClean(appended);
 	
 	responseForward = CreateGlobalForward("NodeComm_ReceiveResponse", ET_Single, Param_CellByRef);
+	heartbeatForward = CreateGlobalForward("NodeComm_HeartbeatResult", ET_Ignore, Param_Cell);
 }
 
 public void OnConfigsExecuted()
@@ -55,33 +56,58 @@ public void OnConfigsExecuted()
 	int split = ExplodeString(serverIP, ":", splitIP, sizeof(splitIP), sizeof(splitIP[]));
 	int port = (split < 2) ? 3480 : StringToInt(splitIP[1]);
 	
-	PrintToServer("Attepting to connect to server %s:%d!", splitIP[0], port);
+	PrintToServer("Attempting to connect to server %s:%d!", splitIP[0], port);
 	relaySocket = new Socket(SOCKET_TCP, OnSocketError);
+	#if defined DEBUG
+	relaySocket.SetOption(DebugMode, 1);
+	#endif
 	relaySocket.Connect(OnSocketConnect, OnSocketReceive, OnSocketDisconnect, serverIP[0], port);
 }
 
 public void OnSocketConnect(Socket socket, any args)
 {
-	canHandleRequests = true;
 	PrintToServer("relaySocket successfully connected to the server!");
+	heartbeatTimer = new SMTimer(7.0, OnHeartbeatTimerComplete, _, TIMER_REPEAT);
 }
 
 public void OnSocketDisconnect(Socket socket, any args)
 {
-	canHandleRequests = false;
+	#if defined DEBUG
+	PrintToServer("Socket disconnecting, deleting relaySocket!");
+	#endif
+	delete heartbeatTimer;
+	delete timeoutTimer;
 	delete relaySocket;
 }
 
 public void OnSocketError(Socket socket, const int errorType, const int errorNum, any arg)
 {
 	LogError("Connection socket error with type %d, error number %d! Attempting to restart after a short delay", errorType, errorNum);
-	SMTimer.Make(10.0, OnErrorTimerComplete, socket);
+	SMTimer.Make(10.0, OnErrorTimerComplete);
 }
 
-public Action OnErrorTimerComplete(Handle myself, any data)
+public Action OnErrorTimerComplete(Handle timer)
 {
-	OnSocketDisconnect(data, 0);
+	OnSocketDisconnect(null, 0);
 	OnConfigsExecuted();
+}
+
+public Action OnHeartbeatTimerComplete(Handle timer)
+{
+	if (relaySocket != null)
+	{
+		relaySocket.Send("{\"__heartbeat__\":\"h\"}");
+		timeoutTimer = new SMTimer(5.0, OnTimeoutTimerComplete);
+	}
+}
+
+public Action OnTimeoutTimerComplete(Handle timer)
+{
+	timeoutTimer = null;
+	Call_StartForward(heartbeatForward);
+	Call_PushCell(false);
+	Call_Finish();
+	OnSocketError(null, 0, 0, 0);
 }
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -93,7 +119,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
 public int Native_SendRequest(Handle plugin, int numParams)
 {
-	if (!canHandleRequests) return;
+	if (relaySocket != null && !relaySocket.IsConnected) return;
 	int len;
 	GetNativeStringLength(1, len);
 	
@@ -130,10 +156,20 @@ public void OnSocketReceive(Socket socket, char[] receiveData, const int dataSiz
 	if (obj == null)
 		return;
 	
-	Action result;
-	Call_StartForward(responseForward);
-	Call_PushCellRef(obj);
-	Call_Finish(result);
+	if (obj.HasKey("__heartbeat__"))
+	{
+		delete timeoutTimer;
+		Call_StartForward(heartbeatForward);
+		Call_PushCell(view_as<int>(true));
+		Call_Finish();
+	}
+	else
+	{
+		Action result;
+		Call_StartForward(responseForward);
+		Call_PushCellRef(obj);
+		Call_Finish(result);
+	}
 	
 	delete obj;
 }

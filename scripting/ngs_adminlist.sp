@@ -7,7 +7,7 @@
 * cfg/sourcemod/plugin.ngs_adminlist.cfg
 *
 * Dependencies:
-* sourcemod.inc, ngsutils.inc, ngsupdater.inc, multicolors.inc
+* autoexecconfig.inc, ngsutils.inc, ngsupdater.inc, multicolors.inc
 */
 #pragma newdecls required
 #pragma semicolon 1
@@ -15,7 +15,7 @@
 #define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
 #define RELOAD_ON_UPDATE 1
 
-#include <sourcemod>
+#include <autoexecconfig>
 #include <ngsutils>
 #include <ngsupdater>
 #include <multicolors>
@@ -32,7 +32,9 @@ public Plugin myinfo = {
 
 public void OnPluginStart()
 {
-	AdminListEnabled = CreateConVar("sm_ngsadminlist_on", "1", "Turns the admin list feature on and off.");
+	bool appended;
+	AdminListEnabled = AutoExecConfig_CreateConVarCheckAppend(appended, "sm_ngsadminlist_on", "1", "Turns the admin list feature on and off.");
+	AutoExecConfig_ExecAndClean(appended);
 
 	RegConsoleCmd("sm_administrators", CommandListAdmins, "List admins to chat.");
 	RegConsoleCmd("sm_admins", CommandListAdmins, "List admins to chat.");
@@ -44,8 +46,6 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_staff", CommandListStaff, "List all staff in chat.");
 	RegConsoleCmd("sm_liststaff", CommandListStaff, "List all staff in chat.");
 	RegConsoleCmd("sm_stafflist", CommandListStaff, "List all staff in chat.");
-
-	AutoExecConfig();
 }
 
 public Action CommandListAdmins(int client, int args)
@@ -66,9 +66,9 @@ public Action CommandListAdmins(int client, int args)
 		{
 			char buffer[1024];
 			ImplodeStrings(adminNames, count, ", ", buffer, sizeof(buffer));
-			CReplyToCommand(client, "{GREEN}[SM] Administrators online: {CYAN}%s.", buffer);
+			CReplyToCommand(client, "%t", "AdministratorsOnline", buffer);
 		}
-		else CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} There are no admins online. Use !calladmin to call an admin over.");
+		else CReplyToCommand(client, "%t %t", "ChatTag", "NoAdministratorsOnline");
 	}
 	return Plugin_Handled;
 }
@@ -91,9 +91,9 @@ public Action CommandListDonors(int client, int args)
 		{
 			char buffer[1024];
 			ImplodeStrings(DonorNames, count, ", ", buffer, sizeof(buffer));
-			CReplyToCommand(client, "{GREEN}[SM] Donors online: {ORANGE}%s.", buffer);
+			CReplyToCommand(client, "%t", "DonorsOnline", buffer);
 		}
-		else CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} There are no donors online.");
+		else CReplyToCommand(client, "%t %t", "ChatTag", "NoDonorsOnline");
 	}
 	return Plugin_Handled;
 }
@@ -116,9 +116,9 @@ public Action CommandListDJs(int client, int args)
 		{
 			char buffer[1024];
 			ImplodeStrings(DJNames, count, ", ", buffer, sizeof(buffer));
-			CReplyToCommand(client, "{GREEN}[SM] DJs online: {PURPLE}%s.", buffer);
+			CReplyToCommand(client, "%t", "DJsOnline", buffer);
 		}
-		else CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} There are no DJs online.");
+		else CReplyToCommand(client, "%t %t", "ChatTag", "NoDJsOnline");
 	}
 	return Plugin_Handled;
 }
@@ -160,22 +160,22 @@ public Action CommandListStaff(int client, int args)
 			{
 				char buffer[1024];
 				ImplodeStrings(adminNames, adminListCount, ", ", buffer, sizeof(buffer));
-				CReplyToCommand(client, "{GREEN}[SM] Administration online: {CYAN}%s.", buffer);
+				CReplyToCommand(client, "%t", "AdministratorsOnline", buffer);
 			}
 			if (commManCount > 0)
 			{
 				char buffer[1024];
 				ImplodeStrings(marketerNames, commManCount, ", ", buffer, sizeof(buffer));
-				CReplyToCommand(client, "{GREEN}[SM] Marketers online: {CRIMSON}%s.", buffer);
+				CReplyToCommand(client, "%t", "MarketersOnline", buffer);
 			}
 			if (devCount > 0)
 			{
 				char buffer[1024];
 				ImplodeStrings(developerNames, devCount, ", ", buffer, sizeof(buffer));
-				CReplyToCommand(client, "{GREEN}[SM] Developers online: {MAGENTA}%s.", buffer);
+				CReplyToCommand(client, "%t", "DevelopersOnline", buffer);
 			}
 		}
-		else CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} There are no staff online. If you need an admin, call one with !calladmin.");
+		else CReplyToCommand(client, "%t %t", "ChatTag", "NoStaffOnline");
 	}
 	return Plugin_Handled;
 }

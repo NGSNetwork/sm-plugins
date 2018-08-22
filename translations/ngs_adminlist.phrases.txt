@@ -1,0 +1,57 @@
+"Phrases"
+{
+    "ChatTag"
+    {
+        "en"            "{GREEN}[SM]{DEFAULT}"
+    }
+
+    "AdministratorsOnline"
+    {
+        "#format"       "{1:s}"
+        "en"            "{GREEN}[SM] Administrators online: {CYAN}{1}."
+    }
+
+    "NoAdministratorsOnline"
+    {
+        "en"            "There are no admins online. Use !calladmin to call an admin over."
+    }
+
+    "MarketersOnline"
+    {
+        "#format"       "{1:s}"
+        "en"            "{GREEN}[SM] Marketers online: {CRIMSON}{1}."
+    }
+
+    "DevelopersOnline"
+    {
+        "#format"       "{1:s}"
+        "en"            "{GREEN}[SM] Developers online: {MAGENTA}{1}."
+    }
+
+    "NoStaffOnline"
+    {
+        "en"            "There are no staff online. If you need an admin, call one with !calladmin."
+    }
+
+    "DonorsOnline"
+    {
+        "#format"       "{1:s}"
+        "en"            "{GREEN}[SM] Donors online: {ORANGE}{1}."
+    }
+
+    "NoDonorsOnline"
+    {
+        "en"            "There are no donors online."
+    }
+
+    "DJsOnline"
+    {
+        "#format"       "{1:s}"
+        "en"            "{GREEN}[SM] DJs online: {PURPLE}{1}."
+    }
+
+    "NoDJsOnline"
+    {
+        "en"            "There are no DJs online."
+    }
+}

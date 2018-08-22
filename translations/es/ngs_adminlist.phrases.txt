@@ -1,0 +1,57 @@
+"Phrases"
+{
+    "ChatTag"
+    {
+        "es"            "{GREEN}[SM]{DEFAULT}"
+    }
+
+    "AdministratorsOnline"
+    {
+        "#format"       "{1:s}"
+        "es"            "{GREEN}[SM] Administradores en linea: {CYAN}{1}."
+    }
+
+    "NoAdministratorsOnline"
+    {
+        "es"            "No hay administradores en linea. Use !calladmin para llamar a un administrador."
+    }
+
+    "MarketersOnline"
+    {
+        "#format"       "{1:s}"
+        "es"            "{GREEN}[SM] Marketers en linea: {CRIMSON}{1}."
+    }
+
+    "DevelopersOnline"
+    {
+        "#format"       "{1:s}"
+        "es"            "{GREEN}[SM] Desarrolladores en linea: {MAGENTA}{1}."
+    }
+
+    "NoStaffOnline"
+    {
+        "es"            "No hay personal en linea. Si necesita un administrador, llame a uno con !calladmin."
+    }
+
+    "DonorsOnline"
+    {
+        "#format"       "{1:s}"
+        "es"            "{GREEN}[SM] Donadores en linea: {ORANGE}{1}."
+    }
+
+    "NoDonorsOnline"
+    {
+        "es"            "No hay donadores en linea."
+    }
+
+    "DJsOnline"
+    {
+        "#format"       "{1:s}"
+        "es"            "{GREEN}[SM] DJs en linea: {PURPLE}{1}."
+    }
+
+    "NoDJsOnline"
+    {
+        "es"            "No hay DJs en linea."
+    }
+}

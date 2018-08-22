@@ -1,0 +1,7 @@
+"Phrases"
+{
+    "ClientNotAuthed"
+    {
+        "en"            "Your client has not been authed, please reconnect."
+    }
+}

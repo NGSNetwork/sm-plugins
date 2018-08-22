@@ -1,0 +1,7 @@
+"Phrases"
+{
+    "ClientNotAuthed"
+    {
+        "es"            "La versión de su cliente no ha sido autorizada, porfavor reconéctese."
+    }
+}

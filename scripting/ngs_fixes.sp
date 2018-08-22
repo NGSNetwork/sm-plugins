@@ -48,6 +48,8 @@ public void OnPluginStart()
 	}
 	AutoExecConfig_ExecAndClean(appended);
 
+	LoadTranslations("ngs_fixes.phrases");
+
 	AddCommandListener(CmdVoiceMenu, "voicemenu");
 }
 
@@ -106,17 +108,15 @@ public Action AuthCheckTimer(Handle timer, int userid)
 	int client = GetClientOfUserId(userid);
 	if (client == 0)
 	{
-		authClientTimer[client] = null;
 		return Plugin_Stop;
 	}
 	if (!IsClientInGame(client)) return Plugin_Continue;
-	char auth[24];
-	if (!GetClientAuthId(client, AuthId_Engine, auth, sizeof(auth)))
+	if (!IsAuthorized(client))
 	{
 		if (IsPlayerAlive(client))
 		{
 			ChangeClientTeam(client, 1);
-			PrintToChat(client, "Your client has not been authed, please reconnect.");
+			PrintToChat(client, "%t", "ClientNotAuthed");
 		}
 		BaseComm_SetClientGag(client, true);
 		BaseComm_SetClientMute(client, true);

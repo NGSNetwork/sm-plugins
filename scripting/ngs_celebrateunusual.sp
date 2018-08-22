@@ -8,7 +8,7 @@
 * sound/ngs/unusualcelebration/sf13_bcon_misc17.wav
 *
 * Dependencies:
-* sourcemod.inc, ccc.inc, ngsutils.inc, ngsupdater.inc
+* autoexecconfig.inc, sdktols.inc, ngsutils.inc, ngsupdater.inc
 */
 #pragma newdecls required
 #pragma semicolon 1
@@ -16,7 +16,7 @@
 #define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
 #define RELOAD_ON_UPDATE 1
 
-#include <sourcemod>
+#include <autoexecconfig>
 #include <sdktools>
 #include <ngsutils>
 #include <ngsupdater>
@@ -44,6 +44,7 @@ public void OnPluginStart()
 
 	HookEvent("item_found", OnItemFound);
 	LoadTranslations("common.phrases");
+	LoadTranslations("ngs_celebrateunusual.phrases");
 
 	cvarSoundFile.GetString(soundFile, sizeof(soundFile));
 	char path[PLATFORM_MAX_PATH];
@@ -91,7 +92,14 @@ public void AnnounceUnbox(int player)
 	hHudText = CreateHudSynchronizer();
 	SetHudTextParams(-1.0, 0.1, 7.0, 255, 0, 0, 255, 1, 1.0, 1.0, 1.0);
     
-	ShowSyncHudTextAll(hHudText, "%N just unboxed an Unusual!", player);
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsValidClient(i))
+		{
+			SetGlobalTransTarget(i);
+			ShowSyncHudText(hHudText, "%T", "JustUnboxed", i, player);
+		}
+	}
 
 	delete hHudText;
 	float volume = cvarSoundVolume.FloatValue;

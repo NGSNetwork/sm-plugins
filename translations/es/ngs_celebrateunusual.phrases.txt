@@ -1,0 +1,7 @@
+"Phrases"
+{
+    "JustUnboxed"
+    {
+        "es"            "{1} acaba de desempaquetar un Inusual!"
+    }
+}

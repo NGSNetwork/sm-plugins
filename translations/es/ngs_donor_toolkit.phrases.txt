@@ -1,0 +1,17 @@
+"Phrases"
+{
+    "ChatTag"
+    {
+        "es"            "{GREEN}[SM]{DEFAULT}"
+    }
+
+    "HalloweenVoicesEnabled"
+    {
+        "es"            "Las voces de Hallowen han sido habilitadas!"
+    }
+
+    "HalloweenVoicesDisabled"
+    {
+        "es"            "Las voces de Hallowen han sido deshabilitadas!"
+    }
+}

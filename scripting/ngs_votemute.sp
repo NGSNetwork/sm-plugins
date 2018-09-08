@@ -13,6 +13,8 @@
 #pragma newdecls required
 #pragma semicolon 1
 
+#define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
+#define RELOAD_ON_UPDATE 1
 #define LIBRARY_ADDED_FUNC LibraryAdded
 #define LIBRARY_REMOVED_FUNC LibraryRemoved
 
@@ -47,7 +49,7 @@ public Plugin myinfo = {
 	name = "[NGS] Vote Mute/Vote Silence",
 	author = "<eVa>Dog / AlliedModders LLC / TheXeon",
 	description = "Vote Muting and Silencing",
-	version = "2.0.2",
+	version = "2.0.3",
 	url = "https://www.neogenesisnetwork.net"
 }
 
@@ -55,6 +57,7 @@ public void OnPluginStart()
 {
 	AutoExecConfig_SetCreateDirectory(true);
 	AutoExecConfig_SetCreateFile(true);
+
 	bool appended;
 	cvarLimit = AutoExecConfig_CreateConVarCheckAppend(appended, "votemute_limit", "0.70", "percent required for successful mute vote or mute silence.");
 	cvarMuteTime = AutoExecConfig_CreateConVarCheckAppend(appended, "votemute_mutetime", "20", "Time client should be gagged/muted/silenced for.");
@@ -68,6 +71,12 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_votemenu", Command_Votemenu, "sm_votemenu");
 
 	HookEvent("player_disconnect", OnPlayerDisconnectEvent, EventHookMode_Pre);
+	
+	sourcecommsExists = LibraryExists("sourcecomms") || LibraryExists("sourcecomms++");
+	
+	#if defined DEBUG
+		PrintToServer("Sourcecomms is now detected as %b!", sourcecommsExists);
+	#endif
 
 	LoadTranslations("common.phrases");
 	LoadTranslations("basevotes.phrases");
@@ -90,13 +99,25 @@ public Action OnPlayerDisconnectEvent(Event event, const char[] name, bool dontB
 public void LibraryAdded(const char[] name)
 {
 	if (StrEqual("basecomm", name)) basecommsExists = true;
-	else if (StrEqual("sourcecomms", name)) sourcecommsExists = true;
+	else if (StrContains("sourcecomms", name) != -1)
+	{
+		sourcecommsExists = true;
+		#if defined DEBUG
+		PrintToServer("Sourcecomms is detected as true!");
+		#endif
+	}
 }
 
 public void LibraryRemoved(const char[] name)
 {
 	if (StrEqual("basecomm", name)) basecommsExists = false;
-	else if (StrEqual("sourcecomms", name)) sourcecommsExists = false;
+	else if (StrContains("sourcecomms", name) != -1)
+	{
+		sourcecommsExists = false;
+		#if defined DEBUG
+		PrintToServer("Sourcecomms is now detected as false!");
+		#endif
+	}
 }
 
 public Action Command_Votemute(int client, int args)

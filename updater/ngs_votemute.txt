@@ -4,21 +4,16 @@
 	{
 		"Version"
 		{
-			"Latest"	"2.0.2"
+			"Latest"	"2.0.3"
 		}
 
-		"Notes"	"Add updater support!"
-		"Notes"	"Add central menu command!"
-		"Notes"	"Add full argument string support!"
-		"Notes"	"Remove sm_ prefixes from cvars."
-		"Notes"	"Properly handle mute-dodgers."
-		"Notes"	"Remove extra spaces from .sp."
+		"Notes"	"Add support for sourcecomms++! THIS IS A BREAKING CHANGE!"
 	}
 
 	"Files"
 	{
-		"Plugin"	"Path_SM/plugins/ngs_advert_antiflood.smx"
+		"Plugin"	"Path_SM/plugins/ngs_votemute.smx"
 
-		"Source"	"Path_SM/scripting/ngs_advert_antiflood.sp"
+		"Source"	"Path_SM/scripting/ngs_votemute.sp"
 	}
 }

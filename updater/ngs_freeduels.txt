@@ -4,12 +4,10 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.2.3"
+			"Latest"	"1.2.4"
 		}
 		
-		"Notes"	"Fix duel protected users killing buildings!"
-		"Notes"	"Fall back to SQLite if SQL doesn't work."
-		"Notes"	"Properly stop damage on players."
+		"Notes"	"Add a disallow healing option! Works mostly :)"
 		"Notes"	"Use new syntax where applicable."
 	}
 	

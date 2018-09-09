@@ -9,8 +9,8 @@
 * cfg/sourcemod/free_duels.cfg
 *
 * Dependencies:
-* sdkhooks.inc, tf2_stocks.inc, multicolors.inc, free_duels.inc,
-* friendly.inc, ngsutils.inc, ngsupdater.inc
+* sdkhooks.inc, tf2_stocks.inc, tf2attributes.inc, multicolors.inc,
+* free_duels.inc, friendly.inc, ngsutils.inc, ngsupdater.inc
 */
 #pragma newdecls required
 #pragma semicolon 1
@@ -20,6 +20,7 @@
 
 #include <sdkhooks>
 #include <tf2_stocks>
+#include <tf2attributes>
 #include <multicolors>
 #include <free_duels>
 #include <friendly>
@@ -31,10 +32,10 @@
 
 enum DuelData
 {
-    Challenger,
+	Challenger,
 	bool:Enabled,
 	Type,
-    Score,
+	Score,
 	PlayedTime,
 	kills,
 	Deads,
@@ -45,6 +46,7 @@ enum DuelData
 	CSprite,
 	SpriteParent,
 	bool:HideSprite,
+	bool:HealingAllowed
 }
 
 int g_Duel[MAXPLAYERS+1][DuelData];
@@ -93,7 +95,7 @@ public Plugin myinfo = {
     name        = "[NGS] Free duels",
     author      = "Erreur 500 / TheXeon",
     description = "Challenge other players",
-    version     = "1.2.3",
+    version     = "1.2.4",
     url         = "https://www.neogenesisnetwork.net"
 }
 
@@ -139,6 +141,7 @@ public void OnPluginStart()
 		HookEvent("controlpoint_starttouch", EventCPStartTouch);
 		HookEvent("controlpoint_endtouch", EventCPEndTouch);
 		HookEvent("player_sapped_object", EventSapped);
+		HookEvent("post_inventory_application", EventPostInventoryApplication);
 //		HookEvent("player_upgradedobject", EventUpgradedObject, EventHookMode_Pre);
 //		HookEvent("object_deflected", EventAirblast);
 
@@ -322,13 +325,14 @@ void CreateDbSQLite()
 	LogMessage("[?/5] Loading : Tables Created");
 }
 
-public void SQLErrorCheckCallback(Handle owner, Handle hndl, const char[] error, any data)
+public void SQLErrorCheckCallback(Database owner, DBResultSet hndl, const char[] error, any data)
 {
-	if (!StrEqual("", error))
+	if (!StrEqual(error, ""))
 	{
 		LogError("Loading : SQL Error: %s", error);
 		LogMessage("Loading : SQL Error: %s", error);
 	}
+	delete hndl;
 }
 
 public Action NoDuelMe(int client, int args)
@@ -389,7 +393,7 @@ public Action loadDuel(int iClient, int Args)
 				if (disableDuel[target_list[i]])
 				{
 					CReplyToCommand(iClient, "{CYAN}[Duel]{DEFAULT} That person has disabled duel requests!");
-					return Plugin_Handled;
+					continue;
 				}
 				if(!g_Duel[iClient][Type])
 				{
@@ -619,7 +623,7 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 
 		if(((g_Duel[victim][Challenger] != attacker) || (g_Duel[attacker][Challenger] != victim)) &&
 			(victim != attacker) && ((g_Duel[victim][Enabled] && g_Duel[victim][GodMod] == 1 ) ||
-			(g_Duel[attacker][Enabled] && g_Duel[attacker][GodMod] == 1)) && IsValidClient(attacker))
+			(g_Duel[attacker][Enabled] && g_Duel[attacker][GodMod] == 1)))
 		{
 			damage = 0.0;
 			return Plugin_Changed;
@@ -635,7 +639,7 @@ public void EventCPStartTouch(Event hEvent, const char[] strName, bool bHidden)
 	if(g_Duel[iClient][Enabled] && g_Duel[iClient][GodMod] == 1)
 	{
 		g_Duel[iClient][GodMod] = 2;	// It's not because you are on GodMod you can take CP!
-		SetEntityRenderColor(iClient, 255, 255, 255, 0);
+		SetEntityRenderColor(iClient, 255, 255, 255, 255);
 	}
 }
 
@@ -651,6 +655,18 @@ public void EventCPEndTouch(Event hEvent, const char[] strName, bool bHidden)
 	}
 }
 
+public void EventPostInventoryApplication(Event event, const char[] name, bool bHidden)
+{
+	int client = GetClientOfUserId(event.GetInt("userid"));
+	if (IsValidClient(client))
+	{
+		if (g_Duel[client][Enabled] && !g_Duel[client][HealingAllowed])
+		{
+			TF2Attrib_SetByName(client, "health from healers reduced", 0.0);
+		}
+	}
+}
+
 public void EventFlag(Event hEvent, const char[] strName, bool bHidden)
 {
 	int iClient = hEvent.GetInt("player");
@@ -661,7 +677,7 @@ public void EventFlag(Event hEvent, const char[] strName, bool bHidden)
 	if(g_Duel[iClient][Enabled] && g_Duel[iClient][GodMod] == 1 && (EventType == 1 || EventType == 3) )
 	{
 		g_Duel[iClient][GodMod] = 2;	// It's not because you are on GodMod you can take Flag!
-		SetEntityRenderColor(iClient, 255, 255, 255, 0);
+		SetEntityRenderColor(iClient, 255, 255, 255, 255);
 	}
 	else if(g_Duel[iClient][Enabled] && g_Duel[iClient][GodMod] == 2 && (EventType == 2 || EventType == 4) )
 	{
@@ -796,7 +812,7 @@ public void CallPanel(int iClient)
 					if(IsValidClient(i) && GetClientTeam(i) == iteam && !g_Duel[i][Enabled] && g_Duel[i][Challenger] == 0)
 					{
 						Player[nbr] = i;
-						nbr += 1;
+						nbr++;
 					}
 				}
 
@@ -805,7 +821,7 @@ public void CallPanel(int iClient)
 					char Playername[MAX_LINE_WIDTH];
 					char str_PlayerID[8];
 					Menu menuPlayer = new Menu(DuelPanel1);
-					SetMenuTitle(menuPlayer, "Who challenge ?");
+					menuPlayer.SetTitle("Who should be challenged?");
 
 					for(int i = 0; i < nbr; i++)
 					{
@@ -814,8 +830,8 @@ public void CallPanel(int iClient)
 						menuPlayer.AddItem(str_PlayerID, Playername);
 					}
 
-					SetMenuExitButton(menuPlayer, true);
-					DisplayMenu(menuPlayer, iClient, MENU_TIME_FOREVER);
+					menuPlayer.ExitButton = true;
+					menuPlayer.Display(iClient, MENU_TIME_FOREVER);
 
 				}
 				else
@@ -832,7 +848,7 @@ public void CallPanel(int iClient)
 	return ;
 }
 
-public int DuelPanel1(Handle menu, MenuAction action, int iClient, int args)
+public int DuelPanel1(Menu menu, MenuAction action, int iClient, int args)
 {
 	if (action == MenuAction_End)
 		delete menu;
@@ -862,7 +878,7 @@ void CreateDuel(int Player1, int Player2)
 		}
 		else if(StrEqual(ClientSteamID[Player2], "INVALID"))
 		{
-			CPrintToChat(Player1, "%N SteamID isn't valid!", Player2);
+			CPrintToChat(Player1, "%N's SteamID isn't valid!", Player2);
 			ResetPlayer(Player1);
 			ResetPlayer(Player2);
 		}
@@ -871,6 +887,7 @@ void CreateDuel(int Player1, int Player2)
 			g_Duel[Player1][Type] 		= 1;
 			g_Duel[Player1][TimeLeft] 	= 1;
 			g_Duel[Player1][Score] 		= 1;
+			g_Duel[Player1][HealingAllowed] = true;
 
 			DuelOption(Player1);
 		}
@@ -904,6 +921,8 @@ public void DuelOption(int Player1)
 	Format(MenuItem, sizeof(MenuItem), "Challenger protection       [%s]", g_Duel[Player1][GodMod] ? "ON":"OFF");
 	menu.DrawItem(MenuItem);
 	Format(MenuItem, sizeof(MenuItem), "Head shot only                  [%s]", g_Duel[Player1][HeadShot] ? "ON":"OFF");
+	menu.DrawItem(MenuItem);
+	Format(MenuItem, sizeof(MenuItem), "Healing allowed                 [%s]", g_Duel[Player1][HealingAllowed] ? "ON":"OFF");
 	menu.DrawItem(MenuItem);
 	menu.DrawText(" ");
 	menu.DrawItem("Rules");
@@ -1024,7 +1043,7 @@ public int DuelOptionAnswer(Menu menu, MenuAction action, int Player1, int args)
 
 			g_Duel[Player1][Score] = AmountOfKillOptions[i];
 		}
-		else if(args >= 2  && args < 8)
+		else if(args >= 2  && args < 9)
 		{
 			if(g_Duel[Player1][Type] == 1)
 				args++;
@@ -1052,9 +1071,14 @@ public int DuelOptionAnswer(Menu menu, MenuAction action, int Player1, int args)
 			else if(args == 4)		// Challenger protection
 			{
 				if(c_EnableGodMod.BoolValue && isAdmin(Player1, FlagNeeded1))
+				{
 					g_Duel[Player1][GodMod] = g_Duel[Player1][GodMod] ? 0 : 1;
+					g_Duel[Player1][HealingAllowed] = false;
+				}
 				else
+				{
 					g_Duel[Player1][GodMod] = 0;
+				}
 			}
 			else if(args == 5) // Head shot only
 			{
@@ -1063,11 +1087,15 @@ public int DuelOptionAnswer(Menu menu, MenuAction action, int Player1, int args)
 				else
 					g_Duel[Player1][HeadShot] = false;
 			}
-			else if(args == 6)	// Click on rules
+			else if(args == 6)  // Disallow healing
+			{
+				g_Duel[Player1][HealingAllowed] = !g_Duel[Player1][HealingAllowed];
+			}
+			else if(args == 7)	// Click on rules
 			{
 				ShowMOTDPanel(Player1, "Free-Duels rules", WEBSITE, MOTDPANEL_TYPE_URL );
 			}
-			else if(args == 7)	// Click on send duel
+			else if(args == 8)	// Click on send duel
 			{
 				if(!isGoodSituation(Player1, g_Duel[Player1][Challenger]))
 					return;
@@ -1078,6 +1106,7 @@ public int DuelOptionAnswer(Menu menu, MenuAction action, int Player1, int args)
 					g_Duel[g_Duel[Player1][Challenger]][Type]			= g_Duel[Player1][Type];
 					g_Duel[g_Duel[Player1][Challenger]][Score]			= g_Duel[Player1][Score] = g_Duel[Player1][Type] < 3 ? 0:g_Duel[Player1][Score];
 					g_Duel[g_Duel[Player1][Challenger]][ClassRestrict]	= g_Duel[Player1][ClassRestrict];
+					g_Duel[g_Duel[Player1][Challenger]][HealingAllowed]	= g_Duel[Player1][HealingAllowed];
 					g_Duel[g_Duel[Player1][Challenger]][GodMod]			= g_Duel[Player1][GodMod];
 					g_Duel[g_Duel[Player1][Challenger]][HeadShot]		= g_Duel[Player1][HeadShot];
 					g_Duel[g_Duel[Player1][Challenger]][TimeLeft]		= g_Duel[Player1][TimeLeft] *= 60;
@@ -1096,7 +1125,7 @@ public int DuelOptionAnswer(Menu menu, MenuAction action, int Player1, int args)
 				}
 				return;
 			}
-			else if(args == 8)	// Click on exit
+			else if(args == 9)	// Click on exit
 			{
 				ResetPlayer(g_Duel[Player1][Challenger]);
 				ResetPlayer(Player1);
@@ -1304,6 +1333,8 @@ public void ChallengerMenu(int Player1, int Player2)
 	menu.DrawText(MenuItem);
 	Format(MenuItem, sizeof(MenuItem), "Head shot only                  [%s]", g_Duel[Player1][HeadShot] ? "ON":"OFF");
 	menu.DrawText(MenuItem);
+	Format(MenuItem, sizeof(MenuItem), "Healing allowed       [%s]", g_Duel[Player1][HealingAllowed] ? "ON":"OFF");
+	menu.DrawText(MenuItem);
 	Format(MenuItem, sizeof(MenuItem), "                                ");
 	menu.DrawText(MenuItem);
 
@@ -1314,7 +1345,7 @@ public void ChallengerMenu(int Player1, int Player2)
 	menu.Send(Player2, ChallengerMenuAnswer, 20);
 }
 
-public int ChallengerMenuAnswer(Handle menu, MenuAction action, int Player2, int args)
+public int ChallengerMenuAnswer(Menu menu, MenuAction action, int Player2, int args)
 {
 	if (action == MenuAction_Cancel)
 	{
@@ -1381,6 +1412,11 @@ void LoadDuel(int Player2)
 			TF2_SetPlayerClass(g_Duel[Player2][Challenger], view_as<TFClassType>(g_Duel[Player2][ClassRestrict]), false);
 			TF2_RespawnPlayer(g_Duel[Player2][Challenger]);
 		}
+	}
+	
+	if (!g_Duel[Player2][HealingAllowed])
+	{
+		TF2Attrib_SetByName(Player2, "health from healers reduced", 0.0);
 	}
 
 	if(g_Duel[Player2][GodMod])	// Load Godmode
@@ -1789,7 +1825,7 @@ void RankPanel(int iClient, int Rank)
 	rnkpanel.Send(iClient, RankPanelHandler, 15);
 }
 
-public int RankPanelHandler(Handle menu, MenuAction action, int param1, int param2)
+public int RankPanelHandler(Menu menu, MenuAction action, int param1, int param2)
 {
 }
 
@@ -1830,7 +1866,7 @@ public void T_ShowTopDuel(Database dummy, DBResultSet hndl, const char[] error, 
 	return;
 }
 
-public int TopDuelPanel(Handle menu, MenuAction action, int param1, int param2)
+public int TopDuelPanel(Menu menu, MenuAction action, int param1, int param2)
 {
 	if (action == MenuAction_End)
 		delete menu;
@@ -1998,16 +2034,28 @@ public void T_UpdateClient(Database dummy, DBResultSet hndl, const char[] error,
 
 void ResetPlayer(int iClient)
 {
-	g_Duel[iClient][Enabled] 		= false;
-	if(IsValidClient(iClient) && g_Duel[iClient][GodMod] && !g_Duel[iClient][Enabled])
+	if(IsValidClient(iClient))
 	{
-		if(CommandExists("sm_colorize"))
+		if (g_Duel[iClient][GodMod])
 		{
-		    ServerCommand("sm_colorize #%d normal", GetClientUserId(iClient));
+			if(CommandExists("sm_colorize"))
+			{
+			    ServerCommand("sm_colorize #%d normal", GetClientUserId(iClient));
+			}
+			else
+			{
+				SetEntityRenderColor(iClient, 255, 255, 255, 255);
+			}
 		}
-		else SetEntityRenderColor(iClient, 255, 255, 255, 255);
+		
+		if (!g_Duel[iClient][HealingAllowed])
+		{
+			TF2Attrib_RemoveByName(iClient, "health from healers reduced");
+		}
 	}
+	g_Duel[iClient][Enabled] 		= false;
 	g_Duel[iClient][HeadShot]		= false;
+	g_Duel[iClient][HealingAllowed]		= true;
 	g_Duel[iClient][ClassRestrict] 	= 0;
 	g_Duel[iClient][kills]			= 0;
 	g_Duel[iClient][Deads]			= 0;

@@ -191,6 +191,23 @@ public Action CommandPlayerSay(int client, const char[] command, int argc)
 			voteSetupPhase[client] = Options;
 			return Plugin_Handled;
 		}
+		case Anonymous:
+		{
+			char anonMessage[MAX_BUFFER_LENGTH];
+			GetCmdArgString(anonMessage, sizeof(anonMessage));
+			TrimString(anonMessage);
+			if (CheckCancelAndResetSetup(client, anonMessage))
+			{
+				return Plugin_Handled;
+			}
+			else
+			{
+				voteSetupCache[client].SetBool("anonymous", (StrContains(anonMessage, "y", false) != -1));
+			}
+			CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Please give Option #1 or 'cancel' to abort.");
+			voteSetupPhase[client] = Rewards;
+			return Plugin_Handled;
+		} // TODO: Implement rewards system.
 		default:
 		{
 			return Plugin_Continue;
@@ -216,11 +233,87 @@ public int MenuVoteTypeChooserHandler(Menu menu, MenuAction action, int param1, 
 			char item[MAX_BUFFER_LENGTH];
 			menu.GetItem(param2, item, sizeof(item));
 			voteSetupCache[param1].SetString("types", item);
+			
 			voteSetupPhase[param1] = Show;
 			CReplyToCommand(param1, "{GREEN}[SM]{DEFAULT} When should we show the vote?");
-			// TODO: Make an array(list) of options to show, allow user to select and deselect as many as they want.
+			Menu showMenu = new Menu(MenuVoteShowChooserHandler);
+			BuildShowOptions(showMenu);
+			showMenu.Display(param1, 20);
 		}
 	}
+}
+
+public int MenuVoteShowChooserHandler(Menu menu, MenuAction action, int param1, int param2)
+{
+	switch (action)
+	{
+		case MenuAction_End:
+		{
+			delete menu;
+		}
+		case MenuAction_Cancel:
+		{
+			ResetClientSetup(param1);
+		}
+		case MenuAction_Select:
+		{
+			char item[MAX_BUFFER_LENGTH];
+			menu.GetItem(param2, item, sizeof(item));
+			voteSetupCache[param1].SetString("show", item);
+			
+			voteSetupPhase[param1] = Hold;
+			CReplyToCommand(param1, "{GREEN}[SM]{DEFAULT} When should we show the vote?");
+			Menu holdMenu = new Menu(MenuVoteHoldChooserHandler);
+			BuildHoldOptions(holdMenu);
+			holdMenu.Display(param1, 20);
+		}
+	}
+}
+
+public int MenuVoteHoldChooserHandler(Menu menu, MenuAction action, int param1, int param2)
+{
+	switch (action)
+	{
+		case MenuAction_End:
+		{
+			delete menu;
+		}
+		case MenuAction_Cancel:
+		{
+			ResetClientSetup(param1);
+		}
+		case MenuAction_Select:
+		{
+			char item[MAX_BUFFER_LENGTH];
+			menu.GetItem(param2, item, sizeof(item));
+			
+			int value = StringToInt(item);
+			voteSetupCache[param1].SetInt("hold", value);
+			
+			voteSetupPhase[param1] = Anonymous;
+			CReplyToCommand(param1, "{GREEN}[SM]{DEFAULT} Should the vote be anonymous?");
+		}
+	}
+}
+
+public void BuildShowOptions(Menu menu)
+{
+	// TODO: Make an array(list) of options to show, allow user to select and deselect as many as they want.
+	menu.SetTitle("When should the vote be shown?");
+	menu.AddItem("now", "Now");
+	menu.AddItem("life3", "Life 3");
+	menu.AddItem("life5", "Life 5");
+	menu.AddItem("death3", "Death 3");
+	menu.AddItem("death5", "Death 5");
+	menu.AddItem("onjoin", "On joining");
+}
+
+public void BuildHoldOptions(Menu menu)
+{
+	menu.SetTitle("How long should the vote show for?");
+	menu.AddItem("0", "Forever");
+	menu.AddItem("20", "20 seconds.");
+	menu.AddItem("30", "30 seconds.");
 }
 
 public bool CheckCancelAndResetSetup(int client, char[] buffer)

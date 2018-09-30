@@ -78,6 +78,10 @@ public void OnSocketDisconnect(Socket socket, any args)
 	delete heartbeatTimer;
 	delete timeoutTimer;
 	delete relaySocket;
+	
+	#if defined DEBUG
+	OnConfigsExecuted();
+	#endif
 }
 
 public void OnSocketError(Socket socket, const int errorType, const int errorNum, any arg)
@@ -97,6 +101,8 @@ public Action OnHeartbeatTimerComplete(Handle timer)
 	if (relaySocket != null)
 	{
 		relaySocket.Send("{\"__heartbeat__\":\"h\"}");
+		
+		delete timeoutTimer;
 		timeoutTimer = new SMTimer(5.0, OnTimeoutTimerComplete);
 	}
 }

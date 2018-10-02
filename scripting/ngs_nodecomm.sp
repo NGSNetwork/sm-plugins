@@ -147,7 +147,10 @@ public void OnPluginEnd()
 {
 	if (relaySocket != null)
 	{
-		relaySocket.Disconnect();
+		if (relaySocket.IsConnected)
+		{
+			relaySocket.Disconnect();
+		}
 		delete relaySocket;
 	}
 }

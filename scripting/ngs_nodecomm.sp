@@ -123,24 +123,66 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	return APLRes_Success;
 }
 
+/**
+ * Design of JSON Object is as following:
+ * {
+ *		c: (string) used to determine which plugin handles the request here.
+ *		h: (string) used to determine which function should handle this request on the socket server.
+ *		b: (bool) used to determine whether the result should broadcast to all other servers.
+ *		bo: (object) a secondary object through which you can pass any data to the socket server.
+ * }
+ */
 public int Native_SendRequest(Handle plugin, int numParams)
 {
-	if (relaySocket != null && !relaySocket.IsConnected) return;
-	int len;
-	GetNativeStringLength(1, len);
+	if (relaySocket == null || !relaySocket.IsConnected) return 0;
+	int handlerlen, callbacklen, bodylen;
+	GetNativeStringLength(1, handlerlen);
+	GetNativeStringLength(2, callbacklen);
+	bool broadcast = GetNativeCell(3);
+	GetNativeStringLength(4, bodylen);
 	
-	if (len <= 0)
+	if (handlerlen <= 0 || callbacklen <= 0 || bodylen <= 0)
 	{
-		return;
+		return 0;
 	}
 	
-	char[] json = new char[len + 1];
-	GetNativeString(1, json, len + 1);
+	handlerlen++, callbacklen++, bodylen++;
+	
+	char[] handler = new char[handlerlen];
+	GetNativeString(1, handler, handlerlen);
+	
+	char[] callback = new char[callbacklen];
+	GetNativeString(2, callback, callbacklen);
+	
+	char[] body = new char[bodylen];
+	GetNativeString(4, body, bodylen);
+	
+	TrimString(handler);
+	TrimString(callback);
+	TrimString(body);
+	
+	JSON_Object jsonObj = new JSON_Object();
+	jsonObj.SetString("h", handler);
+	jsonObj.SetString("c", callback);
+	jsonObj.SetBool("b", broadcast);
+	
+	JSON_Object bodyobj = new JSON_Object();
+	bodyobj.Decode(body);
+	jsonObj.SetObject("bo", bodyobj);
+	
+	int len = (handlerlen + callbacklen + bodylen) * 2 + 1;
+	char[] json = new char[len];
+	jsonObj.Encode(json, len);
+	
+	TrimString(json);
+	
 	
 	#if defined DEBUG
 	PrintToServer("Sending %s to the socket!", json);
 	#endif
-	relaySocket.Send(json, len + 1);
+	relaySocket.Send(json, strlen(json));
+	
+	return 1;
 }
 
 public void OnPluginEnd()

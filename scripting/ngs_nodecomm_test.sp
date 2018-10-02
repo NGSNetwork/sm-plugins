@@ -35,31 +35,18 @@ public void OnPluginStart()
 	RegAdminCmd("sm_sendnodecommtest", CommmandSendNodeCommTest, ADMFLAG_GENERIC);
 }
 
-/**
- * Design of JSON Object is as following:
- * {
- *		callback: (string) used to determine which plugin handles the request here.
- *		handler: (string) used to determine which function should handle this request on the socket server.
- *		body: (object) a secondary object through which you can pass any data to the socket server.
- * }
- */
 public Action CommmandSendNodeCommTest(int client, int args)
 {
-	JSON_Object obj = new JSON_Object();
-	obj.SetString("callback", "testplugin");
-	obj.SetString("handler", "testpluginresponse");
-	
 	JSON_Object body = new JSON_Object();
 	body.SetInt("client", client);
 	body.SetInt("userid", (client <= 0) ? 0 : GetClientUserId(client));
-	obj.SetObject("body", body);
 	
 	int len = 4096;
 	char[] json = new char[len + 1];
-	obj.Encode(json, len);
-	NodeComm_SendRequest(json);
-	obj.Cleanup();
-	delete obj;
+	body.Encode(json, len);
+	NodeComm_SendRequest("testplugin", "testpluginresponse", true, json);
+	body.Cleanup();
+	delete body;
 	return Plugin_Handled;
 }
 

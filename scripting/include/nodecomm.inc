@@ -8,9 +8,12 @@
 /**
  * Sends a request to a listening Node application to do processing.
  *
- * @param json			JSON to send to Node app. Is essentially your data.
+ * @param handler		What is the function you want to call on the server?
+ * @param callback		What is the identifier the server should send back?
+ * @param broadcast		Should the result be broadcast to all other servers?
+ * @param body			JSON to send to Node app. Is essentially your data.
  */
-native bool NodeComm_SendRequest(char[] json);
+native bool NodeComm_SendRequest(char[] handler, char[] callback, bool broadcast, char[] body);
 
 /**
  * Upon receiving a response, fires this.

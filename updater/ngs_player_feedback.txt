@@ -1,0 +1,21 @@
+"Updater"
+{
+	"Information"
+	{
+		"Version"
+		{
+			"Latest"	"1.0.0"
+		}
+		
+		"Notes"	"Add in all basic functionality!"
+		"Notes"	"Allows us to query people to join a different server."
+		"Notes"	"May allow us to have separate beta-type tests in the future."
+	}
+	
+	"Files"
+	{
+		"Plugin"	"Path_SM/plugins/ngs_player_feedback.smx"
+		
+		"Source"	"Path_SM/scripting/ngs_player_feedback.sp"
+	}
+}

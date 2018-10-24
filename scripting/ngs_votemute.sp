@@ -18,6 +18,8 @@
 #define LIBRARY_ADDED_FUNC LibraryAdded
 #define LIBRARY_REMOVED_FUNC LibraryRemoved
 
+//#define DEBUG
+
 #include <autoexecconfig>
 #include <multicolors>
 #include <ngsutils>
@@ -36,8 +38,6 @@ Menu g_hVoteMenu;
 #define VOTE_NO 		"###no###"
 #define VOTE_YES 		"###yes###"
 
-//#define DEBUG
-
 int g_voteClient[2];
 char g_voteInfo[3][MAXPLAYERS + 1];
 
@@ -49,7 +49,7 @@ public Plugin myinfo = {
 	name = "[NGS] Vote Mute/Vote Silence",
 	author = "<eVa>Dog / AlliedModders LLC / TheXeon",
 	description = "Vote Muting and Silencing",
-	version = "2.0.3",
+	version = "2.0.4",
 	url = "https://www.neogenesisnetwork.net"
 }
 
@@ -74,9 +74,7 @@ public void OnPluginStart()
 	
 	sourcecommsExists = LibraryExists("sourcecomms") || LibraryExists("sourcecomms++");
 	
-	#if defined DEBUG
-		PrintToServer("Sourcecomms is now detected as %b!", sourcecommsExists);
-	#endif
+	PrintToServerDebug("Sourcecomms is now detected as %b!", sourcecommsExists);
 
 	LoadTranslations("common.phrases");
 	LoadTranslations("basevotes.phrases");
@@ -98,25 +96,23 @@ public Action OnPlayerDisconnectEvent(Event event, const char[] name, bool dontB
 
 public void LibraryAdded(const char[] name)
 {
-	if (StrEqual("basecomm", name)) basecommsExists = true;
-	else if (StrContains("sourcecomms", name) != -1)
+	PrintToServerDebug("NEW LIBRARY ADDED, name is %s", name);
+	if (StrEqual(name, "basecomm")) basecommsExists = true;
+	else if (StrContains(name, "sourcecomms") != -1)
 	{
 		sourcecommsExists = true;
-		#if defined DEBUG
-		PrintToServer("Sourcecomms is detected as true!");
-		#endif
+		PrintToServerDebug("Sourcecomms is detected as true!");
 	}
 }
 
 public void LibraryRemoved(const char[] name)
 {
-	if (StrEqual("basecomm", name)) basecommsExists = false;
-	else if (StrContains("sourcecomms", name) != -1)
+	PrintToServerDebug("LIBRARY REMOVED, name is %s", name);
+	if (StrEqual(name, "basecomm")) basecommsExists = false;
+	else if (StrContains(name, "sourcecomms") != -1)
 	{
 		sourcecommsExists = false;
-		#if defined DEBUG
-		PrintToServer("Sourcecomms is now detected as false!");
-		#endif
+		PrintToServerDebug("Sourcecomms is now detected as false!");
 	}
 }
 

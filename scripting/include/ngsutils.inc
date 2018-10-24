@@ -198,6 +198,22 @@ stock int abs(int value)
 	return RoundToNearest(FloatAbs(float(value)));
 }
 
+/**
+ * Prints to server console only if DEBUG flag is defined.
+ *
+ * @param buffer			String to print to console.
+ * @param ...				Optional format parameters.
+ * @noreturn
+ */
+stock void PrintToServerDebug(const char[] buffer, any ...)
+{
+	#if defined DEBUG
+	char format[8192];
+	VFormat(format, sizeof(format), buffer, 2);
+	PrintToServer(format);
+	#endif
+}
+
 #if defined _tf2_stocks_included
 #define TF_MAX_CLASS_NAME_LENGTH 12
 stock int TF2_ClassEnumToString(TFClassType i_class, char s_class[TF_MAX_CLASS_NAME_LENGTH])

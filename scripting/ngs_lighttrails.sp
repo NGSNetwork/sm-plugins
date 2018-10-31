@@ -6,7 +6,7 @@
 * addons/sourcemod/plugins/ngs_lighttrails.smx
 *
 * Dependencies:
-* sdktools.inc, multicolors.inc, ngsutils.inc, ngsupdater.inc
+* sdktools.inc, tf2_stocks.inc, multicolors.inc, ngsutils.inc, ngsupdater.inc
 */
 #pragma newdecls required
 #pragma semicolon 1
@@ -14,7 +14,10 @@
 #define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
 #define RELOAD_ON_UPDATE 1
 
+// #define DEBUG
+
 #include <sdktools>
+#include <tf2_stocks>
 #include <multicolors>
 #include <ngsutils>
 #include <ngsupdater>
@@ -24,7 +27,7 @@ public Plugin myinfo =
 	name = "[NGS] Light Trails",
 	author = "bSun Halt / TheXeon",
 	description = "Gives a light trail",
-	version = "1.0.2",
+	version = "1.0.3",
 	url = "https://www.neogenesisnetwork.net"
 }
 
@@ -36,6 +39,9 @@ public void OnPluginStart()
 	RegAdminCmd("sm_trail", Command_Trail, ADMFLAG_GENERIC, "sm_trail <color/hex>");
 	MC_CheckTrie();
 	PrepTrailsMenu();
+
+	HookEvent("player_death", EventPlayerDeath, EventHookMode_Pre);
+	HookEvent("player_spawn", EventPlayerSpawn);
 }
 
 public void OnMapStart()
@@ -51,6 +57,19 @@ public void OnClientPutInServer(int client)
 public void OnClientDisconnect(int client)
 {
 	KillTrail(client);
+}
+
+public Action EventPlayerDeath(Event event, const char[] name, bool dontBroadcast)
+{
+	int client = GetClientOfUserId(event.GetInt("userid"));
+	HideTrail(client);
+	return Plugin_Continue;
+}
+
+public void EventPlayerSpawn(Event event, const char[] name, bool dontBroadcast)
+{
+	int client = GetClientOfUserId(event.GetInt("userid"));
+	ShowTrail(client);
 }
 
 void PrepTrailsMenu()
@@ -198,7 +217,58 @@ public void OnPluginEnd()
 {
 	for (int i = 1; i <= MaxClients; i++)
 		if (IsValidClient(i))
-			KillTrail(i);
+			OnClientDisconnect(i);
+}
+
+stock void ShowTrail(int client)
+{
+	if (IsValidClient(client, true) && SpriteTrail[client] != INVALID_ENT_REFERENCE)
+	{
+		int entIndex = EntRefToEntIndex(SpriteTrail[client]);
+		PrintToServerDebug("Client %d is getting their trail shown!", client);
+		if (IsValidEntity(entIndex))
+		{
+			DispatchKeyValue(entIndex, "renderamt", "255");
+			DispatchKeyValue(entIndex, "lifetime", "3.0");
+		}
+	}
+}
+
+stock void HideTrail(int client)
+{
+	if (IsValidClient(client) && SpriteTrail[client] != INVALID_ENT_REFERENCE)
+	{
+		int entIndex = EntRefToEntIndex(SpriteTrail[client]);
+		if (IsValidEntity(entIndex))
+		{
+			PrintToServerDebug("Client %d is getting their trail hidden!", client);
+			DispatchKeyValue(entIndex, "renderamt", "0");
+			DispatchKeyValue(entIndex, "lifetime", "0.0");
+		}
+	}
+}
+
+public void TF2_OnConditionAdded(int client, TFCond condition)
+{
+	if (condition == TFCond_Cloaked || 
+		condition == TFCond_Disguised || 
+		condition == TFCond_Disguising)
+	{
+		HideTrail(client);
+	}
+}
+
+public void TF2_OnConditionRemoved(int client, TFCond condition)
+{
+	if ((condition == TFCond_Cloaked && 
+			(!TF2_IsPlayerInCondition(client, TFCond_Disguised) &&
+			!TF2_IsPlayerInCondition(client, TFCond_Disguising))) || 
+		((condition == TFCond_Disguised || 
+			condition == TFCond_Disguising) && 
+			!TF2_IsPlayerInCondition(client, TFCond_Cloaked)))
+	{
+		ShowTrail(client);
+	}
 }
 
 // Stock converted from:

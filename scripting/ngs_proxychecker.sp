@@ -40,7 +40,7 @@ StringMap requestCache;
 int vpnToUse; // an index of vpnList
 int twentyFourHourTimeStamp;
 
-char getIPIntelURL[1024], proxyCheckIOURL[1024]; // TODO: Fill this out when reading the config, use the url to send the request.
+char getIPIntelURL[1024], proxyCheckIOURL[1024];
 
 // VPN METHODMAP
 methodmap VPN < StringMap
@@ -62,7 +62,7 @@ public Plugin myinfo = {
 	name        = "[NGS] Proxy Checker",
 	author      = "TheXeon",
 	description = "Simple checker against API for proxies/VPNs.",
-	version     = "1.3.2",
+	version     = "1.3.3",
 	url         = "https://www.neogenesisnetwork.net"
 }
 
@@ -107,6 +107,41 @@ public void OnPluginEnd()
 	delete kv;
 }
 
+stock void ParseWhiteListBlackList()
+{
+	bool whiteListMode = true;
+	char path[PLATFORM_MAX_PATH], line[128];
+	BuildPath(Path_SM, path, PLATFORM_MAX_PATH, "configs/proxywhitelist.cfg");
+	if (!FileExists(path))
+	{
+		LogMessage("No whitelist/blacklist file exists at %s! If you would" ...
+		" like to whitelist or blacklist IPs, please get it from the" ...
+		" repo or create it!", path);
+		return;
+	}
+	else
+	{
+		LogMessage("Successfully enabled whitelist/blacklist file!");
+	}
+	File whiteListFile = OpenFile(path, "r");
+	while (!whiteListFile.EndOfFile() && whiteListFile.ReadLine(line, 
+		sizeof(line)))
+	{
+		TrimString(line);
+		if (strlen(line) < 1 || line[0] == '#' || line[0] == '/') {
+			continue;
+		} else if (line[0] == 'w') {
+			whiteListMode = true;
+		} else if (line[0] == 'b') {
+			whiteListMode = false;
+		} else {
+			PrintToServerDebug("%s %s!", whiteListMode ? "Whitelisting" : "Blacklisting", line);
+			requestCache.SetValue(line, whiteListMode);
+		}
+	}
+	delete whiteListFile;
+}
+
 public void OnConfigsExecuted()
 {
 	#if defined DEBUG
@@ -127,6 +162,8 @@ public void OnConfigsExecuted()
 	{
 		SetFailState("Required configuration file at %s is not there! Get it from the repo!", configPath);
 	}
+
+	ParseWhiteListBlackList();
 }
 
 void ReadProxyConfigFile(const char[] configPath, const char[] cachePath, bool stopNotNull=false)
@@ -225,20 +262,14 @@ void ReadProxyConfigFile(const char[] configPath, const char[] cachePath, bool s
 						if (perDaySoFar >= perDay)
 						{
 							vpnToUse++;
-							#if defined DEBUG
-							PrintToServer("Rolling vpnList to %d as perDaySoFar of %d is >= %s\'s perDay of %d", vpnToUse, perDaySoFar, buffer, perDay);
-							#endif
+							PrintToServerDebug("Rolling vpnList to %d as perDaySoFar of %d is >= %s\'s perDay of %d", vpnToUse, perDaySoFar, buffer, perDay);
 							if (vpnToUse == vpnList.Length)
 							{
-								#if defined DEBUG
-								PrintToServer("Just totally invalidating vpnToUse as all are taken up. List length is %d", vpnList.Length);
-								#endif
+								PrintToServerDebug("Just totally invalidating vpnToUse as all are taken up. List length is %d", vpnList.Length);
 								vpnToUse = -1;
 							}
 						}
-						#if defined DEBUG
-						PrintToServer("Setting %s perDaySoFar to %d!", buffer, kv.GetNum("perDaySoFar"));
-						#endif
+						PrintToServerDebug("Setting %s perDaySoFar to %d!", buffer, kv.GetNum("perDaySoFar"));
 					}
 					kv.GoBack();
 				}
@@ -252,10 +283,8 @@ void ReadProxyConfigFile(const char[] configPath, const char[] cachePath, bool s
 		processQueue = new SMQueue();
 	}
 	processQueueTimer = new SMTimer(time, OnProcessQueueTimer, _, TIMER_REPEAT); // saved for later delete/reuse if needed
-	#if defined DEBUG
-	PrintToServer("Set process queue timer to %0.2f with lowestPerMin at %0.2f and " ...
-	"totalPerDay at %d", time, lowestPerMin, totalPerDay);
-	#endif
+	PrintToServerDebug("Set process queue timer to %0.2f with lowestPerMin at %0.2f and " ...
+		"totalPerDay at %d", time, lowestPerMin, totalPerDay);
 }
 
 #if defined DEBUG
@@ -302,9 +331,7 @@ public void OnClientPutInServer(int client)
 
 		if (requestCache != null && requestCache.GetValue(ip, isSafe) && isSafe)
 		{
-			#if defined DEBUG
-			PrintToServer("Retrieved notion that client %L is safe", client);
-			#endif
+			PrintToServerDebug("Retrieved notion that client %L is safe", client);
 			return;
 		}
 
@@ -329,21 +356,15 @@ public Action OnProcessQueueTimer(Handle timer)
 		pack.Reset();
 		pack.ReadCell();
 		pack.ReadString(ip, sizeof(ip));
-		#if defined DEBUG
-		PrintToServer("ProcessQueue is not empty, processing %s.", ip);
-		#endif
+		PrintToServerDebug("ProcessQueue is not empty, processing %s.", ip);
 		if (requestCache.GetValue(ip, dummy))
 		{
-			#if defined DEBUG
-			PrintToServer("Got ip %s from cache, already processed.", ip);
-			#endif
+			PrintToServerDebug("Got ip %s from cache, already processed.", ip);
 			delete pack; // already cached
 		}
 		else
 		{
-			#if defined DEBUG
-			PrintToServer("Ip %s not in cache, sending request.", ip);
-			#endif
+			PrintToServerDebug("Ip %s not in cache, sending request.", ip);
 			SendCheckRequest(pack);
 			break;
 		}
@@ -361,9 +382,7 @@ void SendCheckRequest(DataPack pack)
 		}
 		else if (now - twentyFourHourTimeStamp >= 86400)
 		{
-			#if defined DEBUG
-			PrintToServer("now: %d minus priortimestamp: %d is greater than a day, reseting daily values.", now, twentyFourHourTimeStamp);
-			#endif
+			PrintToServerDebug("now: %d minus priortimestamp: %d is greater than a day, reseting daily values.", now, twentyFourHourTimeStamp);
 			for (int i = 0; i < vpnList.Length; i++)
 			{
 				VPN vpn = vpnList.Get(i);
@@ -395,30 +414,22 @@ void SendCheckRequest(DataPack pack)
 			vpn.GetValue("perDay", allowedPerDay);
 			if (soFarToday + 1 == allowedPerDay)
 			{
-				#if defined DEBUG
-				PrintToServer("soFarToday + 1 == allowedPerDay for service %s!", type);
-				#endif
+				PrintToServerDebug("soFarToday + 1 == allowedPerDay for service %s!", type);
 				if (vpnToUse + 1 == vpnList.Length)
 				{
-					#if defined DEBUG
-					PrintToServer("vpnToUse runs off the end of the list, invalidating vpnToUse");
-					#endif
+					PrintToServerDebug("vpnToUse runs off the end of the list, invalidating vpnToUse");
 					vpnToUse = -1; // wait to cycle back
 				}
 				else
 				{
-					#if defined DEBUG
-					PrintToServer("vpnToUse is being iterated by 1 to %d.", vpnToUse + 1);
-					#endif
+					PrintToServerDebug("vpnToUse is being iterated by 1 to %d.", vpnToUse + 1);
 					vpnToUse++;
 				}
 			}
 		}
 		else
 		{
-			#if defined DEBUG
-			PrintToServer("vpnToUse is -1 requeuing datapack at beginning");
-			#endif
+			PrintToServerDebug("vpnToUse is -1 requeuing datapack at beginning");
 			processQueue.EnqueueAt(0, pack);
 		}
 	}
@@ -443,9 +454,7 @@ void SendGetIPIntelRequest(DataPack pack)
 	request.SetContextValue(pack);
 	request.SetCallbacks(OnGetIPIntelRequestDone);
 	request.Send();
-	#if defined DEBUG
-	PrintToServer("Sending getipintel request at url %s .", formatURL);
-	#endif
+	PrintToServerDebug("Sending getipintel request at url %s .", formatURL);
 }
 
 public void OnGetIPIntelRequestDone(SWHTTPRequest hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, DataPack pack)
@@ -490,9 +499,7 @@ public void OnGetIPIntelRequestDone(SWHTTPRequest hRequest, bool bFailure, bool 
 	delete pack;
 
 	float probability = StringToFloat(buffer);
-	#if defined DEBUG
-	PrintToServer("Probability for proxy is %.2f for ip %s!", probability, ip);
-	#endif
+	PrintToServerDebug("Probability for proxy is %.2f for ip %s!", probability, ip);
 	if (probability >= getIpIntelProbability)
 	{
 		ServerCommand("sm_banip %s 0 Suspicion of proxy with probability %.2f", ip, probability);
@@ -506,9 +513,7 @@ public void OnGetIPIntelRequestDone(SWHTTPRequest hRequest, bool bFailure, bool 
 	{
 		requestCache.SetValue(ip, true); // TODO: Make cache erase after a while
 	}
-	#if defined DEBUG
-	PrintToServer("Caching probability %.02f for client %L.", probability, client);
-	#endif
+	PrintToServerDebug("Caching probability %.02f for client %L.", probability, client);
 }
 
 void SendProxyCheckIORequest(DataPack pack)
@@ -523,9 +528,7 @@ void SendProxyCheckIORequest(DataPack pack)
 	request.SetContextValue(pack);
 	request.SetCallbacks(OnProxyCheckIORequestDone);
 	request.Send();
-	#if defined DEBUG
-	PrintToServer("Sending proxycheckio request at url %s .", formatURL);
-	#endif
+	PrintToServerDebug("Sending proxycheckio request at url %s .", formatURL);
 }
 
 public void OnProxyCheckIORequestDone(SWHTTPRequest hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, DataPack pack)
@@ -553,9 +556,7 @@ public void OnProxyCheckIORequestDone(SWHTTPRequest hRequest, bool bFailure, boo
 	delete hRequest;
 	delete pack;
 
-	#if defined DEBUG
-	PrintToServer("ProxyCheck.io request returned %s", buffer);
-	#endif
+	PrintToServerDebug("ProxyCheck.io request returned %s", buffer);
 
 	JSON_Object reponse = new JSON_Object();
 	reponse.Decode(buffer);
@@ -579,9 +580,7 @@ public void OnProxyCheckIORequestDone(SWHTTPRequest hRequest, bool bFailure, boo
 		char isProxy[8], proxyType[24];
 		JSON_Object ipObj = reponse.GetObject(ip);
 		ipObj.GetString("proxy", isProxy, sizeof(isProxy));
-		#if defined DEBUG
-		PrintToServer("Result for proxy is %s <%s> for ip %s!", isProxy, (isProxy[0] == 'y') ? proxyType : "none", ip);
-		#endif
+		PrintToServerDebug("Result for proxy is %s <%s> for ip %s!", isProxy, (isProxy[0] == 'y') ? proxyType : "none", ip);
 		if (StrEqual(isProxy, "yes"))
 		{
 			ipObj.GetString("type", proxyType, sizeof(proxyType));
@@ -596,9 +595,7 @@ public void OnProxyCheckIORequestDone(SWHTTPRequest hRequest, bool bFailure, boo
 		{
 			requestCache.SetValue(ip, true); // TODO: Make cache erase after a while
 		}
-		#if defined DEBUG
-		PrintToServer("Caching suspicion of %s for ip %s.", isProxy, ip);
-		#endif
+		PrintToServerDebug("Caching suspicion of %s for ip %s.", isProxy, ip);
 	}
 	reponse.Cleanup();
 	delete reponse;

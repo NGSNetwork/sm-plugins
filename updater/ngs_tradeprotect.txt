@@ -1,0 +1,21 @@
+"Updater"
+{
+	"Information"
+	{
+		"Version"
+		{
+			"Latest"	"1.0.2"
+		}
+		
+		"Notes"	"Add updater support!"
+		"Notes"	"Fixed stack size not compensating enough!"
+		"Notes"	"Fixed deleting an already-deleted *invalid* handle!"
+	}
+	
+	"Files"
+	{
+		"Plugin"	"Path_SM/plugins/ngs_tradeprotect.smx"
+		
+		"Source"	"Path_SM/scripting/ngs_tradeprotect.sp"
+	}
+}

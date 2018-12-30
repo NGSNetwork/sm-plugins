@@ -40,12 +40,12 @@ StringMap requestCache;
 int vpnToUse; // an index of vpnList
 int twentyFourHourTimeStamp;
 
-char getIPIntelURL[1024], proxyCheckIOURL[1024];
+char getIPIntelURL[1024], proxyCheckIOURL[1024], mindMediaURL[1024];
 
 // VPN METHODMAP
 methodmap VPN < StringMap
 {
-	public VPN(const char[] type, const char[] url, int requestsPerMin, int requestsPerDay, float probability=-1.0)
+	public VPN(const char[] type, const char[] url, int requestsPerMin, int requestsPerDay, any probability=-1.0)
 	{
 		StringMap coolBean = new StringMap();
 		coolBean.SetString("type", type);
@@ -223,6 +223,10 @@ void ReadProxyConfigFile(const char[] configPath, const char[] cachePath, bool s
 		else if (StrEqual(buffer, "proxycheck.io"))
 		{
 			strcopy(proxyCheckIOURL, sizeof(proxyCheckIOURL), url);
+		}
+		else if (StrEqual(buffer, "proxy-mind-media"))
+		{
+			strcopy(mindMediaURL, sizeof(mindMediaURL), url);
 		}
 		if (!lowestPerMin || lowestPerMin > perMin)
 		{
@@ -408,6 +412,10 @@ void SendCheckRequest(DataPack pack)
 			{
 				SendProxyCheckIORequest(pack);
 			}
+			else if (StrEqual(type, "proxy-mind-media"))
+			{
+				SendMindMediaRequest(pack);
+			}
 			int soFarToday, allowedPerDay;
 			vpn.GetValue("perDaySoFar", soFarToday);
 			vpn.SetValue("perDaySoFar", soFarToday + 1);
@@ -470,13 +478,43 @@ public void OnGetIPIntelRequestDone(SWHTTPRequest hRequest, bool bFailure, bool 
 			char[] buffer = new char[hRequest.ResponseSize + 1];
 			hRequest.GetBodyData(buffer, hRequest.ResponseSize);
 			float response = StringToFloat(buffer);
-			LogError("Get IP Intel request failed for userid %d! Check GetIPIntel for error code %.0f with status 400!", userid, response);
+			switch(response) {
+				case -1: {
+					LogError("Get IP Intel request failed for userid %d! Invalid no input!", userid);
+				}
+				case -2: {
+					LogError("Get IP Intel request failed for userid %d! Invalid IP address!", userid);
+				}
+				case -3: {
+					LogError("Get IP Intel request failed for userid %d! Unroutable address / private address!", userid);
+				}
+				case -4: {
+					LogError("Get IP Intel request failed for userid %d! Unable to reach database, most likely the database is being updated. Keep an eye on twitter for more information!", userid);
+				}
+				case -5: {
+					LogError("Get IP Intel request failed for userid %d! Your connecting IP has been banned from the system or you do not have permission to access a particular service. Did you exceed your query limits? Did you use an invalid email address? If you want more information, contact GetIPIntel using the links at http://getipintel.net/#Contact . Rolling over to next VPN.", userid);
+					// Apply the maxed out queries to the VPN in case of caching
+					VPN vpn = vpnList.Get(vpnToUse);
+					int allowedPerDay;
+					vpn.GetValue("perDay", allowedPerDay);
+					vpn.SetValue("perDaySoFar", allowedPerDay);
+					vpnToUse++;
+				}
+				case -6: {
+					LogError("Get IP Intel request failed for userid %d! You did not provide any contact information with your query or the contact information is invalid! Rolling over!", userid);
+					vpnToUse++;
+				}
+				default: {
+					LogError("Get IP Intel request failed for userid %d! Check GetIPIntel for error code %.0f with status 400!", userid, response);
+				}
+			}
 			delete pack;
 		}
 		else if (eStatusCode == k_EHTTPStatusCode429TooManyRequests)
 		{
 			LogError("Get IP Intel request failed for userid %d! There were too many requests, please investigate this!", userid);
 			processQueue.Enqueue(pack);
+			vpnToUse++;
 		}
 		else
 		{
@@ -599,4 +637,73 @@ public void OnProxyCheckIORequestDone(SWHTTPRequest hRequest, bool bFailure, boo
 	}
 	reponse.Cleanup();
 	delete reponse;
+}
+
+void SendMindMediaRequest(DataPack pack)
+{
+	char ip[24], formatURL[1024];
+	pack.Reset();
+	pack.ReadCell();
+	pack.ReadString(ip, sizeof(ip));
+	strcopy(formatURL, sizeof(formatURL), proxyCheckIOURL);
+	ReplaceString(formatURL, sizeof(formatURL), "{CLIENTIP}", ip);
+	SWHTTPRequest request = new SWHTTPRequest(k_EHTTPMethodGET, formatURL);
+	request.SetContextValue(pack);
+	request.SetCallbacks(OnMindMediaRequestDone);
+	request.Send();
+	PrintToServerDebug("Sending mindmedia request at url %s .", formatURL);
+}
+
+public void OnMindMediaRequestDone(SWHTTPRequest hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, DataPack pack)
+{
+	pack.Reset();
+	int userid = pack.ReadCell();
+	char ip[24];
+	pack.ReadString(ip, sizeof(ip));
+	if(eStatusCode != k_EHTTPStatusCode200OK || !bRequestSuccessful)
+	{
+		LogError("Mind-Media request failed for userid %d! Status code is %d, success was %s.", userid, eStatusCode, (bRequestSuccessful) ? "true" : "false");
+		processQueue.Enqueue(pack); // deprioritize this
+		delete hRequest;
+		return;
+	}
+
+	int client = 0;
+	if (userid != 0)
+	{
+		client = GetClientOfUserId(userid);
+	}
+
+	char[] buffer = new char[hRequest.ResponseSize + 1];
+	hRequest.GetBodyData(buffer, hRequest.ResponseSize);
+	delete hRequest;
+
+	TrimString(buffer);
+	PrintToServerDebug("Mind-Media request returned %s", buffer);
+
+	int bufferLen = strlen(buffer); // retrieving new size after trim
+
+	if (bufferLen == 0 || bufferLen > 1 || buffer[0] == 'X')
+	{
+		LogError("Mind-Media errored with response %s!", buffer);
+		processQueue.Enqueue(pack);
+	}
+	else
+	{
+		if (StrEqual(buffer, "Y"))
+		{
+			ServerCommand("sm_banip %s 0 Suspicion of proxy", ip);
+			if (userid != 0 && client != 0) // might be redundant, only client is needed.
+			{
+				KickClient(client, "Suspicion of proxy server!");
+			}
+			requestCache.SetValue(ip, false); // TODO: Make cache erase after a while
+		}
+		else
+		{
+			requestCache.SetValue(ip, true); // TODO: Make cache erase after a while
+		}
+		PrintToServerDebug("Caching suspicion of %s for ip %s.", buffer, ip);
+		delete pack;
+	}
 }

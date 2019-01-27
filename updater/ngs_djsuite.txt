@@ -4,12 +4,11 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.0.6"
+			"Latest"	"1.0.7"
 		}
 		
-		"Notes"	"Convert to use CommandListeners for chat!"
-		"Notes"	"Add extra checks for replicating convars!"
-		"Notes"	"Optimize DJ chat checks (take less cycles)."
+		"Notes"	"Added automated CVar updating through AutoExecConfig include!"
+		"Notes"	"Fix using incorrect request client checking. Messages should now show up!"
 	}
 	
 	"Files"

@@ -360,20 +360,20 @@ public void OnPluginStart()
 				LogError("Could not initialize call for CTFWeaponBase::WeaponReset. Plugin will not be able to reset weapons before switching!");
 			}
 		}
-		CloseHandle(hConf);
+		delete hConf;
 	}
 	else {
 		LogError("Could not read gamedata/friendly.txt. Plugin will not be able to reset weapons before switching!");
 	}
 	for (int i = 1; i < MaxClients; i++)
-    {
-        if (!AreClientCookiesCached(i))
-        {
-            continue;
-        }
+	{
+		if (!AreClientCookiesCached(i))
+		{
+			continue;
+		}
 
-        OnClientCookiesCached(i);
-    }
+		OnClientCookiesCached(i);
+	}
 }
 
 public void OnClientCookiesCached(int client)
@@ -1332,7 +1332,7 @@ public Action OnTakeDamage(int client, int &attacker, int &inflictor, float &dam
 	}
 	if ((IsFriendly[attacker] || IsFriendly[client]) && !IsAdmin[attacker]) {
 		damage = 0.0;
-		return Plugin_Handled;
+		return Plugin_Changed;
 	}
 	return Plugin_Continue;
 }

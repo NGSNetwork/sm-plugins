@@ -40,12 +40,12 @@ StringMap requestCache;
 int vpnToUse; // an index of vpnList
 int twentyFourHourTimeStamp;
 
-char getIPIntelURL[1024], proxyCheckIOURL[1024];
+char getIPIntelURL[1024], proxyCheckIOURL[1024], mindMediaURL[1024];
 
 // VPN METHODMAP
 methodmap VPN < StringMap
 {
-	public VPN(const char[] type, const char[] url, int requestsPerMin, int requestsPerDay, float probability=-1.0)
+	public VPN(const char[] type, const char[] url, int requestsPerMin, int requestsPerDay, any probability=-1.0)
 	{
 		StringMap coolBean = new StringMap();
 		coolBean.SetString("type", type);
@@ -62,7 +62,7 @@ public Plugin myinfo = {
 	name        = "[NGS] Proxy Checker",
 	author      = "TheXeon",
 	description = "Simple checker against API for proxies/VPNs.",
-	version     = "1.3.3",
+	version     = "1.3.4",
 	url         = "https://www.neogenesisnetwork.net"
 }
 
@@ -114,14 +114,14 @@ stock void ParseWhiteListBlackList()
 	BuildPath(Path_SM, path, PLATFORM_MAX_PATH, "configs/proxywhitelist.cfg");
 	if (!FileExists(path))
 	{
-		LogMessage("No whitelist/blacklist file exists at %s! If you would" ...
+		Timber.w("No whitelist/blacklist file exists at %s! If you would" ...
 		" like to whitelist or blacklist IPs, please get it from the" ...
 		" repo or create it!", path);
 		return;
 	}
 	else
 	{
-		LogMessage("Successfully enabled whitelist/blacklist file!");
+		Timber.i("Successfully enabled whitelist/blacklist file!");
 	}
 	File whiteListFile = OpenFile(path, "r");
 	while (!whiteListFile.EndOfFile() && whiteListFile.ReadLine(line, 
@@ -135,7 +135,7 @@ stock void ParseWhiteListBlackList()
 		} else if (line[0] == 'b') {
 			whiteListMode = false;
 		} else {
-			PrintToServerDebug("%s %s!", whiteListMode ? "Whitelisting" : "Blacklisting", line);
+			Timber.d("%s %s!", whiteListMode ? "Whitelisting" : "Blacklisting", line);
 			requestCache.SetValue(line, whiteListMode);
 		}
 	}
@@ -224,6 +224,10 @@ void ReadProxyConfigFile(const char[] configPath, const char[] cachePath, bool s
 		{
 			strcopy(proxyCheckIOURL, sizeof(proxyCheckIOURL), url);
 		}
+		else if (StrEqual(buffer, "proxy-mind-media"))
+		{
+			strcopy(mindMediaURL, sizeof(mindMediaURL), url);
+		}
 		if (!lowestPerMin || lowestPerMin > perMin)
 		{
 			lowestPerMin = float(perMin);
@@ -262,14 +266,14 @@ void ReadProxyConfigFile(const char[] configPath, const char[] cachePath, bool s
 						if (perDaySoFar >= perDay)
 						{
 							vpnToUse++;
-							PrintToServerDebug("Rolling vpnList to %d as perDaySoFar of %d is >= %s\'s perDay of %d", vpnToUse, perDaySoFar, buffer, perDay);
+							Timber.d("Rolling vpnList to %d as perDaySoFar of %d is >= %s\'s perDay of %d", vpnToUse, perDaySoFar, buffer, perDay);
 							if (vpnToUse == vpnList.Length)
 							{
-								PrintToServerDebug("Just totally invalidating vpnToUse as all are taken up. List length is %d", vpnList.Length);
+								Timber.d("Just totally invalidating vpnToUse as all are taken up. List length is %d", vpnList.Length);
 								vpnToUse = -1;
 							}
 						}
-						PrintToServerDebug("Setting %s perDaySoFar to %d!", buffer, kv.GetNum("perDaySoFar"));
+						Timber.d("Setting %s perDaySoFar to %d!", buffer, kv.GetNum("perDaySoFar"));
 					}
 					kv.GoBack();
 				}
@@ -283,7 +287,7 @@ void ReadProxyConfigFile(const char[] configPath, const char[] cachePath, bool s
 		processQueue = new SMQueue();
 	}
 	processQueueTimer = new SMTimer(time, OnProcessQueueTimer, _, TIMER_REPEAT); // saved for later delete/reuse if needed
-	PrintToServerDebug("Set process queue timer to %0.2f with lowestPerMin at %0.2f and " ...
+	Timber.d("Set process queue timer to %0.2f with lowestPerMin at %0.2f and " ...
 		"totalPerDay at %d", time, lowestPerMin, totalPerDay);
 }
 
@@ -331,7 +335,7 @@ public void OnClientPutInServer(int client)
 
 		if (requestCache != null && requestCache.GetValue(ip, isSafe) && isSafe)
 		{
-			PrintToServerDebug("Retrieved notion that client %L is safe", client);
+			Timber.d("Retrieved notion that client %L is safe", client);
 			return;
 		}
 
@@ -356,15 +360,15 @@ public Action OnProcessQueueTimer(Handle timer)
 		pack.Reset();
 		pack.ReadCell();
 		pack.ReadString(ip, sizeof(ip));
-		PrintToServerDebug("ProcessQueue is not empty, processing %s.", ip);
+		Timber.d("ProcessQueue is not empty, processing %s.", ip);
 		if (requestCache.GetValue(ip, dummy))
 		{
-			PrintToServerDebug("Got ip %s from cache, already processed.", ip);
+			Timber.d("Got ip %s from cache, already processed.", ip);
 			delete pack; // already cached
 		}
 		else
 		{
-			PrintToServerDebug("Ip %s not in cache, sending request.", ip);
+			Timber.d("Ip %s not in cache, sending request.", ip);
 			SendCheckRequest(pack);
 			break;
 		}
@@ -382,7 +386,7 @@ void SendCheckRequest(DataPack pack)
 		}
 		else if (now - twentyFourHourTimeStamp >= 86400)
 		{
-			PrintToServerDebug("now: %d minus priortimestamp: %d is greater than a day, reseting daily values.", now, twentyFourHourTimeStamp);
+			Timber.d("now: %d minus priortimestamp: %d is greater than a day, reseting daily values.", now, twentyFourHourTimeStamp);
 			for (int i = 0; i < vpnList.Length; i++)
 			{
 				VPN vpn = vpnList.Get(i);
@@ -408,28 +412,32 @@ void SendCheckRequest(DataPack pack)
 			{
 				SendProxyCheckIORequest(pack);
 			}
+			else if (StrEqual(type, "proxy-mind-media"))
+			{
+				SendMindMediaRequest(pack);
+			}
 			int soFarToday, allowedPerDay;
 			vpn.GetValue("perDaySoFar", soFarToday);
 			vpn.SetValue("perDaySoFar", soFarToday + 1);
 			vpn.GetValue("perDay", allowedPerDay);
 			if (soFarToday + 1 == allowedPerDay)
 			{
-				PrintToServerDebug("soFarToday + 1 == allowedPerDay for service %s!", type);
+				Timber.d("soFarToday + 1 == allowedPerDay for service %s!", type);
 				if (vpnToUse + 1 == vpnList.Length)
 				{
-					PrintToServerDebug("vpnToUse runs off the end of the list, invalidating vpnToUse");
+					Timber.d("vpnToUse runs off the end of the list, invalidating vpnToUse");
 					vpnToUse = -1; // wait to cycle back
 				}
 				else
 				{
-					PrintToServerDebug("vpnToUse is being iterated by 1 to %d.", vpnToUse + 1);
+					Timber.d("vpnToUse is being iterated by 1 to %d.", vpnToUse + 1);
 					vpnToUse++;
 				}
 			}
 		}
 		else
 		{
-			PrintToServerDebug("vpnToUse is -1 requeuing datapack at beginning");
+			Timber.d("vpnToUse is -1 requeuing datapack at beginning");
 			processQueue.EnqueueAt(0, pack);
 		}
 	}
@@ -444,7 +452,7 @@ void SendGetIPIntelRequest(DataPack pack)
 	cvarContactEmail.GetString(contactAddr, sizeof(contactAddr));
 	if (StrEqual("dummy@dummy.dummy", contactAddr))
 	{
-		LogError("SPAMMY ERRORS! Please change the email used with the proxy checker to something valid!");
+		Timber.e("Please change the email used with the proxy checker to something valid!");
 		delete pack;
 		return;
 	}
@@ -454,7 +462,7 @@ void SendGetIPIntelRequest(DataPack pack)
 	request.SetContextValue(pack);
 	request.SetCallbacks(OnGetIPIntelRequestDone);
 	request.Send();
-	PrintToServerDebug("Sending getipintel request at url %s .", formatURL);
+	Timber.d("Sending getipintel request at url %s .", formatURL);
 }
 
 public void OnGetIPIntelRequestDone(SWHTTPRequest hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, DataPack pack)
@@ -470,17 +478,43 @@ public void OnGetIPIntelRequestDone(SWHTTPRequest hRequest, bool bFailure, bool 
 			char[] buffer = new char[hRequest.ResponseSize + 1];
 			hRequest.GetBodyData(buffer, hRequest.ResponseSize);
 			float response = StringToFloat(buffer);
-			LogError("Get IP Intel request failed for userid %d! Check GetIPIntel for error code %.0f with status 400!", userid, response);
+			switch(response) {
+				case -1.0: {
+					Timber.e("Get IP Intel request failed for userid %d! No input!", userid);
+				}
+				case -2.0: {
+					Timber.e("Get IP Intel request failed for userid %d! Invalid IP address!", userid);
+				}
+				case -3.0: {
+					Timber.e("Get IP Intel request failed for userid %d! Unroutable address / private address!", userid);
+				}
+				case -4.0: {
+					Timber.e("Get IP Intel request failed for userid %d! Unable to reach database, most likely the database is being updated. Keep an eye on twitter for more information!", userid);
+				}
+				case -5.0: {
+					Timber.e("Get IP Intel request failed for userid %d! Your connecting IP has been banned from the system or you do not have permission to access a particular service. Did you exceed your query limits? Did you use an invalid email address? If you want more information, contact GetIPIntel using the links at http://getipintel.net/#Contact . Rolling over to next VPN.", userid);
+					// Apply the maxed out queries to the VPN in case of caching
+					RollOverVPN();
+				}
+				case -6.0: {
+					Timber.e("Get IP Intel request failed for userid %d! You did not provide any contact information with your query or the contact information is invalid! Rolling over!", userid);
+					RollOverVPN();
+				}
+				default: {
+					Timber.e("Get IP Intel request failed for userid %d! Check GetIPIntel for error code %.0f with status 400!", userid, response);
+				}
+			}
 			delete pack;
 		}
 		else if (eStatusCode == k_EHTTPStatusCode429TooManyRequests)
 		{
-			LogError("Get IP Intel request failed for userid %d! There were too many requests, please investigate this!", userid);
+			Timber.e("Get IP Intel request failed for userid %d! There were too many requests, please investigate this!", userid);
 			processQueue.Enqueue(pack);
+			RollOverVPN();
 		}
 		else
 		{
-			LogError("Get IP Intel request failed for userid %d! Status code is %d, success was %s.", userid, eStatusCode, (bRequestSuccessful) ? "true" : "false");
+			Timber.e("Get IP Intel request failed for userid %d! Status code is %d, success was %s.", userid, eStatusCode, (bRequestSuccessful) ? "true" : "false");
 			delete pack;
 		}
 		delete hRequest;
@@ -499,7 +533,7 @@ public void OnGetIPIntelRequestDone(SWHTTPRequest hRequest, bool bFailure, bool 
 	delete pack;
 
 	float probability = StringToFloat(buffer);
-	PrintToServerDebug("Probability for proxy is %.2f for ip %s!", probability, ip);
+	Timber.d("Probability for proxy is %.2f for ip %s!", probability, ip);
 	if (probability >= getIpIntelProbability)
 	{
 		ServerCommand("sm_banip %s 0 Suspicion of proxy with probability %.2f", ip, probability);
@@ -513,7 +547,7 @@ public void OnGetIPIntelRequestDone(SWHTTPRequest hRequest, bool bFailure, bool 
 	{
 		requestCache.SetValue(ip, true); // TODO: Make cache erase after a while
 	}
-	PrintToServerDebug("Caching probability %.02f for client %L.", probability, client);
+	Timber.d("Caching probability %.02f for client %L.", probability, client);
 }
 
 void SendProxyCheckIORequest(DataPack pack)
@@ -528,7 +562,7 @@ void SendProxyCheckIORequest(DataPack pack)
 	request.SetContextValue(pack);
 	request.SetCallbacks(OnProxyCheckIORequestDone);
 	request.Send();
-	PrintToServerDebug("Sending proxycheckio request at url %s .", formatURL);
+	Timber.d("Sending proxycheckio request at url %s .", formatURL);
 }
 
 public void OnProxyCheckIORequestDone(SWHTTPRequest hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, DataPack pack)
@@ -539,7 +573,7 @@ public void OnProxyCheckIORequestDone(SWHTTPRequest hRequest, bool bFailure, boo
 	pack.ReadString(ip, sizeof(ip));
 	if(eStatusCode != k_EHTTPStatusCode200OK || !bRequestSuccessful)
 	{
-		LogError("ProxyCheck.io request failed for userid %d! Status code is %d, success was %s.", userid, eStatusCode, (bRequestSuccessful) ? "true" : "false");
+		Timber.e("ProxyCheck.io request failed for userid %d! Status code is %d, success was %s.", userid, eStatusCode, (bRequestSuccessful) ? "true" : "false");
 		processQueue.Enqueue(pack); // deprioritize this
 		delete hRequest;
 		return;
@@ -556,7 +590,7 @@ public void OnProxyCheckIORequestDone(SWHTTPRequest hRequest, bool bFailure, boo
 	delete hRequest;
 	delete pack;
 
-	PrintToServerDebug("ProxyCheck.io request returned %s", buffer);
+	Timber.d("ProxyCheck.io request returned %s", buffer);
 
 	JSON_Object reponse = new JSON_Object();
 	reponse.Decode(buffer);
@@ -568,11 +602,11 @@ public void OnProxyCheckIORequestDone(SWHTTPRequest hRequest, bool bFailure, boo
 		reponse.GetString("message", message, sizeof(message));
 		if (StrEqual("warning", status))
 		{
-			LogMessage("ProxyCheck.io error: %s", message);
+			Timber.w("ProxyCheck.io warning: %s", message);
 		}
 		else
 		{
-			LogError("ProxyCheck.io error: %s", message);
+			Timber.e("ProxyCheck.io error: %s", message);
 		}
 	}
 	else
@@ -580,7 +614,7 @@ public void OnProxyCheckIORequestDone(SWHTTPRequest hRequest, bool bFailure, boo
 		char isProxy[8], proxyType[24];
 		JSON_Object ipObj = reponse.GetObject(ip);
 		ipObj.GetString("proxy", isProxy, sizeof(isProxy));
-		PrintToServerDebug("Result for proxy is %s <%s> for ip %s!", isProxy, (isProxy[0] == 'y') ? proxyType : "none", ip);
+		Timber.d("Result for proxy is %s <%s> for ip %s!", isProxy, (isProxy[0] == 'y') ? proxyType : "none", ip);
 		if (StrEqual(isProxy, "yes"))
 		{
 			ipObj.GetString("type", proxyType, sizeof(proxyType));
@@ -595,8 +629,89 @@ public void OnProxyCheckIORequestDone(SWHTTPRequest hRequest, bool bFailure, boo
 		{
 			requestCache.SetValue(ip, true); // TODO: Make cache erase after a while
 		}
-		PrintToServerDebug("Caching suspicion of %s for ip %s.", isProxy, ip);
+		Timber.d("Caching suspicion of %s for ip %s.", isProxy, ip);
 	}
 	reponse.Cleanup();
 	delete reponse;
+}
+
+void SendMindMediaRequest(DataPack pack)
+{
+	char ip[24], formatURL[1024];
+	pack.Reset();
+	pack.ReadCell();
+	pack.ReadString(ip, sizeof(ip));
+	strcopy(formatURL, sizeof(formatURL), proxyCheckIOURL);
+	ReplaceString(formatURL, sizeof(formatURL), "{CLIENTIP}", ip);
+	SWHTTPRequest request = new SWHTTPRequest(k_EHTTPMethodGET, formatURL);
+	request.SetContextValue(pack);
+	request.SetCallbacks(OnMindMediaRequestDone);
+	request.Send();
+	Timber.d("Sending mindmedia request at url %s .", formatURL);
+}
+
+public void OnMindMediaRequestDone(SWHTTPRequest hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, DataPack pack)
+{
+	pack.Reset();
+	int userid = pack.ReadCell();
+	char ip[24];
+	pack.ReadString(ip, sizeof(ip));
+	if(eStatusCode != k_EHTTPStatusCode200OK || !bRequestSuccessful)
+	{
+		Timber.e("Mind-Media request failed for userid %d! Status code is %d, success was %s.", userid, eStatusCode, (bRequestSuccessful) ? "true" : "false");
+		processQueue.Enqueue(pack); // deprioritize this
+		delete hRequest;
+		return;
+	}
+
+	int client = 0;
+	if (userid != 0)
+	{
+		client = GetClientOfUserId(userid);
+	}
+
+	char[] buffer = new char[hRequest.ResponseSize + 1];
+	hRequest.GetBodyData(buffer, hRequest.ResponseSize);
+	delete hRequest;
+
+	TrimString(buffer);
+	Timber.d("Mind-Media request returned %s", buffer);
+
+	int bufferLen = strlen(buffer); // retrieving new size after trim
+
+	if (bufferLen == 0 || bufferLen > 1 || buffer[0] == 'X')
+	{
+		Timber.e("Mind-Media errored with response %s!", buffer);
+		processQueue.Enqueue(pack);
+	}
+	else
+	{
+		if (StrEqual(buffer, "Y"))
+		{
+			ServerCommand("sm_banip %s 0 Suspicion of proxy", ip);
+			if (userid != 0 && client != 0) // might be redundant, only client is needed.
+			{
+				KickClient(client, "Suspicion of proxy server!");
+			}
+			requestCache.SetValue(ip, false); // TODO: Make cache erase after a while
+		}
+		else
+		{
+			requestCache.SetValue(ip, true); // TODO: Make cache erase after a while
+		}
+		Timber.d("Caching suspicion of %s for ip %s.", buffer, ip);
+		delete pack;
+	}
+}
+
+void RollOverVPN(bool setUsed = true)
+{
+	if (setUsed)
+	{
+		VPN vpn = vpnList.Get(vpnToUse);
+		int allowedPerDay;
+		vpn.GetValue("perDay", allowedPerDay);
+		vpn.SetValue("perDaySoFar", allowedPerDay);
+	}
+	vpnToUse++;
 }

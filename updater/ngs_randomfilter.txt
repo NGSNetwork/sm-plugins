@@ -4,11 +4,10 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.1.1"
+			"Latest"	"1.1.2"
 		}
 		
-		"Notes"	"Add updater support!"
-		"Notes"	"Remove extra spaces from sp."
+		"Notes"	"Added targetting random AFK and non-AFK!"
 	}
 	
 	"Files"

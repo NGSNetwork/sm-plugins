@@ -540,7 +540,7 @@ methodmap Socket < Handle
 	 */
 	public void Connect(SocketConnectCB cfunc, SocketReceiveCB rfunc, SocketDisconnectCB dfunc, const char[] hostname, int port)
 	{
-		SocketConnect(view_as<Handle>(this), cfunc, rfunc, dfunc, hostname, port);
+		SocketConnect(this, cfunc, rfunc, dfunc, hostname, port);
 	}
 	
 	/**
@@ -614,7 +614,7 @@ methodmap Socket < Handle
 	 */
 	public int SetOption(SocketOption option, int value)
 	{
-		return SocketSetOption(view_as<Handle>(this), option, value);
+		return SocketSetOption(this, option, value);
 	}
 	
 	/**

@@ -4,10 +4,12 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.3.3"
+			"Latest"	"1.3.4"
 		}
 
-		"Notes"	"Added a whitelist/blacklist feature, minor additional refactors!"
+		"Notes"	"Added MindMedia support to check against proxy lists!"
+		"Notes"	"Added rollover support to roll over to next VPN on error."
+		"Notes"	"Changed logging to use Timber library."
 	}
 
 	"Files"

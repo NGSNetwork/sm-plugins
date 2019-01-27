@@ -40,5 +40,4 @@ scripting/compiled
 # Debug Filetypes
 scripting/*.smx
 scripting/*/*.smx
-*.inc
 scripting/spcomp

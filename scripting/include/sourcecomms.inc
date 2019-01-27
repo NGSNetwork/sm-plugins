@@ -124,5 +124,4 @@ public void __pl_sourcecomms_SetNTVOptional()
 	MarkNativeAsOptional("SourceComms_SetClientGag");
 	MarkNativeAsOptional("SourceComms_GetClientMuteType");
 	MarkNativeAsOptional("SourceComms_GetClientGagType");
-	
-} 
+}

@@ -4,12 +4,12 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.0.2"
+			"Latest"	"1.0.3"
 		}
 		
-		"Notes"	"Add updater support!"
-		"Notes"	"Fixed stack size not compensating enough!"
-		"Notes"	"Fixed deleting an already-deleted *invalid* handle!"
+		"Notes"	"Added trade_protect_send_sr_ip to configure sending SteamRep client's IPs!"
+		"Notes"	"Fixed backpack.tf request to actually handle scammers!"
+		"Notes"	"Changed logging to use Timber include. We can now set it to log to a file or not."
 	}
 	
 	"Files"

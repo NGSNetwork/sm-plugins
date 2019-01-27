@@ -13,6 +13,7 @@
 #tryinclude <adt_trie>
 #tryinclude <autoexecconfig>
 #tryinclude <clientprefs>
+#tryinclude <timber>
 #tryinclude <timers>
 
 /**

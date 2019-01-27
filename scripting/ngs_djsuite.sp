@@ -8,7 +8,7 @@
 * cfg/sourcemod/plugin.ngs_djsuite.cfg
 *
 * Dependencies:
-* sourcemod.inc, multicolors.inc, ngsutils.inc, ngsupdater.inc, basecomms.inc,
+* autoexecconfig.inc, multicolors.inc, ngsutils.inc, ngsupdater.inc, basecomms.inc,
 * sourcecomms.inc
 */
 #pragma newdecls required
@@ -19,7 +19,7 @@
 #define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
 #define RELOAD_ON_UPDATE 1
 
-#include <sourcemod>
+#include <autoexecconfig>
 #include <multicolors>
 #include <ngsutils>
 #include <ngsupdater>
@@ -33,7 +33,7 @@ public Plugin myinfo = {
 	name = "[NGS] RDJ Suite",
 	author = "Luki / TheXeon",
 	description = "Adds a special chat and features for DJ's!",
-	version = "1.0.6",
+	version = "1.0.7",
 	url = "https://neogenesisnetwork.net"
 }
 
@@ -43,7 +43,7 @@ bool djChatToggledOn[MAXPLAYERS + 1] =  { false, ... };
 ConVar cvarDisableDJForNonDJs;
 ConVar sv_allow_voice_from_file;
 
-char logfile[255];
+char logfile[PLATFORM_MAX_PATH];
 
 public void OnPluginStart()
 {
@@ -56,13 +56,18 @@ public void OnPluginStart()
 	AddCommandListener(CommandSay, "say");
 	AddCommandListener(CommandSay, "say_team");
 
-	cvarDisableDJForNonDJs = CreateConVar("sm_djsuite_nondj_disabled", "1", "Disable the ability for nonDJS to play music.");
-	cvarDisableDJForNonDJs.AddChangeHook(OnDJDisableChange);
 	sv_allow_voice_from_file = FindConVar("sv_allow_voice_from_file");
 	if (sv_allow_voice_from_file == null)
 	{
 		SetFailState("Unsupported game: sv_allow_voice_from_file does not exist!");
 	}
+
+	AutoExecConfig_SetCreateDirectory(true);
+	AutoExecConfig_SetCreateFile(true);
+	bool appended;
+	cvarDisableDJForNonDJs = AutoExecConfig_CreateConVarCheckAppend(appended, "djsuite_nondj_disabled", "1", "Disable the ability for nonDJS to play music.");
+	cvarDisableDJForNonDJs.AddChangeHook(OnDJDisableChange);
+	AutoExecConfig_ExecAndClean(appended);
 
 	BuildPath(Path_SM, logfile, sizeof(logfile), "logs/djchat.log");
 
@@ -73,8 +78,6 @@ public void OnPluginStart()
 			OnClientPostAdminCheck(i);
 		}
 	}
-
-	AutoExecConfig();
 }
 
 public void OnDJDisableChange(ConVar convar, char[] oldValue, char[] newValue)
@@ -111,7 +114,7 @@ public void OnLibAdded(const char[] name)
 	{
 		basecommExists = true;
 	}
-	else if (StrEqual(name, "sourcecomms", false))
+	else if (StrContains(name, "sourcecomms", false) != -1)
 	{
 		sourcecommsExists = true;
 	}
@@ -123,7 +126,7 @@ public void OnLibRemoved(const char[] name)
 	{
 		basecommExists = false;
 	}
-	else if (StrEqual(name, "sourcecomms", false))
+	else if (StrContains(name, "sourcecomms", false) != -1)
 	{
 		sourcecommsExists = false;
 	}
@@ -175,7 +178,7 @@ public Action CommandSongRequest(int client, int args)
 
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		if (IsValidClient(i) && CheckCommandAccess(client, "sm_djsuite_allowaudio_override", ADMFLAG_ROOT))
+		if (IsValidClient(i) && CheckCommandAccess(i, "sm_djsuite_allowaudio_override", ADMFLAG_ROOT))
 		{
 			djExists = true;
 			break;

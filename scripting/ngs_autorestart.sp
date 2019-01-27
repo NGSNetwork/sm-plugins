@@ -27,7 +27,7 @@
 public Plugin myinfo = {
 	name = "[NGS] Timed Restart",
 	author = "TheXeon",
-	description = "Restart the server automagically :D",
+	description = "Restart the server's map automagically :D",
 	version = "1.0.7",
 	url = "https://www.neogenesisnetwork.net/"
 }
@@ -43,6 +43,7 @@ public void OnPluginStart()
 	AutoExecConfig_SetFile("autorestart");
 	AutoExecConfig_SetCreateFile(true);
 	bool appended;
+	Timber.plantToFile(appended);
 	cvarEnabled = AutoExecConfig_CreateConVarCheckAppend(appended, "ngsar_enabled", "1", "Enable autorestart on no players.", 0, true, 0.0, true, 1.0);
 	cvarUptimeRequirement = AutoExecConfig_CreateConVarCheckAppend(appended, "ngsar_uptime_requirement", "960.0", "Minutes the server should have since first connection to allow a restart.");
 	cvarForcedRestartTime = AutoExecConfig_CreateConVarCheckAppend(appended, "ngsar_forced_requirement", "1920.0", "Minutes the server should have since first connection to go to forced restart. Set to 0.0 to disable.");
@@ -54,9 +55,9 @@ public void OnPluginStart()
 
 public void OnConfigsExecuted()
 {
-	if (GetEngineVersion() == Engine_TF2 && (FindConVar("tf_allow_server_hibernation").BoolValue))
+	if (GetEngineVersion() == Engine_TF2 && FindConVar("tf_allow_server_hibernation").BoolValue)
 	{
-		LogMessage("Warning! Timers will be messed up as tf_allow_server_hibernation is enabled!");
+		Timber.w("Timers will be messed up as tf_allow_server_hibernation is enabled!");
 	}
 }
 
@@ -72,7 +73,7 @@ public Action CommandStartRestartTimer(int client, int args)
 			status = StringToInt(arg1);
 		}
 		autoRestartTimer = new SMTimer(30.0, AutoRestartTimer, status);
-		CPrintToChatAll("{GREEN}[SM]{DEFAULT} A %srestart timer has been started, server %s be restarting in 30 seconds!", 
+		CPrintToChatAll("{GREEN}[SM]{DEFAULT} A %srestart timer has been started, server map %s be restarting in 30 seconds!", 
 			(status == 1) ? "forced " : "", (status == 1) ? "will" : "may");
 	}
 	else
@@ -84,8 +85,8 @@ public Action CommandStartRestartTimer(int client, int args)
 
 public Action CommandCheckRestartTimer(int client, int args)
 {
-	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} There is %sa restart timer going on!",
-		(autoRestartTimer == null) ? "not " : "");
+	CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} There is %sa restart timer going on at uptime %f!",
+		(autoRestartTimer == null) ? "not " : "", GetGameTime());
 	return Plugin_Handled;
 }
 
@@ -94,7 +95,7 @@ public void OnClientPostAdminCheck(int client)
 	if (autoRestartTimer != null && !IsFakeClient(client) && !IsValidForcedTime())
 	{
 		delete autoRestartTimer;
-		CPrintToChatAll("{GREEN}[SM]{DEFAULT} Server restart aborted (someone joined)!");
+		CPrintToChatAll("{GREEN}[SM]{DEFAULT} Map restart aborted (someone joined)!");
 	}
 }
 
@@ -106,13 +107,13 @@ public void OnClientDisconnect_Post(int client)
 		if (IsValidForcedTime())
 		{
 			autoRestartTimer = new SMTimer(30.0, AutoRestartTimer, 1);
-			CPrintToChatAll("{GREEN}[SM]{DEFAULT} The server has been up for %f hours, forcing a restart in 30 seconds!", time / 3600.0);
+			CPrintToChatAll("{GREEN}[SM]{DEFAULT} The server has been up for %d hours, forcing a map restart in 30 seconds!", RoundToNearest(time / 3600.0));
 		}
 		else if ((GetClientCount(false) == 0 ||
 		!NonAFKPlayersExist()) && (time / 60.0) > cvarUptimeRequirement.FloatValue)
 		{
 			autoRestartTimer = new SMTimer(30.0, AutoRestartTimer, 0);
-			CPrintToChatAll("{GREEN}[SM]{DEFAULT} The server will attempt a restart in 30 seconds!");
+			CPrintToChatAll("{GREEN}[SM]{DEFAULT} The server will attempt a map restart in 30 seconds!");
 		}
 	}
 }
@@ -120,22 +121,22 @@ public void OnClientDisconnect_Post(int client)
 public Action AutoRestartTimer(Handle timer, any status)
 {
 	autoRestartTimer = null;
-	#if defined DEBUG
-	PrintToServer("Status is %d, GetClientCount(false) = %d, !NonAFKPlayersExist() = %u in AutoRestartTimer callback", status, GetClientCount(false), !NonAFKPlayersExist());
-	#endif
+	Timber.d("Status is %d, GetClientCount(false) = %d, !NonAFKPlayersExist() = %u in AutoRestartTimer callback", status, GetClientCount(false), !NonAFKPlayersExist());
 	// status: 0 for regular, 1 for forced all the way
 	if (status == 1 || GetClientCount(false) == 0 || !NonAFKPlayersExist())
 	{
 		#if defined DEBUG
 		PrintToServer("Fake doing a restart!");
 		#else
-		LogMessage("Server is restarting at Unix Timestamp %d!", GetTime());
-		ServerCommand("_restart");
+		Timber.i("Server is restarting map at Unix Timestamp %d!", GetTime());
+		char mapName[MAX_BUFFER_LENGTH];
+		GetCurrentMap(mapName, sizeof(mapName));
+		ForceChangeLevel(mapName, "Having a quick map refresh, sit tight!");
 		#endif
 	}
 	else
 	{
-		CPrintToChatAll("{GREEN}[SM]{DEFAULT} Restart aborted!");
+		CPrintToChatAll("{GREEN}[SM]{DEFAULT} Map restart aborted!");
 	}
 }
 
@@ -154,5 +155,5 @@ stock bool NonAFKPlayersExist()
 stock bool IsValidForcedTime()
 {
 	float forcedTime = cvarForcedRestartTime.FloatValue;
-	return forcedTime != 0.0 && (GetGameTime() / 60.0) > forcedTime;
+	return forcedTime != 0.0 && (GetGameTime() / 60.0) >= forcedTime;
 }

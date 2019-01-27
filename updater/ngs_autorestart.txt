@@ -4,11 +4,11 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.0.6"
+			"Latest"	"1.0.7"
 		}
 		
-		"Notes"	"Fix to use delete instead of SMTimer.Close()"
-		"Notes"	"Allow float values for time, so half hours or exact is possible."
+		"Notes"	"Changed to restart map instead of sending _restart command"
+		"Notes"	"Changed to utilize Timber logging library, logs to file."
 	}
 	
 	"Files"

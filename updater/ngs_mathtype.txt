@@ -1,0 +1,19 @@
+"Updater"
+{
+	"Information"
+	{
+		"Version"
+		{
+			"Latest"	"1.0.0"
+		}
+		
+		"Notes"	"First push! Implements =equation handling and cooldown."
+	}
+	
+	"Files"
+	{
+		"Plugin"	"Path_SM/plugins/ngs_mathtype.smx"
+		
+		"Source"	"Path_SM/scripting/ngs_mathtype.sp"
+	}
+}

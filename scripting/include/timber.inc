@@ -5,6 +5,8 @@
 
 // Name from the wonderful Timber library by JakeWharton
 
+#tryinclude <autoexecconfig>
+
 enum TimberLogLevel {
 	Log_Error = 0,
     Log_Warning,
@@ -53,7 +55,7 @@ methodmap Timber
         {
             char logLine[8192];
             VFormat(logLine, sizeof(logLine), log, 2);
-            this.log(Log_Verbose, log);
+            this.log(Log_Verbose, logLine);
         }
     }
 
@@ -63,7 +65,7 @@ methodmap Timber
         {
             char logLine[8192];
             VFormat(logLine, sizeof(logLine), log, 2);
-            Timber.log(Log_Debug, log);
+            Timber.log(Log_Debug, logLine);
         }
     }
 
@@ -73,7 +75,7 @@ methodmap Timber
         {
             char logLine[8192];
             VFormat(logLine, sizeof(logLine), log, 2);
-            Timber.log(Log_Error, log);
+            Timber.log(Log_Error, logLine);
         }
     }
 
@@ -83,7 +85,7 @@ methodmap Timber
         {
             char logLine[8192];
             VFormat(logLine, sizeof(logLine), log, 2);
-            Timber.log(Log_Warning, log);
+            Timber.log(Log_Warning, logLine);
         }
     }
 
@@ -93,7 +95,7 @@ methodmap Timber
         {
             char logLine[8192];
             VFormat(logLine, sizeof(logLine), log, 2);
-            Timber.log(Log_Verbose, log);
+            Timber.log(Log_Verbose, logLine);
         }
     }
 

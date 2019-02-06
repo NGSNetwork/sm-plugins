@@ -65,6 +65,8 @@ public Action OnClientSayMessage(int client, const char[] command, int argc) {
             return Plugin_Continue;
         }
 
+        Timber.d("Received %s from user %L.", buffer, client);
+
         SWHTTPRequest mathRequest = new SWHTTPRequest(k_EHTTPMethodGET, MATHJSURL);
         mathRequest.SetParam("expr", buffer);
 

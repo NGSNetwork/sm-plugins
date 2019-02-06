@@ -36,6 +36,7 @@ methodmap Timber
 
         char pluginName[128];
         GetPluginFilename(null, pluginName, sizeof(pluginName));
+        ReplaceString(pluginName, sizeof(pluginName), ".smx", "");
         char logPrefixes[][] = {"[ERROR]", "[WARNING]", "[INFO]", "[DEBUG]", "[VERBOSE]"};
         if (timber__cvarLogToFile != null && timber__cvarLogToFile.BoolValue)
         {

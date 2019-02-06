@@ -92,22 +92,18 @@ public void OnMathJSReceived(SWHTTPRequest hRequest, bool bFailure, bool bReques
     {
         client = GetClientOfUserId(userid);
     }
+
+    char[] buffer = new char[hRequest.ResponseSize + 1];
+    hRequest.GetBodyData(buffer, hRequest.ResponseSize);
+    delete hRequest;
     
     if(eStatusCode != k_EHTTPStatusCode200OK || !bRequestSuccessful) {
         if (client != 0) {
             CPrintToChat(client, "{GREEN}[SM]{DEFAULT} Could not complete request, sorry!");
         }
 
-        Timber.e("Math.js request failed for userid %d! Status code is %d, success was %s.", userid, eStatusCode, (bRequestSuccessful) ? "true" : "false");
-        delete hRequest;
-        return;
-    }
-
-    char[] buffer = new char[hRequest.ResponseSize + 1];
-    hRequest.GetBodyData(buffer, hRequest.ResponseSize);
-    delete hRequest;
-
-    if (client != 0) {
+        Timber.e("Math.js request failed for userid %d! Status code is %d, success was %s, response was %s.", userid, eStatusCode, (bRequestSuccessful) ? "true" : "false", buffer);
+    } else if (client != 0) {
         CPrintToChat(client, "{GREEN}[SM]{DEFAULT} Answer is: %s", buffer);
     }
 }

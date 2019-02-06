@@ -103,6 +103,7 @@ methodmap Timber
     {
         char pluginName[128], cvarName[256];
         GetPluginFilename(null, pluginName, sizeof(pluginName));
+        ReplaceString(pluginName, sizeof(pluginName), ".smx", "");
         Format(cvarName, sizeof(cvarName), "%s_log_level", pluginName);
         #if defined _autoexecconfig_included
         timber__cvarLogThroughTimber = AutoExecConfig_CreateConVarCheckAppend(appended, cvarName, "0", "-1: None\n0: Errors\n1: Warnings\n2: Info\n3: Debug\n4: Verbose");
@@ -115,6 +116,7 @@ methodmap Timber
     {
         char pluginName[128], cvarName[256];
         GetPluginFilename(null, pluginName, sizeof(pluginName));
+        ReplaceString(pluginName, sizeof(pluginName), ".smx", "");
         Format(cvarName, sizeof(cvarName), "%s_log_file", pluginName);
         #if defined _autoexecconfig_included
         timber__cvarLogToFile = AutoExecConfig_CreateConVarCheckAppend(appended, cvarName, "0", "0: Don't log to file.\n1: Log to file.");

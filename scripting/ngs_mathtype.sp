@@ -65,10 +65,16 @@ public Action OnClientSayMessage(int client, const char[] command, int argc) {
             return Plugin_Continue;
         }
 
+        buffer[0] = ' '; // replace equal sign
+        TrimString(buffer);
+
         Timber.d("Received %s from user %L.", buffer, client);
 
-        SWHTTPRequest mathRequest = new SWHTTPRequest(k_EHTTPMethodGET, MATHJSURL);
-        mathRequest.SetParam("expr", buffer);
+        char encodeBuffer[MAX_BUFFER_LENGTH * 3 + 1];
+        EncodeURL(encodeBuffer, sizeof(encodeBuffer), buffer);
+
+        SWHTTPRequest mathRequest = new SWHTTPRequest(k_EHTTPMethodPOST, MATHJSURL);
+        mathRequest.SetParam("expr", encodeBuffer);
 
         char precision[24];
         digitsPrecision.GetString(precision, sizeof(precision));

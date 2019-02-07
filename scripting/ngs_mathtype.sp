@@ -56,7 +56,6 @@ public Action OnClientSayMessage(int client, const char[] command, int argc) {
     char buffer[MAX_BUFFER_LENGTH];
     GetCmdArgString(buffer, sizeof(buffer));
     StripQuotes(buffer);
-    TrimString(buffer);
 
     if (buffer[0] == '=') {
         int cooldownAmt = GetTime() - cooldownNum;
@@ -82,6 +81,8 @@ public Action OnClientSayMessage(int client, const char[] command, int argc) {
         obj.Encode(jsonEncode, sizeof(jsonEncode));
         obj.Cleanup();
         delete obj;
+
+        Timber.d("Sending %s to math.js", jsonEncode);
 
         SWHTTPRequest mathRequest = new SWHTTPRequest(k_EHTTPMethodPOST, MATHJSURL);
         mathRequest.SetRawPostBody("application/json", jsonEncode, sizeof(jsonEncode));
@@ -119,9 +120,9 @@ public void OnMathJSReceived(SWHTTPRequest hRequest, bool bFailure, bool bReques
         obj.GetString("error", error, sizeof(error));
         Timber.e("Math.js request failed for userid %d! Status code is %d, success was %s, error response was %s.", userid, eStatusCode, (bRequestSuccessful) ? "true" : "false", error);
     } else if (client != 0) {
-        char answer[MAX_BUFFER_LENGTH];
-        obj.GetString("answer", answer, sizeof(answer));
-        CPrintToChat(client, "{GREEN}[SM]{DEFAULT} Answer is: %s", answer);
+        char result[MAX_BUFFER_LENGTH];
+        obj.GetString("result", result, sizeof(result));
+        CPrintToChat(client, "{GREEN}[SM]{DEFAULT} Answer is: %s", result);
     }
     obj.Cleanup();
     delete obj;

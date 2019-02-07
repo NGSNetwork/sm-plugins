@@ -16,10 +16,11 @@
 
 // #define DEBUG
 
-#tryinclude <SteamWorks>
-#tryinclude <multicolors>
-#tryinclude <ngsutils>
-#tryinclude <ngsupdater>
+#include <json>
+#include <SteamWorks>
+#include <multicolors>
+#include <ngsutils>
+#include <ngsupdater>
 
 #define MATHJSURL       "http://api.mathjs.org/v4/"
 
@@ -70,19 +71,19 @@ public Action OnClientSayMessage(int client, const char[] command, int argc) {
 
         Timber.d("Received %s from user %L.", buffer, client);
 
-        char encodeBuffer[MAX_BUFFER_LENGTH * 3 + 1];
-        EncodeURL(encodeBuffer, sizeof(encodeBuffer), buffer);
-
-        SWHTTPRequest mathRequest = new SWHTTPRequest(k_EHTTPMethodPOST, MATHJSURL);
-        mathRequest.SetParam("expr", encodeBuffer);
-
-        char precision[24];
-        digitsPrecision.GetString(precision, sizeof(precision));
+        JSON_Object obj = new JSON_Object();
+        obj.SetString("expr", buffer);
 
         if (digitsPrecision.IntValue >= 0) {
-            mathRequest.SetParam("precision", precision);
+            obj.SetInt("precision", digitsPrecision.IntValue);
         }
 
+        char jsonEncode[MAX_BUFFER_LENGTH * 3 + 1];
+        obj.Encode(jsonEncode, sizeof(jsonEncode));
+        delete obj;
+
+        SWHTTPRequest mathRequest = new SWHTTPRequest(k_EHTTPMethodPOST, MATHJSURL);
+        mathRequest.SetRawPostBody("application/json", jsonEncode, sizeof(jsonEncode));
         mathRequest.SetContextValue(GetClientUserId(client));
         mathRequest.SetCallbacks(OnMathJSReceived);
         mathRequest.Send();
@@ -104,14 +105,23 @@ public void OnMathJSReceived(SWHTTPRequest hRequest, bool bFailure, bool bReques
     char[] buffer = new char[hRequest.ResponseSize + 1];
     hRequest.GetBodyData(buffer, hRequest.ResponseSize);
     delete hRequest;
+
+    JSON_Object obj = new JSON_Object();
+    obj.Decode(buffer);
     
-    if(eStatusCode != k_EHTTPStatusCode200OK || !bRequestSuccessful) {
+    if(eStatusCode != k_EHTTPStatusCode200OK || !bRequestSuccessful || obj.GetKeyType("error") != Type_Null) {
         if (client != 0) {
             CPrintToChat(client, "{GREEN}[SM]{DEFAULT} Could not complete request, sorry!");
         }
 
-        Timber.e("Math.js request failed for userid %d! Status code is %d, success was %s, response was %s.", userid, eStatusCode, (bRequestSuccessful) ? "true" : "false", buffer);
+        char error[MAX_BUFFER_LENGTH];
+        obj.GetString("error", error, sizeof(error));
+        Timber.e("Math.js request failed for userid %d! Status code is %d, success was %s, error response was %s.", userid, eStatusCode, (bRequestSuccessful) ? "true" : "false", error);
     } else if (client != 0) {
-        CPrintToChat(client, "{GREEN}[SM]{DEFAULT} Answer is: %s", buffer);
+        char answer[MAX_BUFFER_LENGTH];
+        obj.GetString("answer", answer, sizeof(answer));
+        CPrintToChat(client, "{GREEN}[SM]{DEFAULT} Answer is: %s", answer);
     }
+    obj.Cleanup();
+    delete obj;
 }

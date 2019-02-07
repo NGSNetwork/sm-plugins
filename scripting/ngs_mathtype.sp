@@ -80,6 +80,7 @@ public Action OnClientSayMessage(int client, const char[] command, int argc) {
 
         char jsonEncode[MAX_BUFFER_LENGTH * 3 + 1];
         obj.Encode(jsonEncode, sizeof(jsonEncode));
+        obj.Cleanup();
         delete obj;
 
         SWHTTPRequest mathRequest = new SWHTTPRequest(k_EHTTPMethodPOST, MATHJSURL);

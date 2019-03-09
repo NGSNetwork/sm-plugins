@@ -1,0 +1,287 @@
+
+{
+    "type": "title",
+    "categories": [
+        {
+            "display_name": "Titles",
+            "description": "Tags in your chat name.",
+            "require_plugin": "title",
+            "web_description": null,
+            "web_color": "A50F79",
+            "items": [
+                {
+                    "name": "title_sir",
+                    "display_name": "Sir",
+                    "description": null,
+                    "web_description": null,
+                    "type": "title",
+                    "loadout_slot": "title",
+                    "price": "100",
+                    "attrs": {
+                        "text": "{green}Sir",
+                        "colorful_text": "{fullred}Sir"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "title_lady",
+                    "display_name": "Lady",
+                    "description": null,
+                    "web_description": null,
+                    "type": "title",
+                    "loadout_slot": "title",
+                    "price": "100",
+                    "attrs": {
+                        "text": "{green}Lady",
+                        "colorful_text": "{aqua}Lady"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "title_warrior",
+                    "display_name": "Warrior",
+                    "description": null,
+                    "web_description": null,
+                    "type": "title",
+                    "loadout_slot": "title",
+                    "price": "150",
+                    "attrs": {
+                        "text": "{green}Warrior",
+                        "colorful_text": "{black}Warrior"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "title_baron",
+                    "display_name": "Baron",
+                    "description": null,
+                    "web_description": null,
+                    "type": "title",
+                    "loadout_slot": "title",
+                    "price": "200",
+                    "attrs": {
+                        "text": "{green}Baron",
+                        "colorful_text": "{salmon}Baron"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "title_overlord",
+                    "display_name": "Overlord",
+                    "description": null,
+                    "web_description": null,
+                    "type": "title",
+                    "loadout_slot": "title",
+                    "price": "250",
+                    "attrs": {
+                        "text": "{green}Overlord",
+                        "colorful_text": "{palegreen}Overlord"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "title_prince",
+                    "display_name": "Prince",
+                    "description": null,
+                    "web_description": null,
+                    "type": "title",
+                    "loadout_slot": "title",
+                    "price": "1000",
+                    "attrs": {
+                        "text": "{green}Prince",
+                        "colorful_text": "{navy}Prince"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "title_princess",
+                    "display_name": "Princess",
+                    "description": null,
+                    "web_description": null,
+                    "type": "title",
+                    "loadout_slot": "title",
+                    "price": "1000",
+                    "attrs": {
+                        "text": "{green}Princess",
+                        "colorful_text": "{mistyrose}Princess"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "title_lionheart",
+                    "display_name": "Lionheart",
+                    "description": null,
+                    "web_description": null,
+                    "type": "title",
+                    "loadout_slot": "title",
+                    "price": "1500",
+                    "attrs": {
+                        "text": "{green}Lionheart",
+                        "colorful_text": "{orange}Lionheart"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "title_bandit",
+                    "display_name": "Bandit",
+                    "description": null,
+                    "web_description": null,
+                    "type": "title",
+                    "loadout_slot": "title",
+                    "price": "2000",
+                    "attrs": {
+                        "text": "{green}Bandit",
+                        "colorful_text": "{khaki}Bandit"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "title_assassin",
+                    "display_name": "Assassin",
+                    "description": null,
+                    "web_description": null,
+                    "type": "title",
+                    "loadout_slot": "title",
+                    "price": "2000",
+                    "attrs": {
+                        "text": "{green}Assassin",
+                        "colorful_text": "{dimgray}Assassin"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "title_king",
+                    "display_name": "King",
+                    "description": null,
+                    "web_description": null,
+                    "type": "title",
+                    "loadout_slot": "title",
+                    "price": "3500",
+                    "attrs": {
+                        "text": "{green}King",
+                        "colorful_text": "{blueviolet}King"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "title_queen",
+                    "display_name": "Queen",
+                    "description": null,
+                    "web_description": null,
+                    "type": "title",
+                    "loadout_slot": "title",
+                    "price": "3500",
+                    "attrs": {
+                        "text": "{green}Queen",
+                        "colorful_text": "{hotpink}Queen"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "title_emperor",
+                    "display_name": "Emperor",
+                    "description": null,
+                    "web_description": null,
+                    "type": "title",
+                    "loadout_slot": "title",
+                    "price": "4000",
+                    "attrs": {
+                        "text": "{green}Emperor",
+                        "colorful_text": "{strange}Emperor"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "title_theawesome",
+                    "display_name": "The Awesome",
+                    "description": null,
+                    "web_description": null,
+                    "type": "title",
+                    "loadout_slot": "title",
+                    "price": "6000",
+                    "attrs": {
+                        "text": "{green}The Awesome",
+                        "colorful_text": "{unusual}The Awesome"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "title_themagnificent",
+                    "display_name": "The Magnificent",
+                    "description": null,
+                    "web_description": null,
+                    "type": "title",
+                    "loadout_slot": "title",
+                    "price": "6000",
+                    "attrs": {
+                        "text": "{green}The Magnificent",
+                        "colorful_text": "{valve}The Magnificent"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "title_theundefeated",
+                    "display_name": "The Undefeated",
+                    "description": null,
+                    "web_description": null,
+                    "type": "title",
+                    "loadout_slot": "title",
+                    "price": "6000",
+                    "attrs": {
+                        "text": "{green}The Undefeated",
+                        "colorful_text": "{vintage}The Undefeated"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                }
+            ]
+        }
+    ]
+}

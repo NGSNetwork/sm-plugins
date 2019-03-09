@@ -1,0 +1,888 @@
+
+{
+    "type": "equipment",
+    "categories": [
+        {
+            "display_name": "Hats",
+            "description": "Cosmetic hats that appear on your head.",
+            "require_plugin": "equipment",
+            "web_description": null,
+            "web_color": "476291",
+            "items": [
+                {
+                    "name": "trafficcone",
+                    "display_name": "Traffic Cone",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "650",
+                    "attrs": {
+                        "model": "models/props_junk/trafficcone001a.mdl",
+                        "position": [
+                            0,
+                            -1,
+                            20
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "watermelon",
+                    "display_name": "Watermelon",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "650",
+                    "attrs": {
+                        "model": "models/props_junk/watermelon01.mdl",
+                        "position": [
+                            0,
+                            0,
+                            5
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "santahat",
+                    "display_name": "Santahat",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "650",
+                    "attrs": {
+                        "model": "models/gmod_tower/santahat.mdl",
+                        "position": [
+                            0,
+                            -1,
+                            6
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "sombrero",
+                    "display_name": "Sombrero",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "650",
+                    "attrs": {
+                        "model": "models/gmod_tower/sombrero.mdl",
+                        "position": [
+                            0,
+                            -1,
+                            6
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "headcrabhat",
+                    "display_name": "Head Crabhat",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "650",
+                    "attrs": {
+                        "model": "models/gmod_tower/headcrabhat.mdl",
+                        "position": [
+                            0,
+                            -3,
+                            6
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "fedora",
+                    "display_name": "Fedora",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "650",
+                    "attrs": {
+                        "model": "models/gmod_tower/fedorahat.mdl",
+                        "position": [
+                            0,
+                            -1.5,
+                            8.5
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "cakehat",
+                    "display_name": "Cake Hat",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "650",
+                    "attrs": {
+                        "model": "models/cakehat/cakehat.mdl",
+                        "position": [
+                            0,
+                            -1,
+                            3
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "catears",
+                    "display_name": "Cat Ears",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "650",
+                    "attrs": {
+                        "model": "models/gmod_tower/catears.mdl",
+                        "position": [
+                            0,
+                            -3,
+                            6
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "afro",
+                    "display_name": "Afro",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "1200",
+                    "attrs": {
+                        "model": "models/gmod_tower/afro.mdl",
+                        "position": [
+                            0,
+                            -3,
+                            6
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "linkhat",
+                    "display_name": "Link Hat",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "1200",
+                    "attrs": {
+                        "model": "models/gmod_tower/linkhat.mdl",
+                        "position": [
+                            0,
+                            -5,
+                            4
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "partyhat",
+                    "display_name": "Party Hat",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "1200",
+                    "attrs": {
+                        "model": "models/gmod_tower/partyhat.mdl",
+                        "position": [
+                            1,
+                            -1,
+                            7
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "antlers",
+                    "display_name": "Antlers",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "1200",
+                    "attrs": {
+                        "model": "models/sam/antlers.mdl",
+                        "position": [
+                            0,
+                            0,
+                            2
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "cartire",
+                    "display_name": "Car Tire",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "1200",
+                    "attrs": {
+                        "model": "models/props_vehicles/tire001c_car.mdl",
+                        "position": [
+                            0,
+                            -10,
+                            0
+                        ],
+                        "angles": [
+                            90,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "terracotta",
+                    "display_name": "Terra Cotta",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "1200",
+                    "attrs": {
+                        "model": "models/props_junk/terracotta01.mdl",
+                        "position": [
+                            0,
+                            3,
+                            -10
+                        ],
+                        "angles": [
+                            180,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "baseballcap",
+                    "display_name": "Baseball Cap",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "1200",
+                    "attrs": {
+                        "model": "models/props/cs_office/snowman_hat.mdl",
+                        "position": [
+                            0,
+                            0,
+                            7
+                        ],
+                        "angles": [
+                            0,
+                            -90,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "coffeemug",
+                    "display_name": "Coffee Mug",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "2600",
+                    "attrs": {
+                        "model": "models/props/cs_office/coffee_mug.mdl",
+                        "position": [
+                            0,
+                            0,
+                            9
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "iloveturtles",
+                    "display_name": "I Love Turtles",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "2600",
+                    "attrs": {
+                        "model": "models/props/de_tides/vending_hat.mdl",
+                        "position": [
+                            1.8,
+                            0,
+                            4
+                        ],
+                        "angles": [
+                            0,
+                            -90,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "astronauthelmet",
+                    "display_name": "Astronaut Helmet",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "2600",
+                    "attrs": {
+                        "model": "models/astronauthelmet/astronauthelmet.mdl",
+                        "position": [
+                            0,
+                            0,
+                            -5
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "vikinghelmet",
+                    "display_name": "Viking Helmet",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "2600",
+                    "attrs": {
+                        "model": "models/vikinghelmet/vikinghelmet.mdl",
+                        "position": [
+                            0,
+                            -1,
+                            6
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "kfcbucket",
+                    "display_name": "KFC Bucket",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "2600",
+                    "attrs": {
+                        "model": "models/gmod_tower/kfcbucket.mdl",
+                        "position": [
+                            0,
+                            -1,
+                            3
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "duncehat",
+                    "display_name": "Dunce Hat",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "2600",
+                    "attrs": {
+                        "model": "models/duncehat/duncehat.mdl",
+                        "position": [
+                            0,
+                            -1,
+                            6
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "drinkcap",
+                    "display_name": "Drink Cap",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "2600",
+                    "attrs": {
+                        "model": "models/gmod_tower/drinkcap.mdl",
+                        "position": [
+                            0,
+                            -1,
+                            7
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "tophat",
+                    "display_name": "Top Hat",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "3200",
+                    "attrs": {
+                        "model": "models/gmod_tower/tophat.mdl",
+                        "position": [
+                            0,
+                            -1.7,
+                            4.5
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "witchhat",
+                    "display_name": "Witch Hat",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "3200",
+                    "attrs": {
+                        "model": "models/gmod_tower/witchhat.mdl",
+                        "position": [
+                            0,
+                            0,
+                            6
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "toetohat",
+                    "display_name": "Toeto Hat",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "3200",
+                    "attrs": {
+                        "model": "models/gmod_tower/toetohat.mdl",
+                        "position": [
+                            0,
+                            -1,
+                            6
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "seusshat",
+                    "display_name": "Seuss hat",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "hat",
+                    "price": "3200",
+                    "attrs": {
+                        "model": "models/gmod_tower/seusshat.mdl",
+                        "position": [
+                            0,
+                            -1,
+                            6
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                }
+            ]
+        },
+        {
+            "display_name": "Miscs",
+            "description": "Cosmetic items such as glasses and masks.",
+            "require_plugin": "equipment",
+            "web_description": null,
+            "web_color": "4D7455",
+            "items": [
+                {
+                    "name": "majorasmask",
+                    "display_name": "Majoras Mask",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "misc",
+                    "price": "500",
+                    "attrs": {
+                        "model": "models/gmod_tower/majorasmask.mdl",
+                        "position": [
+                            0,
+                            0.5,
+                            0
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "androssmask",
+                    "display_name": "Andross Mask",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "misc",
+                    "price": "500",
+                    "attrs": {
+                        "model": "models/gmod_tower/androssmask.mdl",
+                        "position": [
+                            0,
+                            2,
+                            0
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "toromask",
+                    "display_name": "Toro Mask",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "misc",
+                    "price": "500",
+                    "attrs": {
+                        "model": "models/gmod_tower/toromask.mdl",
+                        "position": [
+                            0,
+                            -1,
+                            4
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "midnahat",
+                    "display_name": "Midna Hat",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "misc",
+                    "price": "1200",
+                    "attrs": {
+                        "model": "models/gmod_tower/midnahat.mdl",
+                        "position": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "3dglasses",
+                    "display_name": "3D Glasses",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "misc",
+                    "price": "2600",
+                    "attrs": {
+                        "model": "models/gmod_tower/3dglasses.mdl",
+                        "position": [
+                            0,
+                            0.5,
+                            2
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "klienerglasses",
+                    "display_name": "Kliener Glasses",
+                    "description": null,
+                    "web_description": null,
+                    "type": "equipment",
+                    "loadout_slot": "misc",
+                    "price": "1200",
+                    "attrs": {
+                        "model": "models/gmod_tower/klienerglasses.mdl",
+                        "position": [
+                            0,
+                            0.5,
+                            2
+                        ],
+                        "angles": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "attachment": "forward"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                }
+            ]
+        }
+    ]
+}

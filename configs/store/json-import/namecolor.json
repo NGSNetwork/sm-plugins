@@ -1,0 +1,2479 @@
+
+{
+    "type": "namecolor",
+    "categories": [
+        {
+            "display_name": "Name Colors",
+            "description": "Apply colors to your name.",
+            "require_plugin": "namecolor",
+            "web_description": null,
+            "web_color": "A90000",
+            "items": [
+				{
+					"name": "namecolor_aliceblue",
+					"display_name": "Alice Blue",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "F0F8FF"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_allies",
+					"display_name": "Allies",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "4D7942"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_antiquewhite",
+					"display_name": "Antique White",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FAEBD7"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_aqua",
+					"display_name": "Aqua",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "00FFFF"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_aquamarine",
+					"display_name": "Aquamarine",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "7FFFD4"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_axis",
+					"display_name": "Axis",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FF4040"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_azure",
+					"display_name": "Azure",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "007FFF"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_beige",
+					"display_name": "Beige",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "F5F5DC"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_bisque",
+					"display_name": "Bisque",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FFE4C4"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_black",
+					"display_name": "Black",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "000000"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_blanchedalmond",
+					"display_name": "Blanched Almond",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FFEBCD"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_blue",
+					"display_name": "Blue",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "99CCFF"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_blueviolet",
+					"display_name": "Blue Violet",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "8A2BE2"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_brown",
+					"display_name": "Brown",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "A52A2A"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_burlywood",
+					"display_name": "Burlywood",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "DEB887"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_cadetblue",
+					"display_name": "Cadet Blue",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "5F9EA0"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_chartreuse",
+					"display_name": "Chartreuse",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "7FFF00"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_chocolate",
+					"display_name": "Chocolate",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "D2691E"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_community",
+					"display_name": "Community",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "70B04A"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_coral",
+					"display_name": "Coral",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FF7F50"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_cornflowerblue",
+					"display_name": "Cornflower Blue",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "6495ED"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_cornsilk",
+					"display_name": "Cornsilk",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FFF8DC"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_crimson",
+					"display_name": "Crimson",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "DC143C"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_cyan",
+					"display_name": "Cyan",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "00FFFF"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_darkblue",
+					"display_name": "Dark Blue",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "00008B"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_darkcyan",
+					"display_name": "Dark Cyan",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "008B8B"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_darkgoldenrod",
+					"display_name": "Dark Goldenrod",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "B8860B"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_darkgrey",
+					"display_name": "Dark Grey",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "A9A9A9"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_darkgreen",
+					"display_name": "Dark Green",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "006400"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_darkkhaki",
+					"display_name": "Dark Khaki",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "BDB76B"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_darkmagenta",
+					"display_name": "Dark Magenta",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "8B008B"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_darkolivegreen",
+					"display_name": "Dark Olive Green",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "556B2F"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_darkorange",
+					"display_name": "Dark Orange",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FF8C00"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_darkorchid",
+					"display_name": "Dark Orchid",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "9932CC"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_darkred",
+					"display_name": "Dark Red",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "8B0000"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_darksalmon",
+					"display_name": "Dark Salmon",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "E9967A"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_darkseagreen",
+					"display_name": "Dark Sea Green",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "8FBC8F"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_darkslateblue",
+					"display_name": "Dark Slate Blue",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "483D8B"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_darkslategrey",
+					"display_name": "Dark Slate Grey",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "2F4F4F"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_darkturquoise",
+					"display_name": "Dark Turquoise",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "00CED1"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_darkviolet",
+					"display_name": "Dark Violet",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "9400D3"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_deeppink",
+					"display_name": "Deep Pink",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FF1493"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_deepskyblue",
+					"display_name": "Deep Sky Blue",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "00BFFF"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_dimgrey",
+					"display_name": "Dim Grey",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "696969"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_dodgerblue",
+					"display_name": "Dodger Blue",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "1E90FF"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_firebrick",
+					"display_name": "Firebrick",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "B22222"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_floralwhite",
+					"display_name": "Floral White",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FFFAF0"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_forestgreen",
+					"display_name": "Forest Green",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "228B22"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_fuchsia",
+					"display_name": "Fuchsia",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FF00FF"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_fullblue",
+					"display_name": "Full Blue",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "0000FF"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_fullred",
+					"display_name": "Full Red",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FF0000"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_gainsboro",
+					"display_name": "Gainsboro",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "DCDCDC"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_genuine",
+					"display_name": "Genuine",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "4D7455"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_ghostwhite",
+					"display_name": "Ghost White",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "F8F8FF"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_gold",
+					"display_name": "Gold",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FFD700"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_goldenrod",
+					"display_name": "Goldenrod",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "DAA520"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_grey",
+					"display_name": "Grey",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "CCCCCC"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_green",
+					"display_name": "Green",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "3EFF3E"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_greenyellow",
+					"display_name": "Green Yellow",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "ADFF2F"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_haunted",
+					"display_name": "Haunted",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "38F3AB"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_honeydew",
+					"display_name": "Honeydew",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "F0FFF0"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_hotpink",
+					"display_name": "Hot Pink",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FF69B4"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_indianred",
+					"display_name": "Indian Red",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "CD5C5C"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_indigo",
+					"display_name": "Indigo",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "4B0082"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_ivory",
+					"display_name": "Ivory",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FFFFF0"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_khaki",
+					"display_name": "Khaki",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "F0E68C"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_lavender",
+					"display_name": "Lavender",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "E6E6FA"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_lavenderblush",
+					"display_name": "Lavender Blush",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FFF0F5"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_lawngreen",
+					"display_name": "Lawn Green",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "7CFC00"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_lemonchiffon",
+					"display_name": "Lemon Chiffon",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FFFACD"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_lightblue",
+					"display_name": "Light Blue",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "ADD8E6"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_lightcoral",
+					"display_name": "Light Coral",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "F08080"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_lightcyan",
+					"display_name": "Light Cyan",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "E0FFFF"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_lightgoldenrodyellow",
+					"display_name": "Light Goldenrod Yellow",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FAFAD2"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_lightgrey",
+					"display_name": "Light Grey",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "D3D3D3"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_lightgreen",
+					"display_name": "Light Green",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "99FF99"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_lightpink",
+					"display_name": "Light Pink",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FFB6C1"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_lightsalmon",
+					"display_name": "Light Salmon",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FFA07A"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_lightseagreen",
+					"display_name": "Light Sea Green",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "20B2AA"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_lightskyblue",
+					"display_name": "Light Sky Blue",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "87CEFA"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_lightslategrey",
+					"display_name": "Light Slate Grey",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "778899"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_lightsteelblue",
+					"display_name": "Light Steel Blue",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "B0C4DE"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_lightyellow",
+					"display_name": "Light Yellow",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FFFFE0"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_lime",
+					"display_name": "Lime",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "00FF00"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_limegreen",
+					"display_name": "Lime Green",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "32CD32"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_linen",
+					"display_name": "Linen",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FAF0E6"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_magenta",
+					"display_name": "Magenta",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FF00FF"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_maroon",
+					"display_name": "Maroon",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "800000"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_mediumaquamarine",
+					"display_name": "Medium Aquamarine",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "66CDAA"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_mediumblue",
+					"display_name": "Medium Blue",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "0000CD"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_mediumorchid",
+					"display_name": "Medium Orchid",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "BA55D3"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_mediumpurple",
+					"display_name": "Medium Purple",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "9370D8"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_mediumseagreen",
+					"display_name": "Medium Sea Green",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "3CB371"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_mediumslateblue",
+					"display_name": "Medium Slate Blue",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "7B68EE"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_mediumspringgreen",
+					"display_name": "Medium Spring Green",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "00FA9A"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_mediumturquoise",
+					"display_name": "Medium Turquoise",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "48D1CC"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_mediumvioletred",
+					"display_name": "Medium Violet Red",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "C71585"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_midnightblue",
+					"display_name": "Midnight Blue",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "191970"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_mintcream",
+					"display_name": "Mint Cream",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "F5FFFA"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_mistyrose",
+					"display_name": "Misty Rose",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FFE4E1"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_moccasin",
+					"display_name": "Moccasin",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FFE4B5"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_navajowhite",
+					"display_name": "Navajo White",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FFDEAD"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_navy",
+					"display_name": "Navy",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "000080"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_normal",
+					"display_name": "Normal",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "B2B2B2"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_oldlace",
+					"display_name": "Old Lace",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FDF5E6"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_olive",
+					"display_name": "Olive",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "9EC34F"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_olivedrab",
+					"display_name": "Olive Drab",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "6B8E23"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_orange",
+					"display_name": "Orange",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FFA500"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_orangered",
+					"display_name": "Orange Red",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FF4500"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_orchid",
+					"display_name": "Orchid",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "DA70D6"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_palegoldenrod",
+					"display_name": "Pale Goldenrod",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "EEE8AA"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_palegreen",
+					"display_name": "Pale Green",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "98FB98"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_paleturquoise",
+					"display_name": "Pale Turquoise",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "AFEEEE"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_palevioletred",
+					"display_name": "Pale Violet Red",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "D87093"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_papayawhip",
+					"display_name": "Papaya Whip",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FFEFD5"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_peachpuff",
+					"display_name": "Peach Puff",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FFDAB9"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_peru",
+					"display_name": "Peru",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "CD853F"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_pink",
+					"display_name": "Pink",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FFC0CB"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_plum",
+					"display_name": "Plum",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "DDA0DD"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_powderblue",
+					"display_name": "Powder Blue",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "B0E0E6"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_purple",
+					"display_name": "Purple",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "800080"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_red",
+					"display_name": "Red",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FF4040"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_rosybrown",
+					"display_name": "Rosybrown",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "BC8F8F"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_royalblue",
+					"display_name": "Royal Blue",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "4169E1"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_saddlebrown",
+					"display_name": "Saddle Brown",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "8B4513"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_salmon",
+					"display_name": "Salmon",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FA8072"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_sandybrown",
+					"display_name": "Sandy Brown",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "F4A460"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_seagreen",
+					"display_name": "Sea Green",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "2E8B57"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_seashell",
+					"display_name": "Seashell",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FFF5EE"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_selfmade",
+					"display_name": "Selfmade",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "70B04A"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_sienna",
+					"display_name": "Sienna",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "A0522D"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_silver",
+					"display_name": "Silver",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "C0C0C0"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_skyblue",
+					"display_name": "Sky Blue",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "87CEEB"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_slateblue",
+					"display_name": "Slate Blue",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "6A5ACD"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_slategrey",
+					"display_name": "Slate Grey",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "708090"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_snow",
+					"display_name": "Snow",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FFFAFA"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_springgreen",
+					"display_name": "Spring Green",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "00FF7F"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_steelblue",
+					"display_name": "Steel Blue",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "4682B4"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_strange",
+					"display_name": "Strange",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "CF6A32"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_tan",
+					"display_name": "Tan",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "D2B48C"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_teal",
+					"display_name": "Teal",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "008080"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_thistle",
+					"display_name": "Thistle",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "D8BFD8"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_tomato",
+					"display_name": "Tomato",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FF6347"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_turquoise",
+					"display_name": "Turquoise",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "40E0D0"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_unique",
+					"display_name": "Unique",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FFD700"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_unusual",
+					"display_name": "Unusual",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "8650AC"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_valve",
+					"display_name": "Valve",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "A50F79"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_vintage",
+					"display_name": "Vintage",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "476291"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_violet",
+					"display_name": "Violet",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "EE82EE"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_wheat",
+					"display_name": "Wheat",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "F5DEB3"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_white",
+					"display_name": "White",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FFFFFF"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_whitesmoke",
+					"display_name": "Whitesmoke",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "F5F5F5"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_yellow",
+					"display_name": "Yellow",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "FFFF00"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				},
+				{
+					"name": "namecolor_yellowgreen",
+					"display_name": "Yellow Green",
+					"description": null,
+					"web_description": null,
+					"type": "namecolor",
+					"loadout_slot": "namecolor",
+					"price": "200",
+					"attrs": {
+						"color": "9ACD32"
+					},
+					"is_buyable": "1",
+					"is_tradeable": "1",
+					"is_refundable": "1",
+					"expiry_time": null
+				}
+            ]
+        }
+    ]
+}

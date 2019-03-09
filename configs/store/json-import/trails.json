@@ -1,0 +1,3695 @@
+
+{
+    "type": "trails",
+    "categories": [
+        {
+            "display_name": "Trails",
+            "description": "Magical trails that follow your character.",
+            "require_plugin": "trails",
+            "web_description": null,
+            "web_color": "FFD700",
+            "items": [
+                {
+                    "name": "trail_8bitmushroom",
+                    "display_name": "8-bit Mushroom",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/8bitmushroom.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_8bitpow",
+                    "display_name": "8-bit Pow",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/8bitpow.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_abstract",
+                    "display_name": "Abstract",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/abstract.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_airforce",
+                    "display_name": "Airforce",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/airforce.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_airforce2",
+                    "display_name": "Airforce 2",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/airforce2.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_apple",
+                    "display_name": "Apple",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/apple.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_arrowrainbow",
+                    "display_name": "Arrow Rainbow",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/arrowrainbow.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_arrows",
+                    "display_name": "Arrows",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/arrows.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_assasin",
+                    "display_name": "Assasin",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/assasin.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_awesome",
+                    "display_name": "Awesome",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/awesome.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_awesomeface",
+                    "display_name": "Awesome Face",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/awesomeface.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_awesome_sad",
+                    "display_name": "Awesome Sad",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/awesome_sad.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_babyand",
+                    "display_name": "Babyand",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/babyand.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_banknote",
+                    "display_name": "Banknote",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/banknote.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_barcelona",
+                    "display_name": "Barcelona",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/barcalona.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_batman",
+                    "display_name": "Batman",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/batman.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_battlefield",
+                    "display_name": "Battlefield",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/battlefield.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_beermug",
+                    "display_name": "Beermug",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/beermug.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_biohazard",
+                    "display_name": "Biohazard",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/biohazard.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_blade",
+                    "display_name": "Blade",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/blade.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_bluelightning",
+                    "display_name": "Blue Lightning",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/bluelightning.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_bmwlogo",
+                    "display_name": "BMW logo",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/bmwlogo.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_bombomb",
+                    "display_name": "Bombomb",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/bombomb.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_boo",
+                    "display_name": "Boo",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/boo.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_bulletbill",
+                    "display_name": "Bulletbill",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/bulletbill.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_bullets",
+                    "display_name": "Bullets",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/bullets.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_canadaflag",
+                    "display_name": "Canada Flag",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/canadaflag.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_candies",
+                    "display_name": "Candies",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/candies.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_ccole",
+                    "display_name": "Ccole",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/ccole.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_cereal-guy",
+                    "display_name": "Cereal Guy",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/cereal-guy.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_challenge",
+                    "display_name": "Challenge",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/challenge.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_chopped_pyro",
+                    "display_name": "Chopped Pyro",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/chopped_pyro.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_chrislight",
+                    "display_name": "Chrislight",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/chrislight.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_christlights",
+                    "display_name": "Christ Lights",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/christlights.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_cocacola",
+                    "display_name": "Coca Cola",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/cocacola.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_cocacola2",
+                    "display_name": "Coca Cola 2",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/cocacola2.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_colorbolt",
+                    "display_name": "Colorbolt",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/colorbolt.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_cookies",
+                    "display_name": "Cookies",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/cookies.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_crackedbeam",
+                    "display_name": "Cracked Beam",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/crackedbeam.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_creed",
+                    "display_name": "Creed",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/creed.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_creeper",
+                    "display_name": "Creeper",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/creeper.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_crown",
+                    "display_name": "Crown",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/crown.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_damnimgood",
+                    "display_name": "Damn Im Good",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/damnimgood.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_danishflag",
+                    "display_name": "Danish Flag",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/danishflag.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_darkknight",
+                    "display_name": "Dark Knight",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/darkknight.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_deadmau5",
+                    "display_name": "Deadmau5",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/deadmau5.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_deadmau52",
+                    "display_name": "Deadmau5 2",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/deadmau52.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_deadmau53",
+                    "display_name": "Deadmau5 3",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/deadmau53.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_deadmau54",
+                    "display_name": "Deadmau5 4",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/deadmau54.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_deadpool",
+                    "display_name": "Deadpool",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/deadpool.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_devil_smiley",
+                    "display_name": "Devil Smiley",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/devil_smiley.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_dirt",
+                    "display_name": "Dirt",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/dirt.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_disorderdragonv2",
+                    "display_name": "Disorder Dragon",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/disorderdragonv2.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_disorderlogo2",
+                    "display_name": "Disorder Logo",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/disorderlogo2.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_disordertext10",
+                    "display_name": "Disorder Text",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/disordertext10.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_dna2",
+                    "display_name": "DNA",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/dna2.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_dollars",
+                    "display_name": "Dollars",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/dollars.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_donuts",
+                    "display_name": "Donuts",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/donuts.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_doublerainbow",
+                    "display_name": "Double Rainbow",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/doublerainbow.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_dragon",
+                    "display_name": "Dragon",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/dragon.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_dragondisorder",
+                    "display_name": "Dragon Disorder",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/dragondisorder.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_eafifa",
+                    "display_name": "EA FIFA",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/eafifa.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_ealogo",
+                    "display_name": "Ealogo",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/ealogo.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_earth",
+                    "display_name": "Earth",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/earth.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_energy",
+                    "display_name": "Energy",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/energy.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_energyball",
+                    "display_name": "Energyball",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/energyball.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_epicsax",
+                    "display_name": "Epic Sax",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/epicsax.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_facebookicon",
+                    "display_name": "Facebook",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/facebookicon.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_fapface",
+                    "display_name": "Fap Face",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/fapface.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_faxekondi",
+                    "display_name": "Faxe Kondi",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/faxekondi.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_ferrari",
+                    "display_name": "Ferrari",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/ferrari.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_fire",
+                    "display_name": "Fire",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/fire.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_fire1",
+                    "display_name": "Fire 2",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/fire1.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_firefox",
+                    "display_name": "FireFox",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/firefox.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_fireman",
+                    "display_name": "Fire Man",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/fireman.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_fire_line",
+                    "display_name": "Fire Line",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/fire_line.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_footprint",
+                    "display_name": "Footprint",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/footprint.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_foreveralone",
+                    "display_name": "Forever Alone",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/foreveralone.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_fuu1",
+                    "display_name": "Fuu 1",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/fuu1.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_fuu2",
+                    "display_name": "Fuu 2",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/fuu2.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_fyeah",
+                    "display_name": "Fyeah",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/fyeah.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_germanflag",
+                    "display_name": "German Flag",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/germanflag.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_golden_mushroom",
+                    "display_name": "Golden Mushroom",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/golden_mushroom.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_googlechrome",
+                    "display_name": "Google Chrome",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/googlechrome.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_goomba",
+                    "display_name": "Goomba",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/goomba.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_grenade",
+                    "display_name": "Grenade",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/grenade.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_gummybears",
+                    "display_name": "Gummybears",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/gummybears.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_gusta",
+                    "display_name": "Gusta",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/gusta.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_halflife",
+                    "display_name": "Half-Life",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/halflife.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_handgun",
+                    "display_name": "Handgun",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/handgun.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_headshot",
+                    "display_name": "Headshot",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/headshot.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_heart",
+                    "display_name": "Heart",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/heart.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_hellokitty",
+                    "display_name": "Hello Kitty",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/hellokitty.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_hex",
+                    "display_name": "Hex",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/hex.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_hypnotic",
+                    "display_name": "Hypnotic",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/hypnotic.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_hypnotoad",
+                    "display_name": "Hypnotoad",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/hypnotoad.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_ice",
+                    "display_name": "Ice",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/ice.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_ice1",
+                    "display_name": "Ice 2",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/ice1.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_icloud",
+                    "display_name": "iCloud",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/icloud.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_invisible_bike",
+                    "display_name": "Invisible Bike",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/invisible_bike.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_jackass",
+                    "display_name": "Jackass",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/jackass.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_jester",
+                    "display_name": "Jester",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/jester.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_kaleidoscope",
+                    "display_name": "Kaleidoscope",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/kaleidoscope.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_kingdomhearts",
+                    "display_name": "Kingdom Hearts",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/kingdomhearts.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_kirby",
+                    "display_name": "Kirby",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/kirby.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_latvia",
+                    "display_name": "Latvia",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/latvia.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_leaves",
+                    "display_name": "Leaves",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/leaves.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_leaves1",
+                    "display_name": "Leaves 2",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/leaves1.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_leaves2",
+                    "display_name": "Leaves 3",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/leaves2.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_leaves21",
+                    "display_name": "Leaves 4",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/leaves21.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_lightning2",
+                    "display_name": "Lightning",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/lightning2.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_lightning3",
+                    "display_name": "Lightning 2",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/lightning3.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_lightspeed",
+                    "display_name": "Lightspeed",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/lightspeed.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_lightwave",
+                    "display_name": "Lightwave",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/lightwave.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_lol",
+                    "display_name": "LOL",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/lol.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_lolguy",
+                    "display_name": "LOL Guy",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/lolguy.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_mario",
+                    "display_name": "Mario",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/mario.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_masterchief",
+                    "display_name": "Masterchief",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/masterchief.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_mcdonald",
+                    "display_name": "McDonald",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/mcdonald.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_medic",
+                    "display_name": "Medic",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/medic.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_metallic",
+                    "display_name": "Metallic",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/metallic.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_metallic1",
+                    "display_name": "Metallic 2",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/metallic1.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_metalskull",
+                    "display_name": "Metal Skull",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/metalskull.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_metroid",
+                    "display_name": "Metroid",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/metroid.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_mickymouse",
+                    "display_name": "Micky Mouse",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/mickymouse.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_minecraft",
+                    "display_name": "Minecraft",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/minecraft.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_moneybag",
+                    "display_name": "Moneybag",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/moneybag.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_mtvlogo",
+                    "display_name": "MTV logo",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/mtvlogo.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_mudkip",
+                    "display_name": "Mudkip",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/mudkip.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_multipexles",
+                    "display_name": "Multipexles",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/multipexles.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_mushroom",
+                    "display_name": "Mushroom",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/mushroom.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_mushroom2",
+                    "display_name": "Mushroom 2",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/mushroom2.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_nevergup",
+                    "display_name": "Nevergup",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/nevergup.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_nyan",
+                    "display_name": "Nyan",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/nyan.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_ocarina",
+                    "display_name": "Ocarina",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/ocarina.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_okami",
+                    "display_name": "Okami",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/okami.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_okayguy",
+                    "display_name": "Okay Guy",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/okayguy.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_one_piece",
+                    "display_name": "One Piece",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/one_piece.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_oops",
+                    "display_name": "Oops",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/oops.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_orly",
+                    "display_name": "Orly",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/orly.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_pacman",
+                    "display_name": "PacMan",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/pacman.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_paintsplatter",
+                    "display_name": "Paint Splatter",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/paintsplatter.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_panda",
+                    "display_name": "Panda",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/panda.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_pawprint",
+                    "display_name": "Paw Print",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/pawprint.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_peace",
+                    "display_name": "Peace",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/peace.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_pedobear",
+                    "display_name": "Pedobear",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/pedobear.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_pfffft",
+                    "display_name": "Pfffft",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/pfffft.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_pika",
+                    "display_name": "Pika",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/pika.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_pikmin",
+                    "display_name": "Pikmin",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/pikmin.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_pinkie",
+                    "display_name": "Pinkie",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/pinkie.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_pinkribbon",
+                    "display_name": "Pink Ribbon",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/pinkribbon.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_playboy",
+                    "display_name": "Playboy",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/playboy.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_plur",
+                    "display_name": "Plur",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/plur.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_pokeball",
+                    "display_name": "Pokeball",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/pokeball.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_pokemon",
+                    "display_name": "Pokemon",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/pokemon.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_poker",
+                    "display_name": "Poker",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/poker.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_police",
+                    "display_name": "Police",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/police.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_potleaf",
+                    "display_name": "Potleaf",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/potleaf.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_pretzel",
+                    "display_name": "Pretzel",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/pretzel.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_problems_face",
+                    "display_name": "Problems Face",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/problems_face.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_psychball",
+                    "display_name": "Psychball",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/psychball.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_psychtriangle",
+                    "display_name": "Psychtriangle",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/psychtriangle.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_pumpkin",
+                    "display_name": "Pumpkin",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/pumpkin.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_purplelightning",
+                    "display_name": "Purple Lightning",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/purplelightning.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_puttegris",
+                    "display_name": "Puttegris",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/puttegris.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_pwned",
+                    "display_name": "Pwned",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/pwned.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_quake",
+                    "display_name": "Quake",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/quake.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_question",
+                    "display_name": "Question",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/question.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_raf",
+                    "display_name": "Raf",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/raf.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_rain",
+                    "display_name": "Rain",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/rain.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_rainbow-dash",
+                    "display_name": "Rainbow Dash",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/rainbow-dash.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_rainbow",
+                    "display_name": "Rainbow",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/rainbow.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_rainbowcobra2",
+                    "display_name": "Rainbow Cobra",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/rainbowcobra2.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_rainbowcry",
+                    "display_name": "Rainbow Cry",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/rainbowcry.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_realmadrid",
+                    "display_name": "Real Madrid",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/realmadrid.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_reaper",
+                    "display_name": "Reaper",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/reaper.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_retroegg",
+                    "display_name": "Retro Egg",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/retroegg.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_retroflower",
+                    "display_name": "Retro Flower",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/retroflower.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_seprainbow",
+                    "display_name": "Seprainbow",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/seprainbow.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_sharingan",
+                    "display_name": "Sharingan",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/sharingan.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_shell",
+                    "display_name": "Shell",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/shell.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_shroom5",
+                    "display_name": "Shroom",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/shroom5.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_skull",
+                    "display_name": "Skull",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/skull.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_skullnbones",
+                    "display_name": "Skull and bones",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/skullnbones.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_skypelogo",
+                    "display_name": "Skype Logo",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/skypelogo.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_slowpoke",
+                    "display_name": "Slow Poke",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/slowpoke.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_smiley",
+                    "display_name": "Smiley",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/smiley.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_smirnoff",
+                    "display_name": "Smirnoff",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/smirnoff.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_smugleaf",
+                    "display_name": "Smug Leaf",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/smugleaf.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_snowman",
+                    "display_name": "Snowman",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/snowman.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_sonylogo",
+                    "display_name": "Sony Logo",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/sonylogo.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_sos",
+                    "display_name": "SOS",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/sos.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_spider",
+                    "display_name": "Spider",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/spider.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_spongebob",
+                    "display_name": "Spongebob",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/spongebob.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_spotify",
+                    "display_name": "Spotify",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/spotify.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_srsface",
+                    "display_name": "SRS face",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/srsface.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_star",
+                    "display_name": "Star",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/star.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_supermanlogo",
+                    "display_name": "Superman Logo",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/supermanlogo.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_swirl",
+                    "display_name": "Swirl",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/swirl.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_swirly",
+                    "display_name": "Swirly",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/swirly.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_taco",
+                    "display_name": "Taco",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/taco.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_test1000",
+                    "display_name": "Test1000",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/test1000.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_timebomb",
+                    "display_name": "Timebomb",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/timebomb.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_tmishit",
+                    "display_name": "Tmishit",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/tmishit.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_triforce",
+                    "display_name": "Triforce",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/triforce.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_trippy",
+                    "display_name": "Trippy",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/trippy.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_trollface",
+                    "display_name": "Trollface",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/trollface.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_tux",
+                    "display_name": "Tux",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/tux.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_twitter",
+                    "display_name": "Twitter",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/twitter.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_ukflag",
+                    "display_name": "UK Flag",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/ukflag.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_ultra",
+                    "display_name": "Ultra",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/ultra.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_umbrellacorp",
+                    "display_name": "Umbrella Corp",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/umbrellacorp.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_uparrow",
+                    "display_name": "Up Arrow",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/uparrow.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_usflag",
+                    "display_name": "US lag",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/usflag.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_warheads",
+                    "display_name": "Warheads",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/warheads.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_warrior",
+                    "display_name": "Warrior",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/warrior.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_water2",
+                    "display_name": "Water",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/water2.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_water_elemantary",
+                    "display_name": "Water Elemantary",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/water_elemantary.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_wheel",
+                    "display_name": "Wheel",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/wheel.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_windows",
+                    "display_name": "Windows",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/windows.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_wings",
+                    "display_name": "Wings",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/wings.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_wolf",
+                    "display_name": "Wolf",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/wolf.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_wonder_woman",
+                    "display_name": "Wonder Woman",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/wonder_woman.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_words",
+                    "display_name": "Words",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/words.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_xboxlogo",
+                    "display_name": "Xbox Logo",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/xboxlogo.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_x_medic",
+                    "display_name": "X Medic",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/x_medic.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_y-u-no-guy",
+                    "display_name": "Y-u-no-guy",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/y-u-no-guy.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_yingyang",
+                    "display_name": "Yingyang",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/yingyang.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_yingyang2",
+                    "display_name": "Yingyang 2",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/yingyang2.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                },
+                {
+                    "name": "trail_yukari",
+                    "display_name": "Yukari",
+                    "description": null,
+                    "web_description": null,
+                    "type": "trails",
+                    "loadout_slot": "trails",
+                    "price": "300",
+                    "attrs": {
+                        "material": "materials/sprites/store/trails/yukari.vmt"
+                    },
+                    "is_buyable": "1",
+                    "is_tradeable": "1",
+                    "is_refundable": "1",
+                    "expiry_time": null
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,16 @@
+
+{
+    "type": "skin",
+    "categories": [
+        {
+            "display_name": "Skins",
+            "description": "Change your appearance.",
+            "require_plugin": "skin",
+            "web_description": null,
+            "web_color": "FF0000",
+            "items": [
+
+            ]
+        }
+    ]
+}

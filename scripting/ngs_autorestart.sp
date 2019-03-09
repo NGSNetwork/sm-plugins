@@ -16,8 +16,11 @@
 #define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
 #define RELOAD_ON_UPDATE 1
 
-#include <autoexecconfig>
+#undef REQUIRE_PLUGIN
 #include <afk_manager>
+#define REQUIRE_PLUGIN
+
+#include <autoexecconfig>
 #include <multicolors>
 #include <ngsutils>
 #include <ngsupdater>
@@ -27,7 +30,7 @@
 public Plugin myinfo = {
 	name = "[NGS] Timed Restart",
 	author = "TheXeon",
-	description = "Restart the server's map automagically :D",
+	description = "Restart the server automagically :D",
 	version = "1.0.7",
 	url = "https://www.neogenesisnetwork.net/"
 }
@@ -73,7 +76,7 @@ public Action CommandStartRestartTimer(int client, int args)
 			status = StringToInt(arg1);
 		}
 		autoRestartTimer = new SMTimer(30.0, AutoRestartTimer, status);
-		CPrintToChatAll("{GREEN}[SM]{DEFAULT} A %srestart timer has been started, server map %s be restarting in 30 seconds!", 
+		CPrintToChatAll("{GREEN}[SM]{DEFAULT} A %srestart timer has been started, server %s be restarting in 30 seconds!", 
 			(status == 1) ? "forced " : "", (status == 1) ? "will" : "may");
 	}
 	else
@@ -90,16 +93,19 @@ public Action CommandCheckRestartTimer(int client, int args)
 	return Plugin_Handled;
 }
 
-public void OnClientPostAdminCheck(int client)
+stock void ProcessClientsAwake(int client, bool sendMsg)
 {
 	if (autoRestartTimer != null && !IsFakeClient(client) && !IsValidForcedTime())
 	{
 		delete autoRestartTimer;
-		CPrintToChatAll("{GREEN}[SM]{DEFAULT} Map restart aborted (someone joined)!");
+		if (sendMsg)
+		{
+			CPrintToChatAll("{GREEN}[SM]{DEFAULT} Server restart aborted (we're awake)!");
+		}
 	}
 }
 
-public void OnClientDisconnect_Post(int client)
+stock void ProcessClientsAsleep(int client)
 {
 	if (cvarEnabled.BoolValue && autoRestartTimer == null)
 	{
@@ -107,15 +113,42 @@ public void OnClientDisconnect_Post(int client)
 		if (IsValidForcedTime())
 		{
 			autoRestartTimer = new SMTimer(30.0, AutoRestartTimer, 1);
-			CPrintToChatAll("{GREEN}[SM]{DEFAULT} The server has been up for %d hours, forcing a map restart in 30 seconds!", RoundToNearest(time / 3600.0));
+			CPrintToChatAll("{GREEN}[SM]{DEFAULT} The server has been up for %d hours, forcing a restart in 30 seconds!", RoundToNearest(time / 3600.0));
 		}
-		else if ((GetClientCount(false) == 0 ||
-		!NonAFKPlayersExist()) && (time / 60.0) > cvarUptimeRequirement.FloatValue)
+		else if ((time / 60.0) > cvarUptimeRequirement.FloatValue)
 		{
-			autoRestartTimer = new SMTimer(30.0, AutoRestartTimer, 0);
-			CPrintToChatAll("{GREEN}[SM]{DEFAULT} The server will attempt a map restart in 30 seconds!");
+			if (GetClientCount(false) == 0)
+			{
+				autoRestartTimer = new SMTimer(30.0, AutoRestartTimer, 0);
+				CPrintToChatAll("{GREEN}[SM]{DEFAULT} The server will attempt a restart in 30 seconds!");
+			}
+			else if (!NonAFKPlayersExist())
+			{
+				// Don't spam message
+				autoRestartTimer = new SMTimer(30.0, AutoRestartTimer, 0);
+			}
 		}
 	}
+}
+	
+public void OnClientPostAdminCheck(int client)
+{
+	ProcessClientsAwake(client, true);
+}
+
+// public void AFKM_OnClientAFK(int client)
+// {
+// 	ProcessClientsAsleep(client);
+// }
+
+// public void AFKM_OnClientBack(int client)
+// {
+// 	ProcessClientsAwake(client, false);
+// }
+
+public void OnClientDisconnect_Post(int client)
+{
+	ProcessClientsAsleep(client);
 }
 
 public Action AutoRestartTimer(Handle timer, any status)
@@ -126,17 +159,15 @@ public Action AutoRestartTimer(Handle timer, any status)
 	if (status == 1 || GetClientCount(false) == 0 || !NonAFKPlayersExist())
 	{
 		#if defined DEBUG
-		PrintToServer("Fake doing a restart!");
+		Timber.d("Fake doing a restart!");
 		#else
-		Timber.i("Server is restarting map at Unix Timestamp %d!", GetTime());
-		char mapName[MAX_BUFFER_LENGTH];
-		GetCurrentMap(mapName, sizeof(mapName));
-		ForceChangeLevel(mapName, "Having a quick map refresh, sit tight!");
+		Timber.i("Server is restarting at Unix Timestamp %d!", GetTime());
+		ServerCommand("_restart");
 		#endif
 	}
 	else
 	{
-		CPrintToChatAll("{GREEN}[SM]{DEFAULT} Map restart aborted!");
+		CPrintToChatAll("{GREEN}[SM]{DEFAULT} Server restart aborted!");
 	}
 }
 

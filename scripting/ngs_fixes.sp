@@ -7,7 +7,7 @@
 * cfg/sourcemod/ngs_fixes.cfg
 *
 * Dependencies:
-* basecomm.inc, ngsutils.inc, ngsupdater.inc
+* sdkhooks.inc, basecomm.inc, ngsutils.inc, ngsupdater.inc
 */
 #pragma newdecls required
 #pragma semicolon 1
@@ -15,11 +15,13 @@
 #define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
 #define RELOAD_ON_UPDATE 1
 
+#include <sdkhooks>
 #include <basecomm>
 #include <ngsutils>
 #include <ngsupdater>
 
-ConVar cvarDisableDoveSpawn, cvarDisableNonAuthedSpam, cvarDisableVoiceMenuSpam;
+ConVar cvarDisableDoveSpawn, cvarDisableNonAuthedSpam, cvarDisableVoiceMenuSpam,
+	cvarDisableHolidayHealth;
 bool allowVoiceMenuSpam;
 SMTimer authClientTimer[MAXPLAYERS + 1];
 SMTimer voiceMenuTimer[MAXPLAYERS + 1];
@@ -45,10 +47,12 @@ public void OnPluginStart()
 	{
 		cvarDisableDoveSpawn = AutoExecConfig_CreateConVarCheckAppend(appended, "ngsfixes_disable_doves", "1", "Should the plugin disable dove spawning?");
 		HookUserMessage(GetUserMessageId("SpawnFlyingBird"), UserMsg_SpawnBird, true);
+
+		cvarDisableHolidayHealth = AutoExecConfig_CreateConVarCheckAppend(appended, "ngsfixes_disable_holiday_health", "1", "Should the healthpacks be set to default?");
+
+		AddCommandListener(CmdVoiceMenu, "voicemenu");
 	}
 	AutoExecConfig_ExecAndClean(appended);
-
-	AddCommandListener(CmdVoiceMenu, "voicemenu");
 }
 
 public void OnConfigsExecuted()
@@ -56,6 +60,24 @@ public void OnConfigsExecuted()
 	char voicemenuspam[8];
 	cvarDisableVoiceMenuSpam.GetString(voicemenuspam, sizeof(voicemenuspam));
 	allowVoiceMenuSpam = !(view_as<bool>(StringToInt(voicemenuspam)));
+}
+
+public void OnEntityCreated(int entity, const char[] classname)
+{
+	if (IsValidEntity(entity))
+	{
+		// From Mr. Silence's TF2 Sanitizer
+		if (cvarDisableHolidayHealth.BoolValue && strncmp(classname, "item_healthkit_", 15) == 0)
+		{      
+			SDKHook(entity, SDKHook_SpawnPost, OnHealthKitSpawned);
+		}
+	}
+}
+
+public void OnHealthKitSpawned(int entity)
+{
+	// From Mr. Silence's TF2 Sanitizer
+	SetEntProp(entity, Prop_Send, "m_nModelIndexOverrides", 0, _, 2);
 }
 
 public void OnVoiceMenuSpamChanged(ConVar convar, const char[] oldValue, const char[] newValue)
@@ -116,7 +138,7 @@ public Action AuthCheckTimer(Handle timer, int userid)
 		if (IsPlayerAlive(client))
 		{
 			ChangeClientTeam(client, 1);
-			PrintToChat(client, "Your client has not been authed, please reconnect.");
+			PrintToChat(client, "%t", "ClientNotAuthed");
 		}
 		BaseComm_SetClientGag(client, true);
 		BaseComm_SetClientMute(client, true);

@@ -21,25 +21,45 @@
 #define RELOAD_ON_UPDATE 1
 
 #include <sdktools>
+#include <autoexecconfig>
 #include <system2>
 #include <advanced_motd>
 #include <multicolors>
 #include <ngsutils>
 #include <ngsupdater>
 
-#define BACKPACK_TF_URL		"https://backpack.tf/api/IGetPrices/v4"
-#define ITEM_EARBUDS		"Earbuds"
-#define ITEM_REFINED		5002
-#define ITEM_KEY			"Mann Co. Supply Crate Key"
-#define ITEM_CRATE			5022
-#define ITEM_SALVAGED_CRATE	5068
-#define ITEM_HAUNTED_SCRAP	267
-#define ITEM_HEADTAKER		266
-#define ITEM_UNUSUALIFIER	9258
-#define ITEM_STRANGIFIER	6522
-#define QUALITY_UNIQUE		"6"
-#define QUALITY_UNUSUAL		"5"
-#define NOTIFICATION_SOUND	"replay/downloadcomplete.wav"
+#define BACKPACK_TF_URL				"https://backpack.tf/api/IGetPrices/v4"
+#define ITEM_EARBUDS				"Earbuds"
+#define ITEM_REFINED				5002
+#define ITEM_KEY					"Mann Co. Supply Crate Key"
+#define ITEM_CRATE					5022
+#define ITEM_SALVAGED_CRATE			5068
+#define ITEM_HAUNTED_SCRAP			267
+#define ITEM_HEADTAKER				266
+#define ITEM_UNUSUALIFIER			9258
+#define ITEM_STRANGIFIER			6522
+#define QUALITY_UNIQUE				"6"
+#define QUALITY_UNUSUAL				"5"
+#define NOTIFICATION_SOUND			"replay/downloadcomplete.wav"
+#define CREATE_PLAYER_ITEMS_QUERY	"CREATE TABLE IF NOT EXISTS `backpack_player_items` (\
+															`userid` INT UNSIGNED NOT NULL,\
+															`id` INT UNSIGNED NOT NULL,\
+															`defindex` VARCHAR(64) NOT NULL,\
+															`level` VARCHAR(32) NOT NULL,\  // TODO: Was working on reflecting this https://wiki.teamfortress.com/wiki/WebAPI/GetPlayerItems
+															`targetName` VARCHAR(32) NOT NULL,\
+															`targetID` VARCHAR(21) NOT NULL,\
+															`targetReason` VARCHAR(%d) NOT NULL,\
+															`clientName` VARCHAR(32) NOT NULL,\
+															`clientID` VARCHAR(21) NOT NULL,\
+															`callHandled` TINYINT UNSIGNED NOT NULL,\
+															`reportedAt` INT UNSIGNED NOT NULL,\
+															INDEX `serverIP_serverPort` (`serverIP`, `serverPort`),\
+															INDEX `reportedAt` (`reportedAt`),\
+															INDEX `callHandled` (`callHandled`),\
+															INDEX `serverKey` (`serverKey`),\
+															PRIMARY KEY (`callID`))\
+															COLLATE='utf8_unicode_ci'\
+														"
 
 //#define DEBUG
 
@@ -51,6 +71,7 @@ public Plugin myinfo = {
 	url         = "https://www.neogenesisnetwork.net"
 }
 
+int lastSearchedItem[MAXPLAYERS + 1];
 int lastCacheTime;
 int cacheTime;
 KeyValues backpackTFPricelist;
@@ -75,6 +96,7 @@ ConVar cvarRequestUserAgent;
 
 Handle hudText;
 ConVar sv_tags;
+Database dbPlayerItems;
 
 float budsToKeys;
 float keysToRef;
@@ -82,20 +104,26 @@ float refToUsd;
 
 public void OnPluginStart()
 {
-	cvarBPCommand = CreateConVar("backpack_tf_bp_command", "1", "Enables the !bp command for use with backpack.tf");
-	cvarDisplayUpdateNotification = CreateConVar("backpack_tf_display_update_notification", "1", "Display a notification to clients when the cached price list has been updated?");
-	cvarDisplayChangedPrices = CreateConVar("backpack_tf_display_changed_prices", "1", "If backpack_tf_display_update_notification is set to 1, display all prices that changed since the last update?");
-	cvarHudXPos = CreateConVar("backpack_tf_update_notification_x_pos", "-1.0", "X position for HUD text from 0.0 to 1.0, -1.0 = center", _, true, -1.0, true, 1.0);
-	cvarHudYPos = CreateConVar("backpack_tf_update_notification_y_pos", "0.1", "Y position for HUD text from 0.0 to 1.0, -1.0 = center", _, true, -1.0, true, 1.0);
-	cvarHudRed = CreateConVar("backpack_tf_update_notification_red", "0", "Red value of HUD text", _, true, 0.0, true, 255.0);
-	cvarHudGreen = CreateConVar("backpack_tf_update_notification_green", "255", "Green value of HUD text", _, true, 0.0, true, 255.0);
-	cvarHudBlue = CreateConVar("backpack_tf_update_notification_blue", "0", "Blue value of HUD text", _, true, 0.0, true, 255.0);
-	cvarHudHoldTime = CreateConVar("backpack_tf_update_notification_message_time", "5", "Seconds to keep each message in the update ticker on the screen", _, true, 0.0);
-	cvarMenuHoldTime = CreateConVar("backpack_tf_menu_open_time", "0", "Time to keep the price panel open for, 0 = forever");
-	cvarAPIKey = CreateConVar("backpack_tf_api_key", "", "API key obtained at http://backpack.tf/api/register/", FCVAR_PROTECTED);
-	cvarTag = CreateConVar("backpack_tf_add_tag", "1", "If 1, adds the backpack.tf tag to your server's sv_tags, which is required to be listed on http://backpack.tf/servers", _, true, 0.0, true, 1.0);
-	cvarRequestUserAgent = CreateConVar("backpack_tf_user_agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:58.0) Gecko/20100101 Firefox/58.0", "What user agent to use to retrieve data from backpack.tf's servers.");
-	AutoExecConfig(true, "plugin.ngs_backpacktf");
+	AutoExecConfig_SetCreateDirectory(true);
+	AutoExecConfig_SetCreateFile(true);
+	AutoExecConfig_SetFile("plugin.ngs_backpacktf");
+
+	bool appended;
+	cvarBPCommand = AutoExecConfig_CreateConVarCheckAppend(appended, "backpack_tf_bp_command", "1", "Enables the !bp command for use with backpack.tf");
+	cvarDisplayUpdateNotification = AutoExecConfig_CreateConVarCheckAppend(appended, "backpack_tf_display_update_notification", "1", "Display a notification to clients when the cached price list has been updated?");
+	cvarDisplayChangedPrices = AutoExecConfig_CreateConVarCheckAppend(appended, "backpack_tf_display_changed_prices", "1", "If backpack_tf_display_update_notification is set to 1, display all prices that changed since the last update?");
+	cvarHudXPos = AutoExecConfig_CreateConVarCheckAppend(appended, "backpack_tf_update_notification_x_pos", "-1.0", "X position for HUD text from 0.0 to 1.0, -1.0 = center", FCVAR_NONE, true, -1.0, true, 1.0);
+	cvarHudYPos = AutoExecConfig_CreateConVarCheckAppend(appended, "backpack_tf_update_notification_y_pos", "0.1", "Y position for HUD text from 0.0 to 1.0, -1.0 = center", FCVAR_NONE, true, -1.0, true, 1.0);
+	cvarHudRed = AutoExecConfig_CreateConVarCheckAppend(appended, "backpack_tf_update_notification_red", "0", "Red value of HUD text", FCVAR_NONE, true, 0.0, true, 255.0);
+	cvarHudGreen = AutoExecConfig_CreateConVarCheckAppend(appended, "backpack_tf_update_notification_green", "255", "Green value of HUD text", FCVAR_NONE, true, 0.0, true, 255.0);
+	cvarHudBlue = AutoExecConfig_CreateConVarCheckAppend(appended, "backpack_tf_update_notification_blue", "0", "Blue value of HUD text", FCVAR_NONE, true, 0.0, true, 255.0);
+	cvarHudHoldTime = AutoExecConfig_CreateConVarCheckAppend(appended, "backpack_tf_update_notification_message_time", "5", "Seconds to keep each message in the update ticker on the screen", FCVAR_NONE, true, 0.0);
+	cvarMenuHoldTime = AutoExecConfig_CreateConVarCheckAppend(appended, "backpack_tf_menu_open_time", "0", "Time to keep the price panel open for, 0 = forever");
+	cvarAPIKey = AutoExecConfig_CreateConVarCheckAppend(appended, "backpack_tf_api_key", "", "API key obtained at https://backpack.tf/api/register/", FCVAR_PROTECTED);
+	cvarTag = AutoExecConfig_CreateConVarCheckAppend(appended, "backpack_tf_add_tag", "1", "If 1, adds the backpack.tf tag to your server's sv_tags, which is required to be listed on http://backpack.tf/servers", FCVAR_NONE, true, 0.0, true, 1.0);
+	cvarRequestUserAgent = AutoExecConfig_CreateConVarCheckAppend(appended, "backpack_tf_user_agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:58.0) Gecko/20100101 Firefox/58.0", "What user agent to use to retrieve data from backpack.tf's servers.");
+	cvarEnableBackpackSearch = AutoExecConfig_CreateConVarCheckAppend(appended, "backpack_tf_item_search", "0", "If 1, enables experimental item searching in people's BP.", FCVAR_NONE, true, 0.0, true, 1.0);
+	AutoExecConfig_ExecAndClean(appended);
 
 	TranslationFileExists("backpack-tf.phrases", true, true);
 
@@ -106,6 +134,8 @@ public void OnPluginStart()
 
 	RegConsoleCmd("sm_pc", Command_PriceCheck, "Usage: sm_pc <item>");
 	RegConsoleCmd("sm_pricecheck", Command_PriceCheck, "Usage: sm_pricecheck <item>");
+	RegConsoleCmd("sm_find", Command_FindItem, "Usage: sm_find <item>");
+	RegConsoleCmd("sm_finditem", Command_FindItem, "Usage: sm_finditem <item>");
 
 	RegAdminCmd("sm_updateprices", Command_UpdatePrices, ADMFLAG_ROOT, "Updates backpack.tf prices");
 
@@ -251,6 +281,22 @@ public void OnPluginStart()
 public void OnConfigsExecuted()
 {
 	SMTimer.Make(2.0, Timer_AddTag); // Let everything load first
+	if (cvarEnableBackpackSearch.BoolValue)
+	{
+		if (SQL_CheckConfig("backpack"))
+		{
+			dbPlayerItems = Database.Connect(OnPlayerItemsConnect, "backpack");
+		}
+		else
+		{
+			dbPlayerItems = Database.Connect(OnPlayerItemsConnect);
+		}
+	}
+}
+
+public void OnPlayerItemsConnect(Database db, char[] error, any data)
+{
+	
 }
 
 public Action Timer_AddTag(Handle timer)
@@ -872,9 +918,9 @@ public Action Command_PriceCheck(int client, int args)
 		backpackTFPricelist.GetSectionName(itemName, sizeof(itemName));
 		backpackTFPricelist.JumpToKey("defindex");
 		backpackTFPricelist.GetString("0", defindex, sizeof(defindex));
-//		#if defined DEBUG
-//		PrintToServer("Received defindex %s for item %s in sm_pricecheck!", defindex, itemName);
-//		#endif
+		#if defined DEBUG
+		PrintToServer("Received defindex %s for item %s in sm_pricecheck!", defindex, itemName);
+		#endif
 		backpackTFPricelist.GoBack();
 		if(exact)
 		{
@@ -1157,7 +1203,7 @@ public Action Command_Backpack(int client, int args)
 	else
 	{
 		char arg1[MAX_NAME_LENGTH];
-		GetCmdArg(1, arg1, sizeof(arg1));
+		GetCmdArgString(arg1, sizeof(arg1));
 		target = FindTargetEx(client, arg1, true, false, false);
 		if(target == -1)
 		{
@@ -1263,5 +1309,185 @@ int FindTargetEx(int client, const char[] target, bool nobots = false, bool immu
 			ReplyToTargetError(client, target_count);
 		}
 		return -1;
+	}
+}
+
+public Action Command_FindItem(int client, int args)
+{
+	if(backpackTFPricelist == null)
+	{
+		char key[32];
+		cvarAPIKey.GetString(key, sizeof(key));
+		if(strlen(key) == 0)
+		{
+			CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} The server administrator has not filled in their API key yet. Please contact the server administrator.");
+		}
+		else
+		{
+			CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} %t.", "The price list has not loaded yet");
+		}
+		return Plugin_Handled;
+	}
+	else if (!cvarEnableBackpackSearch.BoolValue)
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} Sorry! Backpack searching is disabled right now!");
+	}
+	if(args == 0)
+	{
+		Menu menu = new Menu(Handler_FindItemSelection);
+		menu.SetTitle("Price Check");
+		PrepPriceKv();
+		backpackTFPricelist.JumpToKey("items");
+		backpackTFPricelist.GotoFirstSubKey();
+		char name[128];
+		do
+		{
+			backpackTFPricelist.GetSectionName(name, sizeof(name));
+			menu.AddItem(name, name);
+		}
+		while(backpackTFPricelist.GotoNextKey());
+		menu.Display(client, cvarMenuHoldTime.IntValue);
+		return Plugin_Handled;
+	}
+	int resultDefindex = -1;
+	char defindex[8], name[128], itemName[128], resultItemName[128];
+	GetCmdArgString(name, sizeof(name));
+	bool exact = StripQuotes(name);
+	PrepPriceKv();
+	backpackTFPricelist.GotoFirstSubKey();
+	ArrayList matches;
+	if(!exact)
+	{
+		#if defined DEBUG
+		PrintToServer("Doing a search since not exact!");
+		#endif
+		matches = new ArrayList(128);
+	}
+	do
+	{
+		backpackTFPricelist.GetSectionName(itemName, sizeof(itemName));
+		backpackTFPricelist.JumpToKey("defindex");
+		backpackTFPricelist.GetString("0", defindex, sizeof(defindex));
+		#if defined DEBUG
+		PrintToServer("Received defindex %s for item %s in sm_pricecheck!", defindex, itemName);
+		#endif
+		backpackTFPricelist.GoBack();
+		if(exact)
+		{
+			if(StrEqual(itemName, name, false))
+			{
+				strcopy(resultItemName, sizeof(resultItemName), itemName);
+				resultDefindex = StringToInt(defindex);
+				break;
+			}
+		}
+		else
+		{
+			if(StrContains(itemName, name, false) != -1)
+			{
+				#if defined DEBUG
+				PrintToServer("%s contains %s, adding it to matches ArrayList!", itemName, name);
+				#endif
+				strcopy(resultItemName, sizeof(resultItemName), itemName);
+				resultDefindex = StringToInt(defindex); // In case this is the only match, we store the resulting defindex here so that we don't need to search to find it again
+				matches.PushString(itemName);
+			}
+		}
+	}
+	while(backpackTFPricelist.GotoNextKey());
+	if(!exact && matches.Length > 1)
+	{
+		Menu menu = new Menu(Handler_FindItemSelection);
+		menu.SetTitle("Search Results");
+		int size = matches.Length;
+		for(int i = 0; i < size; i++)
+		{
+			matches.GetString(i, itemName, sizeof(itemName));
+			menu.AddItem(itemName, itemName);
+		}
+		menu.Display(client, cvarMenuHoldTime.IntValue);
+		delete matches;
+		return Plugin_Handled;
+	}
+	delete matches;
+
+	if(resultDefindex == -1)
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} No matching item was found.");
+		return Plugin_Handled;
+	}
+	// At this point, we know that we've found our item. Its defindex is stored in resultDefindex as a cell
+	// defindex was used to store the defindex of every item as we searched it, so it's not reliable
+	/* if(resultDefindex == ITEM_REFINED)
+	{
+		SetGlobalTransTarget(client);
+		Menu menu = new Menu(Handler_PriceListMenu);
+		menu.SetTitle("%t\n%t\n%t\n ", "Price check", resultItemName, "Prices are estimates only", "Prices courtesy of backpack.tf");
+		char buffer[32];
+		Format(buffer, sizeof(buffer), "Unique: $%.2f USD", refToUsd);
+		menu.AddItem("", buffer, ITEMDRAW_DISABLED);
+		menu.Display(client, cvarMenuHoldTime.IntValue);
+		return Plugin_Handled;
+	}
+	bool isCrate = (resultDefindex == ITEM_CRATE || resultDefindex == ITEM_SALVAGED_CRATE);
+	bool onlyOneUnusual = (resultDefindex == ITEM_HEADTAKER || resultDefindex == ITEM_HAUNTED_SCRAP); */
+	PrepPriceKv();
+	lastSearchedItem[client] = resultDefindex;
+	IntToString(resultDefindex, defindex, sizeof(defindex));
+	#if defined DEBUG
+	PrintToServer("Jumping to %s!", resultItemName, name);
+	#endif
+	backpackTFPricelist.JumpToKey(resultItemName);
+	backpackTFPricelist.JumpToKey("prices");
+	backpackTFPricelist.GotoFirstSubKey();
+
+	/* SetGlobalTransTarget(client); */
+	Menu menu = new Menu(Handler_FindItemQualitySelection);
+	menu.SetTitle("Choose a Quality:");
+	char qualityIndex[16], quality[16];
+	do // loop through qualities
+	{
+		backpackTFPricelist.GetSectionName(qualityIndex, sizeof(qualityIndex));
+		if(!qualityNameTrie.GetString(qualityIndex, quality, sizeof(quality)))
+		{
+			LogError("Unknown quality index %s for item. Please report this!", qualityIndex, resultItemName);
+			continue;
+		}
+		menu.AddItem(qualityIndex, quality);
+	}
+	while(backpackTFPricelist.GotoNextKey());
+	menu.Display(client, cvarMenuHoldTime.IntValue);
+	return Plugin_Handled;
+}
+
+public int Handler_FindItemSelection(Menu menu, MenuAction action, int client, int param)
+{
+	if(action == MenuAction_End)
+	{
+		delete menu;
+	}
+	if(action == MenuAction_Select)
+	{
+		char selection[128];
+		if(menu.GetItem(param, selection, sizeof(selection)))
+		{
+			FakeClientCommand(client, "sm_find \"%s\"", selection);
+		}
+	}
+}
+
+public int Handler_FindItemQualitySelection(Menu menu, MenuAction action, int param1, int param2)
+{
+	if(action == MenuAction_End)
+	{
+		delete menu;
+	}
+	if(action == MenuAction_Select)
+	{
+		char selection[128];
+		if(menu.GetItem(param, selection, sizeof(selection)))
+		{
+			FakeClientCommand(client, "sm_find \"%s\"", selection);
+		}
 	}
 }

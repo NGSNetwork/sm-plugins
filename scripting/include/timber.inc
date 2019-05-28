@@ -56,7 +56,7 @@ methodmap Timber
         {
             char logLine[8192];
             VFormat(logLine, sizeof(logLine), log, 2);
-            this.log(Log_Verbose, logLine);
+            Timber.log(Log_Verbose, logLine);
         }
     }
 

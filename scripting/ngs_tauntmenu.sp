@@ -18,15 +18,15 @@
 
 #include <tf2items>
 #include <tf2_stocks>
+#include <tf2attributes>
+#include <tf2idb>
 #include <morecolors>
 #include <ngsutils>
 #include <ngsupdater>
 
-#undef REQUIRE_PLUGIN
-#include <tf2idb>
-#define REQUIRE_PLUGIN
-
 //#define DEBUG
+
+int tauntEffects[MAXPLAYERS + 1];
 
 public Plugin myinfo = {
 	name = "[NGS] Taunt Menu",
@@ -66,6 +66,9 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_taunt", Cmd_TauntMenu, "Taunt Menu");
 	RegConsoleCmd("sm_tauntmenu", Cmd_TauntMenu, "Taunt Menu");
 	RegConsoleCmd("sm_taunts", Cmd_TauntMenu, "Taunt Menu");
+	RegAdminCmd("sm_utaunts", Cmd_UnusualTauntMenu, ADMFLAG_RESERVATION, "Unusual Taunt Effect Menu");
+	RegAdminCmd("sm_utaunt", Cmd_UnusualTauntMenu, ADMFLAG_RESERVATION, "Unusual Taunt Effect Menu");
+	RegAdminCmd("sm_utauntmenu", Cmd_UnusualTauntMenu, ADMFLAG_RESERVATION, "Unusual Taunt Effect Menu");
 
 	LoadTranslations("common.phrases");
 }
@@ -75,10 +78,20 @@ public void AllPluginsLoaded()
 	LoadTauntMenus();
 }
 
+public void OnClientConnected(int client) {
+	tauntEffects[client] = 0;
+}
+
+public void OnClientDisconnect(int client) {
+	tauntEffects[client] = 0;
+}
+
 public void LoadTauntMenus()
 {
 	// Thanks to fakuivan for some inspiration
-	ArrayList tauntIds = view_as<ArrayList>(TF2IDB_FindItemCustom("SELECT `id` FROM tf2idb_item WHERE `slot` IS 'taunt'"));
+	ArrayList tauntIds = TF2IDB_FindItemCustom("SELECT `id` FROM tf2idb_item WHERE `slot` IS 'taunt'");
+	DBStatement tauntEffectIds = TF2IDB_CustomQuery("SELECT * FROM tf2idb_particles WHERE `name` LIKE '%utaunt%'", null, 0);
+
 	int size = tauntIds.Length;
 	int nameSize = 128;
 
@@ -103,10 +116,8 @@ public void LoadTauntMenus()
 			strcopy(tauntNames[i], nameSize, tauntBuffer);
 		}
 		tauntBits[i] = TF2IDB_UsedByClasses_Compat(id);
-		#if defined DEBUG
-		PrintToServer("At index %d adding id: %d, name: %s (possibly %s formatted), bits: %d to arrays.", i, id, tauntNames[i], tauntBuffer, tauntBits[i]);
-		PrintToServer("Retrieved string %s from names!", tauntNames[i]);
-		#endif
+		PrintToServerDebug("At index %d adding id: %d, name: %s (possibly %s formatted), bits: %d to arrays.", i, id, tauntNames[i], tauntBuffer, tauntBits[i]);
+		PrintToServerDebug("Retrieved string %s from names!", tauntNames[i]);
 	}
 	char strId[12];
 	for (int i = 1; i < sizeof(classTaunt); i++)
@@ -117,17 +128,13 @@ public void LoadTauntMenus()
 		for (int j = 0; j < size; j++)
 		{
 			int bitfield = tauntBits[j];
-			#if defined DEBUG
-			PrintToServer("Retrieved bitfield %d for item %s index %d, testing it against %d.", bitfield, tauntNames[j], j, classBits);
-			#endif
+			PrintToServerDebug("Retrieved bitfield %d for item %s index %d, testing it against %d.", bitfield, tauntNames[j], j, classBits);
 			bool wasSpecific;
 			if (bitfield == 0b1111111110 || (wasSpecific = view_as<bool>(bitfield & classBits)))
 			{
 				int id = tauntIds.Get(j);
 				IntToString(id, strId, sizeof(strId));
-				#if defined DEBUG
-				PrintToServer("Retrieved item %s at index %d from names.", tauntNames[j], j);
-				#endif
+				PrintToServerDebug("Retrieved item %s at index %d from names.", tauntNames[j], j);
 				if (wasSpecific)
 				{
 					classTaunt[i].InsertItem(0, strId, tauntNames[j]);
@@ -139,6 +146,19 @@ public void LoadTauntMenus()
 			}
 		}
 	}
+
+	classTaunt[0] = new Menu(Taunt_EffectMenuSelected);
+	classTaunt[0].SetTitle("===== NGS Taunt Effect Menu =====");
+	classTaunt[0].AddItem("0", "Clear Effect");
+	while (SQL_FetchRow(tauntEffectIds))
+	{
+		int id = SQL_FetchInt(tauntEffectIds, 0);
+		IntToString(id, strId, sizeof(strId));
+		SQL_FetchString(tauntEffectIds, 1, name, sizeof(name));
+		classTaunt[0].AddItem(strId, name);
+	}
+
+	delete tauntEffectIds;
 	delete tauntIds;
 }
 
@@ -174,6 +194,44 @@ public Action Cmd_TauntMenu(int client, int args)
 	}
 	ShowMenu(client, item - 1);
 	return Plugin_Handled;
+}
+
+public Action Cmd_UnusualTauntMenu(int client, int args)
+{
+	if (!IsValidClient(client)) return Plugin_Handled;
+	if (!IsPlayerAlive(client))
+	{
+		CReplyToCommand(client, "{GREEN}[SM]{DEFAULT} You can only use this when you are alive!");
+		return Plugin_Handled;
+	}
+	ShowEffectMenu(client);
+	return Plugin_Handled;
+}
+
+public void ShowEffectMenu(int client)
+{
+	classTaunt[0].Display(client, 20);
+}
+
+public int Taunt_EffectMenuSelected(Menu menu, MenuAction action, int iClient, int param2)
+{
+	if (action == MenuAction_Select && IsValidClient(iClient))
+	{
+		char info[12];
+
+		if (menu.GetItem(param2, info, sizeof(info)))
+		{
+			tauntEffects[iClient] = StringToInt(info);
+			if (tauntEffects[iClient] == 0)
+			{
+				TF2Attrib_RemoveByDefIndex(iClient, 2041);
+			}
+			else
+			{
+				TF2Attrib_SetByDefIndex(iClient, 2041, float(tauntEffects[iClient]));
+			}
+		}
+	}
 }
 
 public void ShowMenu(int client, int itemNum)

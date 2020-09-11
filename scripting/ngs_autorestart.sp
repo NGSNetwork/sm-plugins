@@ -30,7 +30,7 @@
 public Plugin myinfo = {
 	name = "[NGS] Timed Restart",
 	author = "TheXeon",
-	description = "Restart the server automagically :D",
+	description = "Restart the server's map automagically :D",
 	version = "1.0.7",
 	url = "https://www.neogenesisnetwork.net/"
 }
@@ -76,7 +76,7 @@ public Action CommandStartRestartTimer(int client, int args)
 			status = StringToInt(arg1);
 		}
 		autoRestartTimer = new SMTimer(30.0, AutoRestartTimer, status);
-		CPrintToChatAll("{GREEN}[SM]{DEFAULT} A %srestart timer has been started, server %s be restarting in 30 seconds!", 
+		CPrintToChatAll("{GREEN}[SM]{DEFAULT} A %srestart timer has been started, server map %s be restarting in 30 seconds!", 
 			(status == 1) ? "forced " : "", (status == 1) ? "will" : "may");
 	}
 	else
@@ -135,16 +135,6 @@ public void OnClientPostAdminCheck(int client)
 {
 	ProcessClientsAwake(client, true);
 }
-
-// public void AFKM_OnClientAFK(int client)
-// {
-// 	ProcessClientsAsleep(client);
-// }
-
-// public void AFKM_OnClientBack(int client)
-// {
-// 	ProcessClientsAwake(client, false);
-// }
 
 public void OnClientDisconnect_Post(int client)
 {

@@ -99,7 +99,7 @@ native Action SMAC_CheatDetected(int client, DetectionType type = Detection_Unkn
 
 /* Forwards */
 forward Action SMAC_OnCheatDetected(int client, const char[] module, DetectionType type, Handle info);
-forward Action SMAC_OnActionLogged()
+forward Action SMAC_OnActionLogged();
 
 public SharedPlugin __pl_smac = 
 {

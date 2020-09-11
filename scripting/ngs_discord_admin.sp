@@ -3,7 +3,7 @@
 
 #define CONTENT_URL "https://github.com/NGSNetwork/sm-plugins/raw/master/"
 #define RELOAD_ON_UPDATE 1
-#define ALL_PLUGINS_LOADED_FUNC AllPluginsLoaded;
+#define ALL_PLUGINS_LOADED_FUNC AllPluginsLoaded
 
 #include <afk_manager>
 #include <calladmin>

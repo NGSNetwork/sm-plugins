@@ -1243,3 +1243,28 @@ stock ConVar AutoExecConfig_ExecAndClean(bool appended, bool exec=true)
 	}
 }
 #endif
+
+/**
+ * Encodes a URL or parameter to HTML5 encoding.
+ *
+ * @param buffer              Buffer to store encoding in.
+ * @param buffersize          Size of buffer.
+ * @param encodestr           String to percent-encode.
+ * @noreturn
+ */
+stock ConVar EncodeURL(char[] buffer, int buffersize, char[] encodestr) {
+	int len = strlen(encodestr);
+	for (int i = 0; i < len; i++) {
+		if (IsCharAlpha(encodestr[i]) || IsCharNumeric(encodestr[i])) {
+			StrCat(buffer, buffersize, encodestr[i]);
+		} else if (encodestr[i] == ' ') {
+			char hex[8];
+			Format(hex, sizeof(hex), "%20");
+			StrCat(buffer, buffersize, hex);
+		} else {
+			char hex[8];
+			Format(hex, sizeof(hex), "%02x", encodestr[i]);
+			StrCat(buffer, buffersize, hex);
+		}
+	}
+}

@@ -69,10 +69,10 @@ native Handle TF2IDB_GetItemEquipRegions(int id);
 native bool TF2IDB_DoRegionsConflict(const char[] region1, const char[] region2);
 
 //TF2IDB_ListParticles returns an Array Handle containing a list of the particle IDs
-native Handle TF2IDB_ListParticles();
+native ArrayList TF2IDB_ListParticles();
 
 //TF2IDB_FindItemCustom returns an Array Handle containing a list of integers for the first column of the query result
-native Handle TF2IDB_FindItemCustom(const char[] query);
+native ArrayList TF2IDB_FindItemCustom(const char[] query);
 
 native bool TF2IDB_ItemHasAttribute(int id, int aid);
 

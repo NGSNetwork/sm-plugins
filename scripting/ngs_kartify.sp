@@ -30,7 +30,6 @@ public Plugin myinfo = {
 
 ConVar g_cvarSpawnKart;
 ConVar g_cvarStartPercentage;
-ConVar g_cvarForcedPercentage;
 ConVar g_cvarAllowSuicide;
 
 bool g_KartSpawn[MAXPLAYERS + 1];
@@ -38,7 +37,6 @@ bool g_KartSpawn[MAXPLAYERS + 1];
 public void OnPluginStart() {
 	g_cvarSpawnKart = CreateConVar("kartify_spawn", "0", "0 = do nothing, 1 = put all players into karts when they spawn, 2 = put players into karts when they spawn only if sm_kartify was used on them", _, true, 0.0, true, 2.0);
 	g_cvarStartPercentage = CreateConVar("kartify_start_percentage", "0", "Starting percentage, as an integer, of damage for kartified players", _, true, 0.0);
-	g_cvarForcedPercentage = CreateConVar("kartify_forced_percentage", "-1", "If 0 or greater, karts will not take damage and will instead have this percent of damage all the time (as an integer)", _, true, -1.0);
 	g_cvarAllowSuicide = CreateConVar("kartify_allow_suicide", "1", "Allow players to suicide while in a kart", _, true, 0.0, true, 1.0);
 
 	RegAdminCmd("sm_kartify", Command_Kartify, ADMFLAG_SLAY, "Put players into karts!");
@@ -59,13 +57,16 @@ public void OnPluginStart() {
 	AddCommandListener(Command_Kill, "explode");
 }
 
-public Action Command_Kill(int client, const char[] command, int argc) {
-	if(g_cvarAllowSuicide.BoolValue) {
+public Action Command_Kill(int client, const char[] command, int argc)
+{
+	if(g_cvarAllowSuicide.BoolValue)
+	{
 		Unkartify(client); // Won't do anything if they're not in a kart
 	}
 }
 
-public void OnMapStart() {
+public void OnMapStart()
+{
 	PrecacheModel("models/player/items/taunts/bumpercar/parts/bumpercar.mdl");
 	PrecacheModel("models/player/items/taunts/bumpercar/parts/bumpercar_nolights.mdl");
 
@@ -117,7 +118,7 @@ public Action Command_Kartify(int client, int args) {
 		return Plugin_Handled;
 	}
 
-	if(result == 1 && TF2_IsPlayerInCondition(targets[0], view_as<TFCond>(82))) {
+	if(result == 1 && TF2_IsPlayerInCondition(targets[0], TFCond_HalloweenKart)) {
 		// Only one player chosen and they're in a kart
 		CShowActivity2(client, "{GREEN}[SM]{DEFAULT} ", "Unkartified {LIGHTGREEN}%s{DEFAULT}!", target_name);
 		LogAction(client, targets[0], "\"%L\" unkartified \"%L\"", client, targets[0]);
@@ -167,7 +168,7 @@ public Action Command_Unkartify(int client, int args) {
 }
 
 public Action Command_KartifyMe(int client, int args) {
-	if(TF2_IsPlayerInCondition(client, view_as<TFCond>(82))) {
+	if(TF2_IsPlayerInCondition(client, TFCond_HalloweenKart)) {
 		Command_UnkartifyMe(client, 0);
 		return Plugin_Handled;
 	}
@@ -204,7 +205,7 @@ public void Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadcas
 
 public void Event_PlayerTeam(Handle event, const char[] name, bool dontBroadcast) {
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
-	if(TF2_IsPlayerInCondition(client, view_as<TFCond>(82))) {
+	if(TF2_IsPlayerInCondition(client, TFCond_HalloweenKart)) {
 		// Kill them otherwise they'll just spawn as the other team where they're standing
 		Unkartify(client);
 		ForcePlayerSuicide(client);
@@ -219,16 +220,16 @@ bool Kartify(int client, bool triggerAdmin=false) {
 	}
 	TF2Friendly_SetFriendly(client, 1, -1);
 	TF2_RespawnPlayer(client);
-	TF2_AddCondition(client, view_as<TFCond>(82), TFCondDuration_Infinite);
+	TF2_AddCondition(client, TFCond_HalloweenKart, TFCondDuration_Infinite);
 	SetEntProp(client, Prop_Send, "m_iKartHealth", GetConVarInt(g_cvarStartPercentage));
 	return true;
 }
 
 bool Unkartify(int client)
 {
-	if (TF2_IsPlayerInCondition(client, view_as<TFCond>(82)))
+	if (TF2_IsPlayerInCondition(client, TFCond_HalloweenKart))
 	{
-		TF2_RemoveCondition(client, view_as<TFCond>(82));
+		TF2_RemoveCondition(client, TFCond_HalloweenKart);
 		if (!TF2Friendly_IsLocked(client))
 		{
 			TF2Friendly_SetFriendly(client, 0, -1);
@@ -238,14 +239,14 @@ bool Unkartify(int client)
 	}
 	return false;
 }
-
-public void OnGameFrame() {
-	int forcedPct = g_cvarForcedPercentage.IntValue;
-	if(forcedPct >= 0) {
-		for(int i = 1; i <= MaxClients; i++) {
-			if(IsClientInGame(i)) {
-				SetEntProp(i, Prop_Send, "m_iKartHealth", forcedPct);
-			}
-		}
-	}
-}
+//
+//public void OnGameFrame() {
+//	int forcedPct = g_cvarForcedPercentage.IntValue;
+//	if(forcedPct >= 0) {
+//		for(int i = 1; i <= MaxClients; i++) {
+//			if(IsClientInGame(i)) {
+//				SetEntProp(i, Prop_Send, "m_iKartHealth", forcedPct);
+//			}
+//		}
+//	}
+//}

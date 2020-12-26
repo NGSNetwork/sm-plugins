@@ -1,52 +1,60 @@
-"Phrases"
+﻿"Phrases"
 {
 	"ChangeClass"
 	{
 		"en"		"{cyan}[Duel]{default} You can't change class during a restricted duel!"
 		"fr"		"{cyan}[Duel]{default} Vous ne pouvez pas changer de classe pendant un duel avec restriction de classe!"
 		"it"		"{cyan}[Duel]{default} Non puoi cambiare classe durante un duello con restrizioni!"
+		"ru"		"{cyan}[Дуэль]{default} Вы не можете изменить класс во время дуэли!"
 	}
 	"Abort"
 	{
 		"en"		"{cyan}[Duel]{Red} !abort {olive} to abort a duel."
 		"fr"		"{cyan}[Duel]{Red} !abort {olive} pour annuler un duel."
 		"it"		"{cyan}[Duel]{Red} !abort {olive} per annullare un duello."
+		"ru"		"{cyan}[Дуэль]{Red} !abort {olive} для отмены дуэли."
 	}
 	"NoFound"
 	{
 		"en"		"{cyan}[Duel]{Orange} No player found."
 		"fr"		"{cyan}[Duel]{Orange} Aucun joueur trouve."
 		"it"		"{cyan}[Duel]{Orange} Nessun giocatore trovato."
+		"ru"		"{cyan}[Дуэль]{Orange} Игрок не найден."
 	}
 	"NoFlag"
 	{
 		"en"		"{cyan}[Duel]{default} You don't have access to this command!"
 		"fr"		"{cyan}[Duel]{default} Vous n'avez pas acces à cette commande !"
 		"it"		"{cyan}[Duel]{default} Non hai accesso a questo comando !"
+		"ru"		"{cyan}[Дуэль]{default} У вас нет доступа к этой команде!"
 	}
 	"Spectator"
 	{
 		"en"		"{cyan}[Duel]{default} You can't duel in spectator!"
 		"fr"		"{cyan}[Duel]{default} Vous ne pouvez pas faire de duel en spectateur !"
 		"it"		"{cyan}[Duel]{default} Non puoi iniziare un duello come spettatore !"
+		"ru"		"{cyan}[Дуэль]{default} Дуэль за наблюдателя не устроишь!"
 	}
 	"InDuel"
 	{
 		"en"		"{cyan}[Duel]{Red} You're already in a duel!"
 		"fr"		"{cyan}[Duel]{Red} Vous etes deja en duel !"
 		"it"		"{cyan}[Duel]{Red} Hai già iniziato un duello !"
+		"ru"		"{cyan}[Дуэль]{Red} Вы уже на дуэли!"
 	}
 	"NotInGame"
 	{
 		"en"		"{cyan}[Duel]{Red} Player isn't in game!"
 		"fr"		"{cyan}[Duel]{Red} Joueur non en jeu !"
 		"it"		"{cyan}[Duel]{Red} Giocatori non in partita !"
+		"ru"		"{cyan}[Дуэль]{Red} Игрок не в игре!"
 	}
 	"NotInDuel"
 	{
 		"en"		"{cyan}[Duel]{olive} You aren't in a duel!"
 		"fr"		"{cyan}[Duel]{olive} Vous n'etes pas dans un duel !"
 		"it"		"{cyan}[Duel]{olive} Non hai iniziato alcun duello !"
+		"ru"		"{cyan}[Дуэль]{olive} Вы не на дуэли!"
 	}
 	"Score"
 	{
@@ -54,6 +62,7 @@
 		"en"		"{cyan}[Duel]{default} {1} : {2}  -  {3} : {4}"
 		"fr"		"{cyan}[Duel]{default} {1} : {2}  -  {3} : {4}"
 		"it"		"{cyan}[Duel]{default} {1} : {2}  -  {3} : {4}"
+		"ru"		"{cyan}[Дуэль]{default} {1} : {2}  -  {3} : {4}"
 	}
 	"Victory"
 	{
@@ -61,6 +70,7 @@
 		"en"		"{cyan}[Duel]{green} {1} {olive}wins their duel against{green} {2}  {default}{3}"
 		"fr"		"{cyan}[Duel]{green} {1} {olive}gagne le duel contre{green} {2}  {default}{3}"
 		"it"		"{cyan}[Duel]{green} {1} {olive}vince il duello contro{green} {2}  {default}{3}"
+		"ru"		"{cyan}[Дуэль]{green} {1} {olive}выигрывает дуэль против{green} {2}  {default}{3}"
 	}
 	"Challenged"
 	{
@@ -68,6 +78,7 @@
 		"en"		"{cyan}[Duel]{Green} {1} {Orange}has challenged {green}{2} !"
 		"fr"		"{cyan}[Duel]{Green} {1} {Orange}a defie{green}{2} !"
 		"it"		"{cyan}[Duel]{Green} {1} {Orange}ha sfidato {green}{2} !"
+		"ru"		"{cyan}[Дуэль]{Green} {1} {Orange}бросает вызов {green}{2} !"
 	}
 	"You!"
 	{
@@ -75,6 +86,7 @@
 		"en"		"{cyan}[Duel]{green} {1} {olive}has challenged you!"
 		"fr"		"{cyan}[Duel]{green} {1} {olive}vous defie!"
 		"it"		"{cyan}[Duel]{green} {1} {olive}ti ha sfidato!"
+		"ru"		"{cyan}[Дуэль]{green} {1} {olive}бросает вам вызов!"
 	}
 	"Refused"
 	{
@@ -82,6 +94,7 @@
 		"en"		"{cyan}[Duel]{Red} But {Green} {1} {Red}refused {Green}{2}{Red}'s duel!"
 		"fr"		"{cyan}[Duel]{Red} Mais {Green} {1} {Red}a refuse le duel de {Green}{2}{Red} !"
 		"it"		"{cyan}[Duel]{Red} Ma {Green} {1} {Red}ha rifiutato la sfida di {Green}{2}{Red}!"
+		"ru"		"{cyan}[Дуэль]{Red} Но {Green} {1} {Red}отказался от дуэли {Green}{2}{Red} !"
 	}
 	"Accepts"
 	{
@@ -89,6 +102,7 @@
 		"en"		"{cyan}[Duel]{green} {1} {olive}accepts {Green}{2}{olive}'s challenge!"
 		"fr"		"{cyan}[Duel]{green} {1} {olive}a accepte le defi de {Green}{2}{olive}!"
 		"it"		"{cyan}[Duel]{green} {1} {olive}ha accettato la sfida di {Green}{2}{olive}!"
+		"ru"		"{cyan}[Дуэль]{green} {1} {olive}принимает вызов {Green}{2}{olive} !"
 	}
 	"TooAfraid"
 	{
@@ -96,6 +110,7 @@
 		"en"		"{cyan}[Duel]{Green} {1} {Red} is too afraid to accept {Green}{2}{Red}'s challenge!"
 		"fr"		"{cyan}[Duel]{Green} {1} {Red} a trop peur de repondre à {Green}{2} !"
 		"it"		"{cyan}[Duel]{Green} {1} {Red} è troppo spaventato per rispondere a {Green}{2} !"
+		"ru"		"{cyan}[Дуэль]{Green} {1} {Red} слишком боится отвечать на вызов {Green}{2} !"
 	}
 	"IsInDuel"
 	{
@@ -103,24 +118,28 @@
 		"en"		"{cyan}[Duel]{Green} {1} {Red} is already in a duel!"
 		"fr"		"{cyan}[Duel]{Green} {1} {Red} est deja dans un duel !"
 		"it"		"{cyan}[Duel]{Green} {1} {Red} è già in duello con un giocatore !"
+		"ru"		"{cyan}[Дуэль]{Green} {1} {Red} уже в дуэли !"
 	}
 	"TeamError"
 	{
 		"en"		"{cyan}[Duel]{Red} Team error!"
 		"fr"		"{cyan}[Duel]{Red} Erreur d'equipe !"
 		"it"		"{cyan}[Duel]{Red} Squadra errata !"
+		"ru"		"{cyan}[Дуэль]{Red} Ошибка команды !"
 	}
 	"!myduels"
 	{
 		"en"		"{cyan}[Duel]{default} Write {Green}!myduels {default}to see your duels ratio."
 		"fr"		"{cyan}[Duel]{default} Tapes {Green}!myduels {default}pour voir le rapport de tes duels."
 		"it"		"{cyan}[Duel]{default} Scrivi {Green}!myduels {default}per consultare le statistiche dei tuoi duelli."
+		"ru"		"{cyan}[Дуэль]{default} Напишите {Green}!myduels{default}, чтобы увидеть соотношение ваших дуэлей."
 	}
 	"!topduel"
 	{
 		"en"		"{cyan}[Duel]{default} Write {Green}!topduel {default}to see the top duelists."
 		"fr"		"{cyan}[Duel]{default} Tapes {Green}!topduel {default}pour voir les meilleurs dueleurs."
 		"it"		"{cyan}[Duel]{default} Scrivi {Green}!topduel {default}per l'elenco dei migliori duellanti."
+		"ru"		"{cyan}[Дуэль]{default} Напишите {Green}!topduel{default}, чтобы увидеть лучших дуэлянтов."
 	}
 	"Equality"
 	{
@@ -128,6 +147,7 @@
 		"en"		"{cyan}[Duel]{red} Duel finished :{green} {1} {olive}and {green}{2} {olive}have tied with the same level!"
 		"fr"		"{cyan}[Duel]{red} Duel termine :{green} {1} {olive}et {green}{2} {olive}on le meme niveau !"
 		"it"		"{cyan}[Duel]{red} Duello terminato :{green} {1} {olive} e {green}{2} {olive}sono in parità !"
+		"ru"		"{cyan}[Дуэль]{red} Дуэль окончена :{green} {1} {olive}и {green}{2} {olive}равнялись на одном уровне!"
 	}
 	"VictoryNbr"
 	{
@@ -135,6 +155,7 @@
 		"en"		"{cyan}[Duel]{green} {1} {olive}has{green} {2} {orange}victory!"
 		"fr"		"{cyan}[Duel]{green} {1} {olive}a{green} {2} {orange}victore!"
 		"it"		"{cyan}[Duel]{green} {1} {olive}ha{green} {2} {orange}vittoria!"
+		"ru"		"{cyan}[Дуэль]{green} {1} {olive}имеет{green} {2} {orange}победу!"
 	}
 	"Victories"
 	{
@@ -142,17 +163,20 @@
 		"en"		"{cyan}[Duel]{green} {1} {olive}has{green} {2} {orange}victories!"
 		"fr"		"{cyan}[Duel]{green} {1} {olive}a{green} {2} {orange}victoires!"
 		"it"		"{cyan}[Duel]{green} {1} {olive}ha{green} {2} {orange}vittorie!"
+		"ru"		"{cyan}[Дуэль]{green} {1} {olive}имеет{green} {2} {orange}побед!"
 	}
 	"WaitAnwser"
 	{
 		"en"		"{cyan}[Duel]{orange} You must wait for an answer to your last challenge before create a new one."
 		"fr"		"{cyan}[Duel]{orange} Tu dois attendre la reponse de ton dernier duel avant d'en creer un nouveau."
 		"it"		"{cyan}[Duel]{orange} Devi aspettare una risposta alla tua ultima richiesta di duello prima di farne una nuova."
+		"ru"		"{cyan}[Дуэль]{orange} Вы должны дождаться своего последнего дуэльного ответа, прежде чем создавать новый."
 	}
 	"Don'tBuilt"
 	{
 		"en"		"{cyan}[Duel]{default} In Challenger Protection, you are not allow to build objects!"
 		"fr"		"{cyan}[Duel]{default} En GodMod, tu n'es pas autorise à construire des objets!"
 		"it"		"{cyan}[Duel]{default} In GodMod, non sei abilitato a costruire oggetti!"
+		"ru"		"{cyan}[Дуэль]{default} В защите вызова вы не можете строить объекты!"
 	}
 }

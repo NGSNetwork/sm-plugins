@@ -27,12 +27,14 @@
 		"en"		"{green}[%s] {default}To send your last offer again, type {lightgreen}/LT{default}."
 		"hu"		"{green}[%s] {default}Az utolsó ajánlatok megtekintéséhez írd be: {lightgreen}/LT{default}."
 		"pl"		"{green}[%s] {default}By wysłać ponownie poprzednią ofertę, wpisz {lightgreen}/LT{default}."
+		"ru"		"{green}[%s] {default}Чтобы отправить последнее предложение ещё раз, введите {lightgreen}/LT{default}."
 		"ko"		"{green}[%s] {default}마지막으로 보낸 거래 메세지를 다시 보내려면, 채팅에 {lightgreen}/LT{default}을(를) 입력하세요."
 	}
 	"Advert4"
 	{
 		"en"		"{green}[%s] {default}To check what your last offer was, type {lightgreen}/MLT{default}."
 		"pl"		"{green}[%s] {default}By sprawdzić jaka była Twoja poprzednia oferta, wpisz {lightgreen}/MLT{default}."
+		"ru"		"{green}[%s] {default}Чтобы узнать, какое было ваше последнее предложение, введите {lightgreen}/MLT{default}."
 		"ko"		"{green}[%s] {default}자신이 마지막으로 보낸 거래 메세지를 확인하려면, 채팅에 {lightgreen}/MLT{default}을(를) 입력하세요."
 	}
 	"HideChatOn"
@@ -61,6 +63,7 @@
 	{
 		"en"		"{green}[%s] {lightgreen}This option is currently unavailable."
 		"pl"		"{green}[%s] {lightgreen}Ta opcja jest chwilo niedostępna."
+		"ru"		"{green}[%s] {lightgreen}Эта опция в настоящее время недоступна."
 		"ko"		"{green}[%s] {lightgreen}이 기능은 사용할 수 없습니다."
 	}
 	"TradeDisabledForYou"
@@ -144,6 +147,7 @@
 	{
 		"en"		"{green}[%s] {lightgreen}You must wait %d seconds before sending your next offer."
 		"pl"		"{green}[%s] {lightgreen}Musisz poczekać %d sekund przed wysłaniem kolejnej oferty."
+		"ru"		"{green}[%s] {lightgreen}Вы должны подождать %d сек. перед отправкой следующего предложения."
 		"ko"		"{green}[%s] {lightgreen}%d초 이내에 거래 채팅을 다시 보낼 수 없습니다."
 	}
 	"LastMessageIsEmpty"
@@ -151,12 +155,14 @@
 		"en"		"{green}[%s] {lightgreen}You have not sent any offers yet."
 		"hu"		"{green}[%s] {lightgreen}Nem küldtél semmilyen ajánlatot."
 		"pl"		"{green}[%s] {lightgreen}Nie wysłałeś jeszcze żadnej oferty."
+		"ru"		"{green}[%s] {lightgreen}Вы ещё не отправляли ни одного предложения."
 		"ko"		"{green}[%s] {lightgreen}아직 거래 채팅을 사용하지 않았습니다."
 	}
 	"YourLastMessage"
 	{
 		"en"		"{green}[%s] {lightgreen}Your last offer: {default}%s"
 		"pl"		"{green}[%s] {lightgreen}Twoja poprzednia oferta: {default}%s"
+		"ru"		"{green}[%s] {lightgreen}Ваше последнее предложение: {default}%s"
 		"ko"		"{green}[%s] {lightgreen}마지막으로 보낸 거래 채팅: {default}%s"
 	}
 	"Offer"

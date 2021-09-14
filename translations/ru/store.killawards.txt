@@ -1,0 +1,21 @@
+"Phrases"
+{
+
+	"Received Credits Suicide"
+	{
+		"#format"			"{1:d},{2:s}"
+		"ru"				"Вы получили {1} {2} за самоубийство!"
+	}
+
+	"Received Credits Kill"
+	{
+		"#format"			"{1:d},{2:s},{3:N}"
+		"ru"				"Вы получили {1} {2} за убийство {3}"
+	}
+
+	"Received Credits TeamKill"
+	{
+		"#format"			"{1:d},{2:s},{3:N}"
+		"ru"				"Вы получили {1} {2} помощь в убийстве {3}"
+	}
+}

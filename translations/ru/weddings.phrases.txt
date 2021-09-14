@@ -1,0 +1,187 @@
+"Phrases"
+{
+	"status being checked"
+	{
+		"ru"			"Ваше супружеское положение проверяется, попробуйте позже."
+	}
+
+	"no singles on server"
+	{
+		"ru"			"В данный момент на сервере нет одиночек."
+	}
+	
+	"already proposed"
+	{	
+		"#format"		"{1:s}"
+		"ru"  			"Вы уже предложили игроку {green}{1}{default}!"
+	}
+	
+	"already married"
+	{	
+		"#format"		"{1:s}"
+		"ru"  			"Вы уже женаты на {green}{1}{default}!"
+	}
+	
+	"revoke info"
+	{	
+		"ru"  			"Напишите !revoke чтобы отменить ваше предложение."
+	}
+	
+	"divorce info"
+	{	
+		"ru"  			"Напишите !divorce для развода."
+	}
+	
+	"proposal revoked"
+	{	
+		"#format"		"{1:s}"
+		"ru"  			"Вы отменили свое предложение для {green}{1}{default}!"
+	}
+	
+	"not proposed"
+	{	
+		"ru"  			"Вы никому не предлагали."
+	}
+	
+	"not married"
+	{	
+		"ru"  			"Вы не женаты."
+	}
+	
+	"marriage info"
+	{	
+		"ru"  			"Напишите !marry чтобы просмотреть всех одиночек."
+	}
+	
+	"marriage revoked days"
+	{	
+		"#format"		"{1:s},{2:s},{3:i}"
+		"ru"  			"{green}{1}{default} развелся с {green}{2}{default} после {green}{3} дня{default} брака!"
+	}
+	
+	"marriage revoked months"
+	{	
+		"#format"		"{1:s},{2:s},{3:i}"
+		"ru"  			"{green}{1}{default} развелся с {green}{2}{default} после {green}{3} месяцев{default} брака!"
+	}
+	
+	"marriage revoked years"
+	{	
+		"#format"		"{1:s},{2:s},{3:i}"
+		"ru"  			"{green}{1}{default} развелся с {green}{2}{default} после {green}{3} лет{default} брака!"
+	}
+	
+	"divorce notification"
+	{	
+		"ru"  			"Они оба снова свободны!"
+	}
+	
+	"no proposals"
+	{	
+		"ru"  			"В настоящее время никто не предложил вам."
+	}
+	
+	"proposal notification"
+	{	
+		"#format"		"{1:s}"
+		"ru"  			"Вы получили предложение о браке от {green}{1}{default}!"
+	}
+	
+	"proposal info"
+	{	
+		"ru"  			"Напишите !proposals просмотреть всех игроков, которые предложили вам."
+	}
+
+	"submission info"
+	{	
+		"ru"  			"Ваше предложение было отправлено. Удачи!"
+	}
+	
+	"bidirectional proposal"
+	{
+		"#format"		"{1:s}"
+		"ru"			"{green}{1}{default} уже предложил вам!"
+	}
+	
+	"target not on server"
+	{	
+		"ru"  			"Ваша вторая половинка уже покинула сервер."
+	}
+	
+	"got married"
+	{	
+		"#format"		"{1:s}"
+		"ru"  			"Вы женились {green}{1}{default}!"
+	}
+	
+	"proposal accepted"
+	{	
+		"#format"		"{1:s}"
+		"ru"  			"{green}{1}{default} принял ваше предложение о браке!"
+	}
+	
+	"marriage notification"
+	{	
+		"#format"		"{1:s},{2:s}"
+		"ru"  			"{green}{1}{default} и {green}{2}{default} теперь женаты! Поздравляем!"
+	}
+	
+	"proposer not on server"
+	{	
+		"ru"  			"Ваша любовь сейчас не на сервере, вы должны подождать."
+	}
+	
+	"love already married"
+	{	
+		"ru"  			"Ваша любовь уже вышла замуж за кого-то другого."
+	}
+		
+	"!marry menu title"
+	{	
+		"ru"  			"Одиночек онлайн:"
+	}
+	
+	"!proposals menu title"
+	{	
+		"ru"  			"Принять предложение от:"
+	}
+	
+	"!couples menu title"
+	{	
+		"#format"		"{1:i}"
+		"ru"  			"Топ {1} пар:"
+	}
+	
+	"!couples menu entry"
+	{	
+		"#format"		"{1:s},{2:s},{3:s},{4:i}"
+		"ru"  			"{1} & {2} - {3} - {4} очков"
+	}
+	
+	"no couples"
+	{	
+		"ru"  			"На сервере нет зарегистрированных супружеских пар."
+	}
+	
+	"reset proposals"
+	{	
+		"ru"  			"Таблица weddings_proposals была успешно очищена."
+	}
+	
+	"reset marriages"
+	{	
+		"ru"  			"Таблица weddings_marriages была успешно очищена."
+	}
+	
+	"spam"
+	{	
+		"ru"  			"Уважайте брак, не злоупотребляй командами!"
+	}
+	
+	"delay info"
+	{	
+		"#format"		"{1:.2f}"
+		"ru"  			"Перезарядка команды команды {green}{1} мин.{default}."
+	}
+
+}

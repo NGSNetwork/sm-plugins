@@ -94,7 +94,7 @@ public void OnPluginStart()
 	RegAdminCmd("sm_cancelcrab", CommandCancelCrab, ADMFLAG_GENERIC, "Cancels the spycrab.");
 	RegAdminCmd("sm_reloadcrab", CommandReloadCrabConfig, ADMFLAG_GENERIC, "Reloads the map config file.");
 
-	mapNameContains = CreateConVar("sm_spycrab_config_contains", "1", "Whether map names in config will be checked partially or fully.");
+	mapNameContains = CreateConVar("spycrab_config_contains", "1", "Whether map names in config will be checked partially or fully.");
 	HookEvent("player_death", OnPlayerDeath);
 	HookEvent("player_disconnect", OnPlayerDisconnect, EventHookMode_Pre);
 
